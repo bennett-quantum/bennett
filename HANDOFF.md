@@ -42,7 +42,8 @@ vision (done) → design (ISA done; dialect next) → spikes → code.
 
 ```
 python3 tools/council.py selftest
-python3 tools/isa_check_precheck_example   # (none for the dialect spec yet — write one first)
+# precheck for the ISA: python3 ../bennett-isa-spec/reference-interpreter/isa_check.py
+# (the dialect spec has no precheck yet: write one that executes its examples before round 1)
 python3 tools/council.py prepare --run <run> --round N --doc <path> \
     --rubric docs/council/rubric-isa.md --context docs/Bennett-NorthStar.md \
     --subject "<one phrase>" [--precheck "<cmd that must exit 0>"]
@@ -78,7 +79,7 @@ caught by the council within a round. Write derivations out first.
 2. **Dialect spec draft** from north star §3, through the council.
 3. **`bennett-isa-spec`**: Rust reference interpreter from `isa_check.py`;
    suites B and C; C headers of §10/§11 compiled once (never done); file
-   the 3 members' round-8 suggestions (codex 5, see `round-8/out-*.json`)
+   the 16 round-8 suggestions (codex 5, muse 5, opus 6; `docs/council/isa-2026-10-28/round-8/out-*.json`, field `suggestions`)
    as the repo's first issues.
 4. **`bd init`** in each repo when its first code lands (CLAUDE.md rule
    7); until then open items live in HANDOFF/worklog.
