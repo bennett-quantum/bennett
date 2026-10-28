@@ -1,0 +1,79 @@
+# Bennett ecosystem manifest. pinned = commit/tag, empty until first release.
+
+[repos."bennett-dialect-spec"]
+path = "bennett-dialect-spec"
+language = "spec"
+depends_on = ["bennett-isa-spec"]
+pinned = ""
+
+[repos."bennett-isa-spec"]
+path = "bennett-isa-spec"
+language = "spec"
+depends_on = []
+pinned = ""
+
+[repos."bennett-sched"]
+path = "bennett-sched"
+language = "rust"
+depends_on = ["bennett-isa-spec"]
+pinned = ""
+
+[repos."bennett-plugin"]
+path = "bennett-plugin"
+language = "c++"
+depends_on = ["bennett-dialect-spec", "bennett-isa-spec", "bennett-sched"]
+pinned = ""
+
+[repos."bennett-driver"]
+path = "bennett-driver"
+language = "rust"
+depends_on = ["bennett-dialect-spec", "bennett-isa-spec", "bennett-plugin"]
+pinned = ""
+
+[repos."bennett-vm"]
+path = "bennett-vm"
+language = "rust"
+depends_on = ["bennett-isa-spec", "bennett-sched"]
+pinned = ""
+
+[repos."bennett-circuits"]
+path = "bennett-circuits"
+language = "rust"
+depends_on = ["bennett-isa-spec", "bennett-sched"]
+pinned = ""
+
+[repos."bennett-estimate"]
+path = "bennett-estimate"
+language = "rust"
+depends_on = ["bennett-isa-spec"]
+pinned = ""
+
+[repos."bennett-targets"]
+path = "bennett-targets"
+language = "data"
+depends_on = ["bennett-isa-spec"]
+pinned = ""
+
+[repos."bennett-runtimes"]
+path = "bennett-runtimes"
+language = "c"
+depends_on = ["bennett-dialect-spec", "bennett-driver"]
+pinned = ""
+
+[repos."bennett-arith"]
+path = "bennett-arith"
+language = "mixed"
+depends_on = ["bennett-dialect-spec", "bennett-driver"]
+pinned = ""
+
+[repos."Bennett.jl"]
+path = "Bennett.jl"
+language = "julia"
+depends_on = ["bennett-driver", "bennett-isa-spec"]
+pinned = ""
+
+[repos."bennett-conformance"]
+path = "bennett-conformance"
+language = "rust"
+depends_on = ["bennett-dialect-spec", "bennett-isa-spec", "bennett-sched", "bennett-plugin", "bennett-driver", "bennett-vm", "bennett-circuits", "bennett-estimate", "bennett-targets", "bennett-runtimes", "bennett-arith", "Bennett.jl"]
+pinned = ""
