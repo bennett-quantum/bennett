@@ -31,3 +31,9 @@ Machine-readable form: `manifest.toml`. Clone everything: `BENNETT_REMOTE_BASE=<
 specs -> sched / vm / circuits / estimate / targets -> plugin -> driver -> runtimes / arith -> Bennett.jl -> conformance
 
 Source of truth: Bennett-NorthStar.md section 6.1 (currently in the Bennett.jl repo).
+
+## Documents and process
+
+- `docs/Bennett-NorthStar.md` — the vision (iteration 7, council consensus 2026-10-28). Change only with a reason that would survive the council.
+- The ISA specification lives in `bennett-isa-spec/spec/Bennett-ISA-Spec.md` (draft 0.8, accepted by the council 2026-10-28, round 8).
+- `tools/council.py` + `docs/council/` — the three-model review council (codex / muse / opus), its rubrics (`rubric.md` for visions, `rubric-isa.md` for specs), process (`docs/council/README.md`) and every graded round of both documents. Any revision of a published contract goes back through it.

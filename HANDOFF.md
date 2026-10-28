@@ -1,5 +1,5 @@
-State: skeleton only (2026-10-28); no implementation. 
-Next: Fill manifest.toml pins at first release; move north star, ISA spec draft and council tooling here on consensus.
-Blockers: ISA spec (Bennett.jl/Bennett-ISA-Spec.md draft 0.3) still under council review.
-Local only: no remote configured, nothing pushed.
+State: skeleton + documents (2026-10-28). North star (consensus) and council tooling/records live here; the ISA spec (draft 0.8, council-accepted) lives in bennett-isa-spec/spec/.
+Next: fill manifest.toml pins at first release; bd init when the first code lands; dialect spec draft (north star section 9 ordering: legality spike first) reviewed through tools/council.py.
+Blockers: none on documents. Implementation not started anywhere.
+Remote: github.com/bennett-quantum/bennett (pushed).
 See worklog/001_2026-10-28_bootstrap.md.
