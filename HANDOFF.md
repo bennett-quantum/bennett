@@ -88,8 +88,7 @@ caught by the council within a round. Write derivations out first.
    Julia quantum language) starts in that repo; BennettVM.jl archive
    read-only when the maintainer says so; `bd dolt push --force` for the
    flattened beads history (maintainer); bead v4iy (ULP wording) pending.
-6. North star §7 landscape table: codex asked for a sourced feature
-   comparison instead of categorical negatives (S1).
+6. North star §7 landscape: **amendment A1 drafted** (`docs/council/northstar-amendments/A1-…md`): sourced comparison on control flow under one budget, clause (e) in "What is new", one §4.2 sentence. Apply surgically as iteration 8 and run `northstar-2026-10-28` round 7 when the maintainer says go.
 
 ## Facts worth not re-deriving
 
