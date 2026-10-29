@@ -34,6 +34,7 @@ Nothing known makes any rung impossible. Open risks:
 | R4 | Measurement-based uncomputation under control (north star §9.6) | research | open; unitary uncomputation is the stated fallback |
 | R5 | Step-machine cost on SQLite-sized closures (dispatch over every row per step) | performance | rung 4 (a)/(b) use branch enumeration and avoid it; (c) estimates need structure recovery (ISA open item I2) |
 | R6 | ISA "settled" while R3 may require ISA 0.9 | maintainer decision | ISA I1–I8 already filed |
+| R7 | Codex content filter on security-adjacent work (rung 7 is kernel fuzzing; the legality harness was stopped once) | tooling | assume no Daybreak access (maintainer, 2026-10-29). Mitigation: `tools/codex_job.py` resume/fresh-session recovery, neutral engineering wording in briefs, and security-adjacent workstreams (rung 7 oracle, sanitiser-style harnesses) run on Claude agents rather than codex |
 | P1 | Pre-flight checking limited to the scalar subset | process | fixed by phase 1 |
 
 Facts checked in ISA 0.8 for this plan: run-time budgets exist through the launch
