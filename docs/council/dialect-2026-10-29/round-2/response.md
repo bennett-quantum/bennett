@@ -70,7 +70,7 @@ ISA grading target remains 0.8. No declines. Derivations below precede each edit
 - Section: TDL-2.
 - Hand derivation: Parent speculative store gives t=9 before child generation; delayed application does not mean the child sees entry shadow 0.
 - Text now: Nested ctrl/adj/compute inherit visible classical recorder updates in order; outer control is added at composition; siblings remain isolated.
-- Witness: `nested-cl-view`. Checker: state/native + Rust run-action.
+- Witness: `nested-cl-view` state and checked TDL event list. Checker: state/native + Rust run-action.
 
 ## BD3-1 — resolved
 
@@ -136,4 +136,17 @@ ISA grading target remains 0.8. No declines. Derivations below precede each edit
 - Witness: deferred-channel-adj Checker: state/Rust run-action.
 
 The BD3-5 finite-bound refinement is optional follow-up for the maintainer, b-dialect-spec-egm. The normative conservative default and its fallback are resolved in this pass. ISA-7 remains the external dependency b-dialect-spec-bz6; no ISA source was edited. No declines or partial resolutions.
+
+## Regression/editorial identity mapping
+
+`REG-SOL-TDL9` = sol regressions[0]; `REG-CODEX-N27` = codex regressions[0];
+`REG-MUSE-7.7` = muse regressions[0]. `E-MUSE-7.7` records the same obsolete
+note as an editorial item; `E-MUSE-TERM` = muse regressions[1]/suggestions[0].
+This accounts for all 14 S0 ids, three regression reports and both editorial items.
+
+Implementation commits: f868741 (normalisation/memory), 2fa3460 (action lifecycle),
+a9e9563 (R-entry/instance-bound classification). Response commits ff50287, c7719d7,
+446548d. Final consistency fixes preserve N27's canonical abs compare/sub/select
+expansion, explicitly cross-reference BLK-5 from §1.6 and execute the nested event
+list. Allocator microvectors rebuild private allocator state by replaying sizes.
 
