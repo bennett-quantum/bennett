@@ -84,3 +84,18 @@ Witness handle-setjmp-interproc: parse/recognise/blocker plus state/native clang
 live-after=0, trap=0. Removing setjmp keeps the ordinary finite-bound accept case.
 This is a passing named-blocker verdict, not a claim that ISA 0.8 gained dynamic
 lookup. No decline or partial; existing dependency remains external.
+
+## SOL-R3-02 — resolved (theme E)
+
+Sections: §17.3, §16.4 memory rows, §8.5 replay (implements §17.1). Hand
+derivation: the backing allocation survives pop, so ISA physical boundscheck
+alone accepts the stale pointer. Add logical base/extent/live validation before
+every program access, including non-coh stack pointers, and charge helper rows.
+Push/pop/restore update logical ranges; explicit restricted internal accesses
+serve bookkeeping and replay. Both builds share the checks; entry replay includes
+logical metadata and invalidates its cache on mutations. Witness shadow-stack-liveness
+executes native push/store/pop/return/load (0/code 7), live load (7/code 0),
+spanning/padding/restore/wrap failures, mutation gating and live metadata replay.
+State also executes an independently checked Rust run-oracle object calling an
+ordinary lproc helper with run-time frame metadata before its physical access.
+Red absent adapter, then green result-mutation test. No ISA gap, decline or partial.
