@@ -284,3 +284,49 @@ Dialect commits by group: `25b52ea` (normalisation), `5186b42` (TDL), `bf9a5f3`
 (interfaces/objects), `40a4962` (R/platform), followed by the final consistency/validation
 commit containing this report's companion progress update. Response commits:
 `a75a35d`, `202b65b`, `6dbbad9`, `aa73a5a`, followed by this final report commit.
+
+## Post-round editor notes
+
+### V10 / b-dialect-spec-7u1 — resolved (2026-10-29)
+
+Both readings were re-derived before editing. Literal V10 accepts the old half
+load/bitcast witness but rejects fneg half; it also excludes retained fabs/
+copysign and extended-format call/return/aggregate transport. That narrows the
+capability promised by NS §3.2 and already specified by §13.1, §13.3 and §16.
+The other reading preserves those forms for all seven formats while still
+requiring N32/N33 to rewrite arithmetic, comparison and conversion. Rule 10
+selects it; no maintainer choice between two non-narrowing alternatives remains.
+
+Deciding sentence: **V10 must permit every bit-exact operation retained by §13.1
+and every carrier transport admitted by §16, for all seven floating-point formats.**
+
+Hand derivation: fneg half transforms carrier b to b xor 0x8000; NaN payload and
+quiet/signaling bits survive. This agrees with the
+[LLVM 18 fneg semantics](https://releases.llvm.org/18.1.8/docs/LangRef.html#fneg-instruction)
+and [LLVM 20 bit-operation semantics](https://releases.llvm.org/20.1.0/docs/LangRef.html#behavior-of-floating-point-nan-values).
+Residual fadd half, by contrast, must become __bennett_sf_add_f16 on i16 carriers.
+
+Surgical change: V10 now exempts all eight §13.1 retained forms and §16 carrier
+transport (parameters, call arguments/results, ret, insertvalue, extractvalue),
+with calls still subject to V4/V9/V12. validator-v10-clean now contains fneg half;
+validator-v10-residue contains fadd half instead, retaining its rejection verdict.
+New indexed validator-v10-carriers covers retained fabs/copysign and defined-call/
+return/aggregate transport. §13.1 and the lifting map themselves are unchanged.
+Appendix B records resolution; no example or expected result was weakened to
+match the checker. Full dialect and norm advance to 0.2.2 under spec/README.md
+and §23; map stays 0.2.1, ISA stays 0.8, and objects/hashes are unchanged.
+
+Validation: all 190 tagged LLVM blocks verify on 18/20/23 (570/570); three V10
+verdicts agree with the checker; supplemental seven-format retained/transport
+versus fadd probes pass and verify on all three majors (42/42); LLVM folds ten
+half sign-bit vectors per major including NaNs (30/30); current 0.2 xrefs pass
+1310/1310. The legacy 0.1 xref helper's seven errors reproduce on e74d70c.
+
+Only the three assigned documents were edited. The full preflight writes under
+checker-owned scripts/.tmp and may build scripts/.isa-ref, so this editor used
+read-only imports and LLVM stdin/stdout checks instead. **b-dialect-spec-bvy**
+records the owner follow-up to synchronize SPEC_VERSIONS.toml and checker version
+handling to 0.2.2, then run the full gate. No full-green claim or push; the council
+should review this capability-preserving correction next round.
+
+Spec/progress commit: `976e4bb83feafe3d6fcb2b9ef25118a2aeb350de`.
