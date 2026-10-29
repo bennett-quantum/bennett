@@ -72,6 +72,14 @@ caught by the council within a round. Write derivations out first.
 
 ## Open items, in order
 
+**Start here (2026-10-29): `docs/plan/2026-10-29-path-to-north-star.md`** — the plan to
+the north star, its real blockers (R1–R6), phases 0–6, and the standing rule that **no
+narrowing of north-star scope is accepted** (Grover over unmodified SQLite is the core
+value proposition). The legality spike is done
+(`../bennett-dialect-spec/docs/spikes/2026-10-28-legality-findings.md`); dialect draft
+0.1 exists but is under audit for narrowings and is not for the council. The items
+below predate the plan; the plan's phase order supersedes them where they conflict.
+
 0. **Read `../bennett-isa-spec/docs/notes/2026-10-28-budgets-loops-variable-time.md`** before touching budgets, loops or the step machine: the two Collatz problems (R-tier per-input trace vs Q-tier one circuit), the wrapper pattern, and the reading of Jeffery et al. arXiv:2605.07518 (loop composition, variable-time search). It files open items I1–I8 in bennett-isa-spec's worklog; I5 (idle steps as identities) and I1 (pebbled realisations) are the first candidates for an ISA 0.9 council round.
 1. **Legality spike** (dialect): the gate on freezing the dialect spec.
    Build the marker corpus in `bennett-dialect-spec/corpus/`, run it
