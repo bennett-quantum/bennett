@@ -99,3 +99,18 @@ spanning/padding/restore/wrap failures, mutation gating and live metadata replay
 State also executes an independently checked Rust run-oracle object calling an
 ordinary lproc helper with run-time frame metadata before its physical access.
 Red absent adapter, then green result-mutation test. No ISA gap, decline or partial.
+
+## SOL-R3-03 — resolved (theme F)
+
+Sections: §6.1/6.3/6.5, §18.3 T-DEAD. Hand derivation: N(s)=1 proves
+nonoverlapping storage use, not that the first allocation's saved tag denotes the
+second allocation. The static file now stores a current generation tag/live bit
+per slot; fresh-tag allocation changes identity, stale copies retain the retired
+identity, dispatch validates both generation and liveness before mutation, and
+equality compares allocation identities. No reuse while stale copies remain
+observable, including no wrap onto such a generation. This is ordinary CC state,
+not a new quantum instruction. Witness handle-stale-generation remains accepted
+and has recogniser-derived N(s)=1. State executes its original LLVM through native
+generation-tag marker dispatch on clang 18/23: old!=new, first old gate traps 4,
+second register stays 0, fault cleanup leaves no live slot. The second gate never
+executes. Red absent adapter, then green result-mutation test. No decline or partial.
