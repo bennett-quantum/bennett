@@ -1,7 +1,7 @@
 # The council
 
-A loop in which three models from three providers grade a document against
-`docs/council/rubric.md`, the maintainer's editor (a Claude Code session)
+A loop in which three models grade a document against
+`docs/council/rubric.md`, the maintainer's editor
 revises the document on their blocking issues, and the loop repeats until
 every member accepts, or three rounds have run. The loop shape is borrowed
 from the `council` skill in t3dotgg/tstack ("gets review from three models
@@ -15,13 +15,52 @@ Scores are advisory. The maintainer decides.
 
 | Member | Call | Notes |
 |---|---|---|
-| Codex `gpt-6-astra`, reasoning `xhigh` | `codex exec -m gpt-6-astra -c model_reasoning_effort=xhigh -s read-only --ephemeral --output-schema … -o …` | stdin must be closed (`< /dev/null`) or codex waits on it forever. Run from the repo so the read-only sandbox can read it. |
+| Sol (`sol`) `gpt-6.1-sol`, reasoning `xhigh` | `codex exec -m gpt-6.1-sol -c model_reasoning_effort=xhigh -s read-only --ephemeral --output-schema … -o …` | Substitutes for the Opus/Fable seat in the current council. Same CLI construction as `codex`; the prompt goes on stdin. |
+| Codex (`codex`) `gpt-6-astra`, reasoning `xhigh` | `codex exec -m gpt-6-astra -c model_reasoning_effort=xhigh -s read-only --ephemeral --output-schema … -o …` | The runner sends the prompt on stdin and closes it. Run from the repo so the read-only sandbox can read it. |
 | Muse `muse-wonder-full-1.0`, reasoning `high` | `muse exec --model muse-wonder-full-1.0 --reasoning-effort high --output-schema … --prompt-file …` | Prints status lines before the JSON; the runner takes the last JSON object. |
-| Claude Opus 5.5 | `claude -p --model opus --output-format json --json-schema … --allowedTools Read Grep Glob` with the prompt on stdin | Nested inside a Claude Code session, so the runner unsets `CLAUDECODE*` in the child's environment. The prompt goes on stdin because `--allowedTools` is variadic and swallows a trailing prompt argument. |
+| Claude Opus 5.5 (`opus`, legacy) | `claude -p --model opus --output-format json --json-schema … --allowedTools Read Grep Glob` with the prompt on stdin | Nested inside a Claude Code session, so the runner unsets `CLAUDECODE*` in the child's environment. The prompt goes on stdin because `--allowedTools` is variadic and swallows a trailing prompt argument. |
+| Claude Fable (`fable`, legacy) | `claude -p --model fable --output-format json --json-schema … --allowedTools …` with the prompt on stdin | Also permits the existing implementation-review test commands. |
 
 Each member may read the repository (read-only) to check the document's
 claims; the document itself is embedded verbatim in the prompt so a member
 that reads nothing still grades the right text.
+
+### Members run as T3 subagents
+
+The current council is `sol,codex,muse`. An orchestrator launches one T3 Code
+subagent per member using the model and reasoning effort above. `council.py`
+prepares and collects their work; the orchestrator does not invoke `run`.
+The CLI calls in the table remain available for legacy subprocess rounds;
+the default member list is unchanged, so pass `--members sol,codex,muse`.
+
+Use this sequence (set `repo` to the absolute checkout path):
+
+```sh
+repo=/absolute/path/to/bennett
+mkdir -p "$repo/.tmp"
+unset DISPLAY WAYLAND_DISPLAY DBUS_SESSION_BUS_ADDRESS BROWSER
+export TMPDIR="$repo/.tmp"
+python3 "$repo/tools/council.py" prepare --run external-review --round 1 \
+        --doc "$repo/docs/Bennett-NorthStar.md" --members sol,codex,muse --cwd "$repo"
+python3 "$repo/tools/council.py" prompt-path --run external-review --round 1
+# Line 1 is the absolute prompt.md path; line 2 is the subagents' cwd.
+# Orchestrator: launch one T3 Code subagent each for sol, codex and muse.
+# Give each prompt.md and the adjacent schema.json, using the printed cwd.
+# Tell each to review read-only and write only its JSON result to its own file:
+# sol -> $TMPDIR/sol.json; codex -> $TMPDIR/codex.json; muse -> $TMPDIR/muse.json.
+# Wait for all three files, then collect sequentially:
+python3 "$repo/tools/council.py" collect --run external-review --round 1 --member sol --file "$TMPDIR/sol.json"
+python3 "$repo/tools/council.py" collect --run external-review --round 1 --member codex --file "$TMPDIR/codex.json"
+python3 "$repo/tools/council.py" collect --run external-review --round 1 --member muse --file "$TMPDIR/muse.json"
+python3 "$repo/tools/council.py" aggregate --run external-review --round 1
+```
+
+`collect` uses the same output parser and validation as `run`, including the
+round's saved `schema.json`. Each collection records `raw-<member>-<attempt>.txt`
+with an external-source note, atomically publishes valid `out-<member>.json`,
+and updates `state.json` (start time from the source file's mtime, elapsed
+seconds to collection, update time now). Invalid input fails loudly and is
+recorded as a failed attempt; any previously valid output remains intact.
 
 ## Resumability
 

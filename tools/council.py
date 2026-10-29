@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Council runner: three models from three providers grade a document
+"""Council runner: three models grade a document
 against docs/council/rubric.md until they all accept (max rounds decided by
 the caller). Resumable: all state lives under docs/council/<run>/round-<N>/
 in the repository; every command is safe to re-run.
 
   selftest
-  prepare   --run R --round N --doc PATH [--force] [--members codex,muse,fable]
+  prepare   --run R --round N --doc PATH [--force] [--members sol,codex,muse]
             [--task FILE] [--cwd DIR] [--context ...] [--precheck CMD]
-  run       --run R --round N [--member codex|muse|opus|fable ...] [--dry-run]
+  run       --run R --round N [--member sol|codex|muse|opus|fable ...] [--dry-run]
             [--timeout SEC] [--attempts K]
+  prompt-path --run R --round N
+  collect   --run R --round N --member M --file PATH
   status    --run R
   aggregate --run R --round N
 """
@@ -29,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 COUNCIL = ROOT / "docs" / "council"
 RUBRIC = COUNCIL / "rubric.md"
 CRITERIA = [f"C{i}" for i in range(1, 9)]
-MEMBERS = ("codex", "muse", "opus", "fable")  # known members; a run names its own subset
+MEMBERS = ("codex", "muse", "opus", "fable", "sol")  # known members; a run names its own subset
 VERDICTS = ("accept", "revise", "reject")
 BACKOFF = (60, 180, 420)
 
@@ -108,11 +110,43 @@ def validate(r):
         errs.append("summary missing")
     if not isinstance(r.get("path_to_accept"), str):
         errs.append("path_to_accept missing")
-    for b in (r.get("blocking") or []):
+    for b in (bl if isinstance(bl, list) else []):
         if isinstance(b, dict) and "scope" in b and b["scope"] not in ("core", "contract"):
             errs.append(f"blocking scope {b['scope']!r}")
     if "verdict_core" in r and r["verdict_core"] not in VERDICTS:
         errs.append("verdict_core invalid")
+    return errs
+
+
+def schema_errors(value, sch, path="$"):
+    """Check the JSON-schema subset emitted by schema(), without dependencies."""
+    kind = sch["type"]
+    matches = {"object": isinstance(value, dict), "array": isinstance(value, list),
+               "string": isinstance(value, str),
+               "integer": isinstance(value, int) and not isinstance(value, bool)}
+    if not matches[kind]:
+        return [f"{path}: expected {kind}"]
+    errs = []
+    if "enum" in sch and value not in sch["enum"]:
+        errs.append(f"{path}: {value!r} not in {sch['enum']!r}")
+    if kind == "object":
+        for key in sch.get("required", []):
+            if key not in value:
+                errs.append(f"{path}.{key}: required")
+        props = sch.get("properties", {})
+        for key, item in value.items():
+            if key in props:
+                errs.extend(schema_errors(item, props[key], f"{path}.{key}"))
+            elif sch.get("additionalProperties") is False:
+                errs.append(f"{path}.{key}: additional property")
+    elif kind == "array":
+        if len(value) < sch.get("minItems", 0) or len(value) > sch.get("maxItems", float("inf")):
+            errs.append(f"{path}: invalid item count {len(value)}")
+        for i, item in enumerate(value):
+            errs.extend(schema_errors(item, sch["items"], f"{path}[{i}]"))
+    elif kind == "integer":
+        if value < sch.get("minimum", -float("inf")) or value > sch.get("maximum", float("inf")):
+            errs.append(f"{path}: {value} outside schema bounds")
     return errs
 
 
@@ -347,8 +381,8 @@ def member_cmd(m, rdir, cwd=None):
     out = rdir / f"out-{m}.json"
     env = dict(os.environ)
     stdin = subprocess.DEVNULL
-    if m == "codex":
-        cmd = ["codex", "exec", "-m", "gpt-6-astra",
+    if m in ("sol", "codex"):
+        cmd = ["codex", "exec", "-m", "gpt-6.1-sol" if m == "sol" else "gpt-6-astra",
                "-c", "model_reasoning_effort=xhigh", "-s", "read-only",
                "--ephemeral", "--skip-git-repo-check",
                "--output-schema", str(sch), "-o", str(out), "--", "-"]
@@ -377,7 +411,7 @@ def member_cmd(m, rdir, cwd=None):
 
 
 def parse_member_output(m, stdout, out):
-    if m == "codex":
+    if m in ("sol", "codex"):
         if out.exists():
             return extract_json(out.read_text(encoding="utf-8"))
         return extract_json(stdout)
@@ -390,6 +424,15 @@ def parse_member_output(m, stdout, out):
             return extract_json(obj.get("result") or "") or obj
         return obj
     return extract_json(stdout)
+
+
+def member_result(m, stdout, out, rdir):
+    """The same parsing and validation for subprocess and external members."""
+    obj = parse_member_output(m, stdout, out)
+    errs = validate(obj) if obj is not None else ["no JSON object in output"]
+    if not errs:
+        errs = schema_errors(obj, json.loads((rdir / "schema.json").read_text()))
+    return obj, errs
 
 
 def run_member(m, rdir, st, timeout, attempts, dry):
@@ -417,8 +460,7 @@ def run_member(m, rdir, st, timeout, attempts, dry):
         secs = round(time.time() - t0)
         atomic_write(rdir / f"raw-{m}-{k + 1}.txt",
                      f"exit {rc} in {secs}s\n--stdout--\n{so}\n--stderr--\n{se}")
-        obj = parse_member_output(m, so, out) if rc == 0 else None
-        errs = validate(obj) if obj is not None else ["no JSON object in output"]
+        obj, errs = member_result(m, so, out, rdir) if rc == 0 else (None, ["no JSON object in output"])
         if rc == 0 and not errs:
             atomic_write(out, json.dumps(obj, indent=1))
             st.update(m, status="done", exit=rc, seconds=secs)
@@ -465,6 +507,47 @@ def run_cmd(a):
         print(f"INCOMPLETE: {missing}; re-run `run` to retry")
         sys.exit(2)
     print("all members done")
+
+
+# --------------------------------------------------------- external members
+
+def prepared_round(a):
+    rdir = round_dir(a.run, a.round)
+    if not all((rdir / name).is_file() for name in ("state.json", "prompt.md", "schema.json")):
+        sys.exit(f"{rdir} not prepared")
+    return rdir
+
+
+def prompt_path_cmd(a):
+    rdir = prepared_round(a)
+    print((rdir / "prompt.md").resolve())
+    print(run_cwd(rdir))
+
+
+def collect_cmd(a):
+    rdir = prepared_round(a)
+    m = a.member
+    if m not in run_members(rdir):
+        sys.exit(f"{m}: not a member of {rdir}")
+    source = Path(a.file)
+    raw = source.read_text(encoding="utf-8")
+    mtime = source.stat().st_mtime
+    started = dt.datetime.fromtimestamp(mtime, dt.timezone.utc).isoformat(timespec="seconds")
+    secs = max(0, round(time.time() - mtime))
+    st = State(rdir)
+    k = st.d.get("members", {}).get(m, {}).get("attempts", 0) + 1
+    atomic_write(rdir / f"raw-{m}-{k}.txt",
+                 f"exit 0 in {secs}s\n--stdout--\n{raw}\n--stderr--\n"
+                 f"collected externally from {source.resolve()}")
+    # Pass the supplied file, not any existing canonical output, to the codex parser.
+    obj, errs = member_result(m, raw, source, rdir)
+    if errs:
+        st.update(m, status="failed", attempts=k, started=started, exit=0,
+                  seconds=secs, errors=errs[:5])
+        sys.exit(f"[{m}] attempt {k} failed (exit 0, {secs}s): {errs[:3]}")
+    atomic_write(rdir / f"out-{m}.json", json.dumps(obj, indent=1))
+    st.update(m, status="done", attempts=k, started=started, exit=0, seconds=secs, errors=[])
+    print(f"[{m}] done in {secs}s (attempt {k}; collected externally)")
 
 
 # ---------------------------------------------------------------- status
@@ -574,6 +657,10 @@ def aggregate_cmd(a):
 # -------------------------------------------------------------- selftest
 
 def selftest():
+    import contextlib
+    import io
+    from unittest.mock import patch
+
     good = {"criteria": [{"id": c, "score": 3, "evidence": "e", "change": "c"}
                          for c in CRITERIA],
             "blocking": [], "suggestions": ["s"], "verdict": "accept", "summary": "ok",
@@ -599,12 +686,15 @@ def selftest():
         atomic_write(rdir / "schema.json", json.dumps(sch))
         for m in MEMBERS:
             cmd, env, stdin, out = member_cmd(m, rdir)
-            assert cmd[0] == m if m not in ("opus", "fable") else cmd[0] == "claude", cmd
+            executable = "claude" if m in ("opus", "fable") else "codex" if m == "sol" else m
+            assert cmd[0] == executable, cmd
             if m in ("opus", "fable"):
                 assert not any(k.startswith("CLAUDE_CODE_") or k == "CLAUDECODE" for k in env)
                 assert "--allowedTools" in cmd and cmd[-1] != "p", "prompt must go on stdin"
-            if m == "codex":
+            if m in ("sol", "codex"):
                 assert cmd[-1] == "-" and stdin is not subprocess.DEVNULL
+                assert cmd[cmd.index("-m") + 1] == ("gpt-6.1-sol" if m == "sol" else "gpt-6-astra")
+                assert "model_reasoning_effort=xhigh" in cmd
             if stdin is not subprocess.DEVNULL:
                 stdin.close()
         st = State(rdir)
@@ -624,6 +714,88 @@ def selftest():
         tf = rdir / "task.md"; atomic_write(tf, "task for SUBJECT")
         pr = build_prompt("DOC", "r", 1, subject="X", rubric=str(RUBRIC), task_file=str(tf))
         assert "task for X" in pr and "Convergence rules for this council" not in pr
+    # Exercise the public CLI without launching models or touching real council rounds.
+    with tempfile.TemporaryDirectory() as td, patch(__name__ + ".COUNCIL", Path(td)):
+        def cli(*args, error=None):
+            output = io.StringIO()
+            with patch.object(sys, "argv", [str(Path(__file__).resolve()), *args]), \
+                    contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                try:
+                    main()
+                except SystemExit as e:
+                    if error is None:
+                        raise
+                    assert e.code != 0, e.code
+                    message = output.getvalue() + str(e.code)
+                    assert error in message, message
+                else:
+                    assert error is None, f"expected failure: {error}"
+            return output.getvalue()
+
+        doc = Path(td) / "fixture.md"
+        atomic_write(doc, "Council fixture document")
+        cli("prepare", "--run", "external", "--round", "1", "--doc", str(doc),
+            "--members", "sol,codex,muse", "--cwd", td)
+        rdir = round_dir("external", 1)
+        common = ("--run", "external", "--round", "1")
+        assert cli("prompt-path", *common).splitlines() == [str(rdir / "prompt.md"), td]
+        assert run_members(rdir) == ("sol", "codex", "muse")
+        cli("run", *common, "--dry-run")
+        source = Path(td) / "member.json"
+        for m in ("sol", "codex", "muse"):
+            raw = "member status\n" + json.dumps(good) + "\nfinished\n"
+            atomic_write(source, raw)
+            os.utime(source, (1_700_000_000, 1_700_000_000))
+            cli("collect", *common, "--member", m, "--file", str(source))
+            assert json.loads((rdir / f"out-{m}.json").read_text()) == good
+            record = (rdir / f"raw-{m}-1.txt").read_text()
+            assert raw in record and "collected externally" in record, record
+            state = State(rdir).d["members"][m]
+            assert state["status"] == "done" and state["attempts"] == 1, state
+            assert state["exit"] == 0 and state["seconds"] >= 0 and state["updated"], state
+            assert dt.datetime.fromisoformat(state["started"]).timestamp() == source.stat().st_mtime
+        cli("aggregate", *common)
+        consensus = json.loads((rdir / "consensus.json").read_text())
+        assert consensus["agree"] and consensus["core_agree"], consensus
+        assert consensus["members"] == ["sol", "codex", "muse"], consensus
+        assert "sol" in (rdir / "report.md").read_text()
+        # Reject schema violations, including ones the legacy semantic checks miss.
+        invalid = json.loads(json.dumps(good))
+        invalid["criteria"][0]["score"] = 6
+        atomic_write(source, json.dumps(invalid))
+        cli("collect", *common, "--member", "sol", "--file", str(source), error="outside 1-5")
+        assert State(rdir).d["members"]["sol"]["status"] == "failed"
+        assert (rdir / "raw-sol-2.txt").exists()
+        assert json.loads((rdir / "out-sol.json").read_text()) == good
+        for field, value in (("previous_status", "invalid"), ("regressions", [3]),
+                             ("blocking", 1), ("unexpected", True)):
+            atomic_write(source, json.dumps(dict(good, **{field: value})))
+            cli("collect", *common, "--member", "sol", "--file", str(source), error=field)
+        # The saved schema, rather than a fresh schema(), is authoritative.
+        saved_schema = json.loads(json.dumps(sch))
+        saved_schema["properties"]["summary"]["enum"] = ["round-specific summary"]
+        atomic_write(rdir / "schema.json", json.dumps(saved_schema))
+        atomic_write(source, json.dumps(good))
+        cli("collect", *common, "--member", "sol", "--file", str(source), error="summary")
+        external_errors = State(rdir).d["members"]["sol"]["errors"]
+        # A subprocess returning the same text must report the same validation errors.
+        with patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 0, source.read_text(), "")), \
+                contextlib.redirect_stdout(io.StringIO()):
+            run_member("muse", rdir, State(rdir), timeout=1, attempts=1, dry=False)
+        assert State(rdir).d["members"]["muse"]["errors"] == external_errors
+        atomic_write(rdir / "schema.json", json.dumps(sch))
+        atomic_write(source, "not JSON")
+        cli("collect", *common, "--member", "sol", "--file", str(source), error="no JSON object in output")
+        cli("collect", *common, "--member", "unknown", "--file", str(source), error="invalid choice")
+        cli("collect", *common, "--member", "fable", "--file", str(source), error="not a member")
+        missing = ("--run", "missing", "--round", "1")
+        cli("collect", *missing, "--member", "sol", "--file", str(source), error="not prepared")
+        cli("prompt-path", *missing, error="not prepared")
+        assert not round_dir("missing", 1).exists()
+        atomic_write(source, json.dumps(good))
+        for m in ("sol", "muse"):
+            cli("collect", *common, "--member", m, "--file", str(source))
+            assert State(rdir).d["members"][m]["errors"] == []
     print("selftest ok")
 
 
@@ -653,6 +825,14 @@ def main():
     r.add_argument("--dry-run", action="store_true")
     r.add_argument("--timeout", type=int, default=3600)
     r.add_argument("--attempts", type=int, default=4)
+    c = sub.add_parser("collect")
+    c.add_argument("--run", required=True)
+    c.add_argument("--round", type=int, required=True)
+    c.add_argument("--member", required=True, choices=MEMBERS)
+    c.add_argument("--file", required=True, help="member output supplied by an external subagent")
+    pp = sub.add_parser("prompt-path")
+    pp.add_argument("--run", required=True)
+    pp.add_argument("--round", type=int, required=True)
     s = sub.add_parser("status")
     s.add_argument("--run", required=True)
     g = sub.add_parser("aggregate")
@@ -660,6 +840,7 @@ def main():
     g.add_argument("--round", type=int, required=True)
     a = ap.parse_args()
     {"selftest": lambda a: selftest(), "prepare": prepare, "run": run_cmd,
+     "collect": collect_cmd, "prompt-path": prompt_path_cmd,
      "status": status_cmd, "aggregate": aggregate_cmd}[a.cmd](a)
 
 
