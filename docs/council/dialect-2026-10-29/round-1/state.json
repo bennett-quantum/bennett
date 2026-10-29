@@ -1,0 +1,22 @@
+{
+ "run": "dialect-2026-10-29",
+ "round": 1,
+ "doc": "../bennett-dialect-spec/spec/Bennett-Dialect-Spec.md",
+ "doc_sha256": "64ec2d0fd436b6be97efad070ea6fc6978f7ce3ff0df7bb6a442a83ff485e03b",
+ "prepared": "2026-10-29T10:50:15+00:00",
+ "members": {},
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "the Bennett LLVM dialect specification draft 0.2 (the bennett-dialect-spec contract of the north star, section 3 and 6.1), rewritten from the ratified outline after draft 0.1 was rejected for narrowing north-star scope; graded against ISA 0.8 with blocked verdicts for the four named ISA gaps",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-dialect-spec/spec/Bennett-Dialect-Spec-0.2.PROGRESS.md"
+ ],
+ "member_list": [
+  "fable",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-dialect-spec"
+}
