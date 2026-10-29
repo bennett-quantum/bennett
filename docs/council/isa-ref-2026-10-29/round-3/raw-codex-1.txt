@@ -1,0 +1,169 @@
+exit 0 in 22s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "The round-2 canonical memory suffix, icmp type, qif stack, qjumpr successor and tuple-boundary fixes are present and their tests pass. However, validate_matched_oracle_calls accepts an input write performed by another oracle invocation (R3-B01), and borrow::Compiler rejects the valid local-region adjoint in R3-B03.",
+      "change": "In src/call_discipline.rs::validate_matched_oracle_calls, model implicit oracle target/fault writes when invalidating outstanding input identities, as specified in R3-B01; add its six-row negative and five-row positive to tests/r1_rules.rs."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "identity.rs and linking.rs implement the envelope, import fingerprints/pins, SCC substitution and composition. Independently assembled inc8 envelope bytes hash to 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. The four published hash/envelope tests, fixture audits, SCC and linking tests pass. No identity defect found.",
+      "change": "No semantic correction required. Preserve identity.rs::envelope and tests/identity.rs::all_four_published_hashes_and_printed_envelopes against §9.2, \"every part ends with LF\", and the four §16.3 hashes. Optional documentation improvement: reference-interpreter/README.md should map each envelope part to its handler and existing byte-equality assertion."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "oracle.rs::run_oracle_vectors has dispatch for every §4.2 row. Hand execution gives inc8(255), B=3 -> (0,0,3); inc8(8), B=2 -> (0,1,2); B=0 -> (0,1,0). sum_db(0) requires ten rows and sixteen stack cells; CLI gives (0,0,10) at stack=16 and (0,3,3) at stack=15. Arithmetic, width, allocator, nested-call and inherent-check tests pass. R3-B01 is load-time acceptance of an invalid pair, not incorrect evaluation of these rows.",
+      "change": "No interpreter correction required. In reference-interpreter/README.md add a §4.2 row-to-handler/test index for oracle.rs::run_oracle_vectors. The determining rule is \"Every row is one budget step\"; retain tests/oracle.rs and the CLI stack-boundary assertion: sum_db(0),B=10,heap=4080,depth=64 yields (0,0,10) at stack=16 and (0,3,3) at stack=15."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Traced BasisVectorMachine::inverse_step, inverse_call and inverse_ret against §3.6 and C5^-1..C1^-1/R5^-1..R1^-1. Counters are restored before indexed stack accesses and slot uncomputation. sum_db(0) prefix 9 includes return delivery; reverse reports frames_clean=true, equals_entry=true, pc=pc_prime=0, counters=[0,2,0,0,0], zero locations. Normal recursion, every-prefix, wide and fault tests pass. The ignored exhaustive_recursive_prefixes sweep was also run successfully.",
+      "change": "No machine correction requested. In tests/step_machine.rs, supplement the existing snapshot equality with a documented sum_db(0) return-step intermediate tuple: before return fp=0,sp=16,depth=1, saved return index=3; afterward fp=0,sp=16,depth=0,pc=3; inverse restores the first tuple and clears its frame. This makes the printed R5^-1..R1^-1 order directly reviewable. This directly pins §3.6: \"Every address and condition is evaluated from the state current at that position of the inverse\"."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "classical.rs retains dynamic instances, atomic device deltas, call/ret boundaries and the §7.4 skip-once history traversal. Hand-traced nested: g performs clock.read, inner uncall restores clock/memory/tape, outer uncall skips the reversed g frames, retained pure load returns zero. CLI reverse nested completes in 11 rows with result 0, clock=0, empty tape and complete entry/memory equality. Normal CC/R, handles, hostcall, faults and nested uncall tests pass.",
+      "change": "No CC/R semantic correction requested. In reference-interpreter/README.md add the eleven-row nested fixture trace beside the reverse example, explicitly identifying the inner reversed frames and outer uncall marker; preserve tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once as the executable check. The determining §7.4 rule is \"a frame already marked reversed and an uncall frame are skipped\"; the documented expected result is 0, clock=0, empty tape, and entry equality."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "Direct swap/qexch/qexchm dependency fixes and qinplace inverse matching pass their round-2 regressions, and finite-angle rendering passes. But action-call transfer omits mutable input dependencies, accepting dirty workspace release (R3-B02). The borrow compiler omits local-region exit cleanup when inlining and reverses an incomplete lifetime (R3-B03). Both have executable witnesses.",
+      "change": "In src/validation.rs::validate_action_sequence make region-call transfer a joint dependency/version update over all mutable outputs and regions, preserving transitive readers until their exact inverse, per R3-B02. Then complete local-region lifetime compilation in src/borrow.rs per R3-B03. Add both rejection and identity-positive controls."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "The normal suite reproduced 202 passed, 0 failed, 5 ignored, including every named round-2 fix. The packet has 87 embedded file blocks matching the checkout byte-for-byte. The generator covers direct exchange but not the equivalent child-call boundary that exposes R3-B02; PROGRESS.md explicitly lists region-call generation as outstanding, so this is not a false claim of coverage. All five ignored tests were independently rerun and passed; the extended generator reproduced exactly 64,717 accepted/135,283 rejected.",
+      "change": "Extend tests/r1_fuzz_discipline.rs to generate a small permutation child for an already generated direct operation and replace that operation with action_call/adj action_call. Under §6.1 and §5.7 the expanded and called forms must preserve the same dependency obligations; include R3-B02 and its doubled-CX positive, executing accepted cases on all small basis inputs plus a superposed input. The determining §6.1 row is \"each mut: perm with S = mut ∪ ins ∪ cells(regions passed) ∪ Π\"; the current called negative must reject with §6.2 and the positive must restore entry exactly."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "SPEC-QUESTIONS 1–28 were compared with their cited rules; the recorded choices, including row indices, wide lifted suffixes, exact borrow decisions, and full-expansion qif adjoints, are defensible. Deliverables 8–11 are explicitly staged and not charged as omissions. README commands and JSON dispatch agree in the exercised paths. R3-B03 nevertheless reports an illegal borrowed release for a valid circuit because its symbolic expansion is incomplete.",
+      "change": "Fix the expansion rather than weakening the §5.6 diagnostic (R3-B03). In SPEC-QUESTIONS.md entry 28, retain the proposed wording clarifying that qif adjoints reverse unconditional lifetime operations; add a reference to the local-region inlining regression, demonstrating entry allocation and exit image restoration for both forward and adjoint calls."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R3-B01",
+      "section": "§5.5, §4.2; src/call_discipline.rs::Object::validate_matched_oracle_calls (transfer)",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Oracle calls have implicit writes to tgt/fr, but transfer constructs writes only from row.lhs and lift.perm_call mutable operands. Its assumption that all oracle XOR deliveries commute misses a delivery into another outstanding invocation's input. Reproduced a memoryless object (ptr_width=32), oracle i with in=[8],tgt=8,fault=4,args=[], and oracle o with in=[],tgt=8,fault=4,args=[token]. Bodies:\noracle @i (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n^entry():\nlift.retval x\noracle @o () (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { a:reg[8], b:reg[8], r:reg[8], fr:reg[4], fr2:reg[4] }\n^entry():\na = lift.const.i8 1\nb = lift.const.i8 2\nlift.oracle_call @i tk (a) r fr () ()\nlift.oracle_call @i tk (b) a fr2 () ()\nlift.oracle_uncall @i tk (a) r fr () ()\nlift.retval r\nAfter rehashing, check exits 0/status ok; run-oracle /dev/stdin o --input \"\" --budget 6 --arg token:1,0,0,0 returns {code:0,payload:2,steps:6}; step-check --exhaustive with those options also returns ok (one case). Hand trace: first r=1, intervening call changes a=1 XOR 2=3, then uncall changes r=1 XOR 3=2. The required unchanged input is violated, so the object must never reach execution.",
+      "fix": "Change src/call_discipline.rs::validate_matched_oracle_calls transfer to include implicit target and fault writes of both lift.oracle_call and lift.oracle_uncall when invalidating other outstanding invocations whose ins intersect those locations. Clear address-constant knowledge for those destinations too. Preserve the legitimate commuting shared-output/multiplicity cases: distinguish writes to an outstanding input from XOR updates to its target/fault. §5.5 requires \"same token, callee, ins and mem values (no intervening row writes those locations or cells: suite F)\"; §4.2 explicitly writes \"tgt ^= payload; fr ^= code\". Expected: the exact object above is rejected at parse/check with §5.5 (CLI exit 1, empty stdout). Add it to tests/r1_rules.rs and a variant where another invocation's fault destination writes a tracked input. Positive: remove the middle call, use outer B=5 and token B=1; require payload=0,code=0,steps=5 and complete prefix reversal. Keep two-call/two-uncall positives."
+    },
+    {
+      "id": "R3-B02",
+      "section": "§6.1–§6.3, §5.1; src/validation.rs::Object::validate_action_sequence region-call arm and Discipline dependency bookkeeping",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The exchange fix can be bypassed by putting the exchange inside a permutation action. Region-call transfer reads only ins and in-regions, omitting mutable bundles and mutable regions; it updates outputs separately. Reproduced memoryless signatures: c kind=perm_action,mut=[1,1],in=[],mem=[],args=[],bounds=[]; a kind=action with the same widths. Bodies:\nperm_action @c (a:wire mut, b:wire mut) () () () ()\n^entry():\nswap a b\naction @a (t:wire mut, m:wire mut) () () () ()\n^entry():\nd = qalloc any 1\nh d\naction_call @c (d, m) () () ()\ncx m t\nadj action_call @c (d, m) () () ()\nh d\nqfree d\nRehashed check exits 0/status ok. run-action /dev/stdin a --mut 0,0 exits 1 with §4.3 E_QREG_NOT_CLEAN, an exactly nonzero [false,false,true] component of amplitude 0.5. Hand trace: H(d), SWAP(d,m), CX(m,t), SWAP(d,m) entangles d with t; final H(d) does not clean d. Replacing child swap with cx a b yields the same accepted dirty-release failure. Doubling the middle cx m t is accepted and executes as identity, state {\"00\":[1,0]}. Direct versions of this class now reject, so validation depends unsoundly on a call boundary.",
+      "fix": "Change src/validation.rs::validate_action_sequence's action_call/adj/ctl transfer and Discipline to snapshot all old mut, ins and region-cell dependencies before changing any output, propagate their union to every mut bundle/cell, and retain transitive readers of those values across a call and its adjoint. Joint inverses must bind entry versions and cancel all participating outputs consistently, as the exchange fix already does. §6.1 specifies \"each mut: perm with S = mut ∪ ins ∪ cells(regions passed) ∪ Π\" and the same S for mut-region cells; §6.2 binds cleanup to its \"exact computing sequence\"; §6.3 requires factorisation from remaining state. Expected: both quoted swap-child and CX-child negatives reject at load citing §6.2. Add them to tests/r1_discipline.rs, together with a mut-region transfer analogue. Positive controls doubling the middle CX must parse and execute forward/adjoint on all t,m basis entries and a superposed entry, returning clean workspace and exact entry state after reversal. Extend tests/r1_fuzz_discipline.rs with equivalent direct versus called computations."
+    },
+    {
+      "id": "R3-B03",
+      "section": "§4.6 qregion, §5.3 adjoint, §5.6; src/borrow.rs::Compiler::declare_regions/compile and Node::adjoint",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The borrow compiler hoists child-local regions as Alloc nodes, never appends their function-exit restoration/release, then reverses that incomplete node sequence for an adjoint call. Node::adjoint turns Alloc into Free, so an adjoint-only invocation tries to free a symbolic region that was never allocated. Reproduced a memoryless object, both functions kind=perm_action with mut=[1],in=[],mem=[],args=[],bounds=[]:\nperm_action @c (t:wire mut) () () () ()\n^entry():\nqregion r 1 1\nx t\nx t\nperm_action @a (t:wire mut) () () () ()\n^entry():\nb = qborrow any 1\ncx b t\nadj action_call @c (t) () () ()\ncx b t\nqreturn b\nThe hash CLI exits 1: \"§5.6: a wire released inside a borrow frame is not clean\". Removing only \"adj \" makes hash exit 0. Hand derivation: c allocates a zero region, performs X twice, restores/releases that unchanged region, so c=c†=I; parent is CX(b,t) I CX(b,t)=I on every t,b, including b entangled with an external system. This is a false rejection of a defined valid program, not an uncertifiable black-box borrow operation.",
+      "fix": "In src/borrow.rs compile complete local-region lifetimes for inlined functions: unconditional allocation and image preparation at entry, body in the selected direction, inverse image gates and release at exit. Either reverse the complete entry/body/exit node sequence or keep the lifetime wrapper fixed and reverse only the body; do not reverse a lone Alloc into an unmatched Free. Represent image preparation separately or make lifecycle nodes preserve the image on adjoint, since Node::adjoint currently discards it. §4.6 says \"created at function entry\" and \"back at its image before exit, image gates reversed, cells released clean\"; §5.3 includes \"qregion creation ↔ release\". Expected: the exact object parses; run-action a --mut 0/1 and reverse succeed with the same t and equals_entry=true. Add a tests/r1_borrow.rs regression requiring acceptance and forward/adjoint/exact restoration for every t,b basis value and a borrowed system entangled with a reference. Also cover a nonzero image (e.g. qregion r 1 4 @image, one-byte image ff) and a declaration nested in a zero-trip loop; these must have the same function-entry lifetime in forward and adjoint calls."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R2-B01",
+      "status": "resolved",
+      "note": "Resolved for all three reported direct-exchange witnesses: joint exchange identities preserve dependencies and reject them; doubled-CX positives pass. R3-B02 is the analogous remaining action-call transfer defect."
+    },
+    {
+      "id": "SOL-R2-B02",
+      "status": "resolved",
+      "note": "Resolved: typed Invocation retains parsed input/memory tuples; both multi-input negatives and unchanged-pair positives pass."
+    },
+    {
+      "id": "SOL-R2-B03",
+      "status": "resolved",
+      "note": "Resolved: qjumpr successors include all function rows; the label+1 bypass rejects and the dominating-call positive runs/reverses."
+    },
+    {
+      "id": "SOL-R2-B04",
+      "status": "resolved",
+      "note": "Resolved: opaque identities bind complete classical argument/token environments, including inlined child bindings; x/y rejects and x/x basis controls pass."
+    },
+    {
+      "id": "SOL-R2-B05",
+      "status": "resolved",
+      "note": "Resolved: exact arm-stack checks and selector floors reject consumed selectors with §3.5; parser/hash/check tests pass without panic."
+    },
+    {
+      "id": "SOL-R2-B06",
+      "status": "resolved",
+      "note": "Resolved for loop-two, loop-zero, forward-reference and qif declarations; lexical duplicates reject. R3-B03 separately exposes incomplete lifetime reversal in an adjoint inlined child."
+    },
+    {
+      "id": "SOL-R2-B07",
+      "status": "resolved",
+      "note": "Resolved: icmp now requires Int or Ptr; token/f64/qreg negatives and integer/pointer execution/reversal positives pass."
+    },
+    {
+      "id": "SOL-R2-B08",
+      "status": "resolved",
+      "note": "Resolved: bounded-limb phase evaluation renders four finite 1e308 rotations with the expected finite amplitude; literal/argument, both-basis and reverse CLI tests pass."
+    },
+    {
+      "id": "R2-B01",
+      "status": "resolved",
+      "note": "Resolved: tuple boundaries survive typed invocation keys; changed-second-input and two-region mutation tests reject, unchanged pairs return zero and reverse."
+    },
+    {
+      "id": "R2-B02",
+      "status": "resolved",
+      "note": "Resolved: lifted memory suffixes use host_count at load; load.i08 and store.i016 reject with §16.1, canonical sum_db(0) returns (0,0,10)."
+    },
+    {
+      "id": "R2-B03",
+      "status": "resolved",
+      "note": "Resolved: operation_inverse exchanges qinplace oracle names and preserves token/control context; identity/NOT pairs and CLI cleanup pass, changed/complementary predicates reject."
+    },
+    {
+      "id": "R2-B04",
+      "status": "resolved",
+      "note": "Resolved: qregion declarations register once at function entry independently of trip count and textual order; corresponding basis/adjoint tests pass."
+    },
+    {
+      "id": "R2-B05",
+      "status": "resolved",
+      "note": "Resolved: token, f64 and qreg comparisons reject at load; equal/unequal i8 and ptr comparisons execute and fully reverse."
+    },
+    {
+      "id": "R2-B06",
+      "status": "resolved",
+      "note": "Resolved: four finite argument rotations no longer overflow display conversion; large-angle run-action and exact reverse tests pass."
+    },
+    {
+      "id": "R2-B07",
+      "status": "resolved",
+      "note": "Resolved: both qif arm boundaries and the predicate floor protect the expansion-owned selector; malformed bodies return §3.5, not exit 101."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1: In tests/r1_fuzz_discipline.rs add metamorphic wrapping of permutation operations in child calls, including mutable regions and adjoints, and cross-invocation target-to-input aliasing to tests/r1_rules.rs. §6.1 supplies the full dependency union and §5.5 forbids intervening writes to inputs. Require the R3-B01/R3-B02 negatives to reject and their unchanged-input/doubled-CX positives to execute and reverse; retain the current fixed seeds and report accepted/rejected counts in PROGRESS.md.",
+    "S1: Promote SPEC-QUESTIONS.md entry 28's recorded resolution into a future spec clarification, without changing the accepted 0.8 document in this task: \"The qif adjoint shorthand assumes each arm's workspace lifetimes are self-contained; otherwise reverse the complete §4.6 expansion, including unconditional lifetime operations.\" Keep tests/r1_discipline.rs::r2_qif_cross_arm_unconditional_lifetimes_reverse_the_expansion covering both selector values and exact restoration."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Fix implicit oracle writes in §5.5 matching (R3-B01). 2. Transfer mutable bundle/cell dependencies jointly across action calls (R3-B02). 3. Compile complete local-region lifetimes under adjoint inlining (R3-B03). Add each stated failing witness and its positive controls, then run the normal and ignored suites and the CLI reproductions headlessly. No changes to staged deliverables 8–11 are required for this round; no previous reported witness remains open.",
+  "summary": "Round 3, codex, frozen commit 2e6114424326f0c3e9c79a00d8db8fd052dbfcd4. Verified the diff fixes first: all 15 round-2 IDs are resolved for their reported witnesses (individual notes in previous_status). Three new S0 core issues remain: implicit oracle writes escape matched-call checking, action-call transfer drops mutable dependencies, and adjoint child-local region lifetimes are incomplete in the borrow proof. No newly demonstrated regression relative to the previous snapshot; do not infer one merely from adjacency to changed code. All commands ran from the review checkout with DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset and the requested TMPDIR. Normal cargo test --offline: 202 passed, 0 failed, 5 ignored. The ignored suite also completed: 5 passed, 0 failed, including u8 division/remainder, 2^17 borrowed-frame entries, the checked 2^18-element certificate, recursive prefix reversal over 256 inputs, and 200,000 generated programs (64,717 accepted, all clean; 135,283 rejected). Method 1: derived inc8(255),B=3 -> (0,0,3), inc8(8),B=2 -> (0,1,2), and B=0 -> (0,1,0); derived sum_db(0) wrapper 4 plus callee 6 = 10 rows and R_sum=3+13=16 cells, stack 15 -> code 3 on row 3. CLI matched all. Independently constructed the inc8 envelope: isa=0.8 LF, ptr_width=32 LF, canonical signature LF, then its six canonical function lines with final LF, no layout/reference lines; SHA-256 equals published 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 and hash CLI. Method 2: traced return inverse R5^-1 restores depth/fp before R4 delivery, R3 callee-location restoration, R2 capture clearing and R1 successor clearing, enclosed by the two pc exchanges and successor XOR; ran sum_db prefix 9 reversal, all frames clean and exact tuple restored. Traced §7.4 nested g/f call-ret-uncall: clock read undone once, pure loaded zero survives, outer traversal skips marked inner frames; reverse nested returns zero in 11 rows and restores memory/devices/entry. Method 3: compared all SPEC-QUESTIONS 1–28 with the spec, with no new contradictory reading identified; staging 8–11 remains disclosed. Method 4: searched all crate source/tests/docs for the required markers: source hits are guarded state/shape invariants, parser expect methods returning Result, exact-amplitude display conversion, explicit rejection of invalid sampler/model/cleanup values, and two unit-test unwraps; test hits are assertions/setup and expected-failure branches, documentation/seed hits concern recorded readings or descriptions. No todo!/unimplemented! production stub or newly witnessed panic. Method 5: compared §4.1/§4.2/§4.3–§4.8 dispatch, §5.4 codes 0–10, assignment/capture/delivery and CC/R history frames, §9/§11–§13 metadata fields, suites A–H and all eight CLI commands against schema.rs/object.rs/validation.rs/oracle.rs/machine.rs/classical.rs/action.rs/certificate.rs/metadata.rs/main.rs. Remaining full target, launch, schedule and rigorous interval work matches the explicit staging; blockers concern implemented core paths. The three new witnesses and stated local positive controls were executed through the prebuilt CLI with in-memory stdin objects and recomputed stored hashes where parsing succeeded. Repository source was not edited."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r3-codex.json

@@ -4,7 +4,26 @@
  "doc": "docs/council/isa-ref-2026-10-29/packet-round-3.md",
  "doc_sha256": "6d9dfda1453fd3bd60591b372f24580be4a4473ee592b6a825fe7013f9052605",
  "prepared": "2026-10-29T19:39:38+00:00",
- "members": {},
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T19:53:17+00:00",
+   "exit": 0,
+   "seconds": 28,
+   "errors": [],
+   "updated": "2026-10-29T19:53:45+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T19:53:49+00:00",
+   "exit": 0,
+   "seconds": 22,
+   "errors": [],
+   "updated": "2026-10-29T19:54:11+00:00"
+  }
+ },
  "rubric": "docs/council/rubric-impl.md",
  "subject": "the Rust reference interpreter bennett-isa-ref (snapshot at commit 2e61144, round 3: all 15 round-2 blockers from sol and codex answered in council/response-round-2.md, embedded first; the muse seat was lost to a provider outage in round 2 and grades this snapshot fresh) against the accepted ISA specification draft 0.8",
  "context": [

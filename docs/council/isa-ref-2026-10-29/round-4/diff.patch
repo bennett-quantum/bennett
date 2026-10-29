@@ -1,0 +1,1604 @@
+--- round-3/doc.md
++++ round-4/doc.md
+@@ -1,10 +1,11 @@
+-# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 3)
+-
+-Snapshot of `reference-interpreter/` at commit `2e61144`. 87 files; each embedded verbatim below. Line counts and sha256 per file:
++# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 4)
++
++Snapshot of `reference-interpreter/` at commit `8e11fe7`. 88 files; each embedded verbatim below. Line counts and sha256 per file:
+ 
+ - `README.md` 317 lines, sha256 392f2692a227
+-- `PROGRESS.md` 680 lines, sha256 e1bcc9e1702a
+-- `SPEC-QUESTIONS.md` 213 lines, sha256 3385021cbdaf
++- `PROGRESS.md` 795 lines, sha256 4e4713979443
++- `SPEC-QUESTIONS.md` 223 lines, sha256 22bd03d701ee
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
++- `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+ - `council/response-round-2.md` 260 lines, sha256 ec60481cde56
+ - `council/response-round-1.md` 398 lines, sha256 0aa2f796e5d7
+@@ -14,6 +15,6 @@
+ - `src/action.rs` 966 lines, sha256 f529741e0c19
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 876 lines, sha256 8440a25c9455
+-- `src/call_discipline.rs` 383 lines, sha256 78da3d6ebe89
++- `src/borrow.rs` 936 lines, sha256 70be65b17e48
++- `src/call_discipline.rs` 390 lines, sha256 94426d5225f8
+ - `src/certificate.rs` 557 lines, sha256 0bacdb2984d3
+ - `src/claims.rs` 734 lines, sha256 070416806b39
+@@ -34,5 +35,5 @@
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+-- `src/validation.rs` 1858 lines, sha256 ffa81c7a5fbb
++- `src/validation.rs` 1916 lines, sha256 b67618af56ea
+ - `tests/bitvectors.rs` 117 lines, sha256 dcb60f20f4da
+ - `tests/borrow.rs` 195 lines, sha256 40d8a3a4b61e
+@@ -69,27 +70,27 @@
+ - `tests/metadata.rs` 264 lines, sha256 210e360205ec
+ - `tests/oracle.rs` 270 lines, sha256 c18d475e8db3
+-- `tests/parser.rs` 193 lines, sha256 c70947a19b3a
++- `tests/parser.rs` 212 lines, sha256 d0e875703f78
+ - `tests/quantum.rs` 146 lines, sha256 60933c5bac2c
+ - `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
+-- `tests/r1_borrow.rs` 172 lines, sha256 2a77562fbb75
++- `tests/r1_borrow.rs` 397 lines, sha256 71af0c091d0a
+ - `tests/r1_certificates.rs` 244 lines, sha256 680db244f61e
+-- `tests/r1_discipline.rs` 354 lines, sha256 8922f8e2f998
++- `tests/r1_discipline.rs` 385 lines, sha256 44c512ebe8c8
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+ - `tests/r1_fixtures.rs` 594 lines, sha256 ca26e8c771a2
+-- `tests/r1_fuzz_discipline.rs` 371 lines, sha256 c6f0b765c79c
++- `tests/r1_fuzz_discipline.rs` 491 lines, sha256 ca7f02d287d0
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+ - `tests/r1_linking.rs` 130 lines, sha256 1ae51c3da293
+ - `tests/r1_literals.rs` 180 lines, sha256 89e4ca03f914
+ - `tests/r1_qinplace.rs` 146 lines, sha256 420bac787015
+-- `tests/r1_rules.rs` 422 lines, sha256 4ca99e48c182
++- `tests/r1_rules.rs` 519 lines, sha256 1e4e08b46209
+ - `tests/r1_widths.rs` 260 lines, sha256 5607035e9d75
+ - `tests/r2_validation.rs` 84 lines, sha256 7804bd497504
+-- `tests/registers.rs` 122 lines, sha256 7111bef01079
++- `tests/registers.rs` 185 lines, sha256 65cf8101510f
+ - `tests/step_machine.rs` 164 lines, sha256 be73a49c6655
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 110 lines, sha256 303d7897a8e8
++- `tests/support/mod.rs` 130 lines, sha256 0c9117266ccc
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 27549 lines.
++Total embedded: 28563 lines.
+ 
+ ## `README.md` (317 lines)
+@@ -415,5 +416,5 @@
+ ````
+ 
+-## `PROGRESS.md` (680 lines)
++## `PROGRESS.md` (795 lines)
+ 
+ ````markdown
+@@ -425,4 +426,118 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Council round 3, codex second pass (2026-10-29)
++
++R3-B01 is resolved-by c2d97f8 (SOL-R3-B01): the exact six-row codex witness
++and fault-to-input variant reject at load and CLI hash/check (§5.5). New pin
++`codex_r3_b01_exact_implicit_delivery_witnesses` also verifies the exact
++five-row positive (0,0,5) and full prefix reversal. All 17 r1_rules tests pass.
++No source change needed for this blocker; no spec/Python seed edits.
++
++R3-B02 is resolved-by f83fc71 (SOL-R3-B02): exact swap/CX-child negatives
++reject §6.2 in parser and hash/check; mutable-region analogue also rejects.
++Doubled-CX controls restore all basis and superposed entries forward/adjoint.
++The call-wrapping generator now covers swap, CX and mutable-region exchange:
++36 cases, 18 accepted / 18 rejected by independent parity, full execution of
++accepts. 17 discipline + 4 active generator tests pass; random seeds unchanged.
++
++R3-B03 resolved after RED on the exact witness, ff image and zero-trip
++lexical declaration: borrow compilation now wraps every function/inlined child
++in complete entry/body/exit region lifetimes. Allocations are clean, image Xs
++explicit and unconditional, so adjoints preserve preparation/restoration.
++Three regressions cover both call directions and inherited predicates, all
++t,b bases, superposition and an entangled external reference, plus CLI t=0/1
++run/reverse and checked hashes. 9 active borrow tests pass, 1 ignored; full
++normal suite: 214 passed, 0 failed, 5 ignored. SPEC-QUESTIONS 28 gains pin
++references, without new ambiguity. All three second-pass blockers resolved;
++no declines, no scope narrowed. Blocker commits: 377e807 (B01 pin), faf6dff
++(B02 pins/generator), fbe8320 (B03 fix/pins).
++
++### Second-pass final verification
++
++After the fixes, rebuilt the reference binary offline and ran the standalone
++conformance command documented in conformance/PROGRESS.md:
++`cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref`.
++Conformance source is read-only; `CARGO_TARGET_DIR` was redirected to
++`reference-interpreter/.tmp/conformance-target`. Result: **445 pass, 0 fail,
++45 unavailable / 490**, exit **2** for the existing staged capabilities.
++
++Then ran the required Rust commands with absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
++Every command ran headlessly with DISPLAY, WAYLAND_DISPLAY,
++DBUS_SESSION_BUS_ADDRESS and BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs: ignored `.tmp/r3-codex-{tests,ignored,conformance,clippy}.log`.
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **214 passed**, 0 failed, 5 ignored (213 integration + 1 unit; 0 doctests; 2.90 s summed runner time) |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed**, 0 failed |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged `python3 isa_check.py` | passes; seed diff against 788a5e0 empty |
++| conformance harness | **445 pass, 0 fail, 45 unavailable**, same staging as baseline |
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 operations = 262,144 oracle executions | 2.30 s |
++| 17-wire borrow execution | 2^17 basis entries | 12.42 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 84.11 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all clean**, 135,283 rejected | 280.77 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 10.78 s |
++
++No spec, docs, conformance, include, worklog, or Python seed edits; no new
++dependencies; no push. Bead b-isa-spec-zq2 remains open for the full-ISA work.
++
++## Council round 3 (2026-10-29)
++
++Received SOL-R3-B01..B05 on snapshot 2e61144; response-round-3.md is appendable
++for the pending seats. B01 resolved with a witnessed RED then GREEN (16
++r1_rules tests): nested target/fault/uncall deliveries invalidate outstanding
++input readers while commuting output deliveries remain legal. B02 resolved:
++joint call dependency/provenance and inverse groups, including mutable cells;
++17 discipline and 3 generator tests pass, including odd/even call wrapping.
++B03 resolved: opaque applications retain recursively substituted inputs during
++loop squaring. Exact loop/unrolled negatives reject; invariant inputs and 32
++changing-input/nested generated loops pass their independent parity checks.
++SPEC-QUESTIONS 20 now precisely describes the opaque symbolic proof route.
++B04 resolved: normalized CC controls are typed qreg[1] through rd and checked
++for effective-target aliases; five negative variants and basis/forward-type-
++inference execution/reversal positives pass. B05 resolved: non-permutation
++call touch sets include effective controls and passed cells. Direct/ctl/qpred
++borrowed-H negatives reject; paired borrowed-controlled X calls preserve all
++basis inputs and a superposition. All five received blockers resolved, no
++declines or partials. Bead b-isa-spec-zq2.
++
++### First-pass round-3 verification
++
++Every command used the absolute manifest path and ran headlessly with
++DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset;
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs are retained in ignored `.tmp/r3-{tests,ignored,conformance}.log`.
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **210 passed**, 0 failed, 5 ignored (209 integration + 1 unit; 0 doctests; summed runner time 2.25 s) |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed**, 0 failed |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged `python3 isa_check.py` | passes; seed diff from 2e61144 is empty |
++| conformance standalone harness with absolute `--bin` | **445 pass, 0 fail, 45 unavailable / 490**; exit **2** for staged capabilities, identical to baseline |
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 262,144 pairs × 4 operations | 2.96 s |
++| 17-wire borrow execution | 2^17 entries | 16.06 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 72.61 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all clean**, 135,283 rejected | 209.69 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 11.19 s |
++
++The dedicated generated families additionally exercise 12 direct/call-wrapped
++Bell-cleanup variants and 32 opaque-loop/nested-loop variants, against independent
++parity formulas. Accepted programs run on their full small basis domains plus a
++superposed interface and restore exactly under adjoint. Each blocker has a
++witnessed development-time RED and a named GREEN regression in the appendable
++`council/response-round-3.md`. No capabilities or new ambiguities were declined.
+ 
+ ## Council round 2: sol/codex implementation (2026-10-29)
+@@ -629,6 +744,7 @@
+ 
+ 1. Deliverables 8–11 above, in that order.
+-2. Extend the §6 differential fuzzer to region calls (child actions with mut
+-   regions, oracle calls) and borrowed systems; extend the borrow-frame
++2. Broaden randomized §6 call/mutable-region/borrow generation beyond round 3
++   dedicated child-call Bell/parity and changing-input opaque-loop families;
++   extend the borrow-frame
+    symbolic decision to black-box calls whose inputs depend on borrowed wires
+    (currently the claim route).
+@@ -1100,5 +1216,5 @@
+ ````
+ 
+-## `SPEC-QUESTIONS.md` (213 lines)
++## `SPEC-QUESTIONS.md` (223 lines)
+ 
+ ````markdown
+@@ -1239,5 +1355,8 @@
+     exactly, by deciding the frame's Boolean functions in algebraic normal form
+     (a canonical form, so the decision is a proof over the full domain, with no
+-    wire limit; loops by repeated squaring); a frame it cannot decide (a black-box
++    wire limit; loops by repeated squaring with recursive substitution into
++    opaque application inputs, corrected in round 3). With opaque functions this
++    is a sound symbolic proof, not a complete function-specific decision; a
++    frame it cannot prove (a black-box
+     call whose inputs depend on borrowed wires) is admitted only through verified
+     certificate `borrow_frames` claims (proofs over D whose borrowed components
+@@ -1316,4 +1435,11 @@
+     adjoint of the complete §4.6 expansion, reversing unconditional lifetime
+     operations as well."
++
++    Round-3 local-region regression: `r1_borrow::codex_r3_b03_adjoint_child_local_region_exact_witness`
++    and its nonzero-image/zero-trip-declaration variants pin the same complete
++    lifetime principle for inlined calls: unconditional entry allocation and
++    image preparation, body, inverse image gates and release. Both call directions
++    preserve the image, including under inherited predicates. This follows the
++    explicit §4.6 rule; no additional ambiguity or restriction is introduced.
+ ````
+ 
+@@ -1381,4 +1507,198 @@
+ - Correctness over speed of delivery: do not mark a deliverable done without its tests and an
+   independent spot check of at least one stated result by hand.
++````
++
++## `council/response-round-3.md` (189 lines)
++
++````markdown
++# Editor response: council round 3
++
++Inputs: SOL out-sol.json and codex out-codex.json, both reviewing snapshot
++2e61144. The first pass resolves five SOL blockers; the codex second pass below
++covers R3-B01..B03 after rechecking the overlaps against 788a5e0. This response
++remains appendable for muse. No spec or Python seed edits.
++
++## SOL-R3-B01 — resolved
++
++`src/call_discipline.rs::validate_matched_oracle_calls` records both payload
++and fault deliveries for calls and uncalls as writes. Every outstanding input
++reader is invalidated; only output XOR delivery retains the commuting exception.
++The inverse consumes its own pre-row identity before invalidating other readers.
++Pin: `r1_rules::r3_nested_oracle_deliveries_invalidate_outstanding_inputs`:
++exact inc8 witness, another uncall delivery, fault delivery, parser and CLI
++hash/check rejection (§5.5, exit 1, empty stdout); no-middle positive gives
++(payload,code,steps)=(0,0,4), interpreter/machine agreement and prefix reversal.
++Existing two-call/two-uncall multiplicity positive remains accepted.
++RED: exact witness was accepted; GREEN: all 16 r1_rules tests pass.
++No SPEC-QUESTIONS entry: §§4.2 and 5.5 explicitly specify the writes.
++
++## SOL-R3-B02 — resolved
++
++`validation.rs::validate_action_sequence` snapshots all mutable bundles and
++mutable-region cells jointly, with immutable interface/cell/control reads;
++`Discipline::joint_change` generalizes exchange tracking to forward/adjoint
++call pairs. Every output inherits the OLD transitive union and other provenance.
++Cancellation requires the complete output group, entry versions and unchanged
++read/control versions; outside readers block other-value cleanup. Mutable cell
++epochs and non-permutation window closures still advance on every call.
++Pins: `r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies`
++(exact call-wrapped swap witness and mutable-region variant reject §6.2;
++doubled-CX positives are exact identities on all basis inputs and superposition,
++forward/adjoint). `r1_fuzz_discipline::generated_child_call_wrapping_preserves_bell_cleanup_obligations`
++generates 12 direct/wrapped, odd/even CX variants; independent Bell/parity
++reasoning requires rejection or clean execution over the full small interface.
++RED: exact witness accepted. GREEN: 17 discipline + 3 active generator tests.
++No SPEC-QUESTIONS entry: this is the explicit §6.1 union and §6.2 identity rule.
++
++## SOL-R3-B03 — resolved
++
++`borrow.rs::Application` retains callee/classical identity, output bit and full
++symbolic input tuple. `Evaluation::{symbol,substitute,compose,apply}` substitutes
++recursively inside applications at every Repeat composition and at the final
++entry substitution; equal applications are re-interned. A substituted borrowed
++input explicitly requires the existing verified §12 claim route. No frozen
++opaque symbol remains across a changing-input substitution.
++Pin: `r1_borrow::r3_opaque_loop_composition_substitutes_inside_applications`:
++exact loop and unrolled witness reject §5.6 in parser/hash/check; invariant-input
++positives preserve all 64 t,f,d basis entries and a superposition, forward/adjoint.
++`r1_fuzz_discipline::generated_changing_input_opaque_loops_match_independent_parity`
++generates 32 loops/nested loops, n=0..7, with/without input X; independent parity
++requires precisely the valid borrow identities and checks all accepted programs
++on all 64 entries plus a superposition, forward/adjoint.
++RED: exact changing-input loop accepted. GREEN: 5 active borrow tests and the
++new generator pass. SPEC-QUESTIONS 20 and module prose now distinguish exact
++Boolean decisions from sound opaque-function symbolic proofs; unresolved
++function-specific identities retain the verified certificate path. This corrects
++the existing reading's description, with no new ambiguity or scope restriction.
++
++## SOL-R3-B04 — resolved
++
++`validation.rs::classical_instruction` resolves a normalized call's ctl operand
++through `rd` and requires `qreg[1]` before region-call validation. It checks
++oracle target/fault aliases and action inherited targets (including through
++child calls) plus mutable-region aliases. `call_discipline.rs::validate_inherited_targets`
++now also accepts qreg bindings, applying the same bit-for-bit target analysis
++as structured calls. Forward type inference remains iterative.
++Pins: `parser::r3_normalized_cc_controls_are_typed_and_disjoint_at_load`
++(exact i8 witness, token, unknown, qreg[2], target alias; parser and hash/check
++exit 1, empty stdout, §3.3); `registers::r3_typed_cc_controlled_calls_execute_and_restore_history`
++(distinct qreg[1] control/target, all four basis pairs, exact t XOR c,
++two-step completion, full reversal; also six-step definition-after-use-in-text
++positive using select). RED: exact i8 witness accepted. GREEN: 10 parser tests
++and the typed execution/reversal pin pass. No SPEC-QUESTIONS entry: §§3.3,
++4.7 and 4.8 fix the operand type and disjointness requirement.
++
++## SOL-R3-B05 — resolved
++
++`borrow.rs::Compiler::compile` includes the entire effective control context
++(normalized ctl plus inherited predicates), mut/in interface bundles and every
++passed region cell in a non-permutation action call's `Node::Other` touch set.
++Pin: `r1_borrow::r3_nonpermutation_calls_touch_all_effective_controls` rejects
++the exact ctl-H witness, its inherited-qpred form and direct controlled-H,
++all through parser and CLI hash/check (§5.6, exit 1, empty stdout). A perm_action
++X child invoked twice under the borrowed control remains accepted and exactly
++preserves every t,d basis input plus a superposed input, forward/adjoint.
++RED: exact ctl witness accepted. GREEN: all 6 active r1_borrow tests pass.
++No SPEC-QUESTIONS entry: §§4.7, 5.6 and 14.2 explicitly include controls.
++
++All five first-pass SOL blocker IDs are resolved; no declines or partials.
++The codex second pass is appended below; muse remains a subsequent pass. Deliverables 8–11 remain
++staged as documented in PROGRESS.md, outside this round's received blockers.
++
++## Final verification of this pass
++
++All commands used absolute manifest paths, project-local TMPDIR and the four
++display/browser variables unset. Normal tests: **210 passed, 0 failed, 5 ignored**.
++Ignored tests (`--ignored --nocapture`): **5 passed, 0 failed**. Strict all-target
++Clippy, formatting check and unchanged Python seed check pass. No dependencies
++added. The five ignored sweeps and timings are recorded in PROGRESS.md; the
++200,000-program sweep reported **64,717 accepted, all exactly clean**, 135,283
++rejected. Dedicated call-wrapping and changing-input loop families run in the
++normal suite in addition to the unchanged random sweep.
++
++Conformance command: `cargo run --offline --manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml --
++--bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref`.
++Result: **445 pass, 0 fail, 45 unavailable, 490 total**, exit **2** for explicit
++staging (same as baseline). No conformance/include/spec/docs edits or pushes.
++
++## Codex R3-B01 — resolved-by c2d97f8 (SOL-R3-B01)
++
++Re-ran the exact six-row identity-oracle witness against HEAD 788a5e0:
++parser and CLI hash/check reject with §5.5, exit 1 and empty stdout. No new
++semantic fix needed. `r1_rules::codex_r3_b01_exact_implicit_delivery_witnesses`
++pins that object and a four-bit input overwritten by another call's fault
++delivery. The five-row no-middle control, outer B=5 and token B=1, yields
++(payload,code,steps)=(0,0,5), agrees with the step machine, and reverses to the
++complete entry snapshot. Existing two-call/two-uncall multiplicity positive
++also passes. All **17 r1_rules tests pass**. No new development RED claimed:
++the earlier SOL fix already handles these witnesses; its RED is recorded above.
++Re-read §§4.2 and 5.5 and SPEC-QUESTIONS: implicit deliveries explicitly write
++both destinations, and unchanged ins are mandatory. No ambiguity or decline.
++
++## Codex R3-B02 — resolved-by f83fc71 (SOL-R3-B02)
++
++Re-ran the exact call-wrapped swap witness against HEAD: rejects §6.2.
++Extended `r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies`
++with the CX-child witness; both reject in parser and CLI hash/check, exit 1,
++empty stdout. The existing mutable-region analogue also rejects. Doubled-CX
++positives preserve every t,m basis input (and region address) and a superposed
++entry, forward and adjoint, with exact state equality and no workspace.
++No semantic change needed: f83fc71 already jointly transfers old mut/ins/cell
++and effective-control dependencies and cancels complete inverse output groups.
++
++`r1_fuzz_discipline::generated_child_call_wrapping_preserves_bell_cleanup_obligations`
++now generates **36** cases (swap, CX, mutable-region exchange; direct/called;
++0..5 middle CXs). Independent parity demands **18 rejects / 18 accepts**;
++all accepts execute over the eight-entry interface and a superposed input and
++reverse exactly. Random seeds unchanged. All **17 discipline + 4 active
++generator tests pass** (1 ignored sweep deferred to final verification).
++No new semantic RED: these witnesses already pass after the SOL commit.
++Re-read §§5.1, 5.7, 6.1–6.3 and SPEC-QUESTIONS: full joint dependency union
++and exact inverse obligations are explicit; no new ambiguity or decline.
++
++## Codex R3-B03 — resolved
++
++RED witnessed for all three new regressions: exact adjoint child, nonzero
++image and zero-trip declaration each rejected with §5.6's unclean-release
++error before the fix. `borrow.rs::Compiler::compile_function` now emits the
++complete local-region entry/body/exit for top-level analysis and every inlined
++child. Clean `Node::Alloc` and explicit unconditional image-X `Node::Flip`s
++replace image-carrying allocations; the exit is the entry's exact adjoint.
++The call adjoint reverses the complete lifetime, preserving image preparation
++and restoration. No cleanliness or borrow-factorisation diagnostic is weakened.
++
++Pins: `r1_borrow::codex_r3_b03_adjoint_child_local_region_exact_witness`,
++`codex_r3_b03_adjoint_child_nonzero_image`, and
++`codex_r3_b03_adjoint_child_zero_trip_region_declaration`. Each exercises
++forward/adjoint children, with/without an inherited borrowed predicate,
++all four t,b basis values, superposition, and b entangled with an untouched
++external reference. Parent execution and its adjoint each equal entry exactly;
++no workspace remains. The zero-trip case reads the image before its lexical
++declaration. The nonzero image is the requested one-byte ff for region[1,4].
++CLI run-action for t=0/1 returns the unchanged basis state and reverse reports
++equals_entry=true for every variant; hashes check. All **9 active borrow tests
++pass** (1 ignored), and the full normal suite is **214 passed, 0 failed,
++5 ignored**. Re-read §§4.6, 5.3 and 5.6; no new ambiguity. SPEC-QUESTIONS 28
++retains its proposed wording and now references these local-lifetime pins.
++
++## Codex second-pass final verification
++
++All three codex blockers resolved, no declines or partials. Commits: 377e807
++(B01 exact pins, resolved-by c2d97f8), faf6dff (B02 pins/generated coverage,
++resolved-by f83fc71), fbe8320 (B03 lifetime fix and pins).
++
++After the fixes, rebuilt offline and ran the documented standalone conformance
++harness with the absolute reference `--bin`: **445 pass, 0 fail, 45 unavailable
++of 490**, exit **2** for explicit staged work, unchanged from baseline.
++`CARGO_TARGET_DIR` redirected build artefacts into the interpreter's ignored
++`.tmp`; conformance sources remained read-only. Then the normal Rust suite
++passed **214 tests, 0 failed, 5 ignored**; the ignored suite passed **5 tests,
++0 failed**. Strict all-target Clippy, formatting check and unchanged Python seed
++check pass. The 200,000-program sweep again reports **64,717 accepted, all
++clean / 135,283 rejected**, with the original seeds unchanged. PROGRESS.md
++records each exhaustive sweep's cases and timing. All validation was headless
++with the requested absolute project-local TMPDIR and absolute manifest paths.
++No spec changes, dependency additions or pushes.
+ ````
+ 
+@@ -3983,5 +4303,5 @@
+ ````
+ 
+-## `src/borrow.rs` (876 lines)
++## `src/borrow.rs` (936 lines)
+ 
+ ````rust
+@@ -3994,7 +4314,11 @@
+ //! denote the same function iff they are equal. P_F = P' ⊗ I_B iff every
+ //! borrowed output equals its input variable and no other output mentions a
+-//! borrowed variable. This is a total, exact decision over the frame's full
+-//! domain (T3), with no wire-count limit; loops are composed by repeated
+-//! squaring, never unrolled bound times. Calls whose black-box outputs would
++//! borrowed variable. For Boolean-gate circuits this is a total, exact decision
++//! over the frame's full domain (T3), with no wire-count limit; loops use repeated
++//! squaring, never unrolled bound times. Opaque applications retain their full
++//! input expressions: composition substitutes recursively into those inputs and
++//! interns the resulting application, rather than freezing an ANF variable.
++//! This proves identities valid for arbitrary black-box functions; unresolved
++//! function-specific identities need a checked claim. Calls whose outputs would
+ //! depend on borrowed wires cannot be decided this way: they require the
+ //! §12 borrow_frames claim the specification names, checked when present
+@@ -4050,5 +4374,5 @@
+ /// An ANF monomial: sorted, distinct variable ids (the empty monomial is 1).
+ type Mono = Vec<u32>;
+-#[derive(Clone, Debug, PartialEq, Eq, Default)]
++#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
+ struct Poly(BTreeSet<Mono>);
+ impl Poly {
+@@ -4081,15 +4405,4 @@
+     fn mentions(&self, vars: &BTreeSet<u32>) -> bool {
+         self.0.iter().flatten().any(|v| vars.contains(v))
+-    }
+-    fn substitute(&self, map: &BTreeMap<u32, Poly>) -> Self {
+-        let mut out = Self::zero();
+-        for m in &self.0 {
+-            let mut term = Self::one();
+-            for v in m {
+-                term = term.and(map.get(v).unwrap_or(&Self::var(*v)));
+-            }
+-            out = out.xor(&term);
+-        }
+-        out
+     }
+ }
+@@ -4116,5 +4429,6 @@
+     /// non-permutation call): it ends a frame and may not touch a borrowed wire.
+     Other(Vec<String>),
+-    Alloc(Vec<String>, Vec<bool>),
++    /// Allocate clean wires; image preparation is represented by explicit flips.
++    Alloc(Vec<String>),
+     Free(Vec<String>),
+ }
+@@ -4142,5 +4456,5 @@
+                 out.extend(outputs.iter().cloned());
+             }
+-            Self::Other(w) | Self::Alloc(w, _) | Self::Free(w) => out.extend(w.iter().cloned()),
++            Self::Other(w) | Self::Alloc(w) | Self::Free(w) => out.extend(w.iter().cloned()),
+         }
+     }
+@@ -4166,9 +4480,6 @@
+                 assign: true,
+             },
+-            Self::Alloc(w, image) => {
+-                let _ = image;
+-                Self::Free(w.clone())
+-            }
+-            Self::Free(w) => Self::Alloc(w.clone(), vec![false; w.len()]),
++            Self::Alloc(w) => Self::Free(w.clone()),
++            Self::Free(w) => Self::Alloc(w.clone()),
+             other => other.clone(),
+         }
+@@ -4256,10 +4567,32 @@
+             }
+             let flat: Vec<String> = all.iter().flatten().cloned().collect();
+-            let bits = (0..flat.len())
+-                .map(|b| image[b / 8] >> (b % 8) & 1 == 1)
+-                .collect();
+-            out.push(Node::Alloc(flat, bits));
++            out.push(Node::Alloc(flat.clone()));
++            for (bit, wire) in flat.into_iter().enumerate() {
++                if image[bit / 8] >> (bit % 8) & 1 == 1 {
++                    // §4.6: image gates, like allocation/release, are unconditional.
++                    out.push(Node::Flip(Vec::new(), wire));
++                }
++            }
+             self.regions.insert(a[0].clone(), (aw, all));
+         }
++        Ok(())
++    }
++    /// Compile the complete §4.6 local-region lifetime, not just its entry.
++    /// Reversing these nodes (§5.3) recreates each image before the inverse
++    /// body and restores/releases it afterward, even under a call predicate.
++    fn compile_function(
++        &mut self,
++        f: &Function,
++        context: &[(String, bool)],
++        out: &mut Vec<Node>,
++    ) -> Result<()> {
++        let mut entry = Vec::new();
++        self.declare_regions(f, &mut entry)?;
++        let exit: Vec<_> = entry.iter().rev().map(Node::adjoint).collect();
++        out.extend(entry);
++        for block in &f.blocks {
++            self.compile(&block.instructions, context, out)?;
++        }
++        out.extend(exit);
+         Ok(())
+     }
+@@ -4290,5 +4623,5 @@
+                         self.borrowed.extend(wires);
+                     } else {
+-                        out.push(Node::Alloc(wires.clone(), vec![false; wires.len()]));
++                        out.push(Node::Alloc(wires.clone()));
+                     }
+                 }
+@@ -4306,5 +4639,5 @@
+                         "qcopy" => {
+                             let w = self.produce(&i.lhs[0], source.len());
+-                            out.push(Node::Alloc(w.clone(), vec![false; w.len()]));
++                            out.push(Node::Alloc(w.clone()));
+                             w
+                         }
+@@ -4372,5 +4705,5 @@
+                     let value = if op == "qload" {
+                         let w = self.produce(&i.lhs[0], cells.first().map_or(0, Vec::len));
+-                        out.push(Node::Alloc(w.clone(), vec![false; w.len()]));
++                        out.push(Node::Alloc(w.clone()));
+                         w
+                     } else {
+@@ -4460,8 +4793,5 @@
+                         }
+                         let mut body = Vec::new();
+-                        child.declare_regions(f, &mut body)?;
+-                        for b in &f.blocks {
+-                            child.compile(&b.instructions, &c, &mut body)?;
+-                        }
++                        child.compile_function(f, &c, &mut body)?;
+                         self.generation = child.generation;
+                         self.borrowed.extend(child.borrowed);
+@@ -4471,9 +4801,15 @@
+                         out.extend(body);
+                     } else {
+-                        let mut touched = Vec::new();
++                        let mut touched: Vec<String> = c.iter().map(|(w, _)| w.clone()).collect();
+                         for group in [1, 2] {
+                             for n in list(&ca[group])? {
+                                 touched.extend(self.bundle(&n)?);
+                             }
++                        }
++                        for n in list(&ca[3])? {
++                            let (_, cells) = self.regions.get(&n).ok_or_else(|| {
++                                Error("§4.7: action mem operand is not a live region".into())
++                            })?;
++                            touched.extend(cells.iter().flatten().cloned());
+                         }
+                         out.push(Node::Other(touched));
+@@ -4522,12 +4858,67 @@
+ }
+ 
++/// Extensional identity of one black-box output bit at its symbolic inputs.
++#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
++struct Application {
++    key: String,
++    bit: usize,
++    inputs: Vec<Poly>,
++}
+ /// Symbolic evaluation state of one frame.
+ struct Evaluation<'a> {
+     vars: BTreeMap<String, u32>,
+     state: BTreeMap<String, Poly>,
+-    opaque: BTreeMap<String, u32>,
++    opaque: BTreeMap<Application, u32>,
++    applications: BTreeMap<u32, Application>,
+     borrowed: &'a BTreeSet<u32>,
+ }
+ impl Evaluation<'_> {
++    fn symbol(&mut self, app: Application) -> Result<Poly> {
++        if app.inputs.iter().any(|p| p.mentions(self.borrowed)) {
++            return err("§5.6", "composed black-box input depends on borrowed wires; needs a §12 borrow_frames claim");
++        }
++        let next = self.vars.len() as u32 + self.opaque.len() as u32;
++        let id = *self.opaque.entry(app.clone()).or_insert(next);
++        self.applications.insert(id, app);
++        Ok(Poly::var(id))
++    }
++    /// Simultaneous substitution, recursively through applications. Inserted
++    /// replacement polynomials are already in the destination coordinate system.
++    fn substitute(&mut self, p: &Poly, map: &BTreeMap<u32, Poly>) -> Result<Poly> {
++        let mut out = Poly::zero();
++        for m in &p.0 {
++            let mut term = Poly::one();
++            for v in m {
++                let value = if let Some(value) = map.get(v) {
++                    value.clone()
++                } else if let Some(mut app) = self.applications.get(v).cloned() {
++                    app.inputs = app
++                        .inputs
++                        .iter()
++                        .map(|p| self.substitute(p, map))
++                        .collect::<Result<_>>()?;
++                    self.symbol(app)?
++                } else {
++                    Poly::var(*v)
++                };
++                term = term.and(&value);
++            }
++            out = out.xor(&term);
++        }
++        Ok(out)
++    }
++    fn compose(
++        &mut self,
++        first: &BTreeMap<String, Poly>,
++        then: &BTreeMap<String, Poly>,
++    ) -> Result<BTreeMap<String, Poly>> {
++        let sub = first
++            .iter()
++            .filter_map(|(w, p)| self.vars.get(w).map(|v| (*v, p.clone())))
++            .collect();
++        then.iter()
++            .map(|(w, p)| Ok((w.clone(), self.substitute(p, &sub)?)))
++            .collect()
++    }
+     fn var(&mut self, w: &str) -> Poly {
+         if let Some(p) = self.state.get(w) {
+@@ -4562,8 +4953,7 @@
+                 self.state.insert(b.clone(), y.xor(&d));
+             }
+-            Node::Alloc(wires, image) => {
+-                for (w, bit) in wires.iter().zip(image) {
+-                    self.state
+-                        .insert(w.clone(), if *bit { Poly::one() } else { Poly::zero() });
++            Node::Alloc(wires) => {
++                for w in wires {
++                    self.state.insert(w.clone(), Poly::zero());
+                 }
+             }
+@@ -4598,7 +4988,9 @@
+                 for (j, (w, old)) in outputs.iter().zip(olds).enumerate() {
+                     // A canonical symbol for output j of the black box at these inputs.
+-                    let id = format!("{key}#{j}#{:?}", ins);
+-                    let next = self.vars.len() as u32 + self.opaque.len() as u32;
+-                    let symbol = Poly::var(*self.opaque.entry(id).or_insert(next));
++                    let symbol = self.symbol(Application {
++                        key: key.clone(),
++                        bit: j,
++                        inputs: ins.clone(),
++                    })?;
+                     let value = if *assign { symbol } else { old.xor(&symbol) };
+                     // Under the control condition c: c*value + (1+c)*old.
+@@ -4629,15 +5021,4 @@
+                 }
+                 let body_map = std::mem::replace(&mut self.state, saved);
+-                let compose = |first: &BTreeMap<String, Poly>,
+-                               then: &BTreeMap<String, Poly>,
+-                               vars: &BTreeMap<String, u32>| {
+-                    let sub: BTreeMap<u32, Poly> = first
+-                        .iter()
+-                        .filter_map(|(w, p)| vars.get(w).map(|v| (*v, p.clone())))
+-                        .collect();
+-                    then.iter()
+-                        .map(|(w, p)| (w.clone(), p.substitute(&sub)))
+-                        .collect::<BTreeMap<_, _>>()
+-                };
+                 let mut power: BTreeMap<String, Poly> = body_map;
+                 let mut result: BTreeMap<String, Poly> = wires
+@@ -4648,13 +5029,14 @@
+                 while k > 0 {
+                     if k & 1 == 1 {
+-                        result = compose(&result, &power, &self.vars);
++                        result = self.compose(&result, &power)?;
+                     }
+                     k >>= 1;
+                     if k > 0 {
+-                        power = compose(&power, &power, &self.vars);
++                        power = self.compose(&power, &power)?;
+                     }
+                 }
+                 for (w, p) in result {
+-                    self.state.insert(w, p.substitute(&entry));
++                    let value = self.substitute(&p, &entry)?;
++                    self.state.insert(w, value);
+                 }
+             }
+@@ -4748,4 +5130,5 @@
+         vars,
+         opaque: BTreeMap::new(),
++        applications: BTreeMap::new(),
+         borrowed: &borrowed_vars,
+     };
+@@ -4816,8 +5199,5 @@
+         }
+         let mut nodes = Vec::new();
+-        compiler.declare_regions(f, &mut nodes)?;
+-        for block in &f.blocks {
+-            compiler.compile(&block.instructions, &[], &mut nodes)?;
+-        }
++        compiler.compile_function(f, &[], &mut nodes)?;
+         let borrowed = compiler.borrowed;
+         match self.decide_frames(&nodes, &borrowed) {
+@@ -4864,5 +5244,5 @@
+ ````
+ 
+-## `src/call_discipline.rs` (383 lines)
++## `src/call_discipline.rs` (390 lines)
+ 
+ ````rust
+@@ -5013,6 +5393,9 @@
+                 if let Some(position) = f.params[group].iter().position(|p| p.name == param) {
+                     let actual = &actual[position];
+-                    if !matches!(types.get(actual), Some(Type::Wire(_))) {
+-                        return err("§3.3", "controlled region operand must be a wire bundle");
++                    if !matches!(types.get(actual), Some(Type::Wire(_) | Type::Qreg(_))) {
++                        return err(
++                            "§3.3",
++                            "controlled region operand must be a wire bundle or qreg",
++                        );
+                     }
+                     if context.contains(&format!("{actual}[{index}]")) {
+@@ -5030,6 +5413,7 @@
+     /// outstanding `lift.oracle_call` of identical operands (callee, token,
+     /// ins, tgt, fr, mem, args) on EVERY incoming path, with no intervening row
+-    /// writing its ins, tgt or fr locations (other than XOR delivery of oracle
+-    /// calls, which commute) or possibly writing a cell of a supplied region.
++    /// writing its ins or possibly writing a supplied cell. XOR deliveries commute
++    /// on outputs only; they still invalidate any invocation reading an output.
++    /// Non-delivery writes to tgt/fr also invalidate the invocation.
+     /// A forward dataflow over the row CFG: the outstanding multiset meets by
+     /// pointwise minimum, address constants (from lift.addr) by agreement.
+@@ -5088,5 +5472,20 @@
+             let op = row.op.as_str();
+ 
++            // Consume the matched inverse before its delivery invalidates readers.
++            // Final validation below checks the pre-row outstanding identity.
++            if op == "lift.oracle_uncall" {
++                let key = Invocation::from_row(row)?;
++                if let Some(n) = next.outstanding.get_mut(&key) {
++                    *n -= 1;
++                    if *n == 0 {
++                        next.outstanding.remove(&key);
++                    }
++                }
++            }
++            let delivery = matches!(op, "lift.oracle_call" | "lift.oracle_uncall");
+             let mut writes: BTreeSet<String> = row.lhs.iter().cloned().collect();
++            if delivery {
++                writes.extend([row.operands[3].clone(), row.operands[4].clone()]);
++            }
+             if op == "lift.perm_call" {
+                 writes.extend(list(&row.operands[1])?);
+@@ -5111,9 +5510,6 @@
+             }
+             next.outstanding.retain(|k, _| {
+-                let touches = k
+-                    .ins
+-                    .iter()
+-                    .chain([&k.target, &k.fault])
+-                    .any(|w| writes.contains(w));
++                let touches = k.ins.iter().any(|w| writes.contains(w))
++                    || (!delivery && [&k.target, &k.fault].iter().any(|w| writes.contains(*w)));
+                 let clobbers = k.mem.iter().any(|r| {
+                     mut_regions.contains(r)
+@@ -5137,13 +5533,4 @@
+                         .entry(Invocation::from_row(row)?)
+                         .or_default() += 1
+-                }
+-                "lift.oracle_uncall" => {
+-                    let key = Invocation::from_row(row)?;
+-                    if let Some(n) = next.outstanding.get_mut(&key) {
+-                        *n -= 1;
+-                        if *n == 0 {
+-                            next.outstanding.remove(&key);
+-                        }
+-                    }
+                 }
+                 "lift.addr" => {
+@@ -17979,5 +18366,5 @@
+ ````
+ 
+-## `src/validation.rs` (1858 lines)
++## `src/validation.rs` (1916 lines)
+ 
+ ````rust
+@@ -18484,17 +18871,30 @@
+                         )
+                     };
+-                    s.note_reads(&version, &reads)?;
+-                    for target in targets {
+-                        s.change(&target, version.clone(), other)?;
+-                    }
+-                    for (mem, param) in mems.iter().zip(mem_params) {
+-                        if param.role.as_deref() == Some("mut") {
+-                            let cell = format!("{mem}[*]");
+-                            s.update_log(&cell, &version, false);
+-                            s.modified.insert(cell.clone());
+-                            *s.cell_epochs.entry(cell.clone()).or_default() += 1;
++                    if call.instruction.op == "action_call" {
++                        let mut outputs = Vec::new();
++                        for target in &targets {
++                            s.check_target(target, false)?;
++                            outputs.extend(s.wires(target)?);
++                        }
++                        for (mem, param) in mems.iter().zip(mem_params) {
++                            if param.role.as_deref() == Some("mut") {
++                                outputs.push(format!("{mem}[*]"));
++                            }
++                        }
++                        // Snapshot every OLD output, including mutable cells, before
++                        // any write. The joint inverse may cancel only the whole group.
++                        s.joint_change(&outputs, version, &reads, other)?;
++                        for output in &outputs {
+                             if other {
+-                                *s.closed.entry(cell).or_default() += 1;
++                                *s.closed.entry(output.clone()).or_default() += 1;
+                             }
++                            if output.ends_with("[*]") {
++                                *s.cell_epochs.entry(output.clone()).or_default() += 1;
++                            }
++                        }
++                    } else {
++                        s.note_reads(&version, &reads)?;
++                        for target in targets {
++                            s.change(&target, version.clone(), other)?;
+                         }
+                     }
+@@ -19116,5 +19516,33 @@
+                 "oracle_call" | "action_call" | "adj" | "ctl" => {
+                     let call = normalize_call(i)?;
++                    if let Some(control) = &call.control {
++                        if rd(control)? != Type::Qreg(1) {
++                            return err("§3.3", "ctl requires a qreg[1] control (§4.7/§4.8)");
++                        }
++                    }
+                     self.validate_region_call(f, &call.instruction, types)?;
++                    if let Some(control) = &call.control {
++                        let ca = &call.instruction.operands;
++                        if call.instruction.op == "oracle_call" {
++                            if [&ca[3], &ca[4]].contains(&control) {
++                                return err(
++                                    "§3.3",
++                                    "effective control aliases oracle target/fault",
++                                );
++                            }
++                        } else {
++                            self.validate_inherited_targets(
++                                &call.instruction,
++                                &[format!("{control}[0]")],
++                                types,
++                            )?;
++                            let callee = self.declaration(ca[0].trim_start_matches('@'))?;
++                            for (actual, param) in list(&ca[3])?.iter().zip(&callee.params[2]) {
++                                if actual == control && param.role.as_deref() == Some("mut") {
++                                    return err("§3.3", "effective control aliases mutable region");
++                                }
++                            }
++                        }
++                    }
+                 }
+                 _ => return err("§4.8", format!("unknown classical opcode {op}")),
+@@ -19536,6 +19964,17 @@
+         extra_reads: &[String],
+     ) -> Result<()> {
+-        let other = wires.iter().any(|w| self.wire_is_other(w));
+-        let context = self.read_snapshot(&[])?;
++        self.joint_change(wires, version, extra_reads, false)
++    }
++    /// Multi-output effects share an entry snapshot and cancel as one event.
++    /// This includes all mutable call bundles and all passed mutable cells.
++    fn joint_change(
++        &mut self,
++        wires: &[String],
++        version: String,
++        extra_reads: &[String],
++        force_other: bool,
++    ) -> Result<()> {
++        let other = force_other || wires.iter().any(|w| self.wire_is_other(w));
++        let context = self.read_snapshot(extra_reads)?;
+         let base = format!("{version}:context{context:?}:polarity{:?}", self.predicates);
+         let prior = wires
+@@ -19545,10 +19984,9 @@
+         let inverse = prior
+             .filter(|prior| {
+-                self.exchanges
+-                    .get(*prior)
+-                    .is_some_and(|(op, outputs)| op == &base && outputs == wires)
+-                    && wires
+-                        .iter()
+-                        .all(|w| self.versions.get(w).and_then(|v| v.last()) == Some(*prior))
++                self.exchanges.get(*prior).is_some_and(|(op, outputs)| {
++                    operation_inverse(op).as_ref() == Some(&base) && outputs == wires
++                }) && wires
++                    .iter()
++                    .all(|w| self.versions.get(w).and_then(|v| v.last()) == Some(*prior))
+             })
+             .cloned();
+@@ -19556,5 +19994,12 @@
+             // The whole joint computation is still current: use the captured
+             // entry versions, rather than treating its outputs as new inputs.
+-            prior
++            let complete = operation_inverse(&prior)
++                .ok_or_else(|| Error("§6.2: joint operation has no inverse identity".into()))?;
++            if let Some(reads) = self.reads.get(&prior).cloned() {
++                self.reads.insert(complete.clone(), reads);
++            }
++            self.exchanges
++                .insert(complete.clone(), (base, wires.to_vec()));
++            complete
+         } else {
+             let complete = format!("{base}:exchange_inputs{:?}", self.snapshot(wires));
+@@ -23548,5 +23993,5 @@
+ ````
+ 
+-## `tests/parser.rs` (193 lines)
++## `tests/parser.rs` (212 lines)
+ 
+ ````rust
+@@ -23742,4 +24187,23 @@
+     for bad in ["9007199254740992", "\"01\"", "\"+1\"", "\"-0\"", "\"1.0\""] {
+         assert!(Json::parse(bad).unwrap().uint().is_err(), "accepted {bad}");
++    }
++}
++
++mod support;
++#[test]
++fn r3_normalized_cc_controls_are_typed_and_disjoint_at_load() {
++    let ac = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    for (tag, ty, control) in [
++        ("integer", "i8", "c"),
++        ("token", "token", "c"),
++        ("unknown", "qreg[1]", "missing"),
++        ("multiwire", "qreg[2]", "c"),
++        ("alias", "qreg[1]", "q"),
++    ] {
++        let cc = format!(
++            r#"{{"abi":"0.8","kind":"cc","params":["{ty}","qreg[1]"],"results":[],"tier":"cc"}}"#
++        );
++        let text = support::object(&[("a",ac,"action @a (t:wire mut) () () () ()\n^entry():\nx t"),("p",&cc,&format!("fn cc @p (c:{ty}, q:qreg[1]) () () () ()\n^entry():\nctl {control} action_call @a (q) () () ()\nret"))],"{}", "");
++        support::reject_cli(&text, "§3.3", &format!("cc-ctl-{tag}"));
+     }
+ }
+@@ -24062,5 +24526,5 @@
+ ````
+ 
+-## `tests/r1_borrow.rs` (172 lines)
++## `tests/r1_borrow.rs` (397 lines)
+ 
+ ````rust
+@@ -24237,4 +24701,229 @@
+     }
+ }
++
++#[test]
++fn r3_opaque_loop_composition_substitutes_inside_applications() {
++    use bennett_isa_ref::{Argument, Budget};
++    let os =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    let ps = r#"{"abi":"0.8","args":["token"],"bounds":[2],"in":[],"kind":"perm_action","mem":[],"mut":[1,4],"tier":"q"}"#;
++    let call = "oracle_call @o tk (t) d f () ()";
++    let build = |flip: bool, looped: bool| {
++        let pair = format!("{call}{}", if flip { "\nx t" } else { "" });
++        let body = if looped {
++            format!("qloop 2 {{\n{pair}\n}}")
++        } else {
++            format!("{pair}\n{pair}")
++        };
++        let sig = if looped {
++            ps.to_string()
++        } else {
++            ps.replace("[2]", "[]")
++        };
++        let regs = if looped { "regs {  } bounds {2}\n" } else { "" };
++        support::object(&[("o",os,"oracle @o (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x"),("a",&sig,&format!("perm_action @a (t:wire mut, f:wire[4] mut) () () (tk:token) ()\n{regs}^entry():\nd = qborrow any 1\n{body}\nqreturn d"))],"{}", "")
++    };
++    for looped in [true, false] {
++        // d' = d XOR t XOR (t XOR 1) = d XOR 1: never a borrow identity.
++        support::reject_cli(
++            &build(true, looped),
++            "§5.6",
++            &format!("opaque-loop-{looped}"),
++        );
++        let o = Object::parse(&build(false, looped)).unwrap();
++        // Invariant inputs: d' = d XOR t XOR t = d; all 64 t,f,d values.
++        for input in 0..65u32 {
++            let mut q = QuantumState::new();
++            let w = q.allocate(6).unwrap();
++            for (bit, wire) in w.iter().enumerate() {
++                if input == 64 {
++                    q.gate("h", &[*wire], None, &[]).unwrap();
++                } else if input >> bit & 1 == 1 {
++                    q.gate("x", &[*wire], None, &[]).unwrap();
++                }
++            }
++            let before = q.clone();
++            let mut b = QuantumBindings::default();
++            b.bundles.insert("t".into(), vec![w[0]]);
++            b.bundles.insert("f".into(), w[1..5].to_vec());
++            b.borrowed.push(vec![w[5]]);
++            b.args
++                .insert("tk".into(), Argument::Token(Budget::steps(1)));
++            o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++            assert_eq!(q, before);
++            o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++            assert_eq!(q, before);
++        }
++    }
++}
++
++#[test]
++fn r3_nonpermutation_calls_touch_all_effective_controls() {
++    let ac = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let build = |sig: &str, child: &str, body: &str| {
++        support::object(&[("child",sig,child),("a",ac,&format!("action @a (t:wire mut) () () () ()\n^entry():\nd = qborrow any 1\n{body}\nqreturn d"))],"{}", "")
++    };
++    let child = "action @child (t:wire mut) () () () ()\n^entry():\nh t";
++    for (tag, body) in [
++        ("ctl", "ctl d action_call @child (t) () () ()"),
++        (
++            "inherited",
++            "qpred d\naction_call @child (t) () () ()\nqunpred d",
++        ),
++        ("direct", "qpred d\nh t\nqunpred d"),
++    ] {
++        support::reject_cli(
++            &build(ac, child, body),
++            "§5.6",
++            &format!("borrow-control-{tag}"),
++        );
++    }
++    let pc = ac.replace("action", "perm_action");
++    let child = "perm_action @child (t:wire mut) () () () ()\n^entry():\nx t";
++    let o = Object::parse(&build(
++        &pc,
++        child,
++        "ctl d action_call @child (t) () () ()\nctl d action_call @child (t) () () ()",
++    ))
++    .unwrap();
++    // Controlled X twice is identity, including arbitrary borrowed states.
++    for input in 0..5u32 {
++        let mut q = QuantumState::new();
++        let w = q.allocate(2).unwrap();
++        for (bit, wire) in w.iter().enumerate() {
++            if input == 4 {
++                q.gate("h", &[*wire], None, &[]).unwrap();
++            } else if input >> bit & 1 == 1 {
++                q.gate("x", &[*wire], None, &[]).unwrap();
++            }
++        }
++        let before = q.clone();
++        let mut b = QuantumBindings::default();
++        b.bundles.insert("t".into(), vec![w[0]]);
++        b.borrowed.push(vec![w[1]]);
++        o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++        assert_eq!(q, before);
++        o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++        assert_eq!(q, before);
++    }
++}
++
++/// c is identity (X twice), so CX(b,t); c[†]; CX(b,t) is identity on
++/// every t,b and on any reference entangled with b. Local images/lifetimes
++/// are unconditional even if c is called under a borrowed control.
++fn check_local_region_lifetime(declaration: &str, bounds: &[u64], image: bool) {
++    let ps = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}"#;
++    let cs = ps.replace("\"bounds\":[]", &format!("\"bounds\":{bounds:?}"));
++    let regs = if bounds.is_empty() {
++        String::new()
++    } else {
++        "regs {  } bounds {0}\n".into()
++    };
++    let child = format!(
++        "perm_action @c (t:wire mut) () () () ()\n{regs}^entry():\n{declaration}\nx t\nx t"
++    );
++    for direction in ["", "adj "] {
++        for controlled in [false, true] {
++            let call = format!("{direction}action_call @c (t) () () ()");
++            let call = if controlled {
++                format!("qpred b\n{call}\nqunpred b")
++            } else {
++                call
++            };
++            let parent = format!("perm_action @a (t:wire mut) () () () ()\n^entry():\nb = qborrow any 1\ncx b t\n{call}\ncx b t\nqreturn b");
++            let layout = "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n";
++            let text = support::object_with_data(
++                &[("c", &cs, &child), ("a", ps, &parent)],
++                if image { &[("image", "ff")] } else { &[] },
++                layout,
++            );
++            let o = support::rehash(&text);
++            o.check_hashes().unwrap();
++            // Four t,b basis entries, a superposition, and a Bell pair b/ref.
++            for input in 0..6u32 {
++                let mut q = QuantumState::new();
++                let w = q.allocate(3).unwrap();
++                if input == 5 {
++                    q.gate("h", &[w[1]], None, &[]).unwrap();
++                    q.gate("cx", &[w[1], w[2]], None, &[]).unwrap();
++                    q.gate("h", &[w[0]], None, &[]).unwrap();
++                } else {
++                    for (bit, wire) in w[..2].iter().enumerate() {
++                        if input == 4 {
++                            q.gate("h", &[*wire], None, &[]).unwrap();
++                        } else if input >> bit & 1 == 1 {
++                            q.gate("x", &[*wire], None, &[]).unwrap();
++                        }
++                    }
++                }
++                let before = q.clone();
++                let mut bindings = QuantumBindings::default();
++                bindings.bundles.insert("t".into(), vec![w[0]]);
++                bindings.borrowed.push(vec![w[1]]);
++                for adjoint in [false, true] {
++                    o.execute_action("a", &mut q, &bindings, adjoint, &[])
++                        .unwrap();
++                    assert_eq!(q, before, "{declaration}, {direction}, controlled={controlled}, input={input}, adjoint={adjoint}");
++                }
++            }
++            // Pin the reported CLI acceptance and t=0/1 exact reversal too.
++            let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
++                .join(".tmp")
++                .join(format!(
++                    "codex-local-{image}-{}-{}-{controlled}.bisa",
++                    bounds.len(),
++                    direction.len()
++                ));
++            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
++            std::fs::write(&path, &o.text).unwrap();
++            for t in ["0", "1"] {
++                for command in ["run-action", "reverse"] {
++                    let output = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                        .arg(command)
++                        .arg(&path)
++                        .args(["a", "--mut", t])
++                        .output()
++                        .unwrap();
++                    assert!(
++                        output.status.success(),
++                        "{}",
++                        String::from_utf8_lossy(&output.stderr)
++                    );
++                    let value = support::json(std::str::from_utf8(&output.stdout).unwrap());
++                    let expected = support::json(&format!(r#"{{"{t}":[1,0]}}"#));
++                    let field = if command == "reverse" {
++                        "forward_state"
++                    } else {
++                        "state"
++                    };
++                    assert_eq!(value.get(field).unwrap(), &expected);
++                    if command == "reverse" {
++                        assert_eq!(
++                            value.get("equals_entry").unwrap(),
++                            &bennett_isa_ref::json::Json::Bool(true)
++                        );
++                    }
++                }
++            }
++        }
++    }
++}
++
++#[test]
++fn codex_r3_b03_adjoint_child_local_region_exact_witness() {
++    check_local_region_lifetime("qregion r 1 1", &[], false);
++}
++
++#[test]
++fn codex_r3_b03_adjoint_child_nonzero_image() {
++    check_local_region_lifetime("qregion r 1 4 @image", &[], true);
++}
++
++#[test]
++fn codex_r3_b03_adjoint_child_zero_trip_region_declaration() {
++    // The load precedes the lexical declaration: even a zero-trip declaration
++    // creates the region at function entry. The loaded image is restored.
++    check_local_region_lifetime("z = qalloc any 1\nv = qload r z\nqunload r z v\nqfree z\nqloop 0 {\nqregion r 1 4 @image\n}", &[0], true);
++}
+ ````
+ 
+@@ -24488,5 +25177,5 @@
+ ````
+ 
+-## `tests/r1_discipline.rs` (354 lines)
++## `tests/r1_discipline.rs` (385 lines)
+ 
+ ````rust
+@@ -24844,4 +25533,35 @@
+ fn r2_complementary_diagonal_phases_do_not_cancel() {
+     reject(&tmp("d0 = qalloc any 1\nd1 = qalloc any 1\nh d0\ncx d0 d1\nqif p {\ncz d1 t\n} {\ncz d1 t\n}\ncx d0 d1\nh d0\nqfree d1\nqfree d0"), "§6.2");
++}
++
++#[test]
++fn r3_action_calls_transfer_the_old_joint_dependencies() {
++    let cs = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"perm_action","mem":[],"mut":[1,1],"tier":"q"}"#;
++    let ps = cs.replace("perm_action", "action");
++    let child = "perm_action @child (a:wire mut, b:wire mut) () () () ()\n^entry():\nswap a b";
++    let body = "d = qalloc any 1\nh d\naction_call @child (d, m) () () ()\ncx m t\nadj action_call @child (d, m) () () ()\nh d\nqfree d";
++    let build = |body: &str| {
++        support::object(&[("child",cs,child),("a",&ps,&format!("action @a (t:wire mut, m:wire mut) () () () ()\n^entry():\n{body}"))],"{}", "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n")
++    };
++    for gate in ["swap a b", "cx a b"] {
++        let bad = build(body).replace("swap a b", gate);
++        support::reject_cli(
++            &bad,
++            "§6.2",
++            &format!("codex-call-{}", gate.split_once(' ').unwrap().0),
++        );
++        let good = bad.replace("cx m t", "cx m t\ncx m t");
++        run_three_identity(&accept(&good));
++    }
++    // Mutable cell outputs carry the old workspace's H provenance too.
++    let cs = r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[{"A":1,"W":1,"role":"mut"}],"mut":[1],"tier":"q"}"#;
++    let child = "perm_action @child (d:wire mut) (p:wire in) (r:region[1,1] mut) () ()\n^entry():\nqexchm r p d";
++    let ps = r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1,1],"tier":"q"}"#;
++    let body = "qregion r 1 1\nd = qalloc any 1\nh d\naction_call @child (d) (p) (r) ()\nz = qload r p\ncx z t\nqunload r p z\nadj action_call @child (d) (p) (r) ()\nh d\nqfree d";
++    let build = |body: &str| {
++        support::object(&[("child",cs,child),("a",ps,&format!("action @a (t:wire mut, m:wire mut) (p:wire in) () () ()\n^entry():\n{body}"))],"{}", "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n")
++    };
++    reject(&build(body), "§6.2");
++    run_three_identity(&accept(&build(&body.replace("cx z t", "cx z t\ncx z t"))));
+ }
+ ````
+@@ -25574,5 +26294,5 @@
+ ````
+ 
+-## `tests/r1_fuzz_discipline.rs` (371 lines)
++## `tests/r1_fuzz_discipline.rs` (491 lines)
+ 
+ ````rust
+@@ -25945,4 +26665,124 @@
+             o.execute_action("a", &mut q, &b, true, &[]).unwrap();
+             assert_eq!(q, before, "{body}");
++        }
++    }
++}
++
++#[test]
++fn generated_child_call_wrapping_preserves_bell_cleanup_obligations() {
++    let cs = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"perm_action","mem":[],"mut":[1,1],"tier":"q"}"#;
++    let ps = cs
++        .replace("\"in\":[]", "\"in\":[1]")
++        .replace("perm_action", "action");
++    for kind in ["swap", "cx", "region"] {
++        for count in 0..6 {
++            for wrapped in [false, true] {
++                let (child_sig, child, decl, direct, forward, inverse, middle) = if kind == "region"
++                {
++                    (
++                        r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[{"A":1,"W":1,"role":"mut"}],"mut":[1],"tier":"q"}"#,
++                        "perm_action @child (d:wire mut) (p:wire in) (r:region[1,1] mut) () ()\n^entry():\nqexchm r p d".to_string(),
++                        "qregion r 1 1\n",
++                        "qexchm r p d".to_string(),
++                        "action_call @child (d) (p) (r) ()",
++                        "adj action_call @child (d) (p) (r) ()",
++                        format!("z = qload r p\n{}qunload r p z\n", "cx z t\n".repeat(count)),
++                    )
++                } else {
++                    (cs, format!("perm_action @child (a:wire mut, b:wire mut) () () () ()\n^entry():\n{kind} a b"), "", format!("{kind} d m"),
++                     "action_call @child (d, m) () () ()", "adj action_call @child (d, m) () () ()", "cx m t\n".repeat(count))
++                };
++                let (compute, uncompute) = if wrapped {
++                    (forward, inverse)
++                } else {
++                    (direct.as_str(), direct.as_str())
++                };
++                let body = format!("action @a (t:wire mut, m:wire mut) (p:wire in) () () ()\n^entry():\n{decl}d = qalloc any 1\nh d\n{compute}\n{middle}{uncompute}\nh d\nqfree d");
++                let text = support::object(&[("child",child_sig,&child),("a",&ps,&body)],"{}", "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n");
++                // For each operation, odd CX copies the H-created bit into t;
++                // even CX is identity. Calling must preserve this obligation.
++                if count % 2 == 1 {
++                    assert!(
++                        Object::parse(&text)
++                            .unwrap_err()
++                            .to_string()
++                            .contains("§6.2"),
++                        "{kind}, wrapped={wrapped}, count={count}"
++                    );
++                } else {
++                    let o = Object::parse(&text).unwrap();
++                    runs_clean(&o).unwrap();
++                }
++            }
++        }
++    }
++}
++
++#[test]
++fn generated_changing_input_opaque_loops_match_independent_parity() {
++    use bennett_isa_ref::{Argument, Budget};
++    let os =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    for flip in [false, true] {
++        for n in 0..8 {
++            for nested in [false, true] {
++                let count = if nested { 2 * n } else { n };
++                let bounds = if nested {
++                    format!("[2,{n}]")
++                } else {
++                    format!("[{n}]")
++                };
++                let regs = if nested {
++                    format!("2, {n}")
++                } else {
++                    n.to_string()
++                };
++                let ps = format!(
++                    r#"{{"abi":"0.8","args":["token"],"bounds":{bounds},"in":[],"kind":"perm_action","mem":[],"mut":[1,4],"tier":"q"}}"#
++                );
++                let body = format!(
++                    "qloop {n} {{\noracle_call @o tk (t) d f () ()\n{}\n}}",
++                    if flip { "x t" } else { "" }
++                );
++                let body = if nested {
++                    format!("qloop 2 {{\n{body}\n}}")
++                } else {
++                    body
++                };
++                let body = body.replace("\n\n", "\n");
++                let text = support::object(&[("o",os,"oracle @o (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x"),("a",&ps,&format!("perm_action @a (t:wire mut, f:wire[4] mut) () () (tk:token) ()\nregs {{  }} bounds {{{regs}}}\n^entry():\nd = qborrow any 1\n{body}\nqreturn d"))],"{}", "");
++                // Identity oracle: without flips, d' = d XOR (count%2)*t;
++                // with flips, pairs contribute t XOR !t = 1. Identity on d
++                // for ALL t iff count is even (no flips) or a multiple of 4.
++                let valid = count % (if flip { 4 } else { 2 }) == 0;
++                let parsed = Object::parse(&text);
++                if !valid {
++                    assert!(parsed.unwrap_err().to_string().contains("§5.6"), "{body}");
++                    continue;
++                }
++                let o = parsed.unwrap_or_else(|e| panic!("{e}: {body}"));
++                for input in 0..65u32 {
++                    let mut q = QuantumState::new();
++                    let w = q.allocate(6).unwrap();
++                    for (bit, wire) in w.iter().enumerate() {
++                        if input == 64 {
++                            q.gate("h", &[*wire], None, &[]).unwrap();
++                        } else if input >> bit & 1 == 1 {
++                            q.gate("x", &[*wire], None, &[]).unwrap();
++                        }
++                    }
++                    let before = q.clone();
++                    let mut b = QuantumBindings::default();
++                    b.bundles.insert("t".into(), vec![w[0]]);
++                    b.bundles.insert("f".into(), w[1..5].to_vec());
++                    b.borrowed.push(vec![w[5]]);
++                    b.args
++                        .insert("tk".into(), Argument::Token(Budget::steps(1)));
++                    o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++                    assert_eq!(q, before, "{body}");
++                    o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++                    assert_eq!(q, before, "{body}");
++                }
++            }
+         }
+     }
+@@ -26548,5 +27388,5 @@
+ ````
+ 
+-## `tests/r1_rules.rs` (422 lines)
++## `tests/r1_rules.rs` (519 lines)
+ 
+ ````rust
+@@ -26973,4 +27813,101 @@
+     }
+ }
++
++#[test]
++fn r3_nested_oracle_deliveries_invalidate_outstanding_inputs() {
++    let si =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let so = si
++        .replace("\"args\":[]", "\"args\":[\"token\"]")
++        .replace("[8],\"kind", "[8,8],\"kind");
++    let inc = "oracle @inc8 (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\nregs { one:reg[8], r:reg[8] }\n^entry():\none = lift.const.i8 1\nr = lift.add x one\nlift.retval r";
++    let build = |before: &str, middle: &str| {
++        object(&[("inc8",si,inc),("p",&so,&format!("oracle @p (a:wire[8] in, b:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)\nregs {{ x:reg[8], out:reg[8], fr:reg[4], fr2:reg[4] }}\n^entry():\nx = lift.mov a\n{before}lift.oracle_call @inc8 tk (x) out fr () ()\n{middle}lift.oracle_uncall @inc8 tk (x) out fr () ()\nlift.retval out"))],"{}", "")
++    };
++    support::reject_cli(
++        &build("", "lift.oracle_call @inc8 tk (b) x fr2 () ()\n"),
++        "§5.5",
++        "nested-target",
++    );
++    // The other uncall has a matching earlier call; its delivery still writes x.
++    support::reject_cli(
++        &build(
++            "lift.oracle_call @inc8 tk (b) x fr2 () ()\n",
++            "lift.oracle_uncall @inc8 tk (b) x fr2 () ()\n",
++        ),
++        "§5.5",
++        "nested-uncall",
++    );
++    // Fault delivery can clobber a four-bit input just as payload delivery can.
++    let fault = build("", "lift.oracle_call @inc8 tk (b) out x () ()\n")
++        .replace("x:reg[8]", "x:reg[4]")
++        .replace("x = lift.mov a", "x = lift.trunc.i4 a")
++        .replace(
++            "lift.oracle_call @inc8 tk (x)",
++            "lift.oracle_call @id4 tk (x)",
++        )
++        .replace(
++            "lift.oracle_uncall @inc8 tk (x)",
++            "lift.oracle_uncall @id4 tk (x)",
++        );
++    let id = "oracle @id4 (x:wire[4] in) (t:wire[8]) (f:wire[4]) () ()\nregs { r:reg[8] }\n^entry():\nr = lift.zext.i8 x\nlift.retval r";
++    let fault = fault.replace("section functions\n", &format!("section functions\n{id}\n"));
++    // Add id4 through the object builder so the symbol table remains well-formed.
++    let parsed_sig = si.replace("[8],\"kind", "[4],\"kind");
++    let parent = fault.split("oracle @p").nth(1).unwrap();
++    let fault = object(
++        &[
++            ("inc8", si, inc),
++            ("id4", &parsed_sig, id),
++            ("p", &so, &format!("oracle @p{parent}")),
++        ],
++        "{}",
++        "",
++    );
++    support::reject_cli(&fault, "§5.5", "nested-fault");
++    let o = rehash(&build("", ""));
++    let mut input = OracleInput::bits(&[1, 0]);
++    input.args.push(Argument::Token(Budget::steps(3)));
++    // move + call + uncall + retval: (1+1) XOR (1+1) = 0.
++    assert_eq!(check(&o, "p", &input, Budget::steps(4)), (0, 0, 4));
++}
++
++#[test]
++fn codex_r3_b01_exact_implicit_delivery_witnesses() {
++    let si =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let so = si
++        .replace("\"args\":[]", "\"args\":[\"token\"]")
++        .replace("\"in\":[8]", "\"in\":[]");
++    let inner = "oracle @i (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n^entry():\nlift.retval x";
++    let outer = "oracle @o () (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { a:reg[8], b:reg[8], r:reg[8], fr:reg[4], fr2:reg[4] }\n^entry():\na = lift.const.i8 1\nb = lift.const.i8 2\nlift.oracle_call @i tk (a) r fr () ()\nlift.oracle_call @i tk (b) a fr2 () ()\nlift.oracle_uncall @i tk (a) r fr () ()\nlift.retval r";
++    let build = |outer: &str| object(&[("i", si, inner), ("o", &so, outer)], "{}", "");
++    // Hand trace of the invalid six-row body: r=1, a=1 XOR 2=3,
++    // r=1 XOR 3=2. It must reject before hashing or execution (§5.5).
++    support::reject_cli(&build(outer), "§5.5", "codex-implicit-target");
++    // The same outstanding input can instead be overwritten by fault delivery.
++    let s4 = si.replace("\"in\":[8]", "\"in\":[4]");
++    let i4 = "oracle @i4 (x:wire[4] in) (t:wire[8]) (f:wire[4]) () ()\nregs { r:reg[8] }\n^entry():\nr = lift.zext.i8 x\nlift.retval r";
++    let fault = outer
++        .replace("a:reg[8]", "a:reg[4]")
++        .replace("a = lift.const.i8", "a = lift.const.i4")
++        .replace("@i tk (a)", "@i4 tk (a)")
++        .replace("(b) a fr2", "(b) r a");
++    support::reject_cli(
++        &object(
++            &[("i", si, inner), ("i4", &s4, i4), ("o", &so, &fault)],
++            "{}",
++            "",
++        ),
++        "§5.5",
++        "codex-implicit-fault",
++    );
++    let good = outer.replace("lift.oracle_call @i tk (b) a fr2 () ()\n", "");
++    let o = rehash(&build(&good));
++    let mut input = OracleInput::bits(&[]);
++    input.args.push(Argument::Token(Budget::steps(1)));
++    // Two constants, identical one-row calls, retval: 1 XOR 1 = 0.
++    assert_eq!(check(&o, "o", &input, Budget::steps(5)), (0, 0, 5));
++}
+ ````
+ 
+@@ -27329,5 +28266,5 @@
+ ````
+ 
+-## `tests/registers.rs` (122 lines)
++## `tests/registers.rs` (185 lines)
+ 
+ ````rust
+@@ -27454,4 +28391,67 @@
+     }
+ }
++
++#[test]
++fn r3_typed_cc_controlled_calls_execute_and_restore_history() {
++    let ac = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let cc = r#"{"abi":"0.8","kind":"cc","params":["qreg[1]","qreg[1]"],"results":[],"tier":"cc"}"#;
++    for forward_reference in [false, true] {
++        let body = if forward_reference {
++            "fn cc @p (input:qreg[1], q:qreg[1]) () () () ()\n^entry():\nbr ^def()\n^use():\nctl c action_call @a (q) () () ()\nret\n^def():\nyes = const.i1 1\nc = select yes input input\nbr ^use()"
++        } else {
++            "fn cc @p (c:qreg[1], q:qreg[1]) () () () ()\n^entry():\nctl c action_call @a (q) () () ()\nret"
++        };
++        let o = rehash(&object(
++            &[
++                (
++                    "a",
++                    ac,
++                    "action @a (t:wire mut) () () () ()\n^entry():\nx t",
++                ),
++                ("p", cc, body),
++            ],
++            "{}",
++            "",
++        ));
++        for c in 0..2 {
++            for t in 0..2 {
++                let mut regs = QuantumRegisters::new();
++                let control = regs.allocate(1).unwrap();
++                let target = regs.allocate(1).unwrap();
++                regs.prepare(control, &[c == 1]).unwrap();
++                regs.prepare(target, &[t == 1]).unwrap();
++                let mut m = ClassicalMachine::with_quantum_registers(
++                    &o,
++                    "p",
++                    &[ClassicalValue::Qreg(control), ClassicalValue::Qreg(target)],
++                    &[],
++                    regs,
++                )
++                .unwrap();
++                let entry = m.snapshot();
++                let outcome = m.run(10).unwrap();
++                assert_eq!(
++                    (outcome.fault, outcome.steps),
++                    (None, if forward_reference { 6 } else { 2 })
++                );
++                let regs = m.quantum_registers();
++                assert_eq!(
++                    regs.quantum_state()
++                        .read_basis(regs.bundle(target).unwrap())
++                        .unwrap(),
++                    t ^ c
++                );
++                assert_eq!(
++                    regs.quantum_state()
++                        .read_basis(regs.bundle(control).unwrap())
++                        .unwrap(),
++                    c
++                );
++                m.reverse().unwrap();
++                assert_eq!(m.snapshot(), entry);
++            }
++        }
++    }
++}
+ ````
+ 
+@@ -27707,5 +28707,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (110 lines)
++## `tests/support/mod.rs` (130 lines)
+ 
+ ````rust
+@@ -27820,4 +28820,24 @@
+ pub const ACTION_1_1: &str =
+     r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++
++/// Invalid objects must fail before producing any CLI data.
++pub fn reject_cli(text: &str, rule: &str, tag: &str) {
++    let e = Object::parse(text).expect_err("malformed object accepted");
++    assert!(e.to_string().contains(rule), "{e}");
++    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".tmp");
++    std::fs::create_dir_all(&dir).unwrap();
++    let path = dir.join(format!("r3-{tag}.bisa"));
++    std::fs::write(&path, text).unwrap();
++    for cmd in ["hash", "check"] {
++        let out = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++            .arg(cmd)
++            .arg(&path)
++            .output()
++            .unwrap();
++        assert_eq!(out.status.code(), Some(1), "{out:?}");
++        assert!(out.stdout.is_empty());
++        assert!(String::from_utf8_lossy(&out.stderr).contains(rule));
++    }
++}
+ ````
+ 

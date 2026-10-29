@@ -1,0 +1,20 @@
+{
+ "run": "isa-ref-2026-10-29",
+ "round": 4,
+ "doc": "docs/council/isa-ref-2026-10-29/packet-round-4.md",
+ "doc_sha256": "01c908a617cdbd2e3f86ea233dcbe410be75af6fa7ed21082a93a256e4d62969",
+ "prepared": "2026-10-29T20:20:32+00:00",
+ "members": {},
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "the Rust reference interpreter bennett-isa-ref (snapshot at commit 8e11fe7, round 4: all 8 round-3 blockers from sol and codex answered in council/response-round-3.md, embedded first; conformance crate 445/490 with 45 unavailable on staged deliverables 8-11; the muse seat grades this snapshot fresh after a provider outage in rounds 2-3) against the accepted ISA specification draft 0.8",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review"
+}
