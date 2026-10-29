@@ -180,3 +180,21 @@ Before edit: After g and swap, x=g(old,y) and t=old; XOR ginv(x,y) clears t for 
 
 Edited §8.7/§8.8, §22.2, §25.1/§25.3: CC-level call/swap/inverse with preserved bindings implements ISA 0.8; retire BLK-3 and move parameterised qinplace to efficiency. Witness: `inplace-param-quantum accept; state for basis and superposed y`.
 
+## D02-20 — resolved
+
+Before edit: With zero steps, a console effect before the next entry/latch mark could execute without a charge.
+
+Edited §12.2 N34, §17.6: Charge before each counted materialised instruction, including final suffix/return; batching must preserve the exact effect prefix and fault boundary. Witness: `r-budget-prefix`.
+
+## D02-21 — resolved
+
+Before edit: R cannot hostcall and generic trap does not encode arbitrary C; code 2 cannot be guaranteed by the old construction.
+
+Edited §11.5, §17.5–§17.6, §22.2, §25.1–§25.2: Promote ISA-7 to BLK-5 with exact R fault C semantics. Affected points are blocked:BD-B-ISA7; no typed-fault implementation is claimed until the dependency lands. Witness: `r-fault-code blocked and required code=2 state`.
+
+## D02-22 — resolved
+
+Before edit: Sv39 supervisor alias V of physical P must refer to the same byte; raw high-address loads would instead miss the RAM allocation.
+
+Edited §20.6: Translate every guest access in enabled effective privilege contexts, including kernel accesses, while runtime helpers use physical backing. Record virtual code mappings for dispatch/trap resumption. Witness: `sv39-kernel-alias`.
+
