@@ -1,0 +1,226 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "The published objects parse, and the opcode inventory is broadly complete. However, object.rs and validation.rs accept forbidden spellings and malformed metadata, reject valid control-flow layouts and local-region arguments, and can panic during cross-function validation.",
+   "change": "Refactor Object::validate into schema validation followed by cross-function analyses, and replace the approximate Discipline checks with version-aware validation. Add the positive and negative fixtures specified in B03\u2013B08 and B11\u2013B13."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The four published hashes, printed envelopes, FIPS vectors, and mutual-SCC test pass. The independently assembled inc8 envelope hashes to 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. linking.rs still rejects differing certificates rather than composing them.",
+   "change": "Replace linking.rs::merge_metadata's blanket certificate conflict with typed certificate composition and binding regeneration, tested with a certified client and its certified imported callee."
+  },
+  {
+   "id": "C3",
+   "score": 3,
+   "evidence": "All 26 lifted-row families have dispatch paths. Tight-budget inc8 and sum_db results, memory faults, and stack exhaustion match hand calculations. Legal wide interfaces panic, pointer arguments to permutation actions fail, and prohibited recursive oracle calls pass validation.",
+   "change": "Remove fixed-u128 semantic limits across object.rs, oracle.rs, machine.rs, and action.rs, then add the B01, B02, and B10 regression cases with independently specified outcomes."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "The printed C1\u2013C5 and R1\u2013R5 inverse orders are followed for the traced recursive calls and returns. Both prefix sweeps pass, including the full 14-bit tiny-memory domain. SPEC-QUESTIONS entry 4 nevertheless claims derived concrete widths that the u128/usize state and slots do not implement generally.",
+   "change": "Give OracleMachine explicit derived counter, cell, and slot widths, backed by arbitrary-width bit vectors, and test H=127 requiring Hc\u2265129 alongside wide-location prefix reversal."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "The existing nested uncall, device presence restoration, host reply, and handle tests pass. A segment beginning at the first instruction exposes incomplete whole-run reversal. The CC/R tier rules are also inconsistent with the call graph printed in \u00a73.1.",
+   "change": "Repair ClassicalMachine's administrative boundary restoration when cancelled frames are skipped, and make validate_classical's call/uncall tier policy explicit and consistent, using B09 and B20."
+  },
+  {
+   "id": "C6",
+   "score": 2,
+   "evidence": "Primitive quantum kernels and tested action adjoints work, but \u00a76 validation is materially partial: predicate versions, branch polarity, loop effects, memory cleanup, qinplace certificates, and library-backed borrow proofs are not correctly enforced. QuantumState::release silently discards sufficiently small nonzero amplitudes.",
+   "change": "Replace string-log cleanup recognition with explicit provenance, dependency versions, computing sequences, and control polarity; connect required certificate evidence and separate numerical tolerance from semantic cleanliness."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "All 60 prebuilt normal tests and both ignored sweeps passed during this review. The hand-derived example outcomes checked here are correct. The test named every_committed_fixture_has_valid_identity omits tiny_memory.bisa, and existing reversal fixtures miss the initial-call boundary.",
+   "change": "Discover fixture files automatically in tests/identity.rs and add the concrete adversarial cases in this report, including a first-instruction call/uncall round trip and independently checked Q cleanup counterexamples."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "All nine SPEC-QUESTIONS entries were audited. Entries 1\u20133 and 5 are consistent with the operational text; 6\u20139 are defensible recorded readings. Entry 4 is not fulfilled generally. Diagnostics usually cite sections, but accepted objects can panic or reach ordinary execution errors instead of specified outcomes.",
+   "change": "Make parser rejection total, implement the width reading actually claimed in entry 4, record the CC/R tier resolution, and update PROGRESS.md's current-status section to distinguish implemented features from remaining proof obligations."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B01",
+   "section": "\u00a73.3, \u00a73.7, \u00a714.1; src/object.rs::Type::parse/mask, src/oracle.rs, src/machine.rs, src/action.rs",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Width support narrows the ISA and can panic on accepted objects. A memoryless oracle with input and target wire[129], fault wire[4], and body `lift.retval x` parses and hashes. Running input 0 with B=0 exits 101 at object.rs::mask with 'attempt to shift left with overflow', instead of returning the mandatory step-budget outcome. reg[129] is rejected outright. Counters and slots likewise remain u128 despite legal layouts requiring larger derived widths.",
+   "fix": "Implement arbitrary-width semantic bit vectors in object.rs, oracle.rs, machine.rs, and action.rs, retaining the 1..128 restriction specifically for iN. \u00a73.3 bounds `iN (1 \u2264 N \u2264 128)` but does not impose that bound on wire[N] or reg[N]; \u00a73.7 requires `Hc \u2265 H + 2`; \u00a73.6 says `B = 0 ... commits FAULT_BUDGET_STEPS on every input`. Add the 129-bit identity oracle: input 0, B=0 must return payload=0, code=1, steps=0 without panic; B=1 must return success. Add a reg[129] move/retval case with bit 128 set and complete prefix reversal, plus a layout H=127 width-derivation test requiring Hc\u2265129."
+  },
+  {
+   "id": "B02",
+   "section": "\u00a75.1, \u00a714.3 T1; src/validation.rs::validate_call_graph",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The call-graph collector only recognizes structured oracle_call/action_call through normalize_call. It omits lift.oracle_call, lift.perm_call, and qinplace edges. An oracle `a` with token argument tk and body `lift.oracle_call @a tk (x) r fr () (tk); lift.retval r` passes check after hashing. With both budgets B=1, run_oracle recursively invokes itself without any decreasing bound; it cannot produce F_B.",
+   "fix": "Extend validate_call_graph to include all Q invocation edges, including those reached through lproc closures and qinplace. Permit recursive SCCs only for lift.call procedure recursion. \u00a75.1 states `recursion exists only through lift.call`. Add the self-calling oracle above and an action\u2192oracle\u2192lift.perm_call cycle; parsing must reject both with \u00a75.1 before execution. Retain acceptance and execution of sum_db's recursive lproc."
+  },
+  {
+   "id": "B03",
+   "section": "\u00a76.1\u2013\u00a76.2; src/validation.rs::Discipline and validate_action_sequence",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Cleanup matching records predicate names without their versions. The parser accepts `d = qalloc any 1; qpred t; x d; qunpred t; x t; qpred t; x d; qunpred t; qfree d`. For either initial t, d becomes t XOR NOT(t)=1, yet the identical string logs cancel and qfree is accepted. Conversely, `h t; h t; d = qcopy t; quncopy t d` is rejected because the permanent closed set incorrectly closes a value computed after those gates.",
+   "fix": "Track dependency versions and effective-control versions at each computation in Discipline, and start each new value's window at its own computation. \u00a76.1 includes `\u03a0` in dependencies; \u00a76.2 requires `the versions that sequence read to be current` and defines the window `from its computation`. Add both fixtures: reject the first at load with \u00a76.2, and accept the second, whose complete action is identity and leaves no workspace."
+  },
+  {
+   "id": "B04",
+   "section": "\u00a74.6, \u00a75.3, \u00a76.2; src/validation.rs::validate_action_sequence",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "qif validation processes both arms under the same positive predicate, and qloop validation applies its body only once. Thus `d = qalloc any 1; qif p { x d } { x d }; qfree d` is accepted although exactly one X executes and d=1 for every p. Conversely, `d = qalloc any 1; qloop 2 { x d }; qfree d`, with bounds [2], is rejected although the two X gates cancel.",
+   "fix": "Represent complementary qif control contexts and compose the actual bounded loop effect, rather than treating both arms as the same predicate and every loop as one iteration. \u00a74.6 defines qif using `x w` around the else arm and qloop as `body n times`. Add these two fixtures: the qif object must be rejected; the two-iteration loop must parse and execute as identity for both input values, forward and adjoint."
+  },
+  {
+   "id": "B05",
+   "section": "\u00a75.1, \u00a76.1\u2013\u00a76.2; src/validation.rs::validate_structured/validate_action_sequence",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Quantum-memory cleanup checks are incomplete. `qregion r 1 1; d = qload r p; x d; qunload r p d` is accepted even though the unload leaves d=1. `qregion r 1 1; qstore r p t` is also accepted without restoring the local image. Region calls do not advance tracked mut-region cell versions, so outstanding loads can also be incorrectly treated as cleanable after a callee changes their dependencies.",
+   "fix": "Track loaded-value modifications, region cell versions, call effects on mut regions, and local-region restoration in validation.rs. \u00a75.1 requires `every local qregion restored, by explicit cleanup instructions`; \u00a76.2 binds cleanup to its `exact computing sequence`; \u00a76.1 says mut-region cells advance on permutation action calls. Add the two quoted negative fixtures and a load\u2192mutating child call\u2192unload fixture, all rejected at load. Add a positive load/unload and explicit image-restoration fixture that executes and reverses successfully."
+  },
+  {
+   "id": "B06",
+   "section": "\u00a74.6\u2013\u00a74.7, \u00a79.4; src/validation.rs::validate_region_call",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Valid local quantum regions cannot be passed to another action. validate_region_call insists every region operand occur in the caller's parameter list. A parent creating `qregion r 1 1` and calling a child with `(r)` fails with 'memory call operand is not caller interface', even when the child merely performs a matched qload/qunload.",
+   "fix": "Resolve structured-action region operands from the live region environment, including local qregions, and carry their roles and dimensions. Restrict mapped-interface-only operands specifically where the lifted-row rules require it. \u00a74.6 defines a `function-local region`; \u00a79.4 says region-call regions are `caller-owned` and returned appropriately. Add parent `qregion r 1 1; action_call @child (t) (p) (r) ()`, with child mem r:region[1,1] in and load/unload body. With a minimal valid layout, parsing and execution must succeed and preserve the complete interface for p=0,1."
+  },
+  {
+   "id": "B07",
+   "section": "\u00a74.5, \u00a712.3; src/validation.rs qinplace branch and src/action.rs::action_sequence",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "qinplace checks neither the required inverse-pair certificates nor total fault-free behavior under its token. An action containing `qinplace @zero @zero tk t`, where zero is a one-bit oracle returning constant zero, parses without any certificate. These functions are not permutations or inverses. For t=1, expansion leaves the temporary target dirty; for t=0 it appears to succeed, concealing the invalid full-domain contract.",
+   "fix": "Validate qinplace interface compatibility and bind verified inverse-pair and fault-free evidence to the actual token before invocation, using validation.rs and a certificate checker called from action.rs. \u00a74.5 requires `certificates that under tk the fault code is FAULT_NONE on every input and g\u2218ginv = ginv\u2218g = id`. Add the zero/zero pair with B=1 and require rejection before state mutation for both t values. Add a certified one-bit NOT/NOT pair with B=2, exhaustively checking both inputs, nonempty controls, and adjoint execution."
+  },
+  {
+   "id": "B08",
+   "section": "\u00a75.5; src/call_discipline.rs::validate_matched_oracle_calls",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The backward scan does not model invocation identities. Two calls followed by their two matched uncalls with identical operands are rejected because the second uncall encounters the first uncall and reports an already-consumed invocation. The scan also rejects every intervening store whenever a mem argument exists, including a store to a provably disjoint global.",
+   "fix": "Track unmatched invocation identities and operand versions along CFG paths, consuming one matching invocation per uncall; distinguish writes to supplied cells from disjoint writes. \u00a75.5 says `the pair shares a dynamic invocation identity` and prohibits intervening writes to `those locations or cells`. Modify cancel in nested.bisa to call inc8 twice and uncall it twice: input 8, tk=(3,0,0,0), outer B=5 must yield payload=0, code=0, steps=5 and reverse cleanly. Also accept a matched pair around a store to a global whose range is disjoint from the supplied interface region."
+  },
+  {
+   "id": "B09",
+   "section": "\u00a77.4, \u00a714.3 T4; src/classical.rs::step/undo_frame/reverse",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Whole-run reversal fails when the first instruction begins a segment that is subsequently uncalled. For `main: call @f; uncall @f () (); ret` and `f: ret`, run(4) succeeds. By code trace, uncall restores the caller's post-uncall control and next_id=2. Reversal undoes main's ret, then skips the uncall marker and all reversed segment frames; no earlier frame restores entry ip=0 and next_id=1. reverse therefore reports 'whole-run reversal failed to restore entry tuple'. Existing fixtures have earlier instructions that hide this boundary defect.",
+   "fix": "Restore run-entry administrative control and invocation-allocation bookkeeping when traversal skips a cancelled initial segment, without replaying its effects or undoing any segment twice. Change ClassicalMachine::reverse and its boundary bookkeeping. \u00a77.4 requires reversed frames and uncall markers to be `skipped`; T4 requires restoration `to entry values`. Add the exact two-function memoryless fixture above, assert run(4) succeeds, reverse returns Ok, snapshot equals the initial snapshot, and a second execution/reversal also succeeds."
+  },
+  {
+   "id": "B10",
+   "section": "\u00a73.3, \u00a74.2, \u00a74.7; src/action.rs::action_internal",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Pointer-valued classical action arguments are accepted by signatures and call validation but rejected by execution. A permutation action `flip` with `(p:ptr)` and body `x t`, called by an oracle through `lift.perm_call @flip (r) () () (p); lift.retval r`, fails with 'action argument type mismatch'. With r initially zero, p=0, and B=2, the specified result is payload=1, code=0, steps=2.",
+   "fix": "Add Type::Ptr/Argument::Bits validation against ptr_width in action.rs::action_internal, consistently with oracle argument binding. \u00a73.3 includes `ptr (width ptr_width)` among classical types, and \u00a74.7 supplies the declared classical args. Add the stated oracle/action fixture and assert the exact result and full machine reversal. Also reject a pointer argument that exceeds ptr_width."
+  },
+  {
+   "id": "B11",
+   "section": "\u00a73.4, \u00a77.4, \u00a716.2; src/validation.rs::validate_classical",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Classical type resolution incorrectly depends on block text order. The valid CFG `^entry(): br ^def(); ^use(): ret x; ^def(): x = const.i8 7; br ^use()` is rejected as 'undefined classical operand x'. Dynamically, def executes before use and dominates it; the grammar imposes no requirement to print def before use.",
+   "fix": "Collect defining sites and infer their types before validating uses, then validate control-flow and dynamic-instance requirements independently of block order. \u00a73.4 specifies `Sequential small-step execution with an instruction pointer`; \u00a77.4 says a name denotes its `most recent instance`. Add this memoryless R function returning i8: parsing must succeed, run(4) must return 7 without a fault, and whole-run reversal must restore entry."
+  },
+  {
+   "id": "B12",
+   "section": "\u00a74.8, \u00a716.1\u2013\u00a716.2; src/object.rs::parse/validate_row and src/validation.rs::validate_classical/gate_operands",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Several lexical and opcode-schema restrictions are not enforced. Reproduced accepted examples include ptr_width=032, `fault +01`, `rx 00.7000 t`, and classical `load.ptr`. load.ptr is especially inconsistent: validation assigns Ptr while execution creates ClassicalValue::Int. Metadata integer readers also accept numeric values above the range for which \u00a79.1 requires decimal strings.",
+   "fix": "Use common canonical INT/FLOAT validators at every literal site and explicit permitted suffix/type schemas for every opcode. \u00a716.1 defines `INT := -?(0|[1-9][0-9]*)` and FLOAT as `shortest round-trip decimal`; \u00a74.8 specifies `load.iN store.iN`; \u00a79.1 requires large integers to be decimal strings. Add separate rejection tests for the four reproduced spellings and an unquoted metadata integer 9007199254740992, with corresponding canonical positive cases."
+  },
+  {
+   "id": "B13",
+   "section": "\u00a74.8, \u00a715 suite F; src/call_discipline.rs::interface_targets and src/object.rs::validate",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Malformed callees can panic before their own schemas are validated. With action a containing a predicated call to action z, and z's body containing just `action_call` with no operands, hash exits 101 at call_discipline.rs:83 with an index-out-of-bounds panic. The caller is validated first and interface_targets indexes the unvalidated child's operands.",
+   "fix": "Validate every function's local instruction schemas before any interprocedural target, graph, or cleanup analysis; also make interface_targets return a section-citing error for malformed instructions. \u00a74.8 requires a fixed operand schema and suite F requires rejection of malformed objects. Add the a\u2192z fixture above to parser and CLI tests: Object::parse must return Err and the CLI must exit 1 with \u00a74.8, never panic or exit 101."
+  },
+  {
+   "id": "B14",
+   "section": "\u00a75.6, \u00a712.1\u2013\u00a712.2; src/borrow.rs::verify_frame/validate_borrow_frames",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Borrow validation has no path for the specification's library-backed proofs. Every opaque operation is rejected and every non-translation frame involving more than 16 wires is rejected, regardless of supplied certificate claims. This narrows valid borrow frames to the implementation's local verifier subset.",
+   "fix": "Connect borrow-frame validation to verified full-domain exhaustive or library claims, retaining the translation lemma as an alternative. \u00a75.6 permits `exhaustive, or a library certificate` proof over the frame's full domain. Add a 17-wire identity frame consisting of swaps between borrowed b and t[0] through t[15], followed by the reverse sequence, with a checked exhaustive identity claim over all 2^17 inputs. It must parse and preserve t and b; altered or incomplete claims must be rejected. The current code rejects the valid case solely at its 16-wire limit."
+  },
+  {
+   "id": "B15",
+   "section": "\u00a73.3, \u00a74.3, \u00a714.2; src/quantum.rs::QuantumState::release",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Clean release silently discards nonzero amplitudes below a fixed threshold. By direct code trace, allocating |0>, applying ry(1e-13), and releasing succeeds because the |1> probability is approximately 2.5e-27, below 1e-24. The state is not clean: sin(5e-14) is nonzero. A CC action with this rotation followed by qreg.free can therefore consume an unclean handle successfully.",
+   "fix": "Separate numerical comparison tolerances from the semantic cleanliness predicate in QuantumState::release and register release. Use exact computation provenance or a sound cleanliness check; never treat a known nonzero component as zero merely because it is small. \u00a73.3 requires a register to be `clean on every basis configuration` and specifies E_QREG_NOT_CLEAN. Add a kernel test for ry(1e-13) on one newly allocated wire: release must fail without changing the state or handle. Add the corresponding CC region-call/free test and retain successful exact-adjoint cleanup tests."
+  },
+  {
+   "id": "B16",
+   "section": "\u00a79.1, \u00a711\u2013\u00a713, \u00a715 suite F; src/validation.rs::validate_metadata",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Metadata validation mostly checks field presence. check accepted inc8 with a schedule containing boolean/null/negative budget components, variant='banana', phase='garbage', invalid path values, and negative start time. It also accepted a certificate with versions=false, all required binding values=false, empty regions, and composition {multiplicities:false, epsilon_total:false, method:'nonsense'}. Nested claims, frames, coverage points, and required bindings are not validated.",
+   "fix": "Implement typed recursive schemas and object-relative binding checks in validate_metadata. \u00a79.1 says `unknown sections or fields are errors`; \u00a711 requires a consumer to validate `every binding and every path`; \u00a712.3 specifies the certificate fields and composition method. Add the two reproduced metadata objects as check rejection tests, including all required outer fields so the tests reach the missing type checks. Add nested unknown-field, nonexistent program-point, malformed frame, and incorrect hash-binding tests, plus valid counterparts."
+  },
+  {
+   "id": "B17",
+   "section": "\u00a79.3, \u00a712.3; src/linking.rs::Object::link/merge_metadata/replace_hashes",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "Linking does not implement certificate composition. Any two unequal certificate documents reach merge_metadata(path='certificate') and fail as conflicting metadata, even when their region claims are compatible. Blind exact-string hash replacement is also insufficient for composite keys such as '<hash>:<variant>:<controls>' and for schedule hashes whose documents change.",
+   "fix": "Add typed composition and rebinding in linking.rs, preserving compatible verified claims, composing resources/errors and multiplicities, rebuilding composite keys, and recomputing dependent hashes. \u00a79.3 defines linking as `certificate composition (\u00a712.3), rebinding to closure hashes`. Add a certified imported-oracle client and a separately certified matching callee with distinct certificate documents and no layout/device/data conflicts. Linking must succeed, retain both region records, validate every resulting binding, and execute inc8(8) at B=3 as payload=9/code=0. Keep negative tests for genuinely incompatible claims or bindings."
+  },
+  {
+   "id": "B18",
+   "section": "\u00a715 suites C/F; tests/identity.rs::every_committed_fixture_has_valid_identity",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "The test claims to check every committed fixture but lists only nine and omits tests/fixtures/tiny_memory.bisa. Its hash is currently correct, as independently checked during this review, but corrupting that fixture's stored interface hash would not fail this purported complete fixture audit.",
+   "fix": "Enumerate every .bisa file in tests/fixtures rather than maintaining a partial hardcoded list. \u00a715 requires the fixture identity and grammar obligations, and the rubric explicitly disallows a test that does not test its stated domain. Add an inventory assertion covering all ten current fixtures and a regression showing that a corrupted tiny_memory interface hash is detected by the same audit."
+  },
+  {
+   "id": "B19",
+   "section": "\u00a78, \u00a710\u2013\u00a712, \u00a715 suites D/E/G/H; src/lib.rs and missing contract modules",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "The whole-ISA brief has no recorded staging exemption for these contracts, but the crate has no target expression/matching/event-cost implementation, schedule resolution and execution consumer, rigorous certificate checker, or complete launch run-state API. The README accurately discloses part of this absence; disclosure does not supply the required behavior. The f64 simulator is not the interval checker specified by \u00a712.",
+   "fix": "Add target, schedule, certificate, and launch modules exported from lib.rs, using the existing interpreters as their semantic backend. Implement the defaults rather than silently ignoring supplied contracts. Required tests include: \u00a78.1 `Division by zero ... load-time errors` with cost {op:'/',args:[1,0]}; \u00a711 an unknown expansion binding returning E_SCHEDULE_INFEASIBLE and ambiguous matching selectors rejecting; \u00a712.1 an interval witness containing diag(0,-1) rejecting under the mandated positive-pivot test; and \u00a710 `Waiting on a SUSPENDED ... run is E_INVALID_STATE`, plus unload with an unclosed run rejecting. Add a valid inc8 launch with input 8 and budget (3,0,0,0) producing payload 9 and a valid reverse/close lifecycle. These APIs/tests are currently absent, so their conformance tests cannot pass."
+  },
+  {
+   "id": "B20",
+   "section": "\u00a73.1, \u00a74.1, \u00a77.4; src/validation.rs::validate_classical, tests/fixtures/registers.bisa, SPEC-QUESTIONS.md",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The implemented call-tier policy is neither recorded nor consistent with the printed tier graph. validate_classical allows an R function to call CC; registers.bisa deliberately uses fn r @measuring calling fn cc @measurement. Conversely, uncall is restricted to R callees even though \u00a77.4 describes matching a completed call segment without that restriction. Thus the measurement exclusion test depends on an unrecorded tier interpretation.",
+   "fix": "Record and resolve the two readings: the broad CC/R call forms in \u00a74.1 versus \u00a73.1's explicit `R ... calls ... R functions, Q regions`. Prefer the explicit restriction on outgoing R calls, and apply \u00a77.4's segment rules to CC-owned classical segments. Add a SPEC-QUESTIONS entry proposing: 'CC may call CC or R functions; R may call only R functions. CC may uncall a completed CC or R segment subject to \u00a77.4.' Update validate_classical accordingly and make the measurement wrapper CC. Tests must reject R\u2192CC, accept call/uncall of a pure CC helper, and trap when the corresponding CC segment contains measure."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Update PROGRESS.md's current-status table and 'Resume here' section to mark implemented imports, handles, wide structured bundles, borrow translation checks, and commit-domain tests accurately; retain explicit remaining obligations rather than leaving superseded implementation tasks as current.",
+  "Append proposed clarification wording to SPEC-QUESTIONS.md entries 1, 7, and 9: index-space elements are instruction rows; SCC groups have an explicitly defined ordering key before member-index ordering; and NAME SP LF is permitted for empty HEX. Their current recorded readings are defensible and are not blockers.",
+  "Qualify README.md's 'All successful commands' JSON promise to cover data commands, since help/--help successfully prints plain usage text.",
+  "Add independent expected matrices or basis mappings to tests/quantum.rs::every_gate_and_controlled_global_phase, including disabled controls. Gate-plus-inverse checks should remain, but direct expectations will detect matching mistakes in both operations."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "First make parsing total and faithful: B01\u2013B02, B06, B08, B11\u2013B13, B16, and the recorded tier resolution B20. Then replace the incomplete Q validity analysis and proof integration: B03\u2013B05, B07, B14\u2013B15. Fix the concrete execution defects B09\u2013B10 and rerun full-domain/prefix and history tests with their new witnesses. Complete contract composition and the unstaged contract modules in B17 and B19, then repair the fixture audit B18. Run all normal and ignored suites and update the current evidence record. Acceptance requires every listed blocker to be resolved.",
+ "summary": "Performed all five required methods. (1) Independently derived inc8(255): B=2 gives (payload=0, code=1, steps=2), B=3 gives (0,0,3); sum_db(3), db=1..16, requires 4+3\u00d714+6=52 rows and 64 stack cells, giving 6 at B=52 and step fault at B=51. Derived sum_db(17)'s first bounds fault at row 13 and sum_db(16)'s stack=271 failure at row 211; binary results matched. Assembled inc8's nine LF-terminated envelope lines independently and obtained its published SHA-256; the prebuilt identity tests also reproduced all four published hashes. (2) Traced recursive sum call C1\u2013C5 and return R1\u2013R5 plus their inverses: restored sp/fp/depth precede stack addressing and delivery, captures and slots clear. Traced nested f\u2192g clock.read, uncall g, ret f, uncall f: clock and tape restore exactly once. Separately traced the failing initial-segment reversal in B09. (3) Audited all nine SPEC-QUESTIONS entries; recorded interpretations are defensible, but entry 4's general width implementation is missing. (4) Ran the requested grep over source/tests/progress/readings. Test unwraps/panics are assertion machinery; json Parser::expect returns Result; most production expect/unreachable sites are guarded internal invariants. No todo!/unimplemented! stubs were found. Unsupported device/cleanup rejection paths implement specified rejection rules. The width panic, unsafe cross-function indexing, hard borrow-proof exclusions, and numerical release fallback are reported explicitly. (5) Compared all 26 lifted-row families, 14 primitive gates, classical opcode families, fault codes 0\u201310, history-frame families, nine object sections and referenced schemas, suites A\u2013H, and the four implemented CLI data commands. Dispatch coverage is broad; validation and contract omissions are listed above. Executed the prebuilt test binaries read-only: 60 normal tests and both ignored sweeps passed; no rebuild was performed. Runtime probes and code-only traces are distinguished in the findings. This is round 1, so there are no previous blockers or established regressions.",
+ "verdict_core": "revise"
+}

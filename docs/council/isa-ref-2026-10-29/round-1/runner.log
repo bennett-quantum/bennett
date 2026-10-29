@@ -1,0 +1,7 @@
+[codex] codex exec -m gpt-6-astra -c model_reasoning_effort=xhigh -s read-only --ephemeral --skip-git-repo-check --output-schema /home/tobias/Projects/bennett-workspace/bennett/docs/council/isa-ref-2026-10-29/round-1/schema.json -o /home/tobias/Projects/bennett-workspace/bennett/docs/council/isa-ref-2026-10-29/round-1/out-codex.json -- -
+[fable] claude -p --model fable --output-format json --json-schema <2413 chars> --allowedTools Read Grep Glob 'Bash(cargo test:*)' 'Bash(cargo run:*)' 'Bash(./reference-interpreter/target/debug/bennett-isa-ref:*)' --max-turns 120
+[muse] muse exec --model muse-wonder-full-1.0 --reasoning-effort high --output-schema /home/tobias/Projects/bennett-workspace/bennett/docs/council/isa-ref-2026-10-29/round-1/schema.json --prompt-file /home/tobias/Projects/bennett-workspace/bennett/docs/council/isa-ref-2026-10-29/round-1/prompt.md --workspace /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review --disable-web-tools --disable-reminders --disable-request-user-input --no-session-log
+[muse] done in 651s (attempt 1)
+[fable] done in 1053s (attempt 1)
+[codex] done in 2293s (attempt 1)
+all members done

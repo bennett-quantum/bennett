@@ -4,7 +4,32 @@
  "doc": "docs/council/isa-ref-2026-10-29/packet-round-1.md",
  "doc_sha256": "0eef55467a7cc3616eef8507fca30ca5a395dd84721cce7b059b90deb22a41e2",
  "prepared": "2026-10-29T09:22:16+00:00",
- "members": {},
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T09:22:22+00:00",
+   "updated": "2026-10-29T10:00:36+00:00",
+   "exit": 0,
+   "seconds": 2293
+  },
+  "fable": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T09:22:22+00:00",
+   "updated": "2026-10-29T09:39:56+00:00",
+   "exit": 0,
+   "seconds": 1053
+  },
+  "muse": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T09:22:22+00:00",
+   "updated": "2026-10-29T09:33:14+00:00",
+   "exit": 0,
+   "seconds": 651
+  }
+ },
  "rubric": "docs/council/rubric-impl.md",
  "subject": "the Rust reference interpreter bennett-isa-ref (snapshot at commit 3dea965) against the accepted ISA specification draft 0.8; the crate's brief and progress file are embedded first",
  "context": [

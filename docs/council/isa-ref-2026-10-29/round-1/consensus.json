@@ -1,0 +1,277 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "fable": "revise",
+  "codex": "revise",
+  "muse": "reject"
+ },
+ "core_verdicts": {
+  "fable": "revise",
+  "codex": "revise",
+  "muse": "reject"
+ },
+ "blocking": {
+  "fable": [
+   {
+    "id": "R1-B1",
+    "section": "\u00a73.3 types / \u00a714.1 \u2014 object.rs Type::parse, oracle.rs run_oracle, machine.rs OracleMachine::new, action.rs read_bits, main.rs",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Lifted locations and oracle interface values are fixed at \u2264128 bits. Type::parse's `width` closure rejects `reg[N]` for N>128 ('\u00a73.3: width outside 1..128') although \u00a73.3 bounds only iN ('iN (1 \u2264 N \u2264 128) \u2026 wire[N] \u2026 reg[N]'); every value is a u128 (OracleInput.ins, Activation.values, BasisConfiguration.locations, Slot.word, result_val, mask()). Witness: the well-formed memoryless oracle `oracle @wide (x:wire[256] in) (t:wire[8]) (f:wire[4]) () ()` / `regs { one:reg[8] }` / `^entry():` / `one = lift.const.i8 1` / `lift.retval one` passes `check`, but `run-oracle \u2026 --input 0 --budget 2` reaches `mask(p.ty.width())` with width 256 and evaluates `1u128 << 256` (shift-overflow panic in the debug binary; mask 0 in release). The natural body `r = lift.mov x; lift.retval r` with `r:reg[256]`, `t:wire[256]` is rejected at parse although \u00a73.3 and \u00a714.1 ('locations and cells are bit-vectors') define it. The same cap appears in action.rs read_bits ('integer evaluation exceeds 128 bits') for oracles called from actions, and in main.rs --input parsing. This is the rubric's 'implemented for a subset (fixed widths)' narrowing plus a panic on a spec-defined path; PROGRESS.md item 2 discloses it but the brief stages nothing.",
+    "fix": "(a) object.rs Type::parse: use `bundle_width` (positive canonical INT, no 128 cap) for `reg[N]`; keep 1..=128 for iN only. Replace the u128 value representation with a width-parametric bit-vector type (e.g. `struct Bits { width: u32, limbs: Vec<u64> }` with xor, mask, wrapping add/sub/mul, shifts, udiv/urem/sdiv/srem, signed/unsigned compare, sext/zext/trunc) in oracle.rs (OracleInput.ins, Argument::Bits, Activation.values, result, binop/divide/compare/signed), machine.rs (BasisConfiguration.locations, stack cells, Slot.word, result_val, exchange_location, values()), action.rs (read_bits, permutation_action_values, oracle_quantum payload/code delivery) and main.rs (--input/--arg parsing, step-check enumeration). (b) Spec: \u00a73.3 'iN (1 \u2264 N \u2264 128) ptr \u2026 wire wire[N] reg[N]' and \u00a714.1 'locations and cells are bit-vectors'. (c) Expected: `oracle @wide (x:wire[256] in) (t:wire[256]) (f:wire[4]) () ()` with `regs { r:reg[256] }`, `r = lift.add x x`, `lift.retval r` is well-formed; F_B(x) = (2x mod 2^256, 0) for B \u2265 2, (0, 1) for B < 2; the step machine agrees and prefix-reverses. (d) Test: add tests/fixtures/wide.bisa with that body (hashed by `hash`), and in tests/oracle.rs assert run_oracle(x = 1<<200) at B=2 gives payload 1<<201, code 0; in tests/step_machine.rs run `compare` over x \u2208 {0, 1, 1<<200, 2^256\u22121} and B \u2208 0..=3. Today the fixture fails to parse (reg[256]); with `regs { r:reg[8] }`, `r = lift.const.i8 1` and an unused wide input, the current run_oracle panics."
+   },
+   {
+    "id": "R1-B2",
+    "section": "\u00a716.1 INT/FLOAT, \u00a73.3 lifted width rules \u2014 object.rs validate_row (`code` closure, lift.const), parse_bits, parse_functions (bounds); validation.rs validate_action_sequence (qloop, qalloc/qborrow, qregion), validate_classical (const, qreg.new/slice), gate_operands (angles)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Literal operands are accepted in non-canonical and out-of-range spellings, so ill-formed objects pass `check` and are hashed as distinct canonical text. Witnesses (each parses today): inc8.bisa with `lift.retval r` \u2192 `fault 09` (the `code` closure calls `s.parse::<u128>()` without `integer()`; \u00a716.1 INT := -?(0|[1-9][0-9]*)); `qloop 03 { x t }`, `d = qalloc any 01`, `qregion r 02 2 @image`, `q = qreg.new any 01`, `regs {  } bounds {03}` (all bare `parse()`; `+3` is also accepted by Rust's parser); `rx 0.70 t` and `rx 1.0e0 t` (gate_operands only checks finiteness and the presence of '.'/'e'; \u00a716.1 FLOAT := shortest round-trip decimal). Range: `one = lift.const.i8 257` in inc8 is accepted and parse_bits masks it to 1, so inc8(8) returns 9 as if the literal were 1 \u2014 a silent truncation where \u00a73.3 says 'a mismatch is ill-formed, never a truncation or an extension' (cf. `fault C` requiring C < 2^F); CC `const.i8 256` likewise. No SPEC-QUESTIONS entry records the literal range choice.",
+    "fix": "(a) object.rs: add `pub(crate) fn literal_uint(s: &str) -> Result<u128>` (require `integer(s)` and no leading '-') and `pub(crate) fn literal_float(s: &str) -> Result<f64>` (parse, require finite, and require the token to equal the shortest round-trip rendering, e.g. `format!(\"{:?}\", value)` normalised to always contain '.' or 'e'; record the chosen exponent threshold in SPEC-QUESTIONS). Use literal_uint in validate_row's `code` closure (fault, lift.faultif), in parse_functions for `bounds { \u2026 }`, in validate_action_sequence for qloop count, qalloc/qborrow width, qregion A/W, in validate_classical for qreg.new size and qreg.slice lo/len, and literal_float in gate_operands. For `lift.const.iN c` and CC `const.iN c` require \u22122^(N\u22121) \u2264 c < 2^N (reject otherwise, '\u00a73.3: const literal does not fit iN') and record the range reading in SPEC-QUESTIONS. (b) Spec: \u00a716.1 'INT := -?(0|[1-9][0-9]*); FLOAT := shortest round-trip decimal with . or exponent, finite'; \u00a73.3 'a mismatch is ill-formed, never a truncation or an extension'. (c) Expected: each witness above is rejected at parse with the rule cited (\u00a716.1 for canonicality, \u00a73.3 for range); `fault 9`, `qloop 3`, `rx 0.7 t`, `lift.const.i8 -128`, `lift.const.i8 255` remain accepted. (d) Tests: tests/parser.rs `rejects(&INC.replace(\"lift.retval r\", \"fault 09\"), \"\u00a716.1\")`, `rejects(&INC.replace(\"lift.const.i8 1\", \"lift.const.i8 256\"), \"\u00a73.3\")`, `rejects(&INC.replace(\"lift.const.i8 1\", \"lift.const.i8 -129\"), \"\u00a73.3\")`; tests/structured.rs `bad(&action(\"action\", \"qloop 03 {\\nx t\\n}\", \"3\"), \"\u00a716.1\")`, `bad(&action(\"action\", \"rx 0.70 t\", \"\"), \"\u00a716.1\")`, `bad(&action(\"action\", \"d = qalloc any 01\\nqfree d\", \"\"), \"\u00a716.1\")`; all pass (i.e. parse succeeds) on the current code and fail after the fix."
+   },
+   {
+    "id": "R1-B3",
+    "section": "\u00a76.1 transfer table, \u00a76.2 window \u2014 validation.rs Discipline (qcopy/qload Creation.versions; gate, qxor, qexch, qstore version strings; quncopy/qunload/qfree checks)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The \u00a76 static checker omits the effective control context \u03a0 from a perm value's dependency set, so a window closed by a permutation change to a predicate wire is not detected (false accept). \u00a76.1: `d = qcopy s` \u2192 'd: perm, S = {s} \u222a \u03a0'; \u00a76.2: a value is in its window 'until \u2026 a permutation change to a wire in S not undone before g's cleanup' and 'Every perm value MUST be cleaned within its window \u2026 otherwise the region is ill-formed'. Witness: `action @a (t:wire mut, m:wire mut) () () ()` / `^entry():` / `qpred m` / `d = qcopy t` / `qunpred m` / `x m` / `qpred m` / `quncopy t d` / `qunpred m`. Discipline records Creation{versions: snapshot(wires(t)), controls: [\"m\"]}; at quncopy it compares t's versions (unchanged), the predicate *names* (equal) and `closed` (empty), so Object::parse succeeds. On the basis state m=1, t=1 the executor computes d=1, flips m to 0, the controlled cleanup is a no-op and `quncopy`'s qfree releases a dirty wire (runtime E_QREG_NOT_CLEAN), confirming the object is ill-formed. The same hole exists for gate versions: `d = qalloc any 1` / `qpred m` / `cx t d` / `qunpred m` / `x m` / `qpred m` / `cx t d` / `qunpred m` / `qfree d` is accepted because the two `cx` version strings (operands, control versions, predicate names) are equal and cancel.",
+    "fix": "(a) validation.rs Discipline: compute `let pi: Vec<String> = predicates.iter().flat_map(wires).collect()` at each instruction and (i) in the qcopy/qload Creation set `versions = snapshot(sources \u222a pi)`, (ii) in every gate/qxor/qexch/qstore/qexchm/call version string replace `{:?} s.predicates` by `{:?} s.snapshot(&pi)` (version of each predicate wire, not its name), (iii) in quncopy/qunload compare against `snapshot(sources \u222a pi)`. Also treat a non-diagonal gate or non-permutation call on a predicate wire as closing the windows of values whose Creation includes that wire (`closed`). (b) Spec: \u00a76.1 rows 'd = qcopy s | d: perm, S = {s} \u222a \u03a0' and 'permutation gate \u2026 t: perm with S_t \u222a C \u222a \u22c3S_c \u222a \u03a0'; \u00a76.2 'a permutation change to a wire in S not undone before g's cleanup'. (c) Expected: both witness actions are rejected at parse with a diagnostic citing \u00a76.2; the variants with `x m` / `x m` (undone) or with the flip moved after `qunpred m` of the cleanup remain accepted. (d) Test in tests/discipline.rs: `reject(&object(&[(\"a\", TWO_MUT_SIG, \"action @a (t:wire mut, m:wire mut) () () ()\\n^entry():\\nqpred m\\nd = qcopy t\\nqunpred m\\nx m\\nqpred m\\nquncopy t d\\nqunpred m\")], \"{}\", \"\"), \"\u00a76.2\")` with `TWO_MUT_SIG = {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1,1],\"tier\":\"q\"}`, plus the `cx t d` gate variant; both currently parse (test fails) and must be rejected after the fix; add `Object::parse(... \"x m\\nx m\" ...).unwrap()` as the positive control."
+   }
+  ],
+  "codex": [
+   {
+    "id": "B01",
+    "section": "\u00a73.3, \u00a73.7, \u00a714.1; src/object.rs::Type::parse/mask, src/oracle.rs, src/machine.rs, src/action.rs",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Width support narrows the ISA and can panic on accepted objects. A memoryless oracle with input and target wire[129], fault wire[4], and body `lift.retval x` parses and hashes. Running input 0 with B=0 exits 101 at object.rs::mask with 'attempt to shift left with overflow', instead of returning the mandatory step-budget outcome. reg[129] is rejected outright. Counters and slots likewise remain u128 despite legal layouts requiring larger derived widths.",
+    "fix": "Implement arbitrary-width semantic bit vectors in object.rs, oracle.rs, machine.rs, and action.rs, retaining the 1..128 restriction specifically for iN. \u00a73.3 bounds `iN (1 \u2264 N \u2264 128)` but does not impose that bound on wire[N] or reg[N]; \u00a73.7 requires `Hc \u2265 H + 2`; \u00a73.6 says `B = 0 ... commits FAULT_BUDGET_STEPS on every input`. Add the 129-bit identity oracle: input 0, B=0 must return payload=0, code=1, steps=0 without panic; B=1 must return success. Add a reg[129] move/retval case with bit 128 set and complete prefix reversal, plus a layout H=127 width-derivation test requiring Hc\u2265129."
+   },
+   {
+    "id": "B02",
+    "section": "\u00a75.1, \u00a714.3 T1; src/validation.rs::validate_call_graph",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The call-graph collector only recognizes structured oracle_call/action_call through normalize_call. It omits lift.oracle_call, lift.perm_call, and qinplace edges. An oracle `a` with token argument tk and body `lift.oracle_call @a tk (x) r fr () (tk); lift.retval r` passes check after hashing. With both budgets B=1, run_oracle recursively invokes itself without any decreasing bound; it cannot produce F_B.",
+    "fix": "Extend validate_call_graph to include all Q invocation edges, including those reached through lproc closures and qinplace. Permit recursive SCCs only for lift.call procedure recursion. \u00a75.1 states `recursion exists only through lift.call`. Add the self-calling oracle above and an action\u2192oracle\u2192lift.perm_call cycle; parsing must reject both with \u00a75.1 before execution. Retain acceptance and execution of sum_db's recursive lproc."
+   },
+   {
+    "id": "B03",
+    "section": "\u00a76.1\u2013\u00a76.2; src/validation.rs::Discipline and validate_action_sequence",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Cleanup matching records predicate names without their versions. The parser accepts `d = qalloc any 1; qpred t; x d; qunpred t; x t; qpred t; x d; qunpred t; qfree d`. For either initial t, d becomes t XOR NOT(t)=1, yet the identical string logs cancel and qfree is accepted. Conversely, `h t; h t; d = qcopy t; quncopy t d` is rejected because the permanent closed set incorrectly closes a value computed after those gates.",
+    "fix": "Track dependency versions and effective-control versions at each computation in Discipline, and start each new value's window at its own computation. \u00a76.1 includes `\u03a0` in dependencies; \u00a76.2 requires `the versions that sequence read to be current` and defines the window `from its computation`. Add both fixtures: reject the first at load with \u00a76.2, and accept the second, whose complete action is identity and leaves no workspace."
+   },
+   {
+    "id": "B04",
+    "section": "\u00a74.6, \u00a75.3, \u00a76.2; src/validation.rs::validate_action_sequence",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "qif validation processes both arms under the same positive predicate, and qloop validation applies its body only once. Thus `d = qalloc any 1; qif p { x d } { x d }; qfree d` is accepted although exactly one X executes and d=1 for every p. Conversely, `d = qalloc any 1; qloop 2 { x d }; qfree d`, with bounds [2], is rejected although the two X gates cancel.",
+    "fix": "Represent complementary qif control contexts and compose the actual bounded loop effect, rather than treating both arms as the same predicate and every loop as one iteration. \u00a74.6 defines qif using `x w` around the else arm and qloop as `body n times`. Add these two fixtures: the qif object must be rejected; the two-iteration loop must parse and execute as identity for both input values, forward and adjoint."
+   },
+   {
+    "id": "B05",
+    "section": "\u00a75.1, \u00a76.1\u2013\u00a76.2; src/validation.rs::validate_structured/validate_action_sequence",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Quantum-memory cleanup checks are incomplete. `qregion r 1 1; d = qload r p; x d; qunload r p d` is accepted even though the unload leaves d=1. `qregion r 1 1; qstore r p t` is also accepted without restoring the local image. Region calls do not advance tracked mut-region cell versions, so outstanding loads can also be incorrectly treated as cleanable after a callee changes their dependencies.",
+    "fix": "Track loaded-value modifications, region cell versions, call effects on mut regions, and local-region restoration in validation.rs. \u00a75.1 requires `every local qregion restored, by explicit cleanup instructions`; \u00a76.2 binds cleanup to its `exact computing sequence`; \u00a76.1 says mut-region cells advance on permutation action calls. Add the two quoted negative fixtures and a load\u2192mutating child call\u2192unload fixture, all rejected at load. Add a positive load/unload and explicit image-restoration fixture that executes and reverses successfully."
+   },
+   {
+    "id": "B06",
+    "section": "\u00a74.6\u2013\u00a74.7, \u00a79.4; src/validation.rs::validate_region_call",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Valid local quantum regions cannot be passed to another action. validate_region_call insists every region operand occur in the caller's parameter list. A parent creating `qregion r 1 1` and calling a child with `(r)` fails with 'memory call operand is not caller interface', even when the child merely performs a matched qload/qunload.",
+    "fix": "Resolve structured-action region operands from the live region environment, including local qregions, and carry their roles and dimensions. Restrict mapped-interface-only operands specifically where the lifted-row rules require it. \u00a74.6 defines a `function-local region`; \u00a79.4 says region-call regions are `caller-owned` and returned appropriately. Add parent `qregion r 1 1; action_call @child (t) (p) (r) ()`, with child mem r:region[1,1] in and load/unload body. With a minimal valid layout, parsing and execution must succeed and preserve the complete interface for p=0,1."
+   },
+   {
+    "id": "B07",
+    "section": "\u00a74.5, \u00a712.3; src/validation.rs qinplace branch and src/action.rs::action_sequence",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "qinplace checks neither the required inverse-pair certificates nor total fault-free behavior under its token. An action containing `qinplace @zero @zero tk t`, where zero is a one-bit oracle returning constant zero, parses without any certificate. These functions are not permutations or inverses. For t=1, expansion leaves the temporary target dirty; for t=0 it appears to succeed, concealing the invalid full-domain contract.",
+    "fix": "Validate qinplace interface compatibility and bind verified inverse-pair and fault-free evidence to the actual token before invocation, using validation.rs and a certificate checker called from action.rs. \u00a74.5 requires `certificates that under tk the fault code is FAULT_NONE on every input and g\u2218ginv = ginv\u2218g = id`. Add the zero/zero pair with B=1 and require rejection before state mutation for both t values. Add a certified one-bit NOT/NOT pair with B=2, exhaustively checking both inputs, nonempty controls, and adjoint execution."
+   },
+   {
+    "id": "B08",
+    "section": "\u00a75.5; src/call_discipline.rs::validate_matched_oracle_calls",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The backward scan does not model invocation identities. Two calls followed by their two matched uncalls with identical operands are rejected because the second uncall encounters the first uncall and reports an already-consumed invocation. The scan also rejects every intervening store whenever a mem argument exists, including a store to a provably disjoint global.",
+    "fix": "Track unmatched invocation identities and operand versions along CFG paths, consuming one matching invocation per uncall; distinguish writes to supplied cells from disjoint writes. \u00a75.5 says `the pair shares a dynamic invocation identity` and prohibits intervening writes to `those locations or cells`. Modify cancel in nested.bisa to call inc8 twice and uncall it twice: input 8, tk=(3,0,0,0), outer B=5 must yield payload=0, code=0, steps=5 and reverse cleanly. Also accept a matched pair around a store to a global whose range is disjoint from the supplied interface region."
+   },
+   {
+    "id": "B09",
+    "section": "\u00a77.4, \u00a714.3 T4; src/classical.rs::step/undo_frame/reverse",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Whole-run reversal fails when the first instruction begins a segment that is subsequently uncalled. For `main: call @f; uncall @f () (); ret` and `f: ret`, run(4) succeeds. By code trace, uncall restores the caller's post-uncall control and next_id=2. Reversal undoes main's ret, then skips the uncall marker and all reversed segment frames; no earlier frame restores entry ip=0 and next_id=1. reverse therefore reports 'whole-run reversal failed to restore entry tuple'. Existing fixtures have earlier instructions that hide this boundary defect.",
+    "fix": "Restore run-entry administrative control and invocation-allocation bookkeeping when traversal skips a cancelled initial segment, without replaying its effects or undoing any segment twice. Change ClassicalMachine::reverse and its boundary bookkeeping. \u00a77.4 requires reversed frames and uncall markers to be `skipped`; T4 requires restoration `to entry values`. Add the exact two-function memoryless fixture above, assert run(4) succeeds, reverse returns Ok, snapshot equals the initial snapshot, and a second execution/reversal also succeeds."
+   },
+   {
+    "id": "B10",
+    "section": "\u00a73.3, \u00a74.2, \u00a74.7; src/action.rs::action_internal",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Pointer-valued classical action arguments are accepted by signatures and call validation but rejected by execution. A permutation action `flip` with `(p:ptr)` and body `x t`, called by an oracle through `lift.perm_call @flip (r) () () (p); lift.retval r`, fails with 'action argument type mismatch'. With r initially zero, p=0, and B=2, the specified result is payload=1, code=0, steps=2.",
+    "fix": "Add Type::Ptr/Argument::Bits validation against ptr_width in action.rs::action_internal, consistently with oracle argument binding. \u00a73.3 includes `ptr (width ptr_width)` among classical types, and \u00a74.7 supplies the declared classical args. Add the stated oracle/action fixture and assert the exact result and full machine reversal. Also reject a pointer argument that exceeds ptr_width."
+   },
+   {
+    "id": "B11",
+    "section": "\u00a73.4, \u00a77.4, \u00a716.2; src/validation.rs::validate_classical",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Classical type resolution incorrectly depends on block text order. The valid CFG `^entry(): br ^def(); ^use(): ret x; ^def(): x = const.i8 7; br ^use()` is rejected as 'undefined classical operand x'. Dynamically, def executes before use and dominates it; the grammar imposes no requirement to print def before use.",
+    "fix": "Collect defining sites and infer their types before validating uses, then validate control-flow and dynamic-instance requirements independently of block order. \u00a73.4 specifies `Sequential small-step execution with an instruction pointer`; \u00a77.4 says a name denotes its `most recent instance`. Add this memoryless R function returning i8: parsing must succeed, run(4) must return 7 without a fault, and whole-run reversal must restore entry."
+   },
+   {
+    "id": "B12",
+    "section": "\u00a74.8, \u00a716.1\u2013\u00a716.2; src/object.rs::parse/validate_row and src/validation.rs::validate_classical/gate_operands",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Several lexical and opcode-schema restrictions are not enforced. Reproduced accepted examples include ptr_width=032, `fault +01`, `rx 00.7000 t`, and classical `load.ptr`. load.ptr is especially inconsistent: validation assigns Ptr while execution creates ClassicalValue::Int. Metadata integer readers also accept numeric values above the range for which \u00a79.1 requires decimal strings.",
+    "fix": "Use common canonical INT/FLOAT validators at every literal site and explicit permitted suffix/type schemas for every opcode. \u00a716.1 defines `INT := -?(0|[1-9][0-9]*)` and FLOAT as `shortest round-trip decimal`; \u00a74.8 specifies `load.iN store.iN`; \u00a79.1 requires large integers to be decimal strings. Add separate rejection tests for the four reproduced spellings and an unquoted metadata integer 9007199254740992, with corresponding canonical positive cases."
+   },
+   {
+    "id": "B13",
+    "section": "\u00a74.8, \u00a715 suite F; src/call_discipline.rs::interface_targets and src/object.rs::validate",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Malformed callees can panic before their own schemas are validated. With action a containing a predicated call to action z, and z's body containing just `action_call` with no operands, hash exits 101 at call_discipline.rs:83 with an index-out-of-bounds panic. The caller is validated first and interface_targets indexes the unvalidated child's operands.",
+    "fix": "Validate every function's local instruction schemas before any interprocedural target, graph, or cleanup analysis; also make interface_targets return a section-citing error for malformed instructions. \u00a74.8 requires a fixed operand schema and suite F requires rejection of malformed objects. Add the a\u2192z fixture above to parser and CLI tests: Object::parse must return Err and the CLI must exit 1 with \u00a74.8, never panic or exit 101."
+   },
+   {
+    "id": "B14",
+    "section": "\u00a75.6, \u00a712.1\u2013\u00a712.2; src/borrow.rs::verify_frame/validate_borrow_frames",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Borrow validation has no path for the specification's library-backed proofs. Every opaque operation is rejected and every non-translation frame involving more than 16 wires is rejected, regardless of supplied certificate claims. This narrows valid borrow frames to the implementation's local verifier subset.",
+    "fix": "Connect borrow-frame validation to verified full-domain exhaustive or library claims, retaining the translation lemma as an alternative. \u00a75.6 permits `exhaustive, or a library certificate` proof over the frame's full domain. Add a 17-wire identity frame consisting of swaps between borrowed b and t[0] through t[15], followed by the reverse sequence, with a checked exhaustive identity claim over all 2^17 inputs. It must parse and preserve t and b; altered or incomplete claims must be rejected. The current code rejects the valid case solely at its 16-wire limit."
+   },
+   {
+    "id": "B15",
+    "section": "\u00a73.3, \u00a74.3, \u00a714.2; src/quantum.rs::QuantumState::release",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Clean release silently discards nonzero amplitudes below a fixed threshold. By direct code trace, allocating |0>, applying ry(1e-13), and releasing succeeds because the |1> probability is approximately 2.5e-27, below 1e-24. The state is not clean: sin(5e-14) is nonzero. A CC action with this rotation followed by qreg.free can therefore consume an unclean handle successfully.",
+    "fix": "Separate numerical comparison tolerances from the semantic cleanliness predicate in QuantumState::release and register release. Use exact computation provenance or a sound cleanliness check; never treat a known nonzero component as zero merely because it is small. \u00a73.3 requires a register to be `clean on every basis configuration` and specifies E_QREG_NOT_CLEAN. Add a kernel test for ry(1e-13) on one newly allocated wire: release must fail without changing the state or handle. Add the corresponding CC region-call/free test and retain successful exact-adjoint cleanup tests."
+   },
+   {
+    "id": "B16",
+    "section": "\u00a79.1, \u00a711\u2013\u00a713, \u00a715 suite F; src/validation.rs::validate_metadata",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Metadata validation mostly checks field presence. check accepted inc8 with a schedule containing boolean/null/negative budget components, variant='banana', phase='garbage', invalid path values, and negative start time. It also accepted a certificate with versions=false, all required binding values=false, empty regions, and composition {multiplicities:false, epsilon_total:false, method:'nonsense'}. Nested claims, frames, coverage points, and required bindings are not validated.",
+    "fix": "Implement typed recursive schemas and object-relative binding checks in validate_metadata. \u00a79.1 says `unknown sections or fields are errors`; \u00a711 requires a consumer to validate `every binding and every path`; \u00a712.3 specifies the certificate fields and composition method. Add the two reproduced metadata objects as check rejection tests, including all required outer fields so the tests reach the missing type checks. Add nested unknown-field, nonexistent program-point, malformed frame, and incorrect hash-binding tests, plus valid counterparts."
+   },
+   {
+    "id": "B17",
+    "section": "\u00a79.3, \u00a712.3; src/linking.rs::Object::link/merge_metadata/replace_hashes",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "Linking does not implement certificate composition. Any two unequal certificate documents reach merge_metadata(path='certificate') and fail as conflicting metadata, even when their region claims are compatible. Blind exact-string hash replacement is also insufficient for composite keys such as '<hash>:<variant>:<controls>' and for schedule hashes whose documents change.",
+    "fix": "Add typed composition and rebinding in linking.rs, preserving compatible verified claims, composing resources/errors and multiplicities, rebuilding composite keys, and recomputing dependent hashes. \u00a79.3 defines linking as `certificate composition (\u00a712.3), rebinding to closure hashes`. Add a certified imported-oracle client and a separately certified matching callee with distinct certificate documents and no layout/device/data conflicts. Linking must succeed, retain both region records, validate every resulting binding, and execute inc8(8) at B=3 as payload=9/code=0. Keep negative tests for genuinely incompatible claims or bindings."
+   },
+   {
+    "id": "B18",
+    "section": "\u00a715 suites C/F; tests/identity.rs::every_committed_fixture_has_valid_identity",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "The test claims to check every committed fixture but lists only nine and omits tests/fixtures/tiny_memory.bisa. Its hash is currently correct, as independently checked during this review, but corrupting that fixture's stored interface hash would not fail this purported complete fixture audit.",
+    "fix": "Enumerate every .bisa file in tests/fixtures rather than maintaining a partial hardcoded list. \u00a715 requires the fixture identity and grammar obligations, and the rubric explicitly disallows a test that does not test its stated domain. Add an inventory assertion covering all ten current fixtures and a regression showing that a corrupted tiny_memory interface hash is detected by the same audit."
+   },
+   {
+    "id": "B19",
+    "section": "\u00a78, \u00a710\u2013\u00a712, \u00a715 suites D/E/G/H; src/lib.rs and missing contract modules",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "The whole-ISA brief has no recorded staging exemption for these contracts, but the crate has no target expression/matching/event-cost implementation, schedule resolution and execution consumer, rigorous certificate checker, or complete launch run-state API. The README accurately discloses part of this absence; disclosure does not supply the required behavior. The f64 simulator is not the interval checker specified by \u00a712.",
+    "fix": "Add target, schedule, certificate, and launch modules exported from lib.rs, using the existing interpreters as their semantic backend. Implement the defaults rather than silently ignoring supplied contracts. Required tests include: \u00a78.1 `Division by zero ... load-time errors` with cost {op:'/',args:[1,0]}; \u00a711 an unknown expansion binding returning E_SCHEDULE_INFEASIBLE and ambiguous matching selectors rejecting; \u00a712.1 an interval witness containing diag(0,-1) rejecting under the mandated positive-pivot test; and \u00a710 `Waiting on a SUSPENDED ... run is E_INVALID_STATE`, plus unload with an unclosed run rejecting. Add a valid inc8 launch with input 8 and budget (3,0,0,0) producing payload 9 and a valid reverse/close lifecycle. These APIs/tests are currently absent, so their conformance tests cannot pass."
+   },
+   {
+    "id": "B20",
+    "section": "\u00a73.1, \u00a74.1, \u00a77.4; src/validation.rs::validate_classical, tests/fixtures/registers.bisa, SPEC-QUESTIONS.md",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The implemented call-tier policy is neither recorded nor consistent with the printed tier graph. validate_classical allows an R function to call CC; registers.bisa deliberately uses fn r @measuring calling fn cc @measurement. Conversely, uncall is restricted to R callees even though \u00a77.4 describes matching a completed call segment without that restriction. Thus the measurement exclusion test depends on an unrecorded tier interpretation.",
+    "fix": "Record and resolve the two readings: the broad CC/R call forms in \u00a74.1 versus \u00a73.1's explicit `R ... calls ... R functions, Q regions`. Prefer the explicit restriction on outgoing R calls, and apply \u00a77.4's segment rules to CC-owned classical segments. Add a SPEC-QUESTIONS entry proposing: 'CC may call CC or R functions; R may call only R functions. CC may uncall a completed CC or R segment subject to \u00a77.4.' Update validate_classical accordingly and make the measurement wrapper CC. Tests must reject R\u2192CC, accept call/uncall of a pure CC helper, and trap when the corresponding CC segment contains measure."
+   }
+  ],
+  "muse": [
+   {
+    "fix": "(a) src/object.rs `Type::parse` (the `width` closure used for `reg[`), src/oracle.rs `OracleInput`/`run_oracle`, src/machine.rs `OracleMachine::new`/`read`/`mask`, src/main.rs `uint`. (b) \u00a73.3: 'iN (1 \u2264 N \u2264 128)' bounds only iN; 'wire[N]', 'reg[N]' carry no 128 bound; \u00a75.2 'result_val : wire[T] (T = the tgt width)'. (c) Introduce an arbitrary-width bit-vector representation for `reg[N]`/`wire[N]` interface values with N>128 (iN stays \u2264128): `Type::parse` accepts `reg[256]`, the fixture below parses, and `run_oracle w` with input 2^255 at B=2 returns payload 2^255 (JSON decimal string), code 0, steps 2 in both engines. (d) Test: oracle (x:wire[256] in)(t:wire[256])(f:wire[4])()(), regs { r:reg[256] }, body `r = lift.mov x` / `lift.retval r`, input x=2^255, B=2; fails today at parse (\u00a73.3 width outside 1..128), passes after the fix in `run_oracle` and in `OracleMachine` forward+inverse.",
+    "id": "B1",
+    "problem": "Witness (run this session): the well-formed object in the fix's test is rejected by `hash` with '\u00a73.3: width outside 1..128'. `Type::parse` applies the iN bound to `reg[`, and every value path (OracleInput.ins/args u128, locations u128, `mask(width)` = (1u128<<width)-1, CLI `uint` u128) assumes \u2264128, so no oracle with tgt or an input wider than 128 bits (e.g. a 256-bit hash oracle) can be represented. PROGRESS.md 'outstanding 2' admits this but the brief stages no width limit for wire/reg bundles.",
+    "scope": "core",
+    "section": "\u00a73.3, \u00a75.2 / [src/object.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/object.rs) Type::parse; [src/oracle.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/oracle.rs) OracleInput; [src/machine.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/machine.rs) OracleMachine",
+    "severity": "S0"
+   },
+   {
+    "fix": "(a) src/object.rs `Object::parse` header handling and every direct numeric parse of an INT position: `code`/`length` closures in `validate_row`, `Type::parse` `qreg[` and `region[` branches, bounds parsing in `parse_functions`, and the literal parses in validation.rs for qalloc/qloop/qreg.new/slice. Route all of them through the existing `integer()` predicate. (b) \u00a716.1: 'INT := -?(0|[1-9][0-9]*)'. (c) `ptr_width=032`, `ptr_width=+32`, `fault 01`, `qreg[08]`, `bounds {03}` are each rejected citing \u00a716.1. (d) Test: in [tests/parser.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/tests/parser.rs) add the three mutations of inc8.bisa above to `lexical_and_section_errors_cite_rules` expecting \u00a716.1; all three are accepted today (verified), rejected after the fix.",
+    "id": "B2",
+    "problem": "Witnesses (run this session, all accepted by `hash`): inc8.bisa with `lift.retval r` replaced by `fault 01`; header `ptr_width=032`; header `ptr_width=+32`. The header variants keep interface_hash 8ce5e64f\u2026 (envelope uses the parsed width) while object_hash changes, so non-canonical texts are accepted as the same semantic object. Direct `parse::<u128/u16/u64>()` calls bypass the existing canonical `integer()` check at several INT positions.",
+    "scope": "core",
+    "section": "\u00a716.1, \u00a716.2 / [src/object.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/object.rs) Object::parse, validate_row, Type::parse",
+    "severity": "S0"
+   },
+   {
+    "fix": "(a) src/validation.rs `validate_classical` arm `\"effect\"`: check the (\u00a77.3) device/op table \u2014 console.write/entropy.read/block.read/block.write take 2 pointer/len operands, clock.read takes 1, operand types ptr/len as \u00a77.3 \u2014 unknown device names stay legal (they fault 8 at run time per \u00a717 item 3), known device with unknown op or wrong arity is rejected citing \u00a77.3/\u00a74.8; keep `ClassicalMachine::effect` in src/classical.rs as the second line returning fault 8, never Err, for anything validation cannot see. (b) \u00a77.3 table 'Operations' column and \u00a74.8 'effect | R | device op, ptr/len operands'. (c) `effect clock.read p p` and `effect clock.read` are rejected at parse. (d) Test: mutate classical.bisa `effect clock.read p` to both variants; Object::parse must Err citing \u00a77.3 (today Ok via `hash`, verified), and a run of @g must never return Err for a parsed object.",
+    "id": "B3",
+    "problem": "Witness (run this session): classical.bisa with `effect clock.read p` replaced by `effect clock.read p p`, and separately by `effect clock.read`, are both accepted by `hash`. `validate_classical` only checks that each operand name is defined; it never checks the operation table or arity. At run time `ClassicalMachine::effect` returns `Err(\u00a77.3 device operation arity mismatch)`, which `step` propagates as a hard Err from `run` \u2014 neither a load-time rejection nor the CC trap / R fault record the spec defines for executed instructions.",
+    "scope": "core",
+    "section": "\u00a77.3, \u00a74.8 / [src/validation.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/validation.rs) validate_classical; [src/classical.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs) ClassicalMachine::effect",
+    "severity": "S0"
+   },
+   {
+    "fix": "(a) src/validation.rs `validate_action_sequence`, arm `qload|qunload|qstore|qexchm`: for `qstore`, reject a value operand whose base name is in `s.inputs`; audit the sibling source positions in the same match (qstore address is a control use and stays legal). (b) \u00a75.1: '`in` wires in actions appear only as controls, as targets of diagonal gates, as qcopy/qxor sources, or as in arguments of calls.' (c) The witness body is rejected citing \u00a75.1; `qstore r t t2` with a mut or workspace value stays accepted. (d) Test: the witness object in tests/structured.rs `tier_arity_aliasing_and_input_roles` expecting \u00a75.1; parses today (verified), rejected after the fix.",
+    "id": "B4",
+    "problem": "Witness (run this session): action @a (t:wire[2] mut)(p:wire[2] in)()()(), body `qregion r 2 2` / `qstore r t p` / `qstore r t p`, is accepted by `hash`. Here `p`, an `in` wire, is the stored value of qstore, a use outside the \u00a75.1 list. The qstore arm checks only that the target region is not an `in` region and that address/value are disjoint; the value-source role is never checked (`check_target` is applied to targets, not sources).",
+    "scope": "core",
+    "section": "\u00a75.1 / [src/validation.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/validation.rs) validate_action_sequence (qstore arm), Discipline::inputs",
+    "severity": "S0"
+   },
+   {
+    "fix": "(a) src/validation.rs `validate_action_sequence` arm `qloop`, and `Discipline::produce/consume`: validate a loop body as an iteration \u2014 snapshot the discipline state at loop entry and require the live-name set and each pre-existing name's version log at body exit to equal that snapshot (equivalently run the body analysis twice and require the second pass to start from a state the first pass can reproduce), so names produced inside must be consumed inside and names consumed inside must be re-produced inside. (b) \u00a76.2 'Every perm value MUST be cleaned within its window and before its region exits'; \u00a74.6 '`qloop n { body }` body n times'. (c) The witness is rejected at parse citing \u00a76.2; `qloop 2 { d = qcopy p / quncopy p d }` stays accepted and executes both iterations. (d) Test: witness object rejected (today parsed, verified); positive variant parses and `execute_action` on t=|0>,p=|1> leaves t unchanged over 2 iterations.",
+    "id": "B5",
+    "problem": "Witness (run this session): action @a (t:wire mut)(p:wire in) with bounds {2}, body `qloop 2 { d = qcopy p }` then `quncopy p d`, is accepted by `hash`. Under either reading the code is inconsistent: if the first iteration's copy is a distinct perm value it is never cleaned (\u00a76.2 ill-formed, validator must reject); if versioning makes the second `qcopy` a successor, `execute_action` must run it \u2014 but `Environment::produce` errors 'live bundle produced twice' on iteration 2. The discipline checker analyses the loop body exactly once (admitted in PROGRESS.md outstanding item 1), so acceptance and execution disagree.",
+    "scope": "core",
+    "section": "\u00a74.6, \u00a76.2 / [src/validation.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/validation.rs) validate_action_sequence qloop arm; [src/action.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/action.rs) Environment::produce",
+    "severity": "S0"
+   },
+   {
+    "fix": "(a) src/borrow.rs `verify_frame`: remove the 16-wire refusal \u2014 either lift the exhaustive checker to a symbolic affine/permutation factorisation check that is total for permutation frames (track each output wire as a Boolean function class that proves B-independence and B-restoration, falling back to exhaustive enumeration only as an optimisation), or implement the \u00a712 library-certificate input so frames above the exhaustive width are accepted against a checked `borrow_frames` claim instead of rejected outright. (b) \u00a75.6: the factorisation 'MUST' be 'established by a T3 claim over the frame's full domain (exhaustive, or a library certificate, \u00a712 borrow_frames) or structurally by the translation lemma' \u2014 no wire-count cap appears; \u00a717 item 13's 16-bit default governs suite/claim sizes, not well-formedness. (c) The witness parses, and `execute_action` on every basis input returns the borrowed wire unchanged with outputs independent of it; the existing dependence negative in tests/borrow.rs still rejects. (d) Test: witness object parses (today Err \u00a75.6, verified); add a 17-wire dependence variant (`cx b t[0]` once only, rest paired) which must still reject.",
+    "id": "B6",
+    "problem": "Witness (run this session): perm_action @a (t:wire[17] mut)(x:wire in), body `b = qborrow any 1`, then for each i in 0..17 the pair `cx b t[i]` / `cx b t[i]`, then `qreturn b`, is rejected 'borrow frame exceeds 16 exhaustive wires and has no valid structural proof'. The frame is the identity: each target is flipped twice under the same control, so P_F = I factorises trivially over its full 18-wire domain. `verify_frame` refuses any non-translation-lemma-shaped frame over 16 wires, and no library-certificate path exists in the crate.",
+    "scope": "core",
+    "section": "\u00a75.6 / [src/borrow.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/borrow.rs) verify_frame, Object::validate_borrow_frames",
+    "severity": "S0"
+   },
+   {
+    "fix": "(a) src/validation.rs `validate_metadata` (certificate and schedule arms): validate each claim against \u00a712.1 (kind in exhaustive|sampled|structural|numerical|channel with that kind's field set, sampler algorithm/seed shape, domain shape per \u00a712.2, structural rule/witness shapes), region frame/resources/gates_used/cleanup/error value shapes per \u00a712.3, and schedule path element/step/phase/generated selector shapes per \u00a711 \u2014 unknown field or kind anywhere rejects citing its section; extend src/linking.rs `merge_metadata`/`Object::link` to compose certificates (union of regions, \u00a712.3 multiplicities/epsilon_total recomputation or explicit rejection only on a genuine same-key conflict). (b) \u00a79.1 'unknown sections or fields are errors'; \u00a712.1 claims table; \u00a711 'Schedule document'. (c) `claims:[{\"bogus\":1}]` rejects citing \u00a712.1; a well-formed exhaustive claim with a \u00a712.2 domain parses. (d) Test: the witness rejects (today parses, verified); positive control: same certificate with claims replaced by a \u00a712.2-shaped exhaustive domain parses.",
+    "id": "B7",
+    "problem": "Witness (run this session): inc8.bisa plus a `section certificate` whose single region carries `claims:[{\"bogus\":1}]`, empty frame/signature objects and arbitrary nested values, is accepted by `hash`. `validate_metadata` checks only top-level field names for certificate regions; claim kinds/payloads (\u00a712.1), domains (\u00a712.2), frame descriptors (\u00a79.4) and schedule selector shapes (\u00a711) are never validated. Linking likewise refuses differing certificate/schedule metadata as 'conflicting' instead of performing \u00a712.3 composition (PROGRESS.md admits both), so \u00a79.3 linking of cert-carrying objects does not exist.",
+    "scope": "contract",
+    "section": "\u00a79.1, \u00a711, \u00a712 / [src/validation.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/validation.rs) validate_metadata; [src/linking.rs](/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/linking.rs) merge_metadata",
+    "severity": "S0"
+   }
+  ]
+ },
+ "means": {
+  "C1": 3.0,
+  "C2": 3.67,
+  "C3": 3.33,
+  "C4": 4.0,
+  "C5": 3.33,
+  "C6": 2.67,
+  "C7": 3.67,
+  "C8": 3.0
+ },
+ "members": [
+  "fable",
+  "codex",
+  "muse"
+ ]
+}
