@@ -1,0 +1,132 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "\u00a74 fixes tiers H/CC/R/L, variants as (function, tier, coherence signature), shared globals, A(F) from the comparison link; \u00a717.1 one classical memory with zero fill, bounds and single thread; \u00a718.1 the state \u03a3 = (C, Q, H, G, K, T). Two implementers draw the same tier/variant diagram. The one open point is the coherence-state machine of TDL-2, where the view rule for `compute` (which generations see E_f) is not stated (blocking BD2-1).",
+   "change": "In TDL-2 'View', add: 'For `compute(f, use)`, the recorder of gen(f) is retained after it is popped and counts as a recorder of the same invocation for gen(use) and for the adjoint; the classical value of a Cl-view byte seen by gen(use) is the shadow updated by E_f's classical events.'"
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "\u00a73.2 lists the 23 markers with exact IR signatures, \u00a73.4 the op/cls/n encodings with exact ISA realisations (S\u00b7S = Z and S\u00b7X\u00b7S\u2020 = Y are correct including phase), \u00a73.5 recognition, \u00a73.6 the three attribute lists with spike evidence, \u00a73.3 a header the checker compares byte for byte. Every marker has a \u00a718.3 rule. The gap an implementer names at once: \u00a716.2 says T = 1 'when the shape has no output' but does not say what `lift.retval` then delivers.",
+   "change": "\u00a716.2 step 5: 'When the shape has no output, the delivery is `c = lift.const.i1 0; lift.retval c`.'"
+  },
+  {
+   "id": "C3",
+   "score": 3,
+   "evidence": "The oracle ABI (\u00a78.5\u2013\u00a78.7), the wide-output copy-out pairs (\u00a78.6, cleaned by the ISA \u00a75.2 involution), the in-place verification (\u00a78.7, ginv\u2218g = id on a finite set gives a bijection) and the \u00a718.8 states (sem2-adj amplitude (\u22121+i)/2, sem2-compute |10\u27e9, tdl-b cnt = 5\u00b7H0 + 3\u00b7H1) are correct. TDL has four holes: gen(use) does not see E_f under the literal view rule (BD2-1); partial `observe` XORs the outcome out of the cells of an object that stays Co (BD2-2); may-Co globals relocated into the arena are mapped by `lift.addr @G<n>` with a layout entry overlapping the `coh` region (BD2-3); MC4 marks values, not instructions, so stores under a Co branch run classically in both arms (BD2-4).",
+   "change": "State MC4 over instructions: 'an instruction control-dependent on a may-Co branch is may-Co; a may-Co store to a workspace object is slice-internal (private memory), to an outliving object an event under the condition wire (TDL-10); the if-conversion of TDL-3 executes classically only instructions that are not control-dependent on the Co branch.'"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Classes map to the ISA class-name table (\u00a73.4) with an ISA load error for undeclared names; budgets are the ISA's four components with a table, precedence and defaults (\u00a79.2, \u00a724 D27); the budget unit is the reference-interpreter row (\u00a79.4) and the R unit is defined independently of the plugin (\u00a717.6); run-time budgets have three resolved cases with BLK-2 for the fourth. Dispatch over widths compiles one register per member of a finite set.",
+   "change": "\u00a73.4: state the run-time outcome of a dispatched `n` whose value lies outside a finite VS(n) obtained from `range`/`!range` (the definedness assumption): 'the compare tree's default traps (`T-SIZE`), as every no-match of \u00a714.2 does.'"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Driver modes, options, outputs and build record (\u00a719); the plugin identity string and the fail-loud link (\u00a719.9); the C header and its macros (\u00a73.3); the corpus envelope and suites DA\u2013DX (\u00a721); blockers each with the exact ISA change and a blocker trap (\u00a725.1); wording items for ISA 0.9 (\u00a725.2). The contract rows of \u00a715.5 for AArch64 and RISC-V64 look wrong to me (see suggestions) but \u00a715.1 lets the data file be regenerated with a version change.",
+   "change": "Verify \u00a715.5 on clang: musl's `\"0\"(x0)` tied input prints as the matching constraint `0`, not `{x0}`; the AArch64 row should read `={x0},{x8},0,{x1},\u2026` and the RISC-V row `={x10},{x17},0,{x11},\u2026` for k \u2265 1 (and keep the k = 0 form)."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "\u00a718 gives a reference semantics (state, events, control sets, adjoint table, marker rules, generation, oracle and reversible semantics) and a conformance statement with the one outcome table of NS \u00a75.1; \u00a716.5 defines F_B on `@ref`; the six ISA objects carry hashes, runs and step checks executed on `bennett-isa-ref` (the inc8, add2, rung4-mini, listsum step counts recompute correctly by hand). The TDL and `cc-run` families are unexecuted (PROGRESS: `run-action`, `run-cc` requested) and are graded on the text, where the four TDL holes sit.",
+   "change": "After the TDL fixes, add a `text state=` block for a `compute` whose `use` reads a byte written by `f` (the case BD2-1 turns on) and a partial-`observe` state (BD2-2), so the two rules have executable witnesses."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Every 0.1 narrowing is deleted (\u00a722.1 list) and every remaining rejection cites an NS clause or a maintainer decision; every rung has a mechanism (rung 4 route A \u00a716.7, rung 7 snapshots \u00a719.6 plus BLOCK/CONSOLE/CLOCK bindings, rung 8 ENTROPY \u00a716.8, rungs 3/5/6 \u00a719.2 and \u00a720); ISA 0.8 gaps are blockers with exact changes, as the rubric requires. Prior art is used where it exists (Enzyme invoke rewrite, Asyncify-style rewind, System V va_list). I found no false NS premise; \u00a713.1's claim that modern x87 treats pseudo-denormals as NaN inputs is false (it treats them as denormals; only unnormals and pseudo-NaN/infinity are invalid), but the contract is stated and deterministic.",
+   "change": "\u00a713.1: replace 'and pseudo-denormals and pseudo-infinities are treated as NaN inputs, as modern x87 hardware does' by 'unnormals, pseudo-NaNs and pseudo-infinities are treated as NaN inputs and pseudo-denormals as denormals, as 387-and-later hardware does'."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "A plugin author can start on \u00a73\u2013\u00a79, \u00a712\u2013\u00a717 tomorrow: processing order S1\u2013S9, exact rules with ids, 87 checked examples, executed ISA objects, P-1\u2013P-3. \u00a710 is where an author stops: the view rule for `compute`, arena-resident globals in the map, Co-branch if-conversion of stores, and partial `observe` need the author. \u00a724 defaults are non-semantic and each keeps the capability.",
+   "change": "Give \u00a710 a worked lifted slice: the reference object of `O1` from `tdl-b` (its `<mems>` with `coh` first, the rows that read `@cnt` through `lift.addr @coh` plus a constant offset, the layout without `@cnt` in `globals`), so the arena mapping is pinned by an executable example as \u00a716.6\u2013\u00a716.10 pin the oracle map."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "BD2-1",
+   "section": "\u00a710 TDL-2 (View), \u00a718.3 `compute` row, \u00a718.4",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a718.3: 'compute(f, use, budget, env): E_f = gen(f, env); the TDL-8 copies of E_f's fault registers; E_u = gen(use, env); then the events E_f, copies, E_u, adjoint(E_f)'. E_f is appended (or applied) only after gen(use) has run. TDL-2's view rule reads: 'a byte of object X has view Co if K(X) = Co, or if the generation's recorder (or a recorder of an enclosing generation of the same invocation) holds an event that writes it \u2026; otherwise its view is Cl and its value is the shadow updated by the recorder's own classical events.' gen(f)'s recorder has been popped by the time gen(use) runs, is not gen(use)'s own recorder and is not enclosing, so under the literal text `use` sees neither f's classical writes (xmask events) nor its Co writes: `compute(f = {t = g(x)}, use = {if (t) \u2026})` with t in `env` reads the stale t. The trace runtime (f, use, f in sequence) gives the other reading. Two readings, two results; the \u00a718.8 examples (`set9`/`flip`, `copy`/`kick`) never let `use` read what `f` wrote, so no example decides it.",
+   "fix": "TDL-2 'View', add after the view sentence: 'For `compute(f, use, \u2026)`, the recorder of gen(f) is retained after gen(f) ends and counts, for gen(use) and for the construction of adjoint(E_f), as a recorder of the same invocation: a byte written by an event of E_f with a non-empty control set or a Co value has view Co in gen(use); a byte written only by classical events of E_f has view Cl with the value those events give it.' In \u00a718.3 `compute`: 'E_u = gen(use, env) with E_f's recorder visible (TDL-2)'. Add to \u00a718.8 a `tdl=`/`state=` witness: `f` stores 9 into a Cl global `@t`, `use` branches on `@t == 9` and flips `%t`; expected events: `xmask @t+0 0x09`, `x H1.0` (unconditional, since `use` sees 9), `xmask @t+0 0x09`."
+  },
+  {
+   "id": "BD2-2",
+   "section": "\u00a710 TDL-11 (`__bennett_observe`), TDL-2 object states",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "TDL-11: '`__bennett_observe(p, len)` \u2026 lowers to: \u2026 measure r, which collapses the arena cells identically; the outcome written to the shadow; an xmask of the outcome out of the arena cells, returning them to |0\u27e9; K := Cl for every object whose bytes are all observed.' The xmask is unconditional but K := Cl is conditional. For an object only partly observed (len < size(X), or AV(p) at a nonzero offset), K stays Co, TDL-2 says 'Co (the arena is the truth and may be superposed; the shadow is invalid)', so every later slice read of the observed bytes reads the arena cells, now |0\u27e9, instead of the outcome m. Unsound: `observe(&s.flag, 1)` on a 16-byte Co struct followed by a slice that reads `s.flag` computes with 0.",
+   "fix": "TDL-11, replace the clause by: 'the outcome written to the shadow; then, if every byte of X is now observed, an xmask of X's outcome out of its arena cells (returning them to |0\u27e9) and K(X) := Cl; otherwise the observed cells are left in the basis state |m\u27e9 (the arena stays the truth of X, K(X) = Co) and only the shadow bytes are updated.' Add the matching sentence to TDL-2: 'Co \u2192 Cl by `__bennett_observe` of all of X's bytes; a partial observe leaves K = Co with the observed cells in a basis state.'"
+  },
+  {
+   "id": "BD2-3",
+   "section": "\u00a710 TDL-4, \u00a716.3 (Layout), \u00a716.4 (constant materialisation of `@G`), \u00a719.5",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "TDL-4: 'Globals in the set are relocated into the arena by the layout \u2026 cell i is the byte at address A_coh + i', and a slice binds the arena 'as a MEM_IN region coh'. \u00a716.3: the reference object's layout holds 'the globals that the L closure names in lift.addr' with their link bases, and \u00a716.4 materialises `@G` as `c<j> = lift.addr @G<n>`. For a slice reading `@cnt` (relocated into the arena) this puts `G<n>` into `layout.globals` with a base inside [A_coh, A_coh + 2^A), the range of the interface region `coh`; ISA \u00a77.2 requires all ranges disjoint ('all ranges disjoint and within [0, 2^H)'), so `bennett-isa-ref check` rejects the object, and even if it did not, `lift.load` would read the global's data image, not the superposed cell. \u00a716.2's `<mems>` enumeration (m<k>, e0, k0, s0) does not list `coh` at all, and \u00a716.3 places the first interface region at the heap's end while \u00a719.5 places the arena there and the regions 'above the arena'. The lifting of every slice of \u00a710 is therefore unspecified or ill-formed; `tdl-b`'s O1 cannot be produced.",
+   "fix": "\u00a716.2 `<mems>`: 'then `coh:region[A,8] in` (first of all, when the shape is a slice or the oracle reads an arena object), then m<k> \u2026'. \u00a716.3 Layout: 'A global relocated into the arena (TDL-4) is not in `layout.globals` and has no `G<n>` data symbol; the arena is the interface region `coh` at base A_coh of \u00a719.5; the first other region is placed at the first multiple of its size \u2265 the end of the arena (or of the heap when there is none).' \u00a716.4 constant materialisation: 'a global `@G` in the arena by `c<j> = lift.addr @coh` and, when `base(G) \u2212 A_coh \u2260 0`, `c<j+1> = lift.const.i<pw> <base(G) \u2212 A_coh>` and `t = lift.add c<j> c<j+1>`; the operand then reads `t`.' Add the reference object of `tdl-b`'s O1 as an `isa object=` example (checked, hashed, run with `mem=coh:\u2026`)."
+  },
+  {
+   "id": "BD2-4",
+   "section": "\u00a710 TDL-2 MC4, TDL-3 (if-conversion), TDL-5",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "MC4 marks *values*: 'a value may be Co if an operand may be Co, it is a load \u2026, or it is control-dependent on a may-Co branch'. TDL-3 partitions *instructions* ('the instructions MC does not mark may-Co' are G) and if-converts a Co branch: 'the generation executes both arms (each arm's Cl instructions classically, its events predicated on the condition or its negation)'. A `store i8 1, ptr %local` in one arm and `store i8 2, ptr %local` in the other (a non-outliving alloca, or a `call @memset`, or a store of a constant into an outliving object) is an instruction with no may-Co value operand, so MC does not mark it; TDL-5 says 'Stores to objects that do not outlive the invocation are workspace: G runs them'; TDL-10 covers only 'A marker call or outliving store that is control-dependent on a Co branch'. So both arms' constant stores to workspace execute unconditionally in G and a later read of `%local` (even a Cl one) sees 2 on every branch. The text's two readings (MC over values \u2192 unsound; MC over instructions \u2192 sound) give different results.",
+   "fix": "TDL-2 MC4, restate over instructions: 'MC4: an instruction is may-Co if an operand may be Co, it is a load whose AV(p) contains a may-Co object, or it is control-dependent on a may-Co branch (stores and calls included); a value is may-Co if its instruction is; an object that a may-Co store writes is may-Co after the store.' TDL-3: 'a may-Co store to a non-outliving object is inside its slice and acts on the slice's private memory (\u00a78.5); the if-conversion executes classically only the instructions of the arms that are not control-dependent on the Co branch (none, in a plain diamond); every other instruction of the arms is a slice instruction or an event under the condition wire (TDL-10).' TDL-5 last paragraph: 'Stores to objects that do not outlive the invocation are workspace: G runs the Cl ones; may-Co ones run inside slices.' Add to \u00a718.8 a diamond `if (co) *p = 1; else *p = 2; return *p` with expected slice output select(w, 1, 2)."
+  },
+  {
+   "id": "BD2-5",
+   "section": "\u00a713.1 soft-float rewrite table, `fcmp` row",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "'`i1 @__bennett_sf_cmp_B(C, C, i32 P)`, P the LLVM predicate number: `false` 0, `oeq` 1, \u2026, `ord` 7, `ueq` 8, `ugt` 9, `uge` 10, `ult` 11, `ule` 12, `une` 13, `uno` 14, `true` 15' and, in the contract, '`cmp` is LLVM's `fcmp` for the predicate'. LLVM's `CmpInst::Predicate` numbering is FCMP_UNO = 8, FCMP_UEQ = 9, FCMP_UGT = 10, FCMP_UGE = 11, FCMP_ULT = 12, FCMP_ULE = 13, FCMP_UNE = 14 (bit 3 = unordered, bits 0\u20132 = eq/gt/lt, so `uno` is 8 and `ueq` 9). A normaliser emitting P from the table and a `bennett-arith` author implementing 'LLVM's fcmp for the predicate' with LLVM's enum disagree on every unordered predicate: `fcmp ueq` is evaluated as `uno`, `une` as `ule`, `uno` as `une`. Two conformant builds compute different results for every NaN-aware comparison (every `!=` on doubles in C).",
+   "fix": "\u00a713.1 `fcmp` row: 'P the LLVM `CmpInst::Predicate` number: `false` 0, `oeq` 1, `ogt` 2, `oge` 3, `olt` 4, `ole` 5, `one` 6, `ord` 7, `uno` 8, `ueq` 9, `ugt` 10, `uge` 11, `ult` 12, `ule` 13, `une` 14, `true` 15 (bit 3 = unordered, bit 2 = less, bit 1 = greater, bit 0 = equal)'. Add a normalisation pair `n-fcmp` with `fcmp une double %a, %b` \u2192 `call i1 @__bennett_sf_cmp_f64(i64 \u2026, i64 \u2026, i32 14)` and a `native=` line with a NaN operand."
+  },
+  {
+   "id": "BD2-6",
+   "section": "\u00a717.3 (N24 frame layout) versus \u00a714.3 example `normalise-out=n-varargs`",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a717.3: '`%nz.fp.<f> = call ptr @__bennett_rt_ss_push(i64 S, i64 A)` at entry, where the static allocas of the entry block are laid out \u2026, S is the total rounded up to A, the largest alignment'. The `n-varargs` output has `%nz.fp.sum = call ptr @__bennett_rt_ss_push(i64 24, i64 16)` for a single `alloca %struct.__va_list_tag, align 16` of 24 bytes: 24 rounded up to a multiple of 16 is 32. The normative pair and the normative rule contradict each other; a normaliser built from the rule and one built from the example emit different materialised modules (different frame sizes, hence a different shadow-stack exhaustion point, hence different F_B on the inputs that exhaust it, and different reference-object hashes for any lproc containing the push).",
+   "fix": "Decide one way. I would keep the rule (it keeps frames aligned for the next push) and correct the example line to `%nz.fp.sum = call ptr @__bennett_rt_ss_push(i64 32, i64 16)`. The alternative is to state in \u00a717.3 'S is the total; `__bennett_rt_ss_push` rounds its own frame start up to `align`' and keep 24. Either way add to \u00a717.3 the sentence 'The pushed frame's base is aligned to A and the next frame starts at base + S.'"
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "dialect-0.1 narrowing rejection (audit rows D1\u2013D25, B-01\u2013B-55, O-01\u2013O-08, G-12\u2013G-16, ISA-1\u2013ISA-11)",
+   "status": "resolved",
+   "note": "No prior round exists on draft 0.2; the 0.1 rejection was for narrowing. Every 0.1 rejection the audit flagged is deleted (\u00a722.1 'Deleted' list), the remaining rejections each cite an NS clause or maintainer decision, and the four ISA 0.8 gaps are blockers with exact ISA changes rather than refusals. I found no row of \u00a722.1 or \u00a724 that narrows a north-star promise."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1 \u00a715.5 (contract): I believe the AArch64 and RISC-V64 rows do not match clang's output. musl writes `\"=r\"(x0) : \"r\"(x8), \"0\"(x0)` with register asm variables; clang prints the tied input as the matching constraint `0`, giving `={x0},{x8},0,{x1},\u2026,~{memory},~{cc}` (and `={x10},{x17},0,{x11},\u2026,~{memory}` on RISC-V) for k \u2265 1. If so, every musl syscall on riscv64 (rung 3 on the E4 platform) would hit the `trapped` class. I could not run clang in this read-only session; verify with `clang --target=aarch64-linux-gnu -S -emit-llvm` on `arch/aarch64/syscall_arch.h` and write the row as 'then `0` and the next k \u2212 1 of {x1},\u2026' (the k = 0 form unchanged).",
+  "S1 TDL-7/TDL-8 (core): retained history (Co-loop flags, overwritten slice inputs, per-slice fault registers) makes a `ctrl` region's unitary carry garbage outputs, so `ctrl(q,f); ctrl(q,f)` of an involutive body is not the identity on the data and Grover-style iteration over such a region loses interference. The warning discloses it; offer the Bennett construction as the default realisation when the history is not cleaned: '`ctrl`/`adj` of a region with retained history is realised as compute(E, copy-out of the declared mutable outputs by `qxor` into fresh registers, adjoint(E)) and the copy registers are the action's mutable wires', and reserve the measured-at-epilogue form for `-bennett-history=retain`.",
+  "S1 \u00a77.5(a) deferred measurement (core): state the certificate obligation explicitly: 'the register `h` is not measured by the region; the certificate's `deferred_measurement` entry records that the program's statistics equal those of the measuring program only if no non-permutation operation touches `h.i` before the run's end or its measurement' (the deferred-measurement principle needs the final measurement).",
+  "S1 \u00a718.3 `measure` row (core): spell out the ISA 0.8 realisation of measuring one wire of a multi-wire register, since ISA `measure` consumes a whole non-view register: 't = qreg.new any 1; s = qreg.slice h i 1; action_call @swap1 (s) (t); m = measure t; t2 = qreg.new any 1; [action_call @x1 (t2) if m]; s = qreg.slice h i 1; action_call @swap1 (s) (t2); qreg.free \u2026'. Without it an implementer may measure and re-prepare the whole register, collapsing the other wires.",
+  "S1 TDL-10 Co rotation angle: `BD-E-COHERENT-ANGLE` for an unbounded value set is a rejection with an ISA-level alternative: lift \u03b8 to fixed point by a slice (an oracle), then a ladder of `rz(\u03c0\u00b72^\u2212j)` gates predicated on bit j (an \u03b5 > 0 action with a stated bound 2^\u2212(bits) per rotation, ISA \u00a75.3/\u00a712). Add it as the realisation and keep the rejection only for `-bennett-angle=exact`.",
+  "S1 \u00a73.4: for a dispatched `n`, `cls` or `op` with a finite VS obtained through `range`/`!range` (PT5), say what a run-time value outside VS does (the compare tree's default): 'traps `T-SIZE`/`T-CLASS`/`T-OP`'.",
+  "S1 \u00a716.2 step 5: say what `lift.retval` delivers when the shape has no output (T = 1): a `lift.const.i1 0`.",
+  "S1 \u00a714.4: a `nounwind` device function whose callee sets the EH state continues past the call with the flag set (native would call std::terminate). State it: 'in a function that is `nounwind`, the check after such a call is `lift.faultif`/F(4) (terminate)' or state explicitly that propagation continues to the next may-unwind caller.",
+  "S1 \u00a713.1: the x87 claim is wrong for pseudo-denormals (387+ treats them as valid denormals; unnormals, pseudo-NaNs and pseudo-infinities raise #IA). The contract may keep either choice; fix the sentence.",
+  "S1 \u00a77.4 vs \u00a718.2: \u00a77.4 says an action region 'is emitted as an ISA `perm_action`/`action`' while \u00a718.2 says events are realised as CC-level region calls and MAY be one ISA action. Make \u00a77.4 say 'its event list is classified as permutation or not; the plugin realises it per \u00a718.2'.",
+  "S1 \u00a78.6/\u00a77.3: with k > 1 output slices there are k variants `@W_j`; say which interface hash is the region's identity (W_0's, or the hash of the JCS list of all k).",
+  "S1 TDL-10: unrolling a Co loop up to N = the `steps` field (default 1048576) is correct but unusable; state a separate `--bennett-co-loop-bound` (default: the loop's `getSmallConstantMaxTripCount` when finite, else `steps`) so G-14 is not the only usable path.",
+  "S1 \u00a76.3: say that `icmp eq/ne` of a handle-derived pw-wide integer with the constant 0 is the null comparison (Rust's niche after `ptrtoint`).",
+  "S1 \u00a714.4 example `n-eh`: `@__bennett_rt_eh = external global` is a declaration, but the runtimes bitcode is linked before S2, so in a materialised module it is a definition; say the pair is a unit example and that the validator's V12 does not apply to globals.",
+  "S1 \u00a719.2: rejecting `measure` in the whole-program R mode is defensible from ISA \u00a710, but the forward run is still meaningful; consider 'a program that measures runs forward and its run is not reverse-eligible (`E_NOT_REVERSIBLE`)' under a flag, keeping the rejection as the default.",
+  "Nit \u00a712.2 N11: `llvm.cond.loop`/`llvm.looptrap` are listed as LLVM 23 names; confirm against `IntrinsicEnums.inc` of the 23 build in `toolchains.toml` and cite the file in Appendix C."
+ ],
+ "path_to_accept": "1. BD2-5: fix the fcmp predicate table to LLVM's numbering and add the `n-fcmp` pair. 2. BD2-6: make \u00a717.3 and `n-varargs` agree (32 or the stated push-side alignment). 3. BD2-1: state that gen(f)'s recorder is visible to gen(use) and the adjoint, with a witness example. 4. BD2-2: restrict the xmask-out of `observe` to fully observed objects. 5. BD2-4: restate MC4 over instructions and the if-conversion over non-control-dependent instructions only, with a diamond witness. 6. BD2-3: define `coh` in `<mems>`, exclude arena globals from `layout.globals`, add the `lift.addr @coh` + offset materialisation row and the O1 reference object as a checked `isa object=` example. With these six in the text I return accept; the suggestions (asm rows, history composition, single-wire measure realisation) would then raise C3 and C8 to 4.",
+ "summary": "Draft 0.2 is a competent, unusually complete dialect specification that removes every 0.1 narrowing, gives each rung a mechanism, executes its ISA objects (the step counts, stack-cell counts, hashes and payloads of inc8, add2, rung4-mini, rung8-mini, listsum and switch5 recompute correctly by hand), and names the four ISA 0.8 gaps as blockers with exact changes rather than refusals. Its gate realisations, wide-output copy-out pairs, in-place verification, soft-float determinism examples (the 0.1\u00b710 fmuladd case) and wide-integer carries are right. Six S0 defects remain, five of them in the new taint-driven-lifting section and the normalisation contract: `compute`'s `use` does not see `f`'s writes under the literal view rule; partial `observe` zeroes arena cells of an object that stays Co; arena-relocated globals have no lifting row and would overlap the `coh` region in the ISA layout; the may-Co analysis marks values rather than instructions, so stores under a coherent branch run classically in both arms; the fcmp predicate numbering contradicts LLVM's enum (an arith/normaliser split); and the shadow-frame rounding rule contradicts the `n-varargs` example. Each has a one-paragraph fix. Verdict: revise (core and whole).",
+ "verdict": "revise",
+ "verdict_core": "revise"
+}

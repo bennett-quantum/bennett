@@ -1,0 +1,101 @@
+{
+ "blocking": [
+  {
+   "fix": "In \u00a710 TDL-2/TDL-5 and \u00a718.2 state: 'Applying xmask X+o m when K(X)=Cl updates the shadow bytes at X+o by XOR m and leaves the arena cells at |0>; when K(X)=M it XORs m into both shadow and arena; when K(X)=Co it XORs m into the arena only. Applying any arena-writing event with a non-empty control set or a Co value to a Cl or M object first moves the object to M if it is Cl, then makes it Co. An unconditional Cl-valued xmask, xstore or perm therefore never changes K.' Apply the same three-way rule, spelled out per form, to xstore, perm and xchg in \u00a718.2, and add a checked example: @cnt=3 Cl, adj(@bump-to-5), then a classical load returns 5, then ctrl(q, @add3) with q=|1> and observe(@cnt) returns 8.",
+   "id": "B1",
+   "problem": "\u00a718.2: 'Applying an event that writes object X: when K(X) = Cl and S \u2260 \u2205 or the written value is Co, X is first materialised; after an application with S \u2260 \u2205 or a Co value, K(X) = Co.' \u00a710 TDL-5(a): a Cl-valued store becomes 'xmask X+o, c \u2295 v'. Witness: @cnt is Cl with shadow c=3 and arena cells |0> (TDL-2's own invariant); an unconditional adj() of a body storing 5 records xmask @cnt, 3\u22955=6 with S=\u2205. By \u00a718.2 no materialisation happens and K stays Cl, so either the xmask is applied to the arena (arena now holds 6, violating 'Cl: arena cells are |0>', and a later materialisation XORs the shadow 5 into 6 giving back 3), or it is applied to the shadow (arena stays |0>, correct), or the object is materialised then dematerialised \u2014 three readings, two different results on a later ctrl() store. MC2 also says an unconditional adj adds nothing to may-Co, which is consistent only with the shadow reading that \u00a718.2 never states.",
+   "scope": "core",
+   "section": "\u00a710 TDL-2, TDL-5(a); \u00a718.2",
+   "severity": "S0"
+  },
+  {
+   "fix": "Add to \u00a78.2: 'A parameter or result of floating-point type is bound as its carrier integer of \u00a713.1 (half/bfloat i16, float i32, double i64, x86_fp80 i80, fp128/ppc_fp128 i128): IN and ARG apply to the carrier bits. A parameter or result of aggregate or vector type is flattened depth-first in field/lane order; it occupies one Bind per scalar field, the payload bits are the fields concatenated with field 0 in the lowest bits and no padding, and the width in \u00a78.2 is the sum of the carrier widths. The descriptor nparam counts flattened fields, after N21/N22.' Add to \u00a716.2/\u00a716.4 the packing rows: wrapper builds r by lift.zext of each returned field location to the total width, lift.shl by its cumulative offset, lift.or in field order; a call result is unpacked by lift.lshr/lift.trunc into the field locations; a bitcast between a floating-point type and its carrier is lift.mov. Add one executed example: region `define {i8,i32} @p(double %x)` returning {1,-1} on a stated input has payload 0xffffffff01, with hash= and run= lines. The alternative, restricting oracle candidates to integer/pointer signatures in \u00a77.1, narrows NS \u00a74.2 and rung 8 and should not be taken.",
+   "id": "B2",
+   "problem": "\u00a77.1: oracle candidates have 'any function type'; \u00a78.2: return type R is 'a first-class type of at most 128 bits'. But every Bind kind in the \u00a78.2 table requires a parameter of iW or ptr, so a region function with a double parameter (rung 8's plain-C Monte Carlo signature, NS \u00a73.2 soft-float contract) traps T-IFACE for every descriptor. For a return of {i8, i32} the payload bits are undefined: concatenated fields (40 bits, payload of {1,-1} = 0xffffffff01), datalayout layout with padding (64 bits, payload 0xffffffff00000001) and high-field-first packing are all readings of the text, and \u00a716.2 gives the lproc a single result r:reg[R] with no packing rows and \u00a716.4 no row for extracting fields of a lift.call result or for a float-to-carrier bitcast (the rows N32 introduces). A vector parameter is likewise one IR parameter for \u00a78.1's nparam count but L scalar parameters after N21. Two plugins compute different payloads, or one traps where another accepts.",
+   "scope": "core",
+   "section": "\u00a77.1, \u00a78.2, \u00a716.2, \u00a716.4",
+   "severity": "S0"
+  },
+  {
+   "fix": "In \u00a717.3 replace ss_init's contract with: '__bennett_rt_ss_init(size) is idempotent: if the shadow-stack state globals are already set (in an oracle, by the entry-state replay) it allocates nothing and keeps base, size and stack pointer; otherwise it allocates one block of size bytes by __bennett_nz_alloc.' In \u00a78.5 add: 'When the L closure contains a shadow-stack use, the snapshot always includes the shadow-stack state globals in G and the shadow-stack block among the heap allocations replayed, with its current stack pointer; after replay, heap_used and atop inside the oracle equal the caller's values at the call.' Add a run= example in \u00a716.9 or \u00a78.5 in which an oracle with non-empty R mallocs 16 bytes and returns ptrtoint of the result, with the native= line equal to the payload.",
+   "id": "B3",
+   "problem": "\u00a716.2 step 1 puts the entry-state replay first, then a call to __bennett_rt_ss_init; \u00a717.3 defines ss_init as 'allocates the shadow stack, a heap block of size bytes, by __bennett_nz_alloc'. The snapshot of \u00a78.5 replays the caller's heap allocations, which include the caller's own shadow-stack block (it was obtained by __bennett_nz_alloc), so the literal reading of the wrapper allocates a second block: every malloc address inside the region shifts by max(sstack,1) relative to native execution on the caller's stack, and heap_used and the FAULT_BUDGET_HEAP boundary move with it. The reverse reading \u2014 ss_init adopts the replayed state and allocates nothing \u2014 is what \u00a78.5's reference semantics ('a private copy of the caller's whole classical memory') needs, but no sentence states it, and \u00a78.5 does not say whether the snapshot includes the stack pointer and state globals. An oracle returning ptrtoint(malloc(16)) therefore has two different defined payloads. NS \u00a73.2 makes addresses deterministic precisely so this value is native-equal.",
+   "scope": "core",
+   "section": "\u00a78.5, \u00a716.2 step 1, \u00a717.3",
+   "severity": "S0"
+  },
+  {
+   "fix": "Pick one rule and state it identically in \u00a77.2 and \u00a722.1. Recommended (keeps the wider capability, consistent with dispatch-to-trap-body elsewhere): replace the \u00a722.1 parenthetical for BD-E-REGION-MEASURE with '(the unique candidate)' and add an example region-two-measure-candidates verdict=accept with two measuring candidates entered as trap bodies. The viable alternative is to amend \u00a77.2 to 'rejected when it is the unique candidate, or when every candidate is ill-formed for the same one of these reasons' and apply it to all three codes, changing the \u00a722.1 BD-E-REGION-TYPE parenthetical to match; then region-two-measure-candidates is reject:BD-E-REGION-MEASURE. Either text is acceptable; silence between them is not.",
+   "id": "B4",
+   "problem": "\u00a77.2: an ill-formed candidate 'is rejected (BD-E-REGION-TYPE, BD-E-REGION-MEASURE, BD-E-REVERSIBLE-MEASURE) only when it is the unique candidate'. \u00a722.1: BD-E-REGION-MEASURE applies at '\u00a77.5(a) (the unique candidate, or the closure of every candidate)'. Witness: a module whose ctrl operand has exactly two candidates, both containing a measure call (no defer flag). One conformant plugin reading \u00a77.2 accepts it with both bodies as T-REGION-INVALID trap bodies; another reading \u00a722.1 rejects it at compile time. The verdicts differ, so the text contradicts itself on a compile-time observable.",
+   "scope": "core",
+   "section": "\u00a77.2, \u00a77.5(a), \u00a722.1",
+   "severity": "S0"
+  }
+ ],
+ "criteria": [
+  {
+   "change": "State the Cl/M/Co application rule per event form (fix in B1) and make TDL-2's transition list exactly those rules; that removes the one place where two state diagrams can be drawn.",
+   "evidence": "Tiers, variants, one-memory model and A(F) are pinned in \u00a74 and \u00a717.1\u2013\u00a717.2; but the Cl/M/Co state machine of TDL-2 and the application rule of \u00a718.2 disagree for unconditional arena writes (B1), and \u00a76.5's bound is taken on 'the materialised module' inside an S2/S4-stage rule (see suggestions).",
+   "id": "C1",
+   "score": 3
+  },
+  {
+   "change": "Add the carrier/flattening binding rule and the lproc packing rows of B2 to \u00a78.2 and \u00a716.4; the marker set itself needs nothing.",
+   "evidence": "The 23 markers have fixed IR and C signatures, encodings and dispatch domains (\u00a73.2\u2013\u00a73.4, checked examples on three majors). The oracle binding table nevertheless has no legal Bind for floating-point, aggregate or (post-N21) vector parameters that \u00a77.1 admits, and \u00a716.4 lacks the bitcast and aggregate-result rows those types need (B2).",
+   "id": "C2",
+   "score": 3
+  },
+  {
+   "change": "Fix B1's application rule and state the per-wire measure construction of the suggestions; with those two sentences the core semantics is checkable end to end.",
+   "evidence": "TDL is specified in unusual depth (TDL-1\u2013TDL-12, worked event/state examples in \u00a718.8) and honestly routes around ISA \u00a76 via CC-level calls (Appendix A8). But the unconditional-store case computes a wrong arena state under the literal \u00a718.2 reading (B1), \u00a718.3's per-wire measure asserts a realisation ('measure and re-preparation') that does not implement it on ISA 0.8, and the shadow-stack state transfer is underdetermined in a way that moves malloc addresses and heap faults (B3). Nothing found inspects superposed data or breaks the prefix-reversal/involution arguments, and the \u00a716 objects are executed.",
+   "id": "C3",
+   "score": 3
+  },
+  {
+   "change": "In \u00a73.4 state that a class-name-table order is part of the build record's recorded inputs (one line in \u00a719.9's build-record enumeration).",
+   "evidence": "The dialect's own surface here is small and decided: the class-name table construction of \u00a73.4 with T-CLASS on out-of-table values, budget defaults D27, and an explicit pointer to ISA \u00a78 for everything else. Missing target names are correctly ISA load errors, not dialect errors.",
+   "id": "C4",
+   "score": 4
+  },
+  {
+   "change": "Resolve the unique-candidate contradiction (B4) and the B2 binding rule; those are the only two points where a second implementation's observable behaviour splits.",
+   "evidence": "Descriptor and budget-record layouts, shape dispatch, budget-table precedence (\u00a79.2), driver modes and exit-status/blocker-report contract (\u00a71.6, \u00a719.9, \u00a725.1) are all decided with schemas and defaults. Two observable splits remain: the unique-vs-every-candidate rejection rule (\u00a77.2 vs \u00a722.1, B4) and which descriptors are legal for non-integer signatures (B2).",
+   "id": "C5",
+   "score": 3
+  },
+  {
+   "change": "Land the missing examples for the OUT binding's object and entry-state transfer (\u00a78.5) \u2014 the two mechanisms whose correctness the rest of the contract leans on \u2014 before the remaining rule-id tail.",
+   "evidence": "The reference semantics of \u00a718, outcome table of \u00a718.7 and the six executed \u00a716 objects (hash/run/step-check lines verified by the editor on bennett-isa-ref) are a real oracle an implementer can test against. Against that, Appendix B itself lists rule ids with no checked example (N0, N12, N15, N25, N34, N35; V2\u2013V16; PT12; OUT-binding object; BLOCK/CLOCK/CONSOLE bindings; \u00a78.5 entry-state transfer; indirectbr; \u00a719.3\u2013\u00a719.8; \u00a720), so by the document's own P-1 the freeze check fails today, and the TDL families rest on requested, not existing, executors (run-action) as the progress file discloses.",
+   "id": "C6",
+   "score": 3
+  },
+  {
+   "change": "Re-examine BLK-3 against a generated-action construction (see suggestions): if it stands up, \u00a78.7 gains a case and \u00a725.1 loses a blocker, which is the largest remaining scope question.",
+   "evidence": "No narrowing of the audit's D-rows survives: each deletion is reinstated as a mechanism (\u00a710 replaces 1.4-d, \u00a79 replaces 1.4-e, \u00a78.7 replaces 1.4-f), every \u00a722.1 rejection cites its NS clause or maintainer decision, and the four blockers name exact ISA changes and keep a bounded realisation. Residual issues are consistency defects (B1\u2013B4), not scope trades. Enzyme/PTX/QIR precedents are used as cited.",
+   "id": "C7",
+   "score": 4
+  },
+  {
+   "change": "Ship the \u00a721.4 seeds for the shadow stack, allocator and binary64 add/mul/cmp (bd -d4k) so the normalisation native= lines can be re-run by a reader; that is the cheapest credibility per line in the document.",
+   "evidence": "A plugin author can start from \u00a74.1's order, \u00a75's exact analysis and \u00a716's byte-fixed map, and every \u00a724 deferral carries a capability-preserving default. But scripts/dialect_check.py's expected-artefact recogniser, spec/seeds/ and spec/asm/*.toml do not yet exist (progress file, bd -d4k/-rq0), so most accept/reject examples currently verify only by LLVM parsing, and the \u00a720 platform rests on patterns until its spike lands.",
+   "id": "C8",
+   "score": 3
+  }
+ ],
+ "path_to_accept": "1. \u00a710/\u00a718.2: state the per-K application rule for xmask/xstore/perm/xchg exactly as in B1's fix, and add the checked unconditional-adj example (@cnt=3 Cl \u2192 store 5 \u2192 classical load 5 \u2192 ctrl add3 \u2192 observe 8). 2. \u00a78.2 + \u00a716.2/\u00a716.4: add the floating-point carrier and aggregate/vector flattening binding rule with depth-first low-field-first payload packing, the wrapper pack/unpack rows and the float-carrier bitcast row, plus the executed {i8,i32}/double example with payload 0xffffffff01. 3. \u00a717.3 + \u00a78.5: make ss_init adopt replayed state and allocate nothing in that case, specify that the snapshot includes the shadow-stack block and state globals, and add the malloc-address run=/native= example. 4. \u00a77.2 + \u00a722.1: make the unique-candidate rejection condition identical in both places (recommended: unique only, with the region-two-measure-candidates=accept example). No other change is needed for accept; the items in suggestions may ride along but do not gate it.",
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a718.3 measure row: '(ISA: measure and re-preparation, ISA-6 not a gap)' is false as stated \u2014 ISA \u00a73.3 measure consumes a whole non-view qreg[n], and measuring all n wires then re-preparing collapses wires the dialect does not measure: state (|00>+|01>+|10>)/\u221a3 with wire 0 measured 0 leaves wire 1 in (|0>+|1>)/\u221a2 coherently, but whole-register measure destroys that superposition. The semantic row (projective measurement of h.i) is correct and \u00a718.7 binds implementers to it, so this is S1, but replace the parenthetical with the construction TDL-11 already uses: 'realised by a copying action that qcopies h.i onto a fresh 1-wire register, ISA measure of that register, which collapses h.i identically; h itself is never measured'. Same replacement in \u00a725.3's ISA-6 line.",
+  "\u00a78.7/\u00a725.1 BLK-3: the ISA gap is stated as 'qinplace has no parameter lists', but a plugin-generated action \u2014 oracle_call @g tk (x, ins..) t f (mem..) (args..); qexch x t; oracle_call @ginv tk (x, ins..) t f (mem..) (args..); qfree t; qfree f \u2014 is exactly the \u00a74.5 expansion with the lists threaded through, and \u00a78.7's verification generalises by taking F^g over (x, ins, mem, args) tuples. Either add this as a fourth bullet of \u00a78.7 (shrinking BLK-3 to the case the product domain defeats, if one remains) or add one sentence to \u00a725.1 naming the ISA rule (presumably \u00a76.1/\u00a76.2 provenance of the exchanged t, or \u00a75.6 borrow framing) that makes the generated body ill-formed where the qinplace macro is not. Recommended: attempt the generated-action text first, since it also closes the unbounded-ARG case via the action's own args.",
+  "\u00a76.5 rule 2 invokes ScalarEvolution 'on the materialised module', but handle rules run at S4 and normalisation at S7 (\u00a74.1), so as ordered the bound is taken on a module that does not exist yet. Add to \u00a76.5: 'the plugin materialises a copy for this computation before S4; trip counts are read from that copy and the copy is discarded' \u2014 or change the base to the post-link module and accept that some N-rule-created loops change bounds. The first reading preserves the current examples.",
+  "\u00a718.2 event grammar: add the forms the rest of the document already emits \u2014 'qcopy S -> D', 'quncopy S D', 'qxor S T', 'copy F -> G (TDL-8 fault-register copy: qalloc of G then qxor F G)' \u2014 with their one-line basis semantics and adjoint entries (qcopy \u2194 quncopy, qxor and copy self-adjoint), and add firstfault and fault to the adjoint table (both self-adjoint: firstfault is the @firstfault oracle, fault is xmask on its fresh register). The \u00a718.8 tdl-d 'copy f9 -> g9:4' event currently has no defining row anywhere.",
+  "\u00a78.5 step 2: name the snapshot buffer. Add: 'the snapshot bytes S are assembled in an unnamed CC global of 2^A_s bytes added by the plugin, zero-filled before each build' so that the B_4 loads of the padding are in-bounds by \u00a717.1; without it the loads that read the zero padding are accessor faults in the reference semantics.",
+  "\u00a714.4: name the continuation block the transform creates after a landingpad check \u2014 the n-eh example emits %nz.lpc.<r> but the rule text names only nz.ehr.<f>. Add '%nz.lpc.<r> is the block holding the instructions after the landingpad when the selector is not \u22121' so the normaliser's output is byte-determined by the prose, as \u00a712.1 requires. Give N28's plain-call check the same treatment (block split naming) even though no checked example covers it yet.",
+  "\u00a716.4 getelementptr row: state that a constant index of a struct type is an i32 field index contributing its datalayout offset to \u0394 and never a value operand (LLVM requires it constant), since the constant-materialisation exception '(for getelementptr, not a constant index)' currently invites a reader to ask whether a non-constant struct index is materialised as a location."
+ ],
+ "summary": "Draft 0.2 genuinely undoes the 0.1 narrowing: TDL, budgets, descriptors, dispatch and the byte-fixed lifting map are specified at implementable depth, the \u00a716 objects are executed, and the four blockers are properly named with bounded realisations kept. Four core defects block accept: the Cl/M/Co arena-write rule computes a wrong state for unconditional stores, oracle bindings have no legal form (and no payload packing) for the floating-point/aggregate/vector signatures \u00a77.1 admits, shadow-stack state transfer double-allocates and moves malloc addresses and heap faults, and \u00a77.2 contradicts \u00a722.1 on when an ill-formed region candidate rejects. All four are one-paragraph fixes; nothing in the document's architecture needs to change.",
+ "verdict": "revise",
+ "verdict_core": "revise"
+}

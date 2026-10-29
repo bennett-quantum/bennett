@@ -1,0 +1,293 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "fable": "revise",
+  "codex": "revise",
+  "muse": "revise"
+ },
+ "core_verdicts": {
+  "fable": "revise",
+  "codex": "revise",
+  "muse": "revise"
+ },
+ "blocking": {
+  "fable": [
+   {
+    "id": "BD2-1",
+    "section": "\u00a710 TDL-2 (View), \u00a718.3 `compute` row, \u00a718.4",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "\u00a718.3: 'compute(f, use, budget, env): E_f = gen(f, env); the TDL-8 copies of E_f's fault registers; E_u = gen(use, env); then the events E_f, copies, E_u, adjoint(E_f)'. E_f is appended (or applied) only after gen(use) has run. TDL-2's view rule reads: 'a byte of object X has view Co if K(X) = Co, or if the generation's recorder (or a recorder of an enclosing generation of the same invocation) holds an event that writes it \u2026; otherwise its view is Cl and its value is the shadow updated by the recorder's own classical events.' gen(f)'s recorder has been popped by the time gen(use) runs, is not gen(use)'s own recorder and is not enclosing, so under the literal text `use` sees neither f's classical writes (xmask events) nor its Co writes: `compute(f = {t = g(x)}, use = {if (t) \u2026})` with t in `env` reads the stale t. The trace runtime (f, use, f in sequence) gives the other reading. Two readings, two results; the \u00a718.8 examples (`set9`/`flip`, `copy`/`kick`) never let `use` read what `f` wrote, so no example decides it.",
+    "fix": "TDL-2 'View', add after the view sentence: 'For `compute(f, use, \u2026)`, the recorder of gen(f) is retained after gen(f) ends and counts, for gen(use) and for the construction of adjoint(E_f), as a recorder of the same invocation: a byte written by an event of E_f with a non-empty control set or a Co value has view Co in gen(use); a byte written only by classical events of E_f has view Cl with the value those events give it.' In \u00a718.3 `compute`: 'E_u = gen(use, env) with E_f's recorder visible (TDL-2)'. Add to \u00a718.8 a `tdl=`/`state=` witness: `f` stores 9 into a Cl global `@t`, `use` branches on `@t == 9` and flips `%t`; expected events: `xmask @t+0 0x09`, `x H1.0` (unconditional, since `use` sees 9), `xmask @t+0 0x09`."
+   },
+   {
+    "id": "BD2-2",
+    "section": "\u00a710 TDL-11 (`__bennett_observe`), TDL-2 object states",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "TDL-11: '`__bennett_observe(p, len)` \u2026 lowers to: \u2026 measure r, which collapses the arena cells identically; the outcome written to the shadow; an xmask of the outcome out of the arena cells, returning them to |0\u27e9; K := Cl for every object whose bytes are all observed.' The xmask is unconditional but K := Cl is conditional. For an object only partly observed (len < size(X), or AV(p) at a nonzero offset), K stays Co, TDL-2 says 'Co (the arena is the truth and may be superposed; the shadow is invalid)', so every later slice read of the observed bytes reads the arena cells, now |0\u27e9, instead of the outcome m. Unsound: `observe(&s.flag, 1)` on a 16-byte Co struct followed by a slice that reads `s.flag` computes with 0.",
+    "fix": "TDL-11, replace the clause by: 'the outcome written to the shadow; then, if every byte of X is now observed, an xmask of X's outcome out of its arena cells (returning them to |0\u27e9) and K(X) := Cl; otherwise the observed cells are left in the basis state |m\u27e9 (the arena stays the truth of X, K(X) = Co) and only the shadow bytes are updated.' Add the matching sentence to TDL-2: 'Co \u2192 Cl by `__bennett_observe` of all of X's bytes; a partial observe leaves K = Co with the observed cells in a basis state.'"
+   },
+   {
+    "id": "BD2-3",
+    "section": "\u00a710 TDL-4, \u00a716.3 (Layout), \u00a716.4 (constant materialisation of `@G`), \u00a719.5",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "TDL-4: 'Globals in the set are relocated into the arena by the layout \u2026 cell i is the byte at address A_coh + i', and a slice binds the arena 'as a MEM_IN region coh'. \u00a716.3: the reference object's layout holds 'the globals that the L closure names in lift.addr' with their link bases, and \u00a716.4 materialises `@G` as `c<j> = lift.addr @G<n>`. For a slice reading `@cnt` (relocated into the arena) this puts `G<n>` into `layout.globals` with a base inside [A_coh, A_coh + 2^A), the range of the interface region `coh`; ISA \u00a77.2 requires all ranges disjoint ('all ranges disjoint and within [0, 2^H)'), so `bennett-isa-ref check` rejects the object, and even if it did not, `lift.load` would read the global's data image, not the superposed cell. \u00a716.2's `<mems>` enumeration (m<k>, e0, k0, s0) does not list `coh` at all, and \u00a716.3 places the first interface region at the heap's end while \u00a719.5 places the arena there and the regions 'above the arena'. The lifting of every slice of \u00a710 is therefore unspecified or ill-formed; `tdl-b`'s O1 cannot be produced.",
+    "fix": "\u00a716.2 `<mems>`: 'then `coh:region[A,8] in` (first of all, when the shape is a slice or the oracle reads an arena object), then m<k> \u2026'. \u00a716.3 Layout: 'A global relocated into the arena (TDL-4) is not in `layout.globals` and has no `G<n>` data symbol; the arena is the interface region `coh` at base A_coh of \u00a719.5; the first other region is placed at the first multiple of its size \u2265 the end of the arena (or of the heap when there is none).' \u00a716.4 constant materialisation: 'a global `@G` in the arena by `c<j> = lift.addr @coh` and, when `base(G) \u2212 A_coh \u2260 0`, `c<j+1> = lift.const.i<pw> <base(G) \u2212 A_coh>` and `t = lift.add c<j> c<j+1>`; the operand then reads `t`.' Add the reference object of `tdl-b`'s O1 as an `isa object=` example (checked, hashed, run with `mem=coh:\u2026`)."
+   },
+   {
+    "id": "BD2-4",
+    "section": "\u00a710 TDL-2 MC4, TDL-3 (if-conversion), TDL-5",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "MC4 marks *values*: 'a value may be Co if an operand may be Co, it is a load \u2026, or it is control-dependent on a may-Co branch'. TDL-3 partitions *instructions* ('the instructions MC does not mark may-Co' are G) and if-converts a Co branch: 'the generation executes both arms (each arm's Cl instructions classically, its events predicated on the condition or its negation)'. A `store i8 1, ptr %local` in one arm and `store i8 2, ptr %local` in the other (a non-outliving alloca, or a `call @memset`, or a store of a constant into an outliving object) is an instruction with no may-Co value operand, so MC does not mark it; TDL-5 says 'Stores to objects that do not outlive the invocation are workspace: G runs them'; TDL-10 covers only 'A marker call or outliving store that is control-dependent on a Co branch'. So both arms' constant stores to workspace execute unconditionally in G and a later read of `%local` (even a Cl one) sees 2 on every branch. The text's two readings (MC over values \u2192 unsound; MC over instructions \u2192 sound) give different results.",
+    "fix": "TDL-2 MC4, restate over instructions: 'MC4: an instruction is may-Co if an operand may be Co, it is a load whose AV(p) contains a may-Co object, or it is control-dependent on a may-Co branch (stores and calls included); a value is may-Co if its instruction is; an object that a may-Co store writes is may-Co after the store.' TDL-3: 'a may-Co store to a non-outliving object is inside its slice and acts on the slice's private memory (\u00a78.5); the if-conversion executes classically only the instructions of the arms that are not control-dependent on the Co branch (none, in a plain diamond); every other instruction of the arms is a slice instruction or an event under the condition wire (TDL-10).' TDL-5 last paragraph: 'Stores to objects that do not outlive the invocation are workspace: G runs the Cl ones; may-Co ones run inside slices.' Add to \u00a718.8 a diamond `if (co) *p = 1; else *p = 2; return *p` with expected slice output select(w, 1, 2)."
+   },
+   {
+    "id": "BD2-5",
+    "section": "\u00a713.1 soft-float rewrite table, `fcmp` row",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "'`i1 @__bennett_sf_cmp_B(C, C, i32 P)`, P the LLVM predicate number: `false` 0, `oeq` 1, \u2026, `ord` 7, `ueq` 8, `ugt` 9, `uge` 10, `ult` 11, `ule` 12, `une` 13, `uno` 14, `true` 15' and, in the contract, '`cmp` is LLVM's `fcmp` for the predicate'. LLVM's `CmpInst::Predicate` numbering is FCMP_UNO = 8, FCMP_UEQ = 9, FCMP_UGT = 10, FCMP_UGE = 11, FCMP_ULT = 12, FCMP_ULE = 13, FCMP_UNE = 14 (bit 3 = unordered, bits 0\u20132 = eq/gt/lt, so `uno` is 8 and `ueq` 9). A normaliser emitting P from the table and a `bennett-arith` author implementing 'LLVM's fcmp for the predicate' with LLVM's enum disagree on every unordered predicate: `fcmp ueq` is evaluated as `uno`, `une` as `ule`, `uno` as `une`. Two conformant builds compute different results for every NaN-aware comparison (every `!=` on doubles in C).",
+    "fix": "\u00a713.1 `fcmp` row: 'P the LLVM `CmpInst::Predicate` number: `false` 0, `oeq` 1, `ogt` 2, `oge` 3, `olt` 4, `ole` 5, `one` 6, `ord` 7, `uno` 8, `ueq` 9, `ugt` 10, `uge` 11, `ult` 12, `ule` 13, `une` 14, `true` 15 (bit 3 = unordered, bit 2 = less, bit 1 = greater, bit 0 = equal)'. Add a normalisation pair `n-fcmp` with `fcmp une double %a, %b` \u2192 `call i1 @__bennett_sf_cmp_f64(i64 \u2026, i64 \u2026, i32 14)` and a `native=` line with a NaN operand."
+   },
+   {
+    "id": "BD2-6",
+    "section": "\u00a717.3 (N24 frame layout) versus \u00a714.3 example `normalise-out=n-varargs`",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "\u00a717.3: '`%nz.fp.<f> = call ptr @__bennett_rt_ss_push(i64 S, i64 A)` at entry, where the static allocas of the entry block are laid out \u2026, S is the total rounded up to A, the largest alignment'. The `n-varargs` output has `%nz.fp.sum = call ptr @__bennett_rt_ss_push(i64 24, i64 16)` for a single `alloca %struct.__va_list_tag, align 16` of 24 bytes: 24 rounded up to a multiple of 16 is 32. The normative pair and the normative rule contradict each other; a normaliser built from the rule and one built from the example emit different materialised modules (different frame sizes, hence a different shadow-stack exhaustion point, hence different F_B on the inputs that exhaust it, and different reference-object hashes for any lproc containing the push).",
+    "fix": "Decide one way. I would keep the rule (it keeps frames aligned for the next push) and correct the example line to `%nz.fp.sum = call ptr @__bennett_rt_ss_push(i64 32, i64 16)`. The alternative is to state in \u00a717.3 'S is the total; `__bennett_rt_ss_push` rounds its own frame start up to `align`' and keep 24. Either way add to \u00a717.3 the sentence 'The pushed frame's base is aligned to A and the next frame starts at base + S.'"
+   }
+  ],
+  "codex": [
+   {
+    "id": "D02-01",
+    "section": "\u00a78.6; \u00a716.2 delivery",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "\u00a78.6 asserts that all wide-output variants compute the same fault code, but \u00a716.2 gives them different delivery rows. For a 20-byte OUT buffer filled with 0x11, W0 needs boundscheck/load/retval after the common prefix; W1 additionally computes a nonzero address offset. With B equal to the common-prefix length plus three, W0 succeeds while W1 exhausts its budget. The construction returns sixteen 0x11 bytes, four zero bytes and fault code 0: a successful partial result.",
+    "fix": "In \u00a78.6 and \u00a716.2 state: 'Every W_j executes an identical ordered computation and validation of every payload slice, with identical budget charges and fault conditions; only the final lift.retval selects an already-computed projection.' I would use this common delivery sequence. An alternative is a separate common outcome computation that gates every copy-out, but its budget and cleanup must also be specified. In the witness, insufficient budget must leave all twenty target bytes unchanged and XOR code 1; sufficient budget delivers twenty 0x11 bytes."
+   },
+   {
+    "id": "D02-02",
+    "section": "\u00a710 TDL-2 and TDL-11",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "K is defined per object, while observe may cover only part of an object. TDL-11 writes the measured bytes to the shadow and clears their arena cells, but sets K=Cl only when all object bytes are observed. For a two-byte Co object, observing its first byte with outcome 1 leaves K=Co and that arena byte zero. A subsequent slice reads zero from the supposedly authoritative arena instead of 1.",
+    "fix": "State in TDL-2/TDL-11: 'K and shadow validity are maintained per byte interval. observe changes each observed interval to Cl after copying its outcome to the shadow and clearing its arena cells; unobserved intervals retain their previous state. Loads select the authoritative representation interval by interval.' Alternatively retain observed values in the arena and track separate classical-valid intervals; I prefer the first construction. The witness's subsequent read must return 1."
+   },
+   {
+    "id": "D02-03",
+    "section": "\u00a710 TDL-2 view, TDL-3 branch conversion and TDL-5",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "TDL-3 executes both arms of a Co branch during generation, while TDL-2 makes a byte's view Co once the recorder contains a predicated write. Starting with Cl x=0, 'if (w) x=5; else x=7' therefore makes the second generated arm see the first arm's write, although the arms are mutually exclusive. It can encounter TDL-5(d), or use the wrong old value when constructing its mask. No branch-local view rule resolves this.",
+    "fix": "Add to TDL-3: 'Each arm is generated from a separate copy of the pre-branch view. Within an arm, its own classical updates are interpreted conditional on that arm being taken. Events retain their branch predicates; views merge only at the join.' For the witness, emit masks 0 xor 5 under w and 0 xor 7 under not-w. The resulting byte is 5 when w=1 and 7 when w=0, with no overwrite rejection."
+   },
+   {
+    "id": "D02-04",
+    "section": "\u00a710 TDL-5(c), TDL-8 and TDL-10",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "TDL-8 says a faulting slice's zero payload means its consumers leave the arena unchanged. This is false for exchange and negative predicates. In TDL-5(c), a fault produces t=0 and xchg overwrites a nonzero cell with zero. A failed condition slice similarly produces condition 0, enabling the else arm. Faults can therefore cause writes or gates that the stated fault semantics forbids.",
+    "fix": "State: 'Every event consuming a fallible slice result is additionally controlled on that slice's code being zero; with multiple required results, all corresponding codes must be zero. Failure selects neither arm of a dependent branch. Cleanup retains the success predicates until their last use.' With an initial cell value 5 and a budget-zero value slice, the exchange must not occur, the cell remains 5 and the retained fault is 1."
+   },
+   {
+    "id": "D02-05",
+    "section": "\u00a710 TDL-5(b), TDL-7; \u00a718.4; Appendix A11",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "TDL-7 turns uncleared condition/data registers into implicit outputs and measures them at the run epilogue. This can replace a promised action by a channel, and adj(f) allocates new history rather than receiving the forward invocation's history. For example, on a Co byte restricted to 0 and 1, 'if (x != 0) x ^= 1' passes the local library-bijection store rule, maps both visible values to zero and retains the distinguishing condition. Measuring that condition destroys coherence. This also conflicts with the ratified E3 decision against implicit history semantics.",
+    "fix": "State: 'The complete predicated update, including its condition, must be a total bijection on the declared mutable interface. Non-fault workspace must be cleaned before return; compiler-retained garbage is not implicitly measured.' The witness must use an out-of-place oracle or compute/use/uncompute, or fail the existing coherent-overwrite rule. A second viable design is explicit caller-owned history passed to both forward and adjoint invocations, but that requires the opt-in interface and north-star amendment described by E3; I would retain E3's current clean-workspace default."
+   },
+   {
+    "id": "D02-06",
+    "section": "\u00a77.5(a) deferred measurement",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The rule replaces measurement with qcopy and then quncopy whenever its window remains open. That erases a measurement instead of deferring its channel. Prepare q in |+>, invoke a deferred-measurement region whose measurement result is unused, then apply H and measure q. The draft gives 0 with certainty; preserving the original measurement gives 0 and 1 with probability 1/2.",
+    "fix": "Replace the cleanup sentence with: 'A deferred measurement retains its coherent outcome record until a permitted measurement boundary, where that record is measured; it may be removed earlier only when the complete resulting instrument is unchanged. An open uncomputation window alone does not justify removal.' The witness must produce probabilities 1/2 and 1/2. Treat these intentional measurement records separately from incidental workspace governed by TDL-7."
+   },
+   {
+    "id": "D02-07",
+    "section": "\u00a710 TDL-12; \u00a711.1; Appendix A10",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Every effect in an action is assigned fault 8 because actions have no device descriptor. The north star promises closed virtualised device state under coherent control, and the ratified outline provided that mechanism. A controlled console operation that has a reversible console model is not intrinsically unvirtualisable. The missing binding facility is a dialect omission, not an ISA limitation.",
+    "fix": "Add an action device-binding mechanism, preferably inherited per-run bindings, and state: 'Bound console, clock, entropy and block operations become controlled reversible transitions of declared virtual device state; their external effects remain deferred until observation. Code 8 applies only to unmodelled or unbound operations.' Update tdl-effect with a bound virtual console: the control-1 branch appends bytes 0x21,0x0a, the control-0 branch preserves the buffer, and the fault rate is zero. An explicit action descriptor is an alternative; I prefer inheritance to preserve existing marker signatures."
+   },
+   {
+    "id": "D02-08",
+    "section": "\u00a79.3; \u00a710 TDL-3/TDL-9; \u00a718.4",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Only Co slices and Co-trip-count loops receive bounds. G executes ordinary classical code during gen without a budget rule. A materialised action body containing an infinite classical loop and no Co values never finishes generation, even under a finite region budget and even when its external control is zero. This fails the promised bounded coherent execution mechanism.",
+    "fix": "Add a bounded G execution rule: 'Generation receives its own full region budget. It charges one step before each materialised LLVM instruction other than phi/debug/mark instructions, and enforces heap and depth limits before mutation. Exhaustion stops generation and emits the corresponding fault-oracle event under the invocation/path controls; no further source instruction executes.' Preserve the separate full budget for each slice. A marker-free infinite loop must produce a finite event list and a controlled code-1 outcome, not hang compilation or execution."
+   },
+   {
+    "id": "D02-09",
+    "section": "\u00a78.5 entry-state transfer; \u00a75; \u00a717.3",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "\u00a78.5 promises a private copy of the caller's whole memory, but its snapshot contains mutable globals and heap bytes only when R contains a heap object. \u00a75 classifies allocas separately, and that analysis precedes N24. A CC caller that stores 7 in an alloca and passes its address as an ARG to an oracle load can therefore transfer neither the alloca bytes nor their shadow-stack backing bytes; replay supplies zero rather than 7.",
+    "fix": "State in \u00a78.5: 'After normalisation, translate every source read-set object to its runtime backing allocation. If an oracle may read any caller alloca or shadow-stack frame, snapshot the corresponding live backing storage and allocation metadata, including its current bytes and addresses.' A sound default is to copy all live caller heap and shadow-stack backing allocations when such reachability is uncertain. The example must return payload 7 and preserve the caller's byte."
+   },
+   {
+    "id": "D02-10",
+    "section": "\u00a78.5 release; \u00a710 TDL-11 observe",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The snapshot is released by measure of a potentially enormous concatenated qreg; observe likewise measures a fresh register of 8\u00b7len wires. ISA \u00a73.3 permits measure only for qreg[n] with n\u2264128, and a qreg.slice view cannot be measured. These are illegal default constructions for ordinary snapshots and observations longer than sixteen bytes.",
+    "fix": "For \u00a78.5 state: 'Retain the classical snapshot bytes for the register's lifetime. Release it by slicing at most 128 bits at a time, invoking the same xor128 preparation oracle with those original bytes, then qreg.free the now-clean whole register.' For TDL-11 state: 'Copy and measure successive chunks of at most sixteen bytes into fresh non-view registers; update the corresponding coherence intervals after each chunk.' Sequential computational-basis chunk measurements must preserve the joint outcome distribution."
+   },
+   {
+    "id": "D02-11",
+    "section": "\u00a75.2 PT2 and PT6",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Two rules under-approximate reachable callees. PT6 seeds initialiser atoms only for constant globals, so an ordinary mutable '@cb = global ptr @f' can load an empty candidate set. PT2 bounds a nonconstant GEP index by the syntactic array dimension, but LLVM permits indexing beyond that dimension within the actual allocation. A [2 x ptr] allocation accessed through 'getelementptr [1 x ptr], ..., 0, i' at i=1 can legally select its second function, which PT2 omits. LLVM explicitly documents this distinction. [LLVM GEP rules](https://llvm.org/docs/GetElementPtr.html)",
+    "fix": "State: 'Seed initial contents of every global, mutable or constant, before the points-to fixpoint; stores union additional contents. GEP array dimensions determine stride, not an index bound. Restrict offsets only using a sound index-value bound; otherwise cover the underlying object's possible offsets.' The mutable @cb case must include f. The two-entry table must include its second function for i=1, without taking the unmatched-call fault."
+   },
+   {
+    "id": "D02-12",
+    "section": "\u00a712.6 vector scalarisation",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The load/store rule uses 'getelementptr T, p, k' for every lane. Sub-byte vector lanes are packed, whereas scalar i1 memory accesses occupy bytes. Loading <8 x i1> from one byte 0x80 and extracting lane 7 must return 1; the draft instead accesses byte p+7, potentially faulting. An LLVM 18 constant-folding probe confirms the expected result. [LLVM vector layout](https://www.llvm.org/docs/LangRef.html)",
+    "fix": "Add: 'Vector memory scalarisation preserves the vector's packed bit layout. For <L x iM> with sub-byte lanes, load the packed byte range, extract lane k from bits [kM,(k+1)M), and pack stores into the same range; do not use scalar allocation stride.' The <8 x i1> witness reads exactly one byte and returns 1 with no memory fault."
+   },
+   {
+    "id": "D02-13",
+    "section": "\u00a712.7 wide integers",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The top limb is declared i(N\u221264(L\u22121)), but addition always extends carry to i64 and sext always uses 'ashr a_top, 63'. For i129, the top limb is i1: the addition is ill-typed, and the sign extraction is an out-of-range shift rather than a sign fill. Valid wide-integer programs are rejected or compute incorrect extensions.",
+    "fix": "State: 'Let w_k=min(64,N\u221264k). Every limb operation and incoming carry uses width w_k, with an identity conversion when widths already agree. Sign extension extracts the sign at bit w_top\u22121, sign-extends the old partial top limb when widening it, and fills new limbs with that sign.' Add expected vectors: sext i129 \u22121 to i256 is four all-one i64 limbs; i129 (2^128\u22121)+1 has limbs [0,0,1]."
+   },
+   {
+    "id": "D02-14",
+    "section": "\u00a713.1 fcmp predicate encoding",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The table calls its numbers 'the LLVM predicate number' but assigns ueq=8 through uno=14. LLVM's enum, checked in the installed LLVM 18 and 23 headers, is uno=8, ueq=9, ugt=10, uge=11, ult=12, ule=13, une=14. A plugin following the printed table and an arithmetic library following LLVM disagree on seven predicates.",
+    "fix": "Replace the unordered portion with: 'uno 8, ueq 9, ugt 10, uge 11, ult 12, ule 13, une 14.' Keep false..ord and true unchanged. Alternatively explicitly define a private dialect enum and require both sides to use it; I would use LLVM's existing enum. Add ueq(1,1)=1 and uno(1,2)=0 as ABI vectors."
+   },
+   {
+    "id": "D02-15",
+    "section": "\u00a712.4 V9/V10; \u00a713.1; \u00a716.1\u2013\u00a716.4",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "\u00a716.1 claims materialisation leaves only integer SSA values, but \u00a713.1 and V9/V10 deliberately retain floating-point types, fneg, fabs, copysign and FP memory operations. The normalise-out examples retain FP parameters and bitcasts. \u00a716.4 has no corresponding rows and explicitly limits bitcast/load forms. Small aggregate returns also remain despite the single-result lproc convention. Thus the promised canonical reference object is undefined for accepted materialised programs.",
+    "fix": "Add canonical carrier and aggregate rules to \u00a716: 'All FP values, including parameters, returns and constants, are represented by their \u00a713.1 bit carriers. FP/integer bitcasts become moves; fneg/fabs/copysign use the format's specified bit operations; loads, stores, selects and phis use carriers. Aggregate returns use a specified packed carrier when \u2264128 bits and the existing return-buffer convention otherwise.' State field order, padding and row counts. For example, fneg of binary64 +1.0 must map to bits 0xbff0000000000000 without FP arithmetic."
+   },
+   {
+    "id": "D02-16",
+    "section": "\u00a712.2 N4; \u00a714.4\u2013\u00a714.7",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The unwind transforms make __cxa_throw and related nonlocal-transfer functions set a flag and return, but N4 does not remove noreturn. A clang 18 emission probe produces a noreturn call to __cxa_throw. Retaining that attribute makes the newly inserted continuation undefined in LLVM, allowing native optimisation to remove the very propagation checks on which the device semantics relies. [LLVM noreturn contract](https://releases.llvm.org/18.1.7/docs/LangRef.html)",
+    "fix": "State in N28\u2013N30: 'Every transformed nonlocal-transfer function and call that now returns normally loses noreturn and incompatible tail-call constraints. Returning runtime replacements use dedicated Bennett symbols so builtin nonreturning assumptions cannot be reintroduced.' Extend the residual validator accordingly. A caught throw returning 7 must return 7 in both materialised native and device execution."
+   },
+   {
+    "id": "D02-17",
+    "section": "\u00a712.8 GC intrinsic row",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The rule 'gc.get.pointer.base(p) \u2192 p; gc.get.pointer.offset(p) \u2192 0' is false for derived pointers. A nonmoving collector preserves addresses; it does not make every interior pointer its allocation base. For p=b+8 derived from a known GC base b, these queries distinguish b and offset 8 from p and offset 0. [LLVM statepoint/base-pointer semantics](https://llvm.org/docs/Statepoints.html)",
+    "fix": "State: 'Resolve GC base and offset queries using LLVM's versioned base-pointer analysis before erasing statepoints. A nonmoving relocation returns the derived pointer unchanged, but base and offset queries retain their actual meanings.' Alternatively carry explicit base provenance through the normaliser; I prefer the existing LLVM lowering. The witness must return base b and offset 8."
+   },
+   {
+    "id": "D02-18",
+    "section": "\u00a78.7 verification and T-BUDGET",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The text takes B_min over a sample and then concludes that the pair is valid for exactly B\u2265B_min. A sample can miss a rare long-running input, even for an otherwise correct identity bijection. Using the sampled maximum then makes qinplace fault on that input, violating its total fault-free contract. A simulator's T-CLEAN check is not a universal budget guarantee, especially on hardware.",
+    "fix": "Replace the conclusion with: 'For exhaustive verification over the full declared domain, the componentwise maximum is B_min. For sampling, record B_sample as an observed lower bound only. In-place validity additionally assumes mutually inverse total functions and a sound budget bound covering every input and parameter value.' The default may use a library or producer-supplied bound with an explicit correctness obligation; no mechanised proof format is required. A missed long-path input must remain covered by the declared bound, rather than being admitted because the sample was fast."
+   },
+   {
+    "id": "D02-19",
+    "section": "\u00a78.7; \u00a725.1 BLK-3",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The absence of parameter lists on qinplace is treated as absence of a realisation. ISA 0.8 already permits parameterised oracle_call and a swap action at the CC boundary\u2014the same boundary \u00a78.6 uses for another expanded construction. Consequently parameterised user pairs need not be blocked merely because the convenience macro lacks operands.",
+    "fix": "Replace this blocker case with: 'Allocate clean t and f; call g with x plus the preserved IN/MEM_IN/ARG bindings into t,f; swap x and t; call ginv with the new x and the same preserved bindings into t,f; free the clean temporaries. Under control, control every region call.' Retain the universal inverse and budget obligations. Move the parameterised qinplace opcode to efficiency items. The inplace-param-quantum example should accept: x becomes x+y modulo 256, y is preserved, and scratch is clean, including for superposed y."
+   },
+   {
+    "id": "D02-20",
+    "section": "\u00a712.2 N34; \u00a717.6 R budget",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "R budget charges occur only at function entries and loop latches, counting instructions since the previous mark. There is no rule charging the final straight-line suffix before its effects execute or its return completes. A function that writes to the console and returns can therefore exceed its budget without reaching another mark. Charging a whole prefix afterwards also permits effects beyond the allowed step.",
+    "fix": "State: 'Before each counted materialised instruction, check that one step remains; otherwise raise code 1 before executing it. Batching is allowed only when it produces the same fault boundary and effect-tape prefix as these per-instruction checks.' Keep phi/debug/mark exclusions explicit. With steps=0, an R console-write function must fault before appending any console bytes."
+   },
+   {
+    "id": "D02-21",
+    "section": "\u00a711.5; \u00a717.5\u2013\u00a717.6; \u00a725.2 ISA-7",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "\u00a717.5 promises that __bennett_nz_fault(C) reports C, including R budget codes 1/2/3. \u00a711.5 lowers every such R call to trap and leaves its code to the ISA. These rules cannot preserve C and explicitly allow different reported results. This is a semantic launch/fault dependency, not a wording item.",
+    "fix": "Either provide a complete ISA-0.8 encoding that preserves C, or promote ISA-7 to an explicit dependency blocker. I would use the latter: 'Required ISA operation: R fault C terminates the run with fault record code C, performs no subsequent source effect, and preserves the reversible prefix history. Until available, affected points are blocked:BD-B-ISA7 and are not claimed to implement ordinary typed R faults.' __bennett_nz_fault(2) must ultimately expose code 2, not a generic trap code."
+   },
+   {
+    "id": "D02-22",
+    "section": "\u00a720.1; \u00a720.4\u2013\u00a720.6 platform profile",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "The profile places RAM at physical 0x80000000 but instruments only the user compartment with the soft-MMU. Linux's supervisor code also accesses high virtual kernel mappings after enabling Sv39. Ordinary kernel loads through those addresses therefore miss the physical RAM allocation and fault, preventing the promised Linux rung. [Linux RISC-V virtual-memory layout](https://docs.kernel.org/arch/riscv/vm-layout.html)",
+    "fix": "State: 'The platform translates all guest accesses made in address-translation-enabled privilege contexts, including supervisor kernel accesses, through the modelled satp and Sv39 permissions. Runtime model accesses use physical backing storage directly. The layout records virtual code addresses and their physical backing; indirect dispatch and trap resumption preserve that mapping.' A physical RAM location P and a valid kernel virtual alias V must access the same byte, without code 7; reversal must restore that shared backing byte."
+   }
+  ],
+  "muse": [
+   {
+    "fix": "In \u00a710 TDL-2/TDL-5 and \u00a718.2 state: 'Applying xmask X+o m when K(X)=Cl updates the shadow bytes at X+o by XOR m and leaves the arena cells at |0>; when K(X)=M it XORs m into both shadow and arena; when K(X)=Co it XORs m into the arena only. Applying any arena-writing event with a non-empty control set or a Co value to a Cl or M object first moves the object to M if it is Cl, then makes it Co. An unconditional Cl-valued xmask, xstore or perm therefore never changes K.' Apply the same three-way rule, spelled out per form, to xstore, perm and xchg in \u00a718.2, and add a checked example: @cnt=3 Cl, adj(@bump-to-5), then a classical load returns 5, then ctrl(q, @add3) with q=|1> and observe(@cnt) returns 8.",
+    "id": "B1",
+    "problem": "\u00a718.2: 'Applying an event that writes object X: when K(X) = Cl and S \u2260 \u2205 or the written value is Co, X is first materialised; after an application with S \u2260 \u2205 or a Co value, K(X) = Co.' \u00a710 TDL-5(a): a Cl-valued store becomes 'xmask X+o, c \u2295 v'. Witness: @cnt is Cl with shadow c=3 and arena cells |0> (TDL-2's own invariant); an unconditional adj() of a body storing 5 records xmask @cnt, 3\u22955=6 with S=\u2205. By \u00a718.2 no materialisation happens and K stays Cl, so either the xmask is applied to the arena (arena now holds 6, violating 'Cl: arena cells are |0>', and a later materialisation XORs the shadow 5 into 6 giving back 3), or it is applied to the shadow (arena stays |0>, correct), or the object is materialised then dematerialised \u2014 three readings, two different results on a later ctrl() store. MC2 also says an unconditional adj adds nothing to may-Co, which is consistent only with the shadow reading that \u00a718.2 never states.",
+    "scope": "core",
+    "section": "\u00a710 TDL-2, TDL-5(a); \u00a718.2",
+    "severity": "S0"
+   },
+   {
+    "fix": "Add to \u00a78.2: 'A parameter or result of floating-point type is bound as its carrier integer of \u00a713.1 (half/bfloat i16, float i32, double i64, x86_fp80 i80, fp128/ppc_fp128 i128): IN and ARG apply to the carrier bits. A parameter or result of aggregate or vector type is flattened depth-first in field/lane order; it occupies one Bind per scalar field, the payload bits are the fields concatenated with field 0 in the lowest bits and no padding, and the width in \u00a78.2 is the sum of the carrier widths. The descriptor nparam counts flattened fields, after N21/N22.' Add to \u00a716.2/\u00a716.4 the packing rows: wrapper builds r by lift.zext of each returned field location to the total width, lift.shl by its cumulative offset, lift.or in field order; a call result is unpacked by lift.lshr/lift.trunc into the field locations; a bitcast between a floating-point type and its carrier is lift.mov. Add one executed example: region `define {i8,i32} @p(double %x)` returning {1,-1} on a stated input has payload 0xffffffff01, with hash= and run= lines. The alternative, restricting oracle candidates to integer/pointer signatures in \u00a77.1, narrows NS \u00a74.2 and rung 8 and should not be taken.",
+    "id": "B2",
+    "problem": "\u00a77.1: oracle candidates have 'any function type'; \u00a78.2: return type R is 'a first-class type of at most 128 bits'. But every Bind kind in the \u00a78.2 table requires a parameter of iW or ptr, so a region function with a double parameter (rung 8's plain-C Monte Carlo signature, NS \u00a73.2 soft-float contract) traps T-IFACE for every descriptor. For a return of {i8, i32} the payload bits are undefined: concatenated fields (40 bits, payload of {1,-1} = 0xffffffff01), datalayout layout with padding (64 bits, payload 0xffffffff00000001) and high-field-first packing are all readings of the text, and \u00a716.2 gives the lproc a single result r:reg[R] with no packing rows and \u00a716.4 no row for extracting fields of a lift.call result or for a float-to-carrier bitcast (the rows N32 introduces). A vector parameter is likewise one IR parameter for \u00a78.1's nparam count but L scalar parameters after N21. Two plugins compute different payloads, or one traps where another accepts.",
+    "scope": "core",
+    "section": "\u00a77.1, \u00a78.2, \u00a716.2, \u00a716.4",
+    "severity": "S0"
+   },
+   {
+    "fix": "In \u00a717.3 replace ss_init's contract with: '__bennett_rt_ss_init(size) is idempotent: if the shadow-stack state globals are already set (in an oracle, by the entry-state replay) it allocates nothing and keeps base, size and stack pointer; otherwise it allocates one block of size bytes by __bennett_nz_alloc.' In \u00a78.5 add: 'When the L closure contains a shadow-stack use, the snapshot always includes the shadow-stack state globals in G and the shadow-stack block among the heap allocations replayed, with its current stack pointer; after replay, heap_used and atop inside the oracle equal the caller's values at the call.' Add a run= example in \u00a716.9 or \u00a78.5 in which an oracle with non-empty R mallocs 16 bytes and returns ptrtoint of the result, with the native= line equal to the payload.",
+    "id": "B3",
+    "problem": "\u00a716.2 step 1 puts the entry-state replay first, then a call to __bennett_rt_ss_init; \u00a717.3 defines ss_init as 'allocates the shadow stack, a heap block of size bytes, by __bennett_nz_alloc'. The snapshot of \u00a78.5 replays the caller's heap allocations, which include the caller's own shadow-stack block (it was obtained by __bennett_nz_alloc), so the literal reading of the wrapper allocates a second block: every malloc address inside the region shifts by max(sstack,1) relative to native execution on the caller's stack, and heap_used and the FAULT_BUDGET_HEAP boundary move with it. The reverse reading \u2014 ss_init adopts the replayed state and allocates nothing \u2014 is what \u00a78.5's reference semantics ('a private copy of the caller's whole classical memory') needs, but no sentence states it, and \u00a78.5 does not say whether the snapshot includes the stack pointer and state globals. An oracle returning ptrtoint(malloc(16)) therefore has two different defined payloads. NS \u00a73.2 makes addresses deterministic precisely so this value is native-equal.",
+    "scope": "core",
+    "section": "\u00a78.5, \u00a716.2 step 1, \u00a717.3",
+    "severity": "S0"
+   },
+   {
+    "fix": "Pick one rule and state it identically in \u00a77.2 and \u00a722.1. Recommended (keeps the wider capability, consistent with dispatch-to-trap-body elsewhere): replace the \u00a722.1 parenthetical for BD-E-REGION-MEASURE with '(the unique candidate)' and add an example region-two-measure-candidates verdict=accept with two measuring candidates entered as trap bodies. The viable alternative is to amend \u00a77.2 to 'rejected when it is the unique candidate, or when every candidate is ill-formed for the same one of these reasons' and apply it to all three codes, changing the \u00a722.1 BD-E-REGION-TYPE parenthetical to match; then region-two-measure-candidates is reject:BD-E-REGION-MEASURE. Either text is acceptable; silence between them is not.",
+    "id": "B4",
+    "problem": "\u00a77.2: an ill-formed candidate 'is rejected (BD-E-REGION-TYPE, BD-E-REGION-MEASURE, BD-E-REVERSIBLE-MEASURE) only when it is the unique candidate'. \u00a722.1: BD-E-REGION-MEASURE applies at '\u00a77.5(a) (the unique candidate, or the closure of every candidate)'. Witness: a module whose ctrl operand has exactly two candidates, both containing a measure call (no defer flag). One conformant plugin reading \u00a77.2 accepts it with both bodies as T-REGION-INVALID trap bodies; another reading \u00a722.1 rejects it at compile time. The verdicts differ, so the text contradicts itself on a compile-time observable.",
+    "scope": "core",
+    "section": "\u00a77.2, \u00a77.5(a), \u00a722.1",
+    "severity": "S0"
+   }
+  ]
+ },
+ "means": {
+  "C1": 3.0,
+  "C2": 3.0,
+  "C3": 2.67,
+  "C4": 4.0,
+  "C5": 3.33,
+  "C6": 3.33,
+  "C7": 3.33,
+  "C8": 3.0
+ },
+ "members": [
+  "fable",
+  "codex",
+  "muse"
+ ]
+}

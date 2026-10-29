@@ -83,7 +83,8 @@ supersedes them where they conflict.
   at `bennett-isa-spec` e8629de (all 30 resolved/declined/staged; 152 tests + 5 sweeps green). **Round 2 not run**: instructions in
   `../bennett-isa-spec/HANDOFF.md`. The codex interpreter job is stopped for good.
 - **Dialect 0.2**: full text written (`../bennett-dialect-spec`, ac32fa7, 7,341 lines). Council run `docs/council/dialect-2026-10-29`
-  round 1 started 10:50 UTC (`task-spec.md`, `rubric-isa.md`); if `round-1/report.md` is missing, `run` (resumes) then `aggregate`.
+  round 1 DONE (`task-spec.md`, `rubric-isa.md`): no consensus, all three revise, 32 blockers (fable 6, astra 22, muse 4), mean 3.21;
+  `round-1/report.md`. Next: an Opus editor fixes them with a response file (`round-1/response.md`), then round 2.
   The 0.2 pre-flight checker (codex job dialect-check-0.2) is checkpointed and resumable (that repo's HANDOFF).
 - **ISA 0.9**: evidence note done (no rung blocked at fixed widths); **draft 0.9 written alongside 0.8** (`../bennett-isa-spec/spec/
   Bennett-ISA-Spec-0.9-draft.md`, 9861107); maintainer accepted all open questions Q1-Q14; the Q14 edit (lproc token/classical

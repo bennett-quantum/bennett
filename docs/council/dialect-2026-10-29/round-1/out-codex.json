@@ -1,0 +1,242 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 2,
+   "evidence": "The inherited ISA machine is precise, but TDL's object-wide coherence state conflicts with partial observation, and generation does not define consistent views for mutually exclusive branches.",
+   "change": "In \u00a710 TDL-2/TDL-11, state: 'Coherence and shadow validity are tracked per byte interval; observing an interval changes only that interval to Cl.' Specify interval splitting and merging. Observing a byte with outcome 1 must make subsequent reads return 1."
+  },
+  {
+   "id": "C2",
+   "score": 2,
+   "evidence": "The normalisation inventory is extensive, but packed vectors, partial integer limbs, floating-point predicate numbers and GC pointer queries contain incorrect rules. \u00a716 also lacks mappings for permitted residual floating-point operations.",
+   "change": "Complete \u00a716's canonical representation rule: 'Every residual floating-point value uses its \u00a713.1 integer carrier, including constants, parameters, results, memory operations and bit-preserving operations.' Add explicit rows and their budget charges, as detailed in D02-15."
+  },
+  {
+   "id": "C3",
+   "score": 2,
+   "evidence": "The ordinary oracle examples inherit sound ISA prefix reversal. TDL nevertheless permits hidden history to survive and be measured, erases some deferred measurements, and incorrectly assumes zero payload makes every consuming event harmless.",
+   "change": "Replace TDL-7's implicit history outputs with: 'Non-fault workspace must be cleaned before the action returns; persistent history requires an explicit caller-owned interface and the adjoint must consume the same history.' Apply the complete-operation bijection obligation to predicated updates."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Resources and target capabilities are appropriately delegated to ISA 0.8; padding and expensive constructions are generally disclosed. The new snapshot and retained-history mechanisms need clearer accounting examples.",
+   "change": "Add to \u00a710/\u00a721: 'Arena, snapshot, payload, fault, condition and retained-history wires contribute occupancy from allocation through release, using their actual allocation class.' Include a worked accounting example showing the additional w+4 temporary wires for one \u00a78.6 copy-out pair."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "Versioned marker, descriptor and driver contracts are substantial. However, R fault codes are promised without a preserving lowering, and some claimed ISA limitations have existing constructions.",
+   "change": "Resolve \u00a711.5/\u00a725.2's typed R fault contract: state an exact preserving construction or explicitly classify the missing R 'fault C' instruction as a semantic dependency, with the required observable launch status."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The progress report records six executed ISA objects and clearly identifies unexecuted families. Those limitations are not blockers here. The sampled B_min claim is nevertheless mathematically false, and several normative transformations fail small counterexamples.",
+   "change": "In \u00a78.7, state: 'A maximum over sampled executions is a lower bound on the required universal budget, not a sufficient budget certificate. The universal claim requires total inverse functions and a budget sufficient on every declared input and parameter value.'"
+  },
+  {
+   "id": "C7",
+   "score": 2,
+   "evidence": "The draft restores much of the rejected scope, including recursion, runtimes and platform mechanisms. Blanket action-effect faults, unbounded generation and the incomplete kernel address model still prevent promised controlled-program and demo-ladder behavior.",
+   "change": "Replace TDL-12's blanket fault with: 'Action regions may bind or inherit closed virtual device state; modelled operations execute reversibly under the active predicate. Only genuinely unmodelled or explicitly unbound effects produce code 8.' Supply a default binding mechanism."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "Independent implementations can start on markers and the demonstrated oracle mapping. They cannot independently finish TDL or the full materialised-language mapping without resolving conflicting operational rules.",
+   "change": "Replace \u00a718.4's prose-only generation procedure with a deterministic transition table covering branch-local views, bounded generation, event application and cleanup. State: 'Generation order, budget charges and view transitions are normative and independent of plugin optimisation.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "D02-01",
+   "section": "\u00a78.6; \u00a716.2 delivery",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a78.6 asserts that all wide-output variants compute the same fault code, but \u00a716.2 gives them different delivery rows. For a 20-byte OUT buffer filled with 0x11, W0 needs boundscheck/load/retval after the common prefix; W1 additionally computes a nonzero address offset. With B equal to the common-prefix length plus three, W0 succeeds while W1 exhausts its budget. The construction returns sixteen 0x11 bytes, four zero bytes and fault code 0: a successful partial result.",
+   "fix": "In \u00a78.6 and \u00a716.2 state: 'Every W_j executes an identical ordered computation and validation of every payload slice, with identical budget charges and fault conditions; only the final lift.retval selects an already-computed projection.' I would use this common delivery sequence. An alternative is a separate common outcome computation that gates every copy-out, but its budget and cleanup must also be specified. In the witness, insufficient budget must leave all twenty target bytes unchanged and XOR code 1; sufficient budget delivers twenty 0x11 bytes."
+  },
+  {
+   "id": "D02-02",
+   "section": "\u00a710 TDL-2 and TDL-11",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "K is defined per object, while observe may cover only part of an object. TDL-11 writes the measured bytes to the shadow and clears their arena cells, but sets K=Cl only when all object bytes are observed. For a two-byte Co object, observing its first byte with outcome 1 leaves K=Co and that arena byte zero. A subsequent slice reads zero from the supposedly authoritative arena instead of 1.",
+   "fix": "State in TDL-2/TDL-11: 'K and shadow validity are maintained per byte interval. observe changes each observed interval to Cl after copying its outcome to the shadow and clearing its arena cells; unobserved intervals retain their previous state. Loads select the authoritative representation interval by interval.' Alternatively retain observed values in the arena and track separate classical-valid intervals; I prefer the first construction. The witness's subsequent read must return 1."
+  },
+  {
+   "id": "D02-03",
+   "section": "\u00a710 TDL-2 view, TDL-3 branch conversion and TDL-5",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "TDL-3 executes both arms of a Co branch during generation, while TDL-2 makes a byte's view Co once the recorder contains a predicated write. Starting with Cl x=0, 'if (w) x=5; else x=7' therefore makes the second generated arm see the first arm's write, although the arms are mutually exclusive. It can encounter TDL-5(d), or use the wrong old value when constructing its mask. No branch-local view rule resolves this.",
+   "fix": "Add to TDL-3: 'Each arm is generated from a separate copy of the pre-branch view. Within an arm, its own classical updates are interpreted conditional on that arm being taken. Events retain their branch predicates; views merge only at the join.' For the witness, emit masks 0 xor 5 under w and 0 xor 7 under not-w. The resulting byte is 5 when w=1 and 7 when w=0, with no overwrite rejection."
+  },
+  {
+   "id": "D02-04",
+   "section": "\u00a710 TDL-5(c), TDL-8 and TDL-10",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "TDL-8 says a faulting slice's zero payload means its consumers leave the arena unchanged. This is false for exchange and negative predicates. In TDL-5(c), a fault produces t=0 and xchg overwrites a nonzero cell with zero. A failed condition slice similarly produces condition 0, enabling the else arm. Faults can therefore cause writes or gates that the stated fault semantics forbids.",
+   "fix": "State: 'Every event consuming a fallible slice result is additionally controlled on that slice's code being zero; with multiple required results, all corresponding codes must be zero. Failure selects neither arm of a dependent branch. Cleanup retains the success predicates until their last use.' With an initial cell value 5 and a budget-zero value slice, the exchange must not occur, the cell remains 5 and the retained fault is 1."
+  },
+  {
+   "id": "D02-05",
+   "section": "\u00a710 TDL-5(b), TDL-7; \u00a718.4; Appendix A11",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "TDL-7 turns uncleared condition/data registers into implicit outputs and measures them at the run epilogue. This can replace a promised action by a channel, and adj(f) allocates new history rather than receiving the forward invocation's history. For example, on a Co byte restricted to 0 and 1, 'if (x != 0) x ^= 1' passes the local library-bijection store rule, maps both visible values to zero and retains the distinguishing condition. Measuring that condition destroys coherence. This also conflicts with the ratified E3 decision against implicit history semantics.",
+   "fix": "State: 'The complete predicated update, including its condition, must be a total bijection on the declared mutable interface. Non-fault workspace must be cleaned before return; compiler-retained garbage is not implicitly measured.' The witness must use an out-of-place oracle or compute/use/uncompute, or fail the existing coherent-overwrite rule. A second viable design is explicit caller-owned history passed to both forward and adjoint invocations, but that requires the opt-in interface and north-star amendment described by E3; I would retain E3's current clean-workspace default."
+  },
+  {
+   "id": "D02-06",
+   "section": "\u00a77.5(a) deferred measurement",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The rule replaces measurement with qcopy and then quncopy whenever its window remains open. That erases a measurement instead of deferring its channel. Prepare q in |+>, invoke a deferred-measurement region whose measurement result is unused, then apply H and measure q. The draft gives 0 with certainty; preserving the original measurement gives 0 and 1 with probability 1/2.",
+   "fix": "Replace the cleanup sentence with: 'A deferred measurement retains its coherent outcome record until a permitted measurement boundary, where that record is measured; it may be removed earlier only when the complete resulting instrument is unchanged. An open uncomputation window alone does not justify removal.' The witness must produce probabilities 1/2 and 1/2. Treat these intentional measurement records separately from incidental workspace governed by TDL-7."
+  },
+  {
+   "id": "D02-07",
+   "section": "\u00a710 TDL-12; \u00a711.1; Appendix A10",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Every effect in an action is assigned fault 8 because actions have no device descriptor. The north star promises closed virtualised device state under coherent control, and the ratified outline provided that mechanism. A controlled console operation that has a reversible console model is not intrinsically unvirtualisable. The missing binding facility is a dialect omission, not an ISA limitation.",
+   "fix": "Add an action device-binding mechanism, preferably inherited per-run bindings, and state: 'Bound console, clock, entropy and block operations become controlled reversible transitions of declared virtual device state; their external effects remain deferred until observation. Code 8 applies only to unmodelled or unbound operations.' Update tdl-effect with a bound virtual console: the control-1 branch appends bytes 0x21,0x0a, the control-0 branch preserves the buffer, and the fault rate is zero. An explicit action descriptor is an alternative; I prefer inheritance to preserve existing marker signatures."
+  },
+  {
+   "id": "D02-08",
+   "section": "\u00a79.3; \u00a710 TDL-3/TDL-9; \u00a718.4",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Only Co slices and Co-trip-count loops receive bounds. G executes ordinary classical code during gen without a budget rule. A materialised action body containing an infinite classical loop and no Co values never finishes generation, even under a finite region budget and even when its external control is zero. This fails the promised bounded coherent execution mechanism.",
+   "fix": "Add a bounded G execution rule: 'Generation receives its own full region budget. It charges one step before each materialised LLVM instruction other than phi/debug/mark instructions, and enforces heap and depth limits before mutation. Exhaustion stops generation and emits the corresponding fault-oracle event under the invocation/path controls; no further source instruction executes.' Preserve the separate full budget for each slice. A marker-free infinite loop must produce a finite event list and a controlled code-1 outcome, not hang compilation or execution."
+  },
+  {
+   "id": "D02-09",
+   "section": "\u00a78.5 entry-state transfer; \u00a75; \u00a717.3",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a78.5 promises a private copy of the caller's whole memory, but its snapshot contains mutable globals and heap bytes only when R contains a heap object. \u00a75 classifies allocas separately, and that analysis precedes N24. A CC caller that stores 7 in an alloca and passes its address as an ARG to an oracle load can therefore transfer neither the alloca bytes nor their shadow-stack backing bytes; replay supplies zero rather than 7.",
+   "fix": "State in \u00a78.5: 'After normalisation, translate every source read-set object to its runtime backing allocation. If an oracle may read any caller alloca or shadow-stack frame, snapshot the corresponding live backing storage and allocation metadata, including its current bytes and addresses.' A sound default is to copy all live caller heap and shadow-stack backing allocations when such reachability is uncertain. The example must return payload 7 and preserve the caller's byte."
+  },
+  {
+   "id": "D02-10",
+   "section": "\u00a78.5 release; \u00a710 TDL-11 observe",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The snapshot is released by measure of a potentially enormous concatenated qreg; observe likewise measures a fresh register of 8\u00b7len wires. ISA \u00a73.3 permits measure only for qreg[n] with n\u2264128, and a qreg.slice view cannot be measured. These are illegal default constructions for ordinary snapshots and observations longer than sixteen bytes.",
+   "fix": "For \u00a78.5 state: 'Retain the classical snapshot bytes for the register's lifetime. Release it by slicing at most 128 bits at a time, invoking the same xor128 preparation oracle with those original bytes, then qreg.free the now-clean whole register.' For TDL-11 state: 'Copy and measure successive chunks of at most sixteen bytes into fresh non-view registers; update the corresponding coherence intervals after each chunk.' Sequential computational-basis chunk measurements must preserve the joint outcome distribution."
+  },
+  {
+   "id": "D02-11",
+   "section": "\u00a75.2 PT2 and PT6",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Two rules under-approximate reachable callees. PT6 seeds initialiser atoms only for constant globals, so an ordinary mutable '@cb = global ptr @f' can load an empty candidate set. PT2 bounds a nonconstant GEP index by the syntactic array dimension, but LLVM permits indexing beyond that dimension within the actual allocation. A [2 x ptr] allocation accessed through 'getelementptr [1 x ptr], ..., 0, i' at i=1 can legally select its second function, which PT2 omits. LLVM explicitly documents this distinction. [LLVM GEP rules](https://llvm.org/docs/GetElementPtr.html)",
+   "fix": "State: 'Seed initial contents of every global, mutable or constant, before the points-to fixpoint; stores union additional contents. GEP array dimensions determine stride, not an index bound. Restrict offsets only using a sound index-value bound; otherwise cover the underlying object's possible offsets.' The mutable @cb case must include f. The two-entry table must include its second function for i=1, without taking the unmatched-call fault."
+  },
+  {
+   "id": "D02-12",
+   "section": "\u00a712.6 vector scalarisation",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The load/store rule uses 'getelementptr T, p, k' for every lane. Sub-byte vector lanes are packed, whereas scalar i1 memory accesses occupy bytes. Loading <8 x i1> from one byte 0x80 and extracting lane 7 must return 1; the draft instead accesses byte p+7, potentially faulting. An LLVM 18 constant-folding probe confirms the expected result. [LLVM vector layout](https://www.llvm.org/docs/LangRef.html)",
+   "fix": "Add: 'Vector memory scalarisation preserves the vector's packed bit layout. For <L x iM> with sub-byte lanes, load the packed byte range, extract lane k from bits [kM,(k+1)M), and pack stores into the same range; do not use scalar allocation stride.' The <8 x i1> witness reads exactly one byte and returns 1 with no memory fault."
+  },
+  {
+   "id": "D02-13",
+   "section": "\u00a712.7 wide integers",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The top limb is declared i(N\u221264(L\u22121)), but addition always extends carry to i64 and sext always uses 'ashr a_top, 63'. For i129, the top limb is i1: the addition is ill-typed, and the sign extraction is an out-of-range shift rather than a sign fill. Valid wide-integer programs are rejected or compute incorrect extensions.",
+   "fix": "State: 'Let w_k=min(64,N\u221264k). Every limb operation and incoming carry uses width w_k, with an identity conversion when widths already agree. Sign extension extracts the sign at bit w_top\u22121, sign-extends the old partial top limb when widening it, and fills new limbs with that sign.' Add expected vectors: sext i129 \u22121 to i256 is four all-one i64 limbs; i129 (2^128\u22121)+1 has limbs [0,0,1]."
+  },
+  {
+   "id": "D02-14",
+   "section": "\u00a713.1 fcmp predicate encoding",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The table calls its numbers 'the LLVM predicate number' but assigns ueq=8 through uno=14. LLVM's enum, checked in the installed LLVM 18 and 23 headers, is uno=8, ueq=9, ugt=10, uge=11, ult=12, ule=13, une=14. A plugin following the printed table and an arithmetic library following LLVM disagree on seven predicates.",
+   "fix": "Replace the unordered portion with: 'uno 8, ueq 9, ugt 10, uge 11, ult 12, ule 13, une 14.' Keep false..ord and true unchanged. Alternatively explicitly define a private dialect enum and require both sides to use it; I would use LLVM's existing enum. Add ueq(1,1)=1 and uno(1,2)=0 as ABI vectors."
+  },
+  {
+   "id": "D02-15",
+   "section": "\u00a712.4 V9/V10; \u00a713.1; \u00a716.1\u2013\u00a716.4",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a716.1 claims materialisation leaves only integer SSA values, but \u00a713.1 and V9/V10 deliberately retain floating-point types, fneg, fabs, copysign and FP memory operations. The normalise-out examples retain FP parameters and bitcasts. \u00a716.4 has no corresponding rows and explicitly limits bitcast/load forms. Small aggregate returns also remain despite the single-result lproc convention. Thus the promised canonical reference object is undefined for accepted materialised programs.",
+   "fix": "Add canonical carrier and aggregate rules to \u00a716: 'All FP values, including parameters, returns and constants, are represented by their \u00a713.1 bit carriers. FP/integer bitcasts become moves; fneg/fabs/copysign use the format's specified bit operations; loads, stores, selects and phis use carriers. Aggregate returns use a specified packed carrier when \u2264128 bits and the existing return-buffer convention otherwise.' State field order, padding and row counts. For example, fneg of binary64 +1.0 must map to bits 0xbff0000000000000 without FP arithmetic."
+  },
+  {
+   "id": "D02-16",
+   "section": "\u00a712.2 N4; \u00a714.4\u2013\u00a714.7",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The unwind transforms make __cxa_throw and related nonlocal-transfer functions set a flag and return, but N4 does not remove noreturn. A clang 18 emission probe produces a noreturn call to __cxa_throw. Retaining that attribute makes the newly inserted continuation undefined in LLVM, allowing native optimisation to remove the very propagation checks on which the device semantics relies. [LLVM noreturn contract](https://releases.llvm.org/18.1.7/docs/LangRef.html)",
+   "fix": "State in N28\u2013N30: 'Every transformed nonlocal-transfer function and call that now returns normally loses noreturn and incompatible tail-call constraints. Returning runtime replacements use dedicated Bennett symbols so builtin nonreturning assumptions cannot be reintroduced.' Extend the residual validator accordingly. A caught throw returning 7 must return 7 in both materialised native and device execution."
+  },
+  {
+   "id": "D02-17",
+   "section": "\u00a712.8 GC intrinsic row",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The rule 'gc.get.pointer.base(p) \u2192 p; gc.get.pointer.offset(p) \u2192 0' is false for derived pointers. A nonmoving collector preserves addresses; it does not make every interior pointer its allocation base. For p=b+8 derived from a known GC base b, these queries distinguish b and offset 8 from p and offset 0. [LLVM statepoint/base-pointer semantics](https://llvm.org/docs/Statepoints.html)",
+   "fix": "State: 'Resolve GC base and offset queries using LLVM's versioned base-pointer analysis before erasing statepoints. A nonmoving relocation returns the derived pointer unchanged, but base and offset queries retain their actual meanings.' Alternatively carry explicit base provenance through the normaliser; I prefer the existing LLVM lowering. The witness must return base b and offset 8."
+  },
+  {
+   "id": "D02-18",
+   "section": "\u00a78.7 verification and T-BUDGET",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The text takes B_min over a sample and then concludes that the pair is valid for exactly B\u2265B_min. A sample can miss a rare long-running input, even for an otherwise correct identity bijection. Using the sampled maximum then makes qinplace fault on that input, violating its total fault-free contract. A simulator's T-CLEAN check is not a universal budget guarantee, especially on hardware.",
+   "fix": "Replace the conclusion with: 'For exhaustive verification over the full declared domain, the componentwise maximum is B_min. For sampling, record B_sample as an observed lower bound only. In-place validity additionally assumes mutually inverse total functions and a sound budget bound covering every input and parameter value.' The default may use a library or producer-supplied bound with an explicit correctness obligation; no mechanised proof format is required. A missed long-path input must remain covered by the declared bound, rather than being admitted because the sample was fast."
+  },
+  {
+   "id": "D02-19",
+   "section": "\u00a78.7; \u00a725.1 BLK-3",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The absence of parameter lists on qinplace is treated as absence of a realisation. ISA 0.8 already permits parameterised oracle_call and a swap action at the CC boundary\u2014the same boundary \u00a78.6 uses for another expanded construction. Consequently parameterised user pairs need not be blocked merely because the convenience macro lacks operands.",
+   "fix": "Replace this blocker case with: 'Allocate clean t and f; call g with x plus the preserved IN/MEM_IN/ARG bindings into t,f; swap x and t; call ginv with the new x and the same preserved bindings into t,f; free the clean temporaries. Under control, control every region call.' Retain the universal inverse and budget obligations. Move the parameterised qinplace opcode to efficiency items. The inplace-param-quantum example should accept: x becomes x+y modulo 256, y is preserved, and scratch is clean, including for superposed y."
+  },
+  {
+   "id": "D02-20",
+   "section": "\u00a712.2 N34; \u00a717.6 R budget",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "R budget charges occur only at function entries and loop latches, counting instructions since the previous mark. There is no rule charging the final straight-line suffix before its effects execute or its return completes. A function that writes to the console and returns can therefore exceed its budget without reaching another mark. Charging a whole prefix afterwards also permits effects beyond the allowed step.",
+   "fix": "State: 'Before each counted materialised instruction, check that one step remains; otherwise raise code 1 before executing it. Batching is allowed only when it produces the same fault boundary and effect-tape prefix as these per-instruction checks.' Keep phi/debug/mark exclusions explicit. With steps=0, an R console-write function must fault before appending any console bytes."
+  },
+  {
+   "id": "D02-21",
+   "section": "\u00a711.5; \u00a717.5\u2013\u00a717.6; \u00a725.2 ISA-7",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "\u00a717.5 promises that __bennett_nz_fault(C) reports C, including R budget codes 1/2/3. \u00a711.5 lowers every such R call to trap and leaves its code to the ISA. These rules cannot preserve C and explicitly allow different reported results. This is a semantic launch/fault dependency, not a wording item.",
+   "fix": "Either provide a complete ISA-0.8 encoding that preserves C, or promote ISA-7 to an explicit dependency blocker. I would use the latter: 'Required ISA operation: R fault C terminates the run with fault record code C, performs no subsequent source effect, and preserves the reversible prefix history. Until available, affected points are blocked:BD-B-ISA7 and are not claimed to implement ordinary typed R faults.' __bennett_nz_fault(2) must ultimately expose code 2, not a generic trap code."
+  },
+  {
+   "id": "D02-22",
+   "section": "\u00a720.1; \u00a720.4\u2013\u00a720.6 platform profile",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "The profile places RAM at physical 0x80000000 but instruments only the user compartment with the soft-MMU. Linux's supervisor code also accesses high virtual kernel mappings after enabling Sv39. Ordinary kernel loads through those addresses therefore miss the physical RAM allocation and fault, preventing the promised Linux rung. [Linux RISC-V virtual-memory layout](https://docs.kernel.org/arch/riscv/vm-layout.html)",
+   "fix": "State: 'The platform translates all guest accesses made in address-translation-enabled privilege contexts, including supervisor kernel accesses, through the modelled satp and Sv39 permissions. Runtime model accesses use physical backing storage directly. The layout records virtual code addresses and their physical backing; indirect dispatch and trap resumption preserve that mapping.' A physical RAM location P and a valid kernel virtual alias V must access the same byte, without code 7; reversal must restore that shared backing byte."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a719.9: make output discovery substitutable despite plugin-defined filenames. State: 'The plugin writes bennett.outputs.json containing each output's role, relative path, SHA-256 and full contract version; the driver consumes this manifest rather than guessing filenames.' Keep filename choice behind that manifest.",
+  "\u00a721.3/Appendix B: add text conformance vectors for partial observe, mutually exclusive stores, failed exchange consumers, deferred-measurement interference, wide-output budget boundaries and partial-width limbs, using the expected results in D02-01\u2013D02-18. Label them unexecuted until the required interpreter support exists; missing execution alone need not block this review.",
+  "\u00a713.1 contains another false technical premise: modern x87 does not treat pseudo-denormals as NaNs. Replace the hardware attribution with: 'Treating pseudo-denormals as NaNs is a dialect-specific normalisation; x87 interprets an exponent-zero, integer-bit-one operand using biased exponent one.' For example, 0x00008000000000000000 represents 2^-16382 on x87. Retaining the draft's explicitly chosen normalisation is possible if clearly distinguished from hardware behavior; alternatively adopt x87-compatible arithmetic handling. [Intel SDM \u00a78.2.2](https://cdrdv2-public.intel.com/874240/325462-090-sdm-vol-1-2abcd-3abcd-4.pdf)",
+  "\u00a725.2: record the exact proposed correction for entropy code 10: 'FAULT_ENTROPY_EXHAUSTED applies to R entropy-tape exhaustion and coherent virtual entropy-input exhaustion.' This makes the intended interpretation explicit while the ISA wording is updated."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Correct the analysis, normalisation and canonical mapping rules in D02-11\u2013D02-17, and qualify the in-place budget statement in D02-18. 2. Repair wide-output atomicity, entry-state transfer and large-register cleanup in D02-01/09/10. 3. Resolve TDL state, branch, fault, history, measurement, effect and progress semantics in D02-02\u2013D02-08. 4. Supply the existing parameterised in-place construction, precise R budget/fault behavior and supervisor address translation in D02-19\u2013D02-22. Add the stated counterexamples as normative vectors. Genuine ISA dependencies may remain explicitly blocked with exact required changes; ISA 0.9 implementation, unavailable executor tests and mechanised proofs are not prerequisites for this text review.",
+ "summary": "The draft substantially restores scope and provides useful executed oracle examples. It is not yet sound as a complete dialect contract: wide outputs can silently return partial success, TDL can change channels or read cleared bytes, and several LLVM transformations compute incorrect results. The blockers concern concrete semantics, not missing implementation evidence. This is the first 0.2 round, so no previous-round blocker statuses are asserted.",
+ "verdict_core": "revise"
+}
