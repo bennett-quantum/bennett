@@ -12,3 +12,4 @@ target/
 .beads/proxieddb/
 *.gate.lock*
 .tmp/
+__pycache__/
