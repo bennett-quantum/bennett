@@ -69,3 +69,18 @@ co-observe-write-observe executes via state/native coherence seed on clang 18/23
 final K=Cl, load=9/code 0, arena=0. It also checks pre-observe store traps 4
 and applied writes invalidate coverage. Red absent adapter, then green mutation test.
 No decline, partial, or ISA gap.
+
+## BD3-R3-4 — resolved (theme D)
+
+Sections: §6.5 preamble/rule 2; §7.5(b) inherits it. Hand derivation: P's
+setjmp continuation calls G twice without returning through the first G, so a
+function-local test misses two simultaneous live instances. Augmented N29 edges
+and may-ancestor continuation reachability now force E(s)=∞; E(c) is explicitly
+defined on the same augmented CFG/call recurrence. The recogniser changed from
+accept (observed red test) to blocked:BD-B-ISA4, with the exact ISA 0.9 K1
+run-time-width qreg and width/id/from_id change; R hoisting uses BLK-4/K2.
+Witness handle-setjmp-interproc: parse/recognise/blocker plus state/native clang
+18/23 executes the 64-slot fallback with instances=2, distinct=true, max-live=2,
+live-after=0, trap=0. Removing setjmp keeps the ordinary finite-bound accept case.
+This is a passing named-blocker verdict, not a claim that ISA 0.8 gained dynamic
+lookup. No decline or partial; existing dependency remains external.
