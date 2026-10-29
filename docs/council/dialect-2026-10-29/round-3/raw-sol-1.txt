@@ -1,0 +1,193 @@
+exit 0 in 24s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "§18.1 defines an explicit state and §10 distinguishes shadow, materialised and coherent views. However, §6.5 collapses successive allocation identities into one reusable slot, and §17.3 does not carry frame lifetimes into the §16 memory map (SOL-R3-02/03).",
+      "change": "In §6.5 state: \"A register-file slot and an allocation identity are separate.\" In §17.3 state: \"Shadow-stack backing storage does not itself establish program-access validity.\" Implement the generation and logical-lifetime checks specified in SOL-R3-02/03."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "The marker forms, operand tables, normalisation rules, residual validator and lifting rows are concrete. The revised packed bitcast and VP selector/reduction rules close SOL-R2-03/04. The remaining rounding-mode boundary merits an explicit conversion table.",
+      "change": "In §13.5 add: \"llvm.set.rounding and llvm.get.rounding use LangRef encodings, converted to/from the internal R encoding; round.dynamic loads the internal encoding.\" Give the external-to-internal table 0→3, 1→0, 2→2, 3→1, 4→4 and its inverse."
+    },
+    {
+      "id": "C3",
+      "score": 3,
+      "evidence": "Cancellation, nested recorder inheritance, success gating and fault-wire lifetimes are substantially improved. But TDL-7/10 now retain successful loop-control records until program end, changing an identity action into a dephasing channel (SOL-R3-01). This is an observable violation, not a missing proof.",
+      "change": "Replace the program-end lifetime for ordinary successful loop controls in TDL-7/10 with: \"Loop conditions, flags and trajectory records are workspace, cleaned within their validity windows before a successful action returns; they are not implicit measurement outputs.\" Apply SOL-R3-01 to forward, standalone-adjoint and compute paths."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "§1.3 delegates target descriptions, resource accounting and scheduling to ISA 0.8; §9 fixes dialect charge units; §24 supplies overrideable budget defaults and §25 distinguishes capability dependencies from efficiency items. No additional dialect-owned resource/target decision is needed to build.",
+      "change": "No normative change required for this criterion. Add to suite DT in §21.3: \"For a successful Co-loop identity witness, control-record occupancy ends at action return and no program-end measurement of loop workspace occurs.\" This makes the resource consequence of SOL-R3-01 independently checkable."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "The marker/header ABI, descriptor layout, verdict precedence, driver invocation, version identity, build record and ISA-owned contract boundaries are decided. BLK-5 consistently classifies R entries while preserving successful paths. No additional contract-scoped blocker was found.",
+      "change": "No blocking contract change required. In §19.9 add: \"The build record identifies the lifetime-validation and handle-generation runtime bitcode through the existing runtimes content hash.\" This makes the corrected implementations auditable without introducing a new format."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "§18 gives operational semantics and observable conformance, and §21 derives broad suites. The 2401/2401 receipt is correctly qualified as example coverage, not source-to-object equivalence. The loop microvector tests compute cleanup and a basis-state standalone inverse, but misses forward-loop interference; stack vectors check adoption, not post-pop validity.",
+      "change": "Add three checked examples to §18.8 and suites DB/DM/DT: the successful identity-loop interference test of SOL-R3-01, the stale shadow-frame load of SOL-R3-02, and the saved-handle reallocation test of SOL-R3-03, with the exact expected probabilities/codes given in those fixes."
+    },
+    {
+      "id": "C7",
+      "score": 3,
+      "evidence": "The full ladder, LLVM carrier model, runtime mechanisms and explicit ISA dependencies preserve the intended breadth. The new control-output exemption contradicts NS §4.2, which requires control workspace restored at region exit and forbids cleaning it after an interfering operation. Calling these records declared outputs does not preserve the promised unitary on the source interface.",
+      "change": "In TDL-7/10 and Appendix A A11 restore: \"Compiler-generated successful control-flow records are workspace, not an additional observation channel; intentional source measurement and actual fault outputs retain their separately specified semantics.\" Preserve general Co-loop support with the cleanup obligation in SOL-R3-01."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The reference map, ordered analysis, defaults, diagnostics and independent execution requirements let implementers start. Three specific identity/lifetime contradictions still need correction; none requires a proof format, mechanisation or a new numerical procedure.",
+      "change": "After resolving SOL-R3-01/02/03, add a table to §18.1 mapping allocation identity to §6.5 generation tags, logical stack liveness to §17.3 frame metadata, ordinary loop-control lifetime to TDL-7/10, and fault/channel output lifetime to TDL-8/§7.5(a). State: \"Physical storage ownership does not replace any of these semantic lifetimes.\""
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R3-01",
+      "section": "§10 TDL-7 and TDL-10; §18.2; Appendix A A11",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The BD3-2 replacement makes loop flags and per-iteration conditions \"declared control outputs with TDL-8 lifetime: leak-exempt, unmeasured until program end\". This drops the previously correct obligation to clean control workspace before action return. Consider a successful, sufficiently budgeted action B: for (i=0; i<n; ++i) X(z), with n supported only on 0 and 2 and z initially 0. Its net source action is identity on this domain. The two nontrivial continuation flags are 00 on n=0 and 11 on n=2. Retention produces (|n=0,z=0,00>+|n=2,z=0,11>)/sqrt(2), rather than (|0,0>+|2,0>)/sqrt(2) tensor clean workspace. This is observable without direct access to arena wires: prepare arena n=2 under a |+> source control c, run B under a separate basis-one control, undo the preparation of n, then H(c) and measure c. Retained flags give P(c=1)=1/2; the promised unitary gives 0. There is no fault or source measurement in B. An independent checked ISA-0.8 run-action probe of the reduced sequence H(n[1]); CX(n[1],c0); CX(n[1],c1); CX(c0,z); CX(c1,z); H(n[1]) returns four amplitudes of magnitude 1/2, hence P(n[1]=1)=1/2. Uncomputing c1,c0 before the final H returns only basis tuple 00000 with amplitude 1. The new compute witness does clean its flags, but does not test successful forward return. NS §4.2 and ISA §§5.3/6.2 require control workspace restored; an implicit program-end measurement channel narrows that contract.",
+      "fix": "In TDL-7/10 and §18.2 state: \"Conditions, continuation flags and preserved trajectory records of a successful Co loop are control workspace. They MUST be uncomputed within their dependency-validity windows and before the enclosing successful action returns; declaring them compiler outputs does not exempt them. For conditions reconstructed from preserved inputs, compute bounded conditions/flags out of place, apply the controlled bodies, then reverse their exact computing sequences after the last dependent use. For overwritten trajectory inputs, retain/reconstruct the required bounded versions and clean the control computation while those versions are available, restoring the trajectory workspace as well. The same obligation applies to standalone adj and compute. Genuine measurement records and actual fault outputs keep their existing separate lifetimes.\" Keep the structured inverse rule, but remove the blanket program-end control-output exemption. Operations that are not bijective on their declared interface use the existing out-of-place/compute distinction, not a hidden measurement channel; do not reject Co loops as a class. Add the witness above: all codes 0, z=0, P(c=1)=0, and all loop flags/trajectory workspace clean at return."
+    },
+    {
+      "id": "SOL-R3-02",
+      "section": "§17.1 live allocations; §17.3 shadow stack; §16.4 memory rows; §8.5 replay",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "§17.1 says a shadow-stack frame is a live allocation only \"from its push to its pop\", with every access wholly in one live allocation. §17.3 obtains one persistent heap backing block with ss_init; push/pop are ordinary runtime operations inside it. §16.4 adds logical validation only for coh addresses; other accesses use ISA boundscheck/load/store, whose allocation table still contains the whole live backing block. A pointer from a popped frame is therefore accepted by the map. At the materialisation boundary use f: p=ss_push(1,1); store i8 7,p; ss_pop(p); return p; caller: p=f(); return load i8,p, with no replacement live frame covering p. The dialect model requires fault 7/payload 0. Updating the stack pointer does not change the ISA allocation table, so the mapped load succeeds with 7. Independently, a checked ISA microprobe allocates a 16-byte backing block, stores 7 in its one-byte first frame, calls a pop lproc restoring the stack pointer to zero, then executes the prescribed boundscheck/load: code=0,payload=7,steps=18 at budget 100,16,128,8. This isolates the absent logical check; it is not claimed to implement the general stack runtime. Reads spanning distinct frames, unused stack capacity, or ranges released by stackrestore have the same issue. The arena fix does not cover this non-coh backing block.",
+      "fix": "In §17.3/§16.4 state: \"Shadow-stack backing storage is physical storage, not a program allocation. Maintain logical frame base, extent and liveness, including dynamic extensions and save/restore state. Before every program access into shadow-stack backing storage, require the entire nonwrapping byte range to be contained in one currently live logical frame/allocation under §17.1; otherwise fault 7 before access or mutation. A live backing-block ISA entry is insufficient. Push registers logical liveness; pop invalidates that frame and every younger frame; restore invalidates released ranges. Runtime bookkeeping accesses use an explicit internal path.\" Default to an ordinary materialised validation helper, charging its rows in the reference object and providing the same semantics in the native comparison build. Include logical frame metadata in §8.5 entry replay. Add the f/caller witness: payload=0/code=7 after pop; while live, load returns 7/code=0. A second viable design allocates/frees frames as separate ISA allocations, but must revise both builds and replay to keep addresses identical; I would preserve the current stack layout and add logical checks."
+    },
+    {
+      "id": "SOL-R3-03",
+      "section": "§6.1–§6.3; §6.5 static register files; §18.3 T-DEAD",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The static file identifies a root as (site s, reusable instance index k<N(s)), assigns the root its register tag, and allocation \"picks a free instance index\". Allocation generations are lost: a saved tag from a freed allocation becomes the tag of a later live allocation in the same slot. This contradicts §6.2 (\"a stale copy, a freed register\" traps T-DEAD) and §6.3 identity comparison. Concrete witness: entry has nonescaping alloca ptr saved and slot; loop has i=phi [0,entry],[next,first]; h=qalloc(0,1); store h,slot; on i=0, store h,saved; qfree(h); next=i+1; jump loop; on i=1, old=load saved; gate(X,old,0); gate(X,old,0); qfree(h); return. All ROOT(s) memory is in nonescaping allocas, and every path from s to s again or return passes a qfree whose provenance is exactly {s}; §6.5 therefore gives N(s)=1. On iteration two the prescribed static root tag is live again: dispatch accepts old and flips the new register twice, completing cleanly. Reference semantics must trap T-DEAD at the first old-handle gate because old denotes the first, freed allocation. LLVM 18/23 verify this module and the repository recogniser returns accept. This source should remain accepted; its specified runtime error must be preserved.",
+      "fix": "In §6.1/§6.5 state: \"A static register-file slot is storage for successive allocations, not their identity. Each allocation has a generation-specific opaque tag. Reallocating a slot changes its current tag; saved values continue to denote their original generation. Marker dispatch checks current generation and liveness and otherwise traps T-DEAD. Equality compares allocation identity, not slot index. A tag MUST NOT be recycled while an observable stale copy can remain.\" Default to a CC table of current tags per slot and a fresh-tag allocator; no new quantum ISA operation is required. Recycle tags only once old copies are proven unobservable, never by wrapping onto an observable generation. Add the two-iteration witness: N(s)=1 physical slot remains sufficient, the first stale marker reports code 4/T-DEAD before changing the second register; saved-old versus current-new equality is false if compared before the marker. Alternatively do not reuse a slot while stale aliases can be observed, revising the bound to include retired identities; I would separate generation tags from physical slots to preserve N(s)=1 reuse."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R2-01",
+      "status": "resolved",
+      "note": "TDL-9/§18.4 cancel the unapplied invocation and provisional allocations outside the exhausted budget; only successful source completion is leak-checked."
+    },
+    {
+      "id": "SOL-R2-02",
+      "status": "resolved",
+      "note": "§8.5/§16.2 replay allocator metadata independently of byte reads before private allocations and invalidate on relevant allocator/stack changes."
+    },
+    {
+      "id": "SOL-R2-03",
+      "status": "resolved",
+      "note": "§12.6 defines packed bitcast resegmentation, scalar/vector crossings, lane order and preservation of loads; the 4386 witness is corrected."
+    },
+    {
+      "id": "SOL-R2-04",
+      "status": "resolved",
+      "note": "Selector exceptions precede inactive-zero, merge preserves false values beyond evl, and reductions skip inactive lanes; witnesses return 9 and 15."
+    },
+    {
+      "id": "R2-CODEX-01",
+      "status": "resolved",
+      "note": "TDL-4/§16.4 distinguish arena storage from logical allocations and require charged, success-gated bounds/liveness checks and metadata transfer."
+    },
+    {
+      "id": "R2-CODEX-02",
+      "status": "resolved",
+      "note": "Complete allocation-table replay defaults apply even with an empty byte read set; 4112 and heap-code-2 cases are specified."
+    },
+    {
+      "id": "R2-CODEX-03",
+      "status": "resolved",
+      "note": "TDL-2 gives nested ctrl/adj/compute enclosing speculative updates in order while keeping sibling recorders isolated."
+    },
+    {
+      "id": "R2-CODEX-04",
+      "status": "resolved",
+      "note": "n-defined-zero uses count runtime helpers, validator-v4-clean defines its helper, and both residual flag forms reject."
+    },
+    {
+      "id": "BD3-1",
+      "status": "resolved",
+      "note": "TDL-8 defines ownership, leak exemption, program-end copy/measure/correct/free, combined statistics and compute fault-wire reuse."
+    },
+    {
+      "id": "BD3-2",
+      "status": "partially",
+      "note": "Structured inverse preparation and compute reuse fix the submitted checkpoints, but forward-loop control retention introduces SOL-R3-01."
+    },
+    {
+      "id": "BD3-3",
+      "status": "resolved",
+      "note": "§7.5(a)/§18.2 retain intentional deferred-measurement records on adj/compute paths and forbid conversion to quncopy."
+    },
+    {
+      "id": "BD3-4",
+      "status": "resolved",
+      "note": "§1.6/§11.5/§25.1 consistently classify every R entry as BLK-5, exclude generation direct calls, define the no-hostcall fallback and retag examples."
+    },
+    {
+      "id": "BD3-5",
+      "status": "resolved",
+      "note": "§6.5 uses the permitted conservative setjmp-continuation default E(s)=infinity and BLK-1/4, not the unsound N=1 classification."
+    },
+    {
+      "id": "BD3-6",
+      "status": "resolved",
+      "note": "TDL-2/11 guard Co stores/releases, keep observed bytes authoritative, and forbid dirty-cell reuse without restoration/dematerialisation."
+    },
+    {
+      "id": "REG-SOL-TDL9",
+      "status": "resolved",
+      "note": "Invocation cancellation and provisional-allocation finalisation remove the exhaustion/leak regression."
+    },
+    {
+      "id": "REG-CODEX-N27",
+      "status": "resolved",
+      "note": "N12 witnesses now respect the full N27 materialisation boundary."
+    },
+    {
+      "id": "REG-MUSE-7.7",
+      "status": "resolved",
+      "note": "§7.7 retains intentional measurement records through adj/compute until the CC measurement boundary."
+    },
+    {
+      "id": "E-MUSE-TERM",
+      "status": "resolved",
+      "note": "§2 names active BLK-1/2/4/5 and identifies BLK-3 as retired."
+    },
+    {
+      "id": "E-MUSE-7.7",
+      "status": "resolved",
+      "note": "The obsolete release-by-uncomputation note now requires retention and boundary measurement."
+    }
+  ],
+  "regressions": [
+    "TDL-7 previously required non-fault loop flags cleaned before invocation return. The diff removes them from that requirement and adds the TDL-8 program-end exemption in TDL-10. Although the earlier loop adjoint already needed repair, this previously correct cleanup obligation has been replaced by a rule that dephases successful identity actions (SOL-R3-01)."
+  ],
+  "suggestions": [
+    "§13.5: clarify the boundary conversion: \"llvm.get.rounding/set.rounding use LLVM encodings 0=towardzero, 1=nearest-even, 2=upward, 3=downward, 4=nearest-away; convert to/from internal R values 3,0,2,1,4. C fenv macros are converted by the target runtime, not stored as raw R.\" This is encoding detail under the existing intrinsic-semantics obligation. Add set.rounding(0), then constrained dynamic add of 1.0 and 3*2^-54: result bits 0x3ff0000000000000; set.rounding(1) gives 0x3ff0000000000001. Public codes: https://llvm.org/docs/LangRef.html#llvm-get-rounding-intrinsic .",
+    "§12.6: clarify active-lane-mask arithmetic: \"base+k is a mathematical nonwrapping sum; a lane whose sum exceeds the source integer range is false. The default expansion widens before addition/comparison, using N22 if necessary.\" Add base=UINT64_MAX,n=1,two lanes: mask=[false,false], not [false,true]. This makes the existing mathematical formula safe to translate into integer instructions. See https://llvm.org/docs/LangRef.html#llvm-get-active-lane-mask-intrinsics .",
+    "§18.8/§21.3: add \"A successful Co-loop test includes interference after forward return, not only basis projections or compute/uncompute checkpoints.\" Keep co-loop-adjoint and add SOL-R3-01 as a complete source-to-events witness. The current adapter hand-constructs flags for n=0/2 and cleans them along compute/standalone-inverse paths; its passing receipt cannot establish the new forward lifetime rule.",
+    "§1.5/§21.4: add \"Each runtime logical-lifetime check has a suite-DM source/materialised-module-to-reference-object vector in addition to a hand-authored helper microvector.\" Use popped-frame and arena cross-object cases with code 7, plus live successful cases. Keep the microvectors while also checking that the canonical map inserts the helpers."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Remove the successful Co-loop control-output exemption and require/execute cleanup before return and interfering operations, preserving general Co-loop support; the identity-loop witness must give P(1)=0. 2. Extend logical allocation validation to shadow-stack frames/restored ranges in both builds and replay; the post-pop witness must fault 7 before access. 3. Separate allocation-generation tags from reusable register slots; a saved old handle must trap T-DEAD without changing the new register. Add the three conformance vectors and rerun affected suites. No additional ISA capability or formal-proof machinery is needed.",
+  "summary": "Reviewed draft 0.2.3 at 7956795 against ISA 0.8, confirming the round-2 diff before checking interactions. SOL-R2-01/02/03/04, R2-CODEX-01/02/03/04 and BD3-1/3/4/5/6 are resolved. BD3-2 is partial: structured adjoints fix the original checkpoints, but program-end control retention breaks successful-action interference. All three named prior regressions and both editorial items are repaired, with a new cleanup regression identified separately. Three core S0 issues remain: successful-loop dephasing, lost shadow-frame liveness in the map, and stale-handle resurrection through slot reuse. No contract-scoped blockers were found. Independent headless anonymous-memory ISA probes checked/executed the loop and persistent-stack-backing cases; LLVM 18/23 verified the stale-handle module and the reference recogniser accepted it. The published full-checker receipt was read, not rerun; that runner writes repository scratch files. No repository source was changed."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r3-sol.json

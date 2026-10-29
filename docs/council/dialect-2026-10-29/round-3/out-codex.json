@@ -1,0 +1,160 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Sections 4-6 and 18.1 distinguish tiers, handles, recorders and coherence states clearly. TDL-2 now propagates enclosing speculative views, TDL-9 cancels failed generations, and TDL-8 fixes ownership of fault outputs. However, the new TDL-7/TDL-10 exception makes ordinary loop-control workspace an observable retained outcome; this changes the state transition even on fault-free identity actions (R3-CODEX-01).",
+   "change": "In TDL-7/TDL-10 state: \"Execution-control flags and trajectory records are workspace, not additional outcomes; absent an explicitly requested measurement channel, a completed action restores them before returning.\" Keep the separate declared-fault-output lifecycle."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The N21 packed-bitcast and VP selection/reduction corrections, and the full N12-to-N27 boundary, resolve the instruction-level round-2 contradictions. The marker forms and mapping rows are otherwise concrete. Sections 8.2 and 16.2 admit shapes with no payload output, but section 8.6 supplies no k=0 invocation and section 16.2 supplies no successful terminal for that shape (R3-CODEX-03).",
+   "change": "Add to sections 8.6 and 16.2: \"For k=0, execute one variant with a hidden one-wire target and the caller's fault register; after the body and unwind check, emit p0 = lift.const.i1 0; lift.retval p0, and release the still-zero hidden target after the call.\""
+  },
+  {
+   "id": "C3",
+   "score": 3,
+   "evidence": "The fault-output lifecycle, nested views, logical arena checks and generation cancellation substantially improve the coherent semantics. Two remaining rules change quantum behavior: ordinary Co-loop controls remain entangled after a successful action, contrary to clean control workspace, and standalone deferred-measurement adjoints specify only that records precede consumers, leaving their order relative to a noncommuting gate undecided. Both distinctions were reproduced with hashed, checked objects on the supplied ISA interpreter.",
+   "change": "Restore the clean-action obligation in TDL-10: \"An ordinary Co loop must implement its bounded unitary with conditions, continuation flags and trajectory workspace restored; use preserved-input uncomputation where possible and the bounded inverse trajectory otherwise. Only compute may retain this workspace until its matching adjoint(E_f).\" The identity-loop interference witness in R3-CODEX-01 must return 0 with probability 1."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Sections 3.4 and 9 fix allocation classes, budget fields, completion/default rules, token sources and charged reference rows. Sections 19.9, 24 and 25 separate overridable resource defaults, efficient implementations and genuine ISA dependencies. The dialect delegates target descriptions and resource accounting to its named ISA 0.8 contract rather than introducing a competing target model.",
+   "change": "No change required for this criterion; retain the explicit budget defaults and the distinction between a dependency verdict and a successful bounded execution."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Sections 16 and 19 decide reference-object identity, comparison layout, link position, mixed-major behavior, outputs and build metadata. Section 25 now unambiguously classifies every actual R entry as BLK-5 on ISA 0.8, excludes generation-time direct calls, and specifies generic-trap fallback without an illegal R hostcall. Certificate-field mechanics have named interim locations. The remaining findings concern core execution semantics, not absent contract field enumeration.",
+   "change": "No change required for this criterion; retain the section 25.1 classification sentence and the exact ISA-0.9 typed-fault dependency while keeping ISA 0.8 as the grading target."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Sections 18.7 and 21, P-1 through P-3, and the updated execution receipt provide a useful conformance boundary; Appendix B correctly limits what the 2401/2401 receipt establishes. I did not rerun the full checker. Independent in-memory ISA probes confirmed the phase and record-order witnesses below. The existing co-loop-adjoint microvector checks compute cleanup and a basis-state standalone inverse, while deferred-channel-adj has no interleaved noncommuting event, so neither exposes these remaining errors.",
+   "change": "Add to section 21.3: \"DT/DS include a fault-free identity loop with a superposed trip count followed by interference recovery, and a standalone deferred adjoint with an H between record preparation and a reversed consumer; compare complete output distributions, including records, against the specified schedule.\" Expected outcomes are given in R3-CODEX-01 and R3-CODEX-02."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The draft preserves the north-star program scope through explicit ISA blockers rather than new source-subset rejections. The revised normalisation, allocator replay and R classification are consistent with that policy. TDL-10 nevertheless makes a superposed trip count an unrequested retained record. North star section 4.2 explicitly requires control workspace to be restored at synchronisation and an action adjoint to mean U-dagger; ratified outline E3 also does not permit silent history-output semantics.",
+   "change": "In TDL-7, TDL-10 and Appendix A A11 state: \"Ordinary control-flow history is restored workspace; only explicit deferred-measurement channels and the specified fault/device interfaces authorize retained outcomes.\" Remove ordinary loop flags from the program-end measurement list, without rejecting loops merely because their trip count is Co."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "Most mechanisms are concrete enough to implement, and the round-2 changes address all fourteen reported locations. A builder still needs semantic decisions for ordinary loop-control cleanup, the exact standalone deferred-adjoint schedule, and zero-output oracle execution. These are observable execution decisions, not demands for proof formats, numerical witness schemas or implementation algorithms.",
+   "change": "Complete the section 18.2 special-adjoint schedule with a normative placement rule: \"Keep ordinary events in reverse order; put each deferred record immediately before its earliest reversed consumer, or at its reversed source position when unused; source order breaks ties within one insertion gap.\" State the necessary source-wire lifetime extension and add the R3-CODEX-02 distribution witness."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R3-CODEX-01",
+   "section": "Section 10 TDL-7 and TDL-10; section 18.2; Appendix A A11; north star section 4.2",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The round-2 fix now says that Co-loop flags and per-iteration conditions are \"explicit declared control outputs with TDL-8 lifetime\", unmeasured until program end. This solves the local leak problem by changing an ordinary action into an instrument with hidden history. Consider B: for (i=0; i<n; ++i) { X(t); X(t); }, with n a preserved Co byte supported on 0 and 1 and a sufficient budget. B is the identity on all program data and has no user measurement or nonzero fault. Prepare an external c in |+>, prepare arena n=0 and t=0, and coherently XOR c into n. Apply B under a separate control fixed to 1, then coherently XOR c into n again, restoring n=0; finally H(c) and measure c. The retained first condition/flag records n=c, so the prescribed implementation yields P(c=0)=P(c=1)=1/2. With restored control workspace, B is the identity and P(c=0)=1. Measuring the flag only at program end does not restore the lost interference. The supplied ISA interpreter accepted both small circuit probes: retention gave amplitudes +/-1/2 on four states, while cleanup gave the all-zero state with amplitude 1. The new standalone-adjoint rule also does not erase a prior forward invocation's retained flags. This contradicts north star section 4.2, which requires restored control workspace and adjoint=U-dagger, even for this simple loop whose inputs are unchanged.",
+   "fix": "Replace the ordinary-control-output exception in TDL-7/TDL-10 and A11 with: \"Continuation flags, per-iteration conditions and preserved trajectory records are control workspace, not implicit action outputs. A successful standalone action restores them before returning. If conditions depend on preserved inputs, uncompute them with their exact computing slices after the controlled bodies. Otherwise the complete bounded loop must satisfy the action's bounded-inverse and clean-workspace obligation; reconstruct the trajectory using that inverse and erase its records. In compute, the original trajectory may be retained only through use and is cleaned by the matching adjoint(E_f). No trip-count record is measured merely because the program ends.\" Preserve actual fault outputs and explicitly requested measurement channels. Do not reject a loop just for a Co trip count. Add the stated identity-loop interference witness with P(c=0)=1, no retained control bits and no T-CLEAN/T-LEAK. Keeping history instead would require an explicit north-star amendment and opt-in channel interface; I recommend restoring the existing unitary contract."
+  },
+  {
+   "id": "R3-CODEX-02",
+   "section": "Sections 7.5(a) and 18.2, standalone adjoint of deferred-measurement records",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Section 18.2 says that a standalone adjoint emits a fresh qcopy \"before every adjointed event that depends on it\", with placement \"constrained before their first reversed consumer\". It does not fix the record's order relative to other reversed events that mutate the measured source. With defer enabled, take f: m=measure(q); if(m) X(t); H(q), using foreign q and t. Start adj(f) with q=|+>, t=0. The ordinary reversed events are H(q), then CX(record,t). Both A=[qcopy(q,record), H(q), CX(record,t)] and B=[H(q), qcopy(q,record), CX(record,t)] retain the record, preserve the ordinary reversed order and put the copy before every consumer. A gives P(q=1)=P(t=1)=1/2; B gives q=t=record=0 with certainty. Measuring the record at the same permitted boundary does not remove the difference. I hashed and checked both three-wire objects and ran them with the supplied ISA interpreter; these distributions were reproduced. The round-2 unused-measure-only witness does not decide this ordering.",
+   "fix": "Give section 18.2 a complete deterministic insertion convention. I would state: \"Keep non-record events in reverse-list order. Insert each deferred-measurement record immediately before its earliest reversed consumer; if it has no consumer, keep its reversed source position. Source order orders independent records only when they occupy the same insertion gap. Producer dependencies also constrain record placement. Extend local source-wire lifetimes by hoisting required unconditional inverse allocations before their copies and retaining the wires through their last use; record placement is not permission to commute a copy across an arbitrary quantum operation. Optimisations must preserve the resulting complete instrument.\" For the witness this selects H(q); qcopy(q,record); CX(record,t), with P(q=0,t=0,record=0)=1. An explicitly specified entry-copy convention would instead select the 50/50 instrument for this foreign-wire witness; either is a semantic choice, not a scheduling optimisation. I recommend the latest-before-consumer convention and a checked interleaving witness, while retaining compute's already-created records as currently specified."
+  },
+  {
+   "id": "R3-CODEX-03",
+   "section": "Sections 8.2, 8.6 and 16.2, oracle shapes with zero payload outputs",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Section 8.2 explicitly permits null tgt, void functions and a required non-null four-wire fault register. A shape with no OUT or CONSOLE output is therefore valid and has k=0. Section 8.6 defines only k=1 and k>1 invocations, and W_j exists only for a payload slice. Section 16.2 anticipates the case with \"T ... or 1 when the shape has no output\", but its delivery rule still terminates with lift.retval p<selected> after computing every projection; no projection exists. For f(){ret void}, the canonical successful wrapper and its charged rows are undefined. For f(){__bennett_nz_fault(4); unreachable}, null tgt and no other outputs must still XOR 4 into fault; emitting no calls because there are no slices loses that outcome. This is a missing supported-case execution rule, not a request for a new descriptor field.",
+   "fix": "Add a k=0 branch to section 8.6 and its canonical terminal to section 16.2: \"A shape with no payload outputs has one synthetic variant W_empty with T=1. It performs the same prologue, region call and unwind check; on success its delivery is p0 = lift.const.i1 0 followed by lift.retval p0. These rows are charged normally. The caller allocates one clean hidden target bit, invokes W_empty once using the caller's fault register, then frees the hidden bit, which remains zero on success and fault. Any invocation control predicates that call; allocation/free are unconditional.\" Do not reject the valid null-target shape or run the oracle twice, which would erase its fault. Add witnesses: empty void body gives code 0; explicit fault 4 gives code 4; zero step budget gives code 1; in each case the hidden target is clean and there is no payload output."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R2-01",
+   "status": "resolved",
+   "note": "TDL-9 and section 18.4 cancel the unapplied composite and provisional allocations after exhaustion, preserve foreign handles, skip use after failed f and restrict T-LEAK to successful generation."
+  },
+  {
+   "id": "SOL-R2-02",
+   "status": "resolved",
+   "note": "Sections 8.5 and 16.2 now replay complete allocation history/liveness independently of byte reads and invalidate reuse on allocator/stack mutations; the specified results are 4112, then 4128, with fault 2 at heap limit 16."
+  },
+  {
+   "id": "SOL-R2-03",
+   "status": "resolved",
+   "note": "Section 12.6 now packs and resegments bitcasts across lane geometries and scalar/vector boundaries, preserving loads and routing wide carriers through N22; lane 1 of the given bytes is 4386."
+  },
+  {
+   "id": "SOL-R2-04",
+   "status": "resolved",
+   "note": "Section 12.6 gives vp.merge/vp.select selector precedence and folds VP reductions over active lanes only; false-selector result 9 and masked product 15 are explicit."
+  },
+  {
+   "id": "R2-CODEX-01",
+   "status": "resolved",
+   "note": "TDL-4 and section 16.4 distinguish physical coh storage from logical objects, mandate charged base/size/live validation and gate stores on success; the spanning i16 witness now faults 7 instead of returning 513."
+  },
+  {
+   "id": "R2-CODEX-02",
+   "status": "resolved",
+   "note": "The allocator-only dependency, complete-table replay before private allocations and cache invalidation fix is present in sections 8.5/16.2, including the heap-budget fault witness."
+  },
+  {
+   "id": "R2-CODEX-03",
+   "status": "resolved",
+   "note": "TDL-2 explicitly inherits enclosing classical recorder updates for nested ctrl/adj/compute, adds outer controls only at composition and isolates siblings; the child sees t=9 and flips z."
+  },
+  {
+   "id": "R2-CODEX-04",
+   "status": "resolved",
+   "note": "The full normalise-out and positive V4 example use runtime helpers, both true/false residual intrinsics reject, and abs retains its canonical expansion; f(0)=16 and f(1)=7 are unchanged."
+  },
+  {
+   "id": "BD3-1",
+   "status": "resolved",
+   "note": "TDL-8 declares f_k/g_k/plugin-Phi outputs, exempts invocation leaks, defines program-end chunked copy/measure/correct/free and deduplicated statistics, while allowing cleaned reused f_k to be released."
+  },
+  {
+   "id": "BD3-2",
+   "status": "partially",
+   "note": "The requested structured adjoint prepares flags before use and compute reuses/cleans them, fixing the old uninitialised-flag witness; ordinary forward retention now violates clean control workspace even for an identity loop (R3-CODEX-01)."
+  },
+  {
+   "id": "BD3-3",
+   "status": "partially",
+   "note": "The forbidden quncopy erasure is removed in adj/compute and the obsolete section 7.7 note is corrected; standalone record placement around a noncommuting reversed event remains semantically undecided (R3-CODEX-02)."
+  },
+  {
+   "id": "BD3-4",
+   "status": "resolved",
+   "note": "Sections 1.6, 11.5 and 25.1 classify every actual R entry as BLK-5 on ISA 0.8, exclude generation-time direct calls, use generic R trap without hostcall and retag all seven examples."
+  },
+  {
+   "id": "BD3-5",
+   "status": "resolved",
+   "note": "Section 6.5 chooses the previously permitted conservative setjmp-continuation rule: not self-disjoint and E=infinity, with BLK-1/BLK-4 and a bounded fallback rather than aliasing live instances."
+  },
+  {
+   "id": "BD3-6",
+   "status": "resolved",
+   "note": "TDL-11 now guards Co CC stores and releases as well as reads; observed-byte writes update both representations, and dirty release traps 4 unless restoration/dematerialisation precedes reuse."
+  }
+ ],
+ "regressions": [
+  "TDL-7/TDL-10 now exempt ordinary Co-loop controls from the previous clean-workspace requirement. For a preserved-count identity loop, cleanup was possible and required by that requirement; the new mandatory program-end retention records the count and destroys later interference. This is R3-CODEX-01, not a request for a proof format."
+ ],
+ "suggestions": [
+  "S1, section 21.3 DT/DS: supplement basis and compute checkpoints with composition tests. Proposed requirement: \"For a fault-free, non-measuring action with clean workspace and preserved parameters, test forward invocation followed by its standalone adjoint on superpositions, then compare the complete live-wire state to entry up to one global phase.\" Include the preserved-count double-X loop; the corrected result is the entry state with all temporary controls zero. This exercises the stated U-dagger obligation without prescribing a proof system."
+ ],
+ "verdict_core": "revise",
+ "verdict": "revise",
+ "path_to_accept": "1. Restore ordinary Co-loop control/history cleanup and the unitary/adjoint contract in TDL-7, TDL-10 and section 18.2; pass the identity-loop interference witness. 2. Specify a deterministic complete standalone deferred-record schedule and add the H/interleaved-consumer witness with the chosen distribution. 3. Define the k=0 synthetic oracle variant, its charged terminal rows and its single-call fault delivery; check success, explicit fault and budget exhaustion. Recheck affected examples and hashes. These three core corrections suffice; no ISA-0.8 capability blocker needs to disappear, and no mechanised proof or additional schema enumeration is required for acceptance.",
+ "summary": "Reviewed the complete round-3 prompt and the 7956795 draft, confirming the round-2 diff before investigating new issues. SOL-R2-01, SOL-R2-02, SOL-R2-03, SOL-R2-04, R2-CODEX-01, R2-CODEX-02, R2-CODEX-03, R2-CODEX-04, BD3-1, BD3-4, BD3-5 and BD3-6 are resolved. BD3-2 and BD3-3 are partially resolved: their requested local fixes are present, but ordinary loop-control retention changes interference and deferred adjoint record placement still admits different instruments. The prior REG-SOL-TDL9, REG-CODEX-N27 and REG-MUSE-7.7 corrections are present, as are E-MUSE-TERM and E-MUSE-7.7. Three S0 core issues remain, including the previously unhandled zero-output oracle case. Independent anonymous-memory ISA objects were hashed, checked and run under the requested headless environment; they confirmed the two quantum witnesses. The full pre-flight suite was not rerun. Named ISA dependencies remain valid blockers rather than dialect rejections. No repository source was edited."
+}
