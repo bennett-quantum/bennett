@@ -82,8 +82,8 @@ supersedes them where they conflict.
   with no ISA change**, `../bennett-dialect-spec/docs/spikes/sqlite/REPORT.md`) are done.
 - Phase 1 (full Rust ISA reference interpreter): codex job **stopped** after attempt 2, all seven
   deliverables partial with green tests at the last checkpoint. Resume command and state in
-  `../bennett-isa-spec/HANDOFF.md`; full state on branch `wip/isa-ref-interpreter` (main there may
-  be red mid-TDD and is not pushed past the gate). Follow-up: CLI commands b-isa-spec-xam.
+  `../bennett-isa-spec/HANDOFF.md`; at session end tests were green and main (98f9c20) is pushed;
+  `wip/isa-ref-interpreter` points at the same commit. Follow-up: CLI commands b-isa-spec-xam.
 - Phase 3: dialect 0.2 outline **ratified** (`../bennett-dialect-spec/spec/outline-0.2.md`, rulings at
   its end: E1–E14 ratified, riscv64 platform). The full-text agent was stopped before writing;
   its brief is `../bennett-dialect-spec/docs/briefs/2026-10-29-dialect-0.2-fulltext.md`. Then extend
