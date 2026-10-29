@@ -1,0 +1,1990 @@
+--- round-2/doc.md
++++ round-3/doc.md
+@@ -1,22 +1,23 @@
+-# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 2)
+-
+-Snapshot of `reference-interpreter/` at commit `dc46d07`. 85 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 298 lines, sha256 f475ed07b383
+-- `PROGRESS.md` 623 lines, sha256 b2316a15942c
+-- `SPEC-QUESTIONS.md` 200 lines, sha256 68236a5ea72e
++# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 3)
++
++Snapshot of `reference-interpreter/` at commit `2e61144`. 87 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 317 lines, sha256 392f2692a227
++- `PROGRESS.md` 680 lines, sha256 e1bcc9e1702a
++- `SPEC-QUESTIONS.md` 213 lines, sha256 3385021cbdaf
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
++- `council/response-round-2.md` 260 lines, sha256 ec60481cde56
+ - `council/response-round-1.md` 398 lines, sha256 0aa2f796e5d7
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+-- `src/action.rs` 959 lines, sha256 24b6dc8d78c5
++- `src/action.rs` 966 lines, sha256 f529741e0c19
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 843 lines, sha256 cec2d63c0ea2
+-- `src/call_discipline.rs` 354 lines, sha256 fe867ef43a93
++- `src/borrow.rs` 876 lines, sha256 8440a25c9455
++- `src/call_discipline.rs` 383 lines, sha256 78da3d6ebe89
+ - `src/certificate.rs` 557 lines, sha256 0bacdb2984d3
+-- `src/claims.rs` 734 lines, sha256 f7d713b7d282
++- `src/claims.rs` 734 lines, sha256 070416806b39
+ - `src/classical.rs` 1578 lines, sha256 4e381a121281
+-- `src/exact.rs` 674 lines, sha256 d59f096e5edf
++- `src/exact.rs` 697 lines, sha256 11ed74363454
+ - `src/handle_validation.rs` 99 lines, sha256 6b1e868a7572
+ - `src/identity.rs` 434 lines, sha256 df6ff131275b
+@@ -27,5 +28,5 @@
+ - `src/main.rs` 1983 lines, sha256 8cefe91c70d5
+ - `src/metadata.rs` 396 lines, sha256 ddc1659d5084
+-- `src/object.rs` 1809 lines, sha256 195a15e1fb8c
++- `src/object.rs` 1804 lines, sha256 0ee68d1e4c3f
+ - `src/oracle.rs` 860 lines, sha256 c852a0c5d82c
+ - `src/quantum.rs` 768 lines, sha256 08763d000b0d
+@@ -33,10 +34,10 @@
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+-- `src/validation.rs` 1648 lines, sha256 0c9330b60d8a
++- `src/validation.rs` 1858 lines, sha256 ffa81c7a5fbb
+ - `tests/bitvectors.rs` 117 lines, sha256 dcb60f20f4da
+ - `tests/borrow.rs` 195 lines, sha256 40d8a3a4b61e
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 1049 lines, sha256 fa1ffc88d62e
++- `tests/cli_xam.rs` 1140 lines, sha256 29b8e13dce46
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -71,16 +72,17 @@
+ - `tests/quantum.rs` 146 lines, sha256 60933c5bac2c
+ - `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
+-- `tests/r1_borrow.rs` 115 lines, sha256 93f272f42d91
+-- `tests/r1_certificates.rs` 216 lines, sha256 51dddda9e0af
+-- `tests/r1_discipline.rs` 246 lines, sha256 4434b656a44b
++- `tests/r1_borrow.rs` 172 lines, sha256 2a77562fbb75
++- `tests/r1_certificates.rs` 244 lines, sha256 680db244f61e
++- `tests/r1_discipline.rs` 354 lines, sha256 8922f8e2f998
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+ - `tests/r1_fixtures.rs` 594 lines, sha256 ca26e8c771a2
+-- `tests/r1_fuzz_discipline.rs` 294 lines, sha256 78d6bc9e3dda
++- `tests/r1_fuzz_discipline.rs` 371 lines, sha256 c6f0b765c79c
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+ - `tests/r1_linking.rs` 130 lines, sha256 1ae51c3da293
+ - `tests/r1_literals.rs` 180 lines, sha256 89e4ca03f914
+-- `tests/r1_qinplace.rs` 96 lines, sha256 8a4314257769
+-- `tests/r1_rules.rs` 324 lines, sha256 bc9d100883c1
++- `tests/r1_qinplace.rs` 146 lines, sha256 420bac787015
++- `tests/r1_rules.rs` 422 lines, sha256 4ca99e48c182
+ - `tests/r1_widths.rs` 260 lines, sha256 5607035e9d75
++- `tests/r2_validation.rs` 84 lines, sha256 7804bd497504
+ - `tests/registers.rs` 122 lines, sha256 7111bef01079
+ - `tests/step_machine.rs` 164 lines, sha256 be73a49c6655
+@@ -89,7 +91,7 @@
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 26310 lines.
+-
+-## `README.md` (298 lines)
++Total embedded: 27549 lines.
++
++## `README.md` (317 lines)
+ 
+ ````markdown
+@@ -392,7 +394,26 @@
+ fixture's stored hashes are audited (`tests/r1_fixtures.rs`), and the inc8 and
+ sum_db fixtures are compared byte for byte with §16.3.
++
++### Round-2 static and display semantics
++
++Function-local `qregion` declarations are established once at function entry,
++including declarations inside zero-trip loops or after their first use. Each
++lexical region name is unique. `qif` arms must restore their predicate stacks;
++its adjoint reverses the complete expansion, including unconditional lifetimes
++(SPEC-QUESTIONS 28). `qinplace` explicit adjoints exchange the oracle pair and
++retain token and effective-control versions. Exchanges retain the dependency
++union and other provenance on all outputs, and their inverse histories cancel
++jointly. Borrow proofs distinguish the complete classical argument and token
++bindings through inlined calls. Matched lifted oracle calls preserve all tuple
++boundaries and account for every possible numeric `qjumpr` destination.
++
++Integer comparisons require integer or pointer operands; lifted memory width
++suffixes use canonical INT spelling at load. State JSON selects support exactly
++and approximates rotation phases using bounded finite factors, even when their
++combined symbolic angle exceeds binary64. Numerical/channel certificate claims
++still report the staged rigorous interval checker as deliverable 11.
+ ````
+ 
+-## `PROGRESS.md` (623 lines)
++## `PROGRESS.md` (680 lines)
+ 
+ ````markdown
+@@ -404,4 +425,61 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Council round 2: sol/codex implementation (2026-10-29)
++
++The 15 blockers from the dc46d07 round-2 snapshot are implemented in ten
++coincident groups; `council/response-round-2.md` has one entry per member ID
++and is appendable for muse's pending second pass. No declines or partial
++round-2 blocker resolutions. Deliverables 8–11 remain staged below; this
++round does not claim they are implemented. Bead: b-isa-spec-zq2.
++
++Changes: typed matched-invocation tuples and all-row qjumpr CFG; canonical
++lifted memory suffixes and integer/ptr-only comparisons; expansion-owned
++predicate protection; function-entry qregions in both static checkers;
++qinplace explicit inverse recognition; complete classical environments in
++borrow proofs; joint exchange dependency/provenance and entry-version
++identities; full effective-control polarity in memory/phase/change identities;
++bounded-factor phase rendering for finite rotations with unbounded combined
++angles; collision-free interned references to full version keys (preventing
++geometric identity-text growth found by the extended sweep). SPEC-QUESTIONS 28 resolves cross-arm unconditional lifetimes by taking
++the adjoint of the full qif expansion (else before then); entry 21 and interval
++claim diagnostics now consistently name deliverable 11.
++
++Every cause had a development-time red witness. The final tests were also
++compiled against archived dc46d07 in ignored `.tmp`, observing the independent
++exchange, argument/literal angle, member-specific call, suffix, operand-kind,
++and declaration variants fail there. Extended differential generation includes
++swap/qexch/qexchm plus 80 generated borrow frames with differing classical
++bindings. It found additional unsound exchange/polarity accepts, now pinned by
++named red-green regressions in the response. No Python seed or spec changes.
++
++### Final round-2 verification
++
++All commands ran headlessly with `DISPLAY`, `WAYLAND_DISPLAY`,
++`DBUS_SESSION_BUS_ADDRESS`, and `BROWSER` unset,
++`TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp`,
++and the absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **202 passed**, 0 failed, 5 ignored (201 integration + 1 unit; 0 doctests) |
++| `cargo test --offline -- --ignored` | **5 passed**, 0 failed; `--nocapture` retained the sweep counts |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| `python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py` | unchanged seed passes |
++
++| Ignored sweep | Cases | Reported time |
++|---|---|---|
++| u8 division/remainder | 262,144 (a,b) pairs × 4 operations | 2.39 s |
++| 17-wire borrow-frame execution | 2^17 basis entries | 11.83 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 82.92 s |
++| extended §6 differential generator | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 259.39 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 12.90 s |
++
++The accepted differential programs run on all eight interface basis inputs and
++one superposed input, forward and adjoint. The sweep includes the new exchange
++operations. No runtime width, iteration, precision, or program-size cap was added.
++Specification and Python seed diffs against dc46d07 are empty. No push.
+ 
+ ## CLI commands (xam)
+@@ -1022,5 +1100,5 @@
+ ````
+ 
+-## `SPEC-QUESTIONS.md` (200 lines)
++## `SPEC-QUESTIONS.md` (213 lines)
+ 
+ ````markdown
+@@ -1178,5 +1256,5 @@
+     a proof. `expected: "oracle"`, `numerical` and `channel` compare realisations
+     under a schedule and are reported unverified until the target/schedule and
+-    interval machinery lands (deliverables 8–10). *Proposed 0.9:* specify the
++    interval machinery lands (deliverables 9–11). *Proposed 0.9:* specify the
+     tuple and table encodings and a `budget` field for oracle claims.
+ 22. **Certificate composition at link time (§9.3, §12.3)** *new (round 1)*.
+@@ -1225,4 +1303,17 @@
+     xoshiro256** samples, reported as `"mode":"sampled"`); `--exhaustive` and
+     `--samples N` are explicit, with no fixed size limit. No change proposed.
++
++28. **qif adjoints with cross-arm lifetimes (§3.5, §4.6, §5.3)** *new (round 2)*.
++    Question: §5.3 prints `qif w {A}{B} ↦ qif w {adj A}{adj B}`, but §3.5
++    makes allocation/release unconditional, and §4.6 expands then before else.
++    A legal `qif p { d = qalloc any 1 } { qfree d }` must recreate d in the
++    inverse else before releasing it in the inverse then. Reading: reverse the
++    complete §4.6 expansion, including unconditional lifetime operations, so the
++    adjoint visits inverse else before inverse then. Disjoint controlled gates
++    commute across arms; their lifetimes need not. No arm-local lifetime
++    restriction is added. *Proposed 0.9:* "The qif adjoint shorthand assumes
++    each arm's workspace lifetimes are self-contained; otherwise take the
++    adjoint of the complete §4.6 expansion, reversing unconditional lifetime
++    operations as well."
+ ````
+ 
+@@ -1290,4 +1381,269 @@
+ - Correctness over speed of delivery: do not mark a deliverable done without its tests and an
+   independent spot check of at least one stated result by hand.
++````
++
++## `council/response-round-2.md` (260 lines)
++
++````markdown
++# Editor response: council round 2
++
++Inputs: `out-sol.json` (8 blockers), `out-codex.json` (7 blockers), reviewed
++snapshot dc46d07. Member prefixes disambiguate IDs. This response is appendable
++for the pending muse second pass. No specification or Python seed edits.
++
++## Per-blocker status
++
++| Member ID(s) | Status |
++|---|---|
++| SOL-R2-B01 | resolved |
++| SOL-R2-B02; codex R2-B01 | resolved |
++| SOL-R2-B03 | resolved |
++| SOL-R2-B04 | resolved |
++| SOL-R2-B05; codex R2-B07 | resolved |
++| SOL-R2-B06; codex R2-B04 | resolved |
++| SOL-R2-B07; codex R2-B05 | resolved |
++| SOL-R2-B08; codex R2-B06 | resolved |
++| codex R2-B02 | resolved |
++| codex R2-B03 | resolved |
++
++All 15 blocker IDs are resolved. No decline or partial resolution in this
++round. Pending muse feedback is a subsequent pass, not an omitted input.
++
++## SOL-R2-B05 — resolved
++
++Coincides with codex R2-B07 below. `src/validation.rs::validate_action_sequence`
++checks the exact predicate stack immediately after each qif arm, before any
++selector replacement. Malformed bodies return §3.5, never an `expect` panic.
++Pin: `r2_validation::qif_arms_cannot_pop_or_leave_predicates` (consumed selector,
++extra push, nested balanced positive; parser and hash/check subprocesses).
++RED: the exact consumed-selector witness panicked before the fix. GREEN passes.
++No new specification question.
++
++## codex R2-B07 — resolved
++
++Same change and test as SOL-R2-B05; both arm boundaries checked.
++
++## SOL-R2-B07 — resolved
++
++Coincides with codex R2-B05. `validation.rs::classical_instruction` requires
++Int or Ptr operands for icmp, in addition to equal types. Pin:
++`r2_validation::icmp_requires_integer_or_pointer_operands` (token, f64,
++qreg[1], parser and hash/check) and
++`integer_and_pointer_comparisons_execute_and_reverse` (equal/unequal i8/ptr,
++exact i1 result, full history reversal). RED: token comparison was accepted.
++No new specification question.
++
++## codex R2-B05 — resolved
++
++Same change and tests as SOL-R2-B07, including the two-token CC witness.
++
++## codex R2-B02 — resolved
++
++`object.rs::validate_row` uses `host_count` for lifted load/store suffixes,
++matching both engines. Pin: `r2_validation::lifted_memory_widths_are_canonical_at_load`
++mutates sum_db load.i8 → i08 and heap store.i16 → i016 (the actual heap fixture
++uses i16, not i8); parser and hash/check reject with §16.1. RED: load.i08 was
++accepted. Canonical fixture execution remains covered by the existing suite.
++No new specification question.
++
++## SOL-R2-B02 — resolved
++
++Coincides with codex R2-B01. `call_discipline.rs::Invocation` stores callee,
++token, parsed ins/mem/args, target and fault. `validate_matched_oracle_calls`
++never serializes/splits keys, nor discards list parse errors. Pins:
++`r1_rules::r2_multi_input_invocation_keys_preserve_tuple_boundaries` (sum2
++witness, changes to either input; unchanged pair returns (0,0,5) and reverses),
++`r2_codex_changed_second_input_and_two_memory_regions` (codex exact witness,
++positive (0,0,4), writes into either supplied region). RED: both reviewers'
++changed-input class was accepted before the fix. No new question.
++
++## codex R2-B01 — resolved
++
++Same change and tests as SOL-R2-B02. Existing multiplicity and disjoint-global
++store tests still pass.
++
++## SOL-R2-B03 — resolved
++
++`call_discipline.rs::validate_matched_oracle_calls` conservatively includes
++every containing-function row as a qjumpr successor, matching §4.2's range,
++including rows inside a block. Pin:
++`r1_rules::r2_qjumpr_can_enter_an_uncall_at_a_non_label_row`: label+1 bypasses
++the call and rejects §5.5 (RED: accepted); computing call at entry dominating
++all numeric destinations accepts and runs/reverses to (0,0,5). No target-value
++analysis or new spec question.
++
++## SOL-R2-B06 — resolved
++
++Coincides with codex R2-B04. `validation.rs::region_declarations` recursively
++gathers lexical declarations; `validate_structured`/`declare_region` register
++and validate each once at entry. Sequence occurrences are no-ops; duplicate
++lexical declarations still reject. `borrow.rs::Compiler::declare_regions`
++hoists allocations in root and inlined child functions too. Pin:
++`r1_discipline::r2_regions_are_lexical_function_entry_declarations` (loop 2,
++loop 0, use before text, qif, duplicate, borrow-compiler positive; all t,p basis
++values, clean forward and adjoint, exact restoration). RED: loop 2 rejected
++"region name already defined". No new question: §4.6 states function entry.
++
++## codex R2-B04 — resolved
++
++Same change and tests as SOL-R2-B06.
++
++## codex R2-B03 — resolved
++
++`validation.rs::operation_inverse` exchanges the two qinplace oracle names,
++preserving token/target and the entire captured effective-control suffix.
++`validate_action_sequence` already captures that suffix in `Discipline::change`.
++Pin: `r1_qinplace::r2_qinplace_explicit_adjoint_cleans_workspace`: identity and
++NOT/NOT (B=1/3), distinct callee names to verify the exchange, both workspace
++basis values via copying t, forward/adjoint; changed predicate rejects §6.2.
++RED: the identity-pair explicit cleanup rejected at load. No new question.
++
++## SOL-R2-B04 — resolved
++
++`borrow.rs::Compiler` now carries immutable classical bindings. Oracle opaque
++identities contain the callee, resolved token and complete resolved classical
++argument tuple; inlined permutation calls substitute the caller's bindings
++for child formals. qinplace token identities use the same environment. Pin:
++`r1_borrow::r2_opaque_borrow_calls_bind_classical_args_and_tokens_through_inlining`
++rejects x/y in both direct and inlined witnesses (§5.6), accepts x/x and checks
++all x,f,d basis states forward/adjoint. RED: direct x/y parsed successfully.
++No new specification question.
++
++## SOL-R2-B01 — resolved
++
++`validation.rs::Discipline::exchange` snapshots old dependency unions and
++other provenance, records them on every output, and updates exchange logs
++jointly; external transitive readers prevent cleanup of an other value.
++`validate_action_sequence` routes swap, qexch and qexchm through it, including
++region cell versions. Pin:
++`r1_discipline::r2_exchanges_preserve_transitive_entangling_read_dependencies`
++(all three negatives §6.2, doubled middle-CX positives, all small basis inputs
++plus superposition, forward/adjoint and exact restoration). RED: swap witness
++accepted before the fix. The differential generator now includes all three
++exchange operations in compute and middle sequences. It exposed another
++unsound accept: a joint exchange could cancel only one output's log while the
++partner had an intervening write. Both outputs must now cancel together;
++`r2_exchange_inverse_must_cancel_both_outputs_together` pins that witness.
++No new spec question: these are the dependency unions printed in §6.1.
++
++## SOL-R2-B08 — resolved
++
++Coincides with codex R2-B06. `exact.rs::Amplitude::approximate` evaluates the
++phase as a product of bounded limb phases, with complex squaring for exponent
++bits beyond binary64's finite angle range; it never converts the combined
++exponent to an f64 angle. The exact Laurent shadow still decides support,
++cleanliness and equality, with no tolerance. Subnormal limb phases are scaled
++before rounding. `QuantumState::exact_support` and the CLI use the corrected
++display conversion without further changes. Pin:
++`cli_xam::r2_finite_rotations_render_when_the_combined_angle_exceeds_binary64`
++(four literal rz and four argument rz, both basis states, finite unit-modulus
++amplitude 0.588863244801576 ± 0.8082326886001081i; reverse exactly [1,0]).
++RED: run-action exited 1 with non-finite JSON diagnostic. No new question.
++
++## codex R2-B06 — resolved
++
++Same change and tests as SOL-R2-B08; finite f64 1e308 is not rejected.
++
++## Nonblocking suggestions and additional controls
++
++- codex S1 (qif cross-arm lifetimes): SPEC-QUESTIONS **28** records the
++  §5.3 shorthand / §4.6 expansion conflict and the full-expansion reading.
++  `action.rs::action_sequence` reverses else before then under adjoint, so
++  unconditional lifetime operations reverse in the right order.
++  `r1_discipline::r2_qif_cross_arm_unconditional_lifetimes_reverse_the_expansion`
++  was red with "unknown live bundle d", now checks both p,t values and full
++  restoration. No lifetime restriction was added.
++- codex S1 (staging diagnostics): SPEC-QUESTIONS 21 now names 9–11 for
++  target/schedule/interval work; `claims.rs::verify_claim_guarded` names
++  deliverable **11** for interval claims. Numerical/channel claims remain
++  Unverified. `r1_certificates::r2_interval_claim_diagnostics_name_deliverable_eleven`
++  was red naming 10 and now passes for both claim kinds.
++- `cli_xam::r2_qinplace_identity_workspace_cleanup_runs_and_reverses` pins
++  the exact codex @g/@g workspace witness through forward, adjoint and reverse
++  CLI forms for both t values, plus canonical sum_db(0), stack 16, B=10.
++- `r1_fuzz_discipline::generated_borrow_frames_keep_differing_classical_bindings_distinct`
++  generates 80 borrowed frames with differing x/y argument lists; an independent
++  parity formula determines acceptance, and every accepted frame executes and
++  reverses for all x/y and sampled borrowed/fault entries.
++
++### Follow-up pinning from the extended sweep
++
++The first extended ignored run found an additional unsound accept in the
++exchange class (SOL-R2-B01): identical exchange text was reused after a partner
++operand changed, so a later control snapshot could alias an earlier value.
++`Discipline::exchanges` now binds each joint computation to its entry versions;
++only an inverse whose **every** output still has that same joint computation
++on top can reuse that identity. Pin:
++`r1_discipline::r2_exchange_computations_pin_their_entry_versions` (red accepted,
++now §6.2 rejection). The earlier joint-cancellation pin remains green.
++
++For SOL-R2-B05 / codex R2-B07, a stack floor also prevents a body from consuming
++an expansion-owned selector and pushing it back later. Pin:
++`r1_discipline::r2_qif_body_cannot_temporarily_consume_its_implicit_selector`
++(red accepted, now §3.5 rejection). Balanced user-owned predicate pairs remain
++legal. No new specification question.
++
++The next extended sweep exposed missing predicate **polarity** in memory
++operation identities: complementary qif arms had equal address/control version
++snapshots. Memory keys, generic change contexts, joint exchange contexts, and
++outstanding diagonal phase keys now also retain predicate signs. Red-green pins:
++`r1_discipline::r2_memory_exchange_and_target_writes_do_not_cancel_independently`
++(the generated witness), `r2_memory_operations_pin_predicate_polarity`,
++`r2_complementary_diagonal_phases_do_not_cancel`, and
++`r1_qinplace::r2_qinplace_complementary_arms_do_not_cancel`. These extend the
++SOL-R2-B01 / codex R2-B03 effective-control fixes, without a new reading.
++
++### Frozen-snapshot RED audit
++
++In addition to the development-time red runs above, the final regressions were
++compiled against an archived dc46d07 crate in the ignored project-local `.tmp`.
++The audit observed each exchange witness separately (swap, qexch, qexchm), both
++literal and argument large-angle cases, both members' multi-input witnesses,
++qjumpr, qinplace, borrow bindings, and the region loop/forward-reference/zero-loop
++witnesses fail against dc46d07. Token, f64, qreg[1], load.i08, and store.i016
++were also audited separately and all failed their rejection assertions. The
++unchanged integer/ptr comparison positive passed on dc46d07. This archive is
++verification-only, not a checkout or deliverable; no source outside the owned
++crate was changed.
++
++A subsequent full sweep was SIGKILLed by the OS. A deterministic small
++regression reproduced geometric identity-text growth: 24 alternating
++exchange/write events expanded to **715,850,424 bytes** of version keys.
++`Discipline::value_ids` now interns collision-free snapshot references;
++`update_log` and `record_change` register each complete key, while `snapshot`
++references that key without recursively serializing its history. Every complete
++identity and inverse comparison is retained; no threshold or rejection was
++added. `validation::tests::exchange_entry_histories_have_compact_references`
++was red on the expanded representation and now passes immediately. The full
++normal and ignored suites are rerun after this change.
++
++### Final round-2 verification
++
++All commands ran headlessly with `DISPLAY`, `WAYLAND_DISPLAY`,
++`DBUS_SESSION_BUS_ADDRESS`, and `BROWSER` unset,
++`TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp`,
++and the absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **202 passed**, 0 failed, 5 ignored (201 integration + 1 unit; 0 doctests) |
++| `cargo test --offline -- --ignored` | **5 passed**, 0 failed; `--nocapture` retained the sweep counts |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| `python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py` | unchanged seed passes |
++
++| Ignored sweep | Cases | Reported time |
++|---|---|---|
++| u8 division/remainder | 262,144 (a,b) pairs × 4 operations | 2.39 s |
++| 17-wire borrow-frame execution | 2^17 basis entries | 11.83 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 82.92 s |
++| extended §6 differential generator | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 259.39 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 12.90 s |
++
++The accepted differential programs run on all eight interface basis inputs and
++one superposed input, forward and adjoint. The sweep includes the new exchange
++operations. No runtime width, iteration, precision, or program-size cap was added.
++Specification and Python seed diffs against dc46d07 are empty. No push.
+ ````
+ 
+@@ -2267,5 +2623,5 @@
+ ````
+ 
+-## `src/action.rs` (959 lines)
++## `src/action.rs` (966 lines)
+ 
+ ````rust
+@@ -2680,8 +3036,15 @@
+                     let mut yes = context.clone();
+                     yes.push((w, true));
+-                    self.action_sequence(&i.bodies[0], q, e, adjoint, &yes)?;
+                     let mut no = context.clone();
+                     no.push((w, false));
+-                    self.action_sequence(&i.bodies[1], q, e, adjoint, &no)?;
++                    // Reverse the complete §4.6 expansion, including its
++                    // unconditional lifetime operations (SPEC-QUESTIONS 28).
++                    if adjoint {
++                        self.action_sequence(&i.bodies[1], q, e, true, &no)?;
++                        self.action_sequence(&i.bodies[0], q, e, true, &yes)?;
++                    } else {
++                        self.action_sequence(&i.bodies[0], q, e, false, &yes)?;
++                        self.action_sequence(&i.bodies[1], q, e, false, &no)?;
++                    }
+                 }
+                 "qloop" => {
+@@ -3620,5 +3983,5 @@
+ ````
+ 
+-## `src/borrow.rs` (843 lines)
++## `src/borrow.rs` (876 lines)
+ 
+ ````rust
+@@ -3818,7 +4181,14 @@
+     regions: BTreeMap<String, (u64, Vec<Vec<String>>)>,
+     borrowed: BTreeSet<String>,
++    classical: BTreeMap<String, String>,
+     generation: usize,
+ }
+ impl Compiler<'_> {
++    fn classical(&self, name: &str) -> Result<String> {
++        self.classical
++            .get(name)
++            .cloned()
++            .ok_or_else(|| Error(format!("§3.3: unknown classical binding {name}")))
++    }
+     fn bundle(&self, name: &str) -> Result<Vec<String>> {
+         if let Some((base, index)) = name.split_once('[') {
+@@ -3863,4 +4233,34 @@
+             .map(|(bit, w)| (w, i >> bit & 1 == 1))
+             .collect())
++    }
++    fn declare_regions(&mut self, f: &Function, out: &mut Vec<Node>) -> Result<()> {
++        for i in crate::validation::region_declarations(f) {
++            let a = &i.operands;
++            let aw = crate::object::host_count(&a[1], "qregion address width")?;
++            let w = crate::object::host_count(&a[2], "qregion cell width")? as usize;
++            let cells = crate::oracle::power_of_two(aw as u128)
++                .and_then(|n| usize::try_from(n).ok())
++                .ok_or_else(|| Error("host limit: region exceeds host address space".into()))?;
++            let image = match a.get(3) {
++                Some(img) => self
++                    .object
++                    .data
++                    .get(img.trim_start_matches('@'))
++                    .cloned()
++                    .ok_or_else(|| Error("§4.6: unresolved qregion image".into()))?,
++                None => vec![0; (cells * w).div_ceil(8)],
++            };
++            let mut all = Vec::new();
++            for _ in 0..cells {
++                all.push(self.fresh(w));
++            }
++            let flat: Vec<String> = all.iter().flatten().cloned().collect();
++            let bits = (0..flat.len())
++                .map(|b| image[b / 8] >> (b % 8) & 1 == 1)
++                .collect();
++            out.push(Node::Alloc(flat, bits));
++            self.regions.insert(a[0].clone(), (aw, all));
++        }
++        Ok(())
+     }
+     fn compile(
+@@ -3963,32 +4363,5 @@
+                     }
+                 }
+-                "qregion" => {
+-                    let aw = crate::object::host_count(&a[1], "qregion address width")?;
+-                    let w = crate::object::host_count(&a[2], "qregion cell width")? as usize;
+-                    let cells = crate::oracle::power_of_two(aw as u128)
+-                        .and_then(|n| usize::try_from(n).ok())
+-                        .ok_or_else(|| {
+-                            Error("host limit: region exceeds host address space".into())
+-                        })?;
+-                    let image = match a.get(3) {
+-                        Some(img) => self
+-                            .object
+-                            .data
+-                            .get(img.trim_start_matches('@'))
+-                            .cloned()
+-                            .ok_or_else(|| Error("§4.6: unresolved qregion image".into()))?,
+-                        None => vec![0; (cells * w).div_ceil(8)],
+-                    };
+-                    let mut all = Vec::new();
+-                    for _ in 0..cells {
+-                        all.push(self.fresh(w));
+-                    }
+-                    let flat: Vec<String> = all.iter().flatten().cloned().collect();
+-                    let bits = (0..flat.len())
+-                        .map(|b| image[b / 8] >> (b % 8) & 1 == 1)
+-                        .collect();
+-                    out.push(Node::Alloc(flat, bits));
+-                    self.regions.insert(a[0].clone(), (aw, all));
+-                }
++                "qregion" => {} // Hoisted once at function entry.
+                 "qload" | "qunload" | "qstore" | "qexchm" => {
+                     let (_, cells) = self
+@@ -4042,5 +4415,15 @@
+                         }
+                         out.push(Node::Opaque {
+-                            key: format!("oracle:{}:{}", callee.name, ca[1]),
++                            key: format!(
++                                "oracle:{:?}",
++                                (
++                                    &callee.name,
++                                    self.classical(&ca[1])?,
++                                    list(&ca[6])?
++                                        .iter()
++                                        .map(|n| self.classical(n))
++                                        .collect::<Result<Vec<_>>>()?
++                                )
++                            ),
+                             controls: c,
+                             inputs: [inputs, memory].concat(),
+@@ -4058,4 +4441,5 @@
+                             regions: BTreeMap::new(),
+                             borrowed: BTreeSet::new(),
++                            classical: BTreeMap::new(),
+                             generation: self.generation,
+                         };
+@@ -4072,5 +4456,9 @@
+                             child.regions.insert(p.name.clone(), r);
+                         }
++                        for (p, n) in f.params[3].iter().zip(list(&ca[4])?) {
++                            child.classical.insert(p.name.clone(), self.classical(&n)?);
++                        }
+                         let mut body = Vec::new();
++                        child.declare_regions(f, &mut body)?;
+                         for b in &f.blocks {
+                             child.compile(&b.instructions, &c, &mut body)?;
+@@ -4095,5 +4483,5 @@
+                     let x = self.bundle(&a[3])?;
+                     out.push(Node::Opaque {
+-                        key: format!("qinplace:{}:{}:{}", a[0], a[1], a[2]),
++                        key: format!("qinplace:{:?}", (&a[0], &a[1], self.classical(&a[2])?)),
+                         controls: predicate.clone(),
+                         inputs: x.clone(),
+@@ -4401,4 +4789,11 @@
+             regions: BTreeMap::new(),
+             borrowed: BTreeSet::new(),
++            classical: f
++                .params
++                .iter()
++                .flatten()
++                .filter(|p| !matches!(p.ty, Type::Wire(_) | Type::Region(_, _)))
++                .map(|p| (p.name.clone(), format!("{}:{}", f.name, p.name)))
++                .collect(),
+             generation: 0,
+         };
+@@ -4421,4 +4816,5 @@
+         }
+         let mut nodes = Vec::new();
++        compiler.declare_regions(f, &mut nodes)?;
+         for block in &f.blocks {
+             compiler.compile(&block.instructions, &[], &mut nodes)?;
+@@ -4468,5 +4864,5 @@
+ ````
+ 
+-## `src/call_discipline.rs` (354 lines)
++## `src/call_discipline.rs` (383 lines)
+ 
+ ````rust
+@@ -4478,4 +4874,29 @@
+ };
+ use std::collections::{BTreeMap, BTreeSet};
++/// Complete §5.5 invocation identity; lists retain their operand boundaries.
++#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
++struct Invocation {
++    callee: String,
++    token: String,
++    ins: Vec<String>,
++    target: String,
++    fault: String,
++    mem: Vec<String>,
++    args: Vec<String>,
++}
++impl Invocation {
++    fn from_row(row: &Instruction) -> Result<Self> {
++        let o = &row.operands;
++        Ok(Self {
++            callee: o[0].clone(),
++            token: o[1].clone(),
++            ins: list(&o[2])?,
++            target: o[3].clone(),
++            fault: o[4].clone(),
++            mem: list(&o[5])?,
++            args: list(&o[6])?,
++        })
++    }
++}
+ impl Object {
+     fn interface_targets(
+@@ -4634,5 +5055,5 @@
+                 "qjump" => vec![label(&row.operands[0])?],
+                 "qbranch" => vec![label(&row.operands[1])?, label(&row.operands[2])?],
+-                "qjumpr" => labels.values().copied().collect(),
++                "qjumpr" => (0..rows.len()).collect(),
+                 "fault" | "lift.ret" | "lift.retval" => Vec::new(),
+                 _ => vec![k + 1],
+@@ -4644,5 +5065,5 @@
+         #[derive(Clone, PartialEq, Eq)]
+         struct State {
+-            outstanding: BTreeMap<String, u64>,
++            outstanding: BTreeMap<Invocation, u64>,
+             constants: BTreeMap<String, u128>,
+         }
+@@ -4666,5 +5087,5 @@
+             let mut next = state.clone();
+             let op = row.op.as_str();
+-            let key = row.operands.join(" ");
++
+             let mut writes: BTreeSet<String> = row.lhs.iter().cloned().collect();
+             if op == "lift.perm_call" {
+@@ -4690,12 +5111,10 @@
+             }
+             next.outstanding.retain(|k, _| {
+-                let o: Vec<&str> = k.split(' ').collect();
+-                let ins = list(o[2]).unwrap_or_default();
+-                let mem = list(o[5]).unwrap_or_default();
+-                let touches = ins
++                let touches = k
++                    .ins
+                     .iter()
+-                    .chain([&o[3].to_string(), &o[4].to_string()])
++                    .chain([&k.target, &k.fault])
+                     .any(|w| writes.contains(w));
+-                let clobbers = mem.iter().any(|r| {
++                let clobbers = k.mem.iter().any(|r| {
+                     mut_regions.contains(r)
+                         || cells.iter().any(|c| match (c, regions.get(r)) {
+@@ -4713,6 +5132,12 @@
+             }
+             match op {
+-                "lift.oracle_call" => *next.outstanding.entry(key).or_default() += 1,
++                "lift.oracle_call" => {
++                    *next
++                        .outstanding
++                        .entry(Invocation::from_row(row)?)
++                        .or_default() += 1
++                }
+                 "lift.oracle_uncall" => {
++                    let key = Invocation::from_row(row)?;
+                     if let Some(n) = next.outstanding.get_mut(&key) {
+                         *n -= 1;
+@@ -4756,5 +5181,5 @@
+             }
+             let Some(state) = &entry[k] else { continue };
+-            if !state.outstanding.contains_key(&row.operands.join(" ")) {
++            if !state.outstanding.contains_key(&Invocation::from_row(row)?) {
+                 return err(
+                     "§5.5",
+@@ -5947,5 +6372,5 @@
+             }
+             _ => ClaimVerdict::Unverified(format!(
+-                "{kind} claims need the rigorous interval checker (§12.1), staged as deliverable 10"
++                "{kind} claims need the rigorous interval checker (§12.1), staged as deliverable 11"
+             )),
+         };
+@@ -7711,5 +8136,5 @@
+ ````
+ 
+-## `src/exact.rs` (674 lines)
++## `src/exact.rs` (697 lines)
+ 
+ ````rust
+@@ -8106,11 +8531,34 @@
+         let mut im = 0f64;
+         for (e, c) in &self.terms {
+-            let angle = Dyadic {
+-                n: e.clone(),
+-                k: 1075,
+-            }
+-            .normalize()
+-            .to_f64();
+-            let (s, co) = angle.sin_cos();
++            // Evaluate exp(i * e * 2^-1075) as a product of finite
++            // limb phases. The exponent is unbounded even though each input
++            // angle is binary64. Converting their sum first can overflow.
++            let (mut co, mut si) = (1.0, 0.0);
++            for (j, limb) in e.limbs.iter().enumerate() {
++                if *limb == 0 {
++                    continue;
++                }
++                let scale = 32 * j as i64 - 1075;
++                // Keep as much argument as binary64 can represent exactly;
++                // extra squarings amplify phase rounding error unnecessarily.
++                let highest_bit = 31 - limb.leading_zeros();
++                let bounded = scale.min(1023 - i64::from(highest_bit));
++                let angle = if bounded < -1022 {
++                    // Scale the limb before rounding a subnormal phase.
++                    (*limb as f64 * 2f64.powi((bounded + 1022) as i32)) * 2f64.powi(-1022)
++                } else {
++                    *limb as f64 * 2f64.powi(bounded as i32)
++                };
++                let (mut s, mut c) = angle.sin_cos();
++                for _ in bounded..scale {
++                    (c, s) = (c * c - s * s, 2.0 * c * s);
++                    // Squaring a rounded unit complex otherwise amplifies
++                    // radial error; this affects display only, never equality.
++                    let norm = c.hypot(s);
++                    (c, s) = (c / norm, s / norm);
++                }
++                (co, si) = (co * c - si * s, co * s + si * c);
++            }
++            let s = if e.negative { -si } else { si };
+             let (x, y) = (c.re.to_f64(), c.im.to_f64());
+             re += x * co - y * s;
+@@ -13498,5 +13946,5 @@
+ ````
+ 
+-## `src/object.rs` (1809 lines)
++## `src/object.rs` (1804 lines)
+ 
+ ````rust
+@@ -14915,10 +15363,5 @@
+                     let load = op.starts_with("lift.load");
+                     arity(if load { 1 } else { 2 }, if load { 1 } else { 0 })?;
+-                    let n = op
+-                        .rsplit_once(".i")
+-                        .expect("suffix")
+-                        .1
+-                        .parse::<u64>()
+-                        .map_err(|_| Error("§4.8: malformed memory width".into()))?;
++                    let n = host_count(op.rsplit_once(".i").expect("suffix").1, "memory width")?;
+                     if n == 0 || n > 128 || n % 8 != 0 {
+                         return err("§3.3", "load/store width must be a byte multiple up to 128");
+@@ -17536,5 +17979,5 @@
+ ````
+ 
+-## `src/validation.rs` (1648 lines)
++## `src/validation.rs` (1858 lines)
+ 
+ ````rust
+@@ -17560,4 +18003,7 @@
+         }
+         let mut state = Discipline::new(f, types.clone());
++        for i in region_declarations(f) {
++            self.declare_region(i, &mut state)?;
++        }
+         fn bounds(seq: &[Instruction], out: &mut Vec<u64>) -> Result<()> {
+             for i in seq {
+@@ -17612,4 +18058,32 @@
+         }
+         self.validate_borrow_frames(f)?;
++        Ok(())
++    }
++    fn declare_region(&self, i: &Instruction, s: &mut Discipline) -> Result<()> {
++        let a = &i.operands;
++        if !i.lhs.is_empty() || !matches!(a.len(), 3 | 4) || !name(&a[0]) {
++            return err("§4.8", "qregion operand schema");
++        }
++        let aw = crate::object::host_count(&a[1], "qregion address width")?;
++        let w = crate::object::host_count(&a[2], "qregion cell width")?;
++        if w == 0 {
++            return err("§3.3", "qregion cell width must be positive");
++        }
++        if a.len() == 4 {
++            let img = a[3]
++                .strip_prefix('@')
++                .ok_or_else(|| Error("§4.6: qregion image must be @data".into()))?;
++            let size = self.data_size(img)?;
++            // 2^A * W bits = 8 * size bytes (§4.6), compared exactly.
++            let bits = crate::oracle::power_of_two(aw as u128)
++                .and_then(|cells| cells.checked_mul(w as u128));
++            if bits.is_none_or(|bits| bits % 8 != 0 || bits / 8 != size) {
++                return err("§4.6", "image size differs from 2^A*W/8 bytes");
++            }
++        }
++        if s.types.insert(a[0].clone(), Type::Region(aw, w)).is_some() {
++            return err("§3.3", "region name already defined");
++        }
++        s.local_regions.insert(a[0].clone());
+         Ok(())
+     }
+@@ -17647,16 +18121,22 @@
+                         return err("§4.8", "qif needs two arms");
+                     }
+-                    s.predicates.push(a[0].clone());
++                    let outer = s.predicates.clone();
++                    let outer_floor = s.predicate_floor;
+                     for (arm, body) in i.bodies.iter().enumerate() {
+-                        *s.predicates.last_mut().expect("qif predicate") = if arm == 0 {
++                        let mut expected = outer.clone();
++                        expected.push(if arm == 0 {
+                             a[0].clone()
+                         } else {
+                             format!("!{}", a[0])
+-                        };
++                        });
++                        s.predicates = expected.clone();
++                        s.predicate_floor = expected.len();
+                         self.validate_action_sequence(f, body, s)?;
++                        if s.predicates != expected {
++                            return err("§3.5", "qif body altered predicate stack");
++                        }
+                     }
+-                    if s.predicates.pop().as_deref() != Some(&format!("!{}", a[0])) {
+-                        return err("§3.5", "qif body altered predicate stack");
+-                    }
++                    s.predicates = outer;
++                    s.predicate_floor = outer_floor;
+                 }
+                 "qloop" => {
+@@ -17673,4 +18153,5 @@
+                     }
+                     let initial_predicates = s.predicates.clone();
++                    let initial_floor = s.predicate_floor;
+                     let selectors = if a.len() == 3 {
+                         s.wires(&a[2])?
+@@ -17701,4 +18182,9 @@
+                                 .extend((0..=iteration).map(|k| format!("{}[{k}]", a[2])));
+                         }
++                        s.predicate_floor = if selectors.is_empty() {
++                            initial_floor
++                        } else {
++                            s.predicates.len()
++                        };
+                         let prior_modified = std::mem::take(&mut s.modified);
+                         self.validate_action_sequence(f, &i.bodies[0], s)?;
+@@ -17715,4 +18201,5 @@
+                         }
+                         s.predicates = initial_predicates.clone();
++                        s.predicate_floor = initial_floor;
+                         if s.snapshot(&selectors) != selector_versions
+                             || s.closures(&selectors) != selector_closures
+@@ -17730,4 +18217,10 @@
+                 "qunpred" => {
+                     arity(1, 0)?;
++                    if s.predicates.len() <= s.predicate_floor {
++                        return err(
++                            "§3.5",
++                            "body cannot consume a structured instruction's predicate",
++                        );
++                    }
+                     if s.predicates.pop().as_deref() != Some(&a[0]) {
+                         return err("§3.5", "unmatched predicate pop");
+@@ -17808,30 +18301,5 @@
+                     s.consume(&a[1])?;
+                 }
+-                "qregion" => {
+-                    if !i.lhs.is_empty() || !matches!(a.len(), 3 | 4) || !name(&a[0]) {
+-                        return err("§4.8", "qregion operand schema");
+-                    }
+-                    let aw = crate::object::host_count(&a[1], "qregion address width")?;
+-                    let w = crate::object::host_count(&a[2], "qregion cell width")?;
+-                    if w == 0 {
+-                        return err("§3.3", "qregion cell width must be positive");
+-                    }
+-                    if a.len() == 4 {
+-                        let img = a[3]
+-                            .strip_prefix('@')
+-                            .ok_or_else(|| Error("§4.6: qregion image must be @data".into()))?;
+-                        let size = self.data_size(img)?;
+-                        // 2^A * W bits = 8 * size bytes (§4.6), compared exactly.
+-                        let bits = crate::oracle::power_of_two(aw as u128)
+-                            .and_then(|cells| cells.checked_mul(w as u128));
+-                        if bits.is_none_or(|bits| bits % 8 != 0 || bits / 8 != size) {
+-                            return err("§4.6", "image size differs from 2^A*W/8 bytes");
+-                        }
+-                    }
+-                    if s.types.insert(a[0].clone(), Type::Region(aw, w)).is_some() {
+-                        return err("§3.3", "region name already defined");
+-                    }
+-                    s.local_regions.insert(a[0].clone());
+-                }
++                "qregion" => {} // Declared once at function entry (§4.6).
+                 "qload" | "qunload" | "qstore" | "qexchm" => {
+                     let load = op == "qload";
+@@ -17892,12 +18360,21 @@
+                                 reads.extend(s.wires(&a[2])?);
+                             }
+-                            let version =
+-                                format!("{op}:{}:{:?}", a.join(" "), s.read_snapshot(&reads)?);
++                            let version = format!(
++                                "{op}:{}:{:?}:{:?}",
++                                a.join(" "),
++                                s.read_snapshot(&reads)?,
++                                s.predicates
++                            );
++                            if op == "qexchm" {
++                                s.check_target(&a[2], false)?;
++                                let mut wires = s.wires(&a[2])?;
++                                wires.push(format!("{}[*]", a[0]));
++                                s.exchange(&wires, version, &reads)?;
++                                *s.cell_epochs.entry(format!("{}[*]", a[0])).or_default() += 1;
++                                continue;
++                            }
+                             s.note_reads(&version, &reads)?;
+                             s.update_log(&format!("{}[*]", a[0]), &version, false);
+                             *s.cell_epochs.entry(format!("{}[*]", a[0])).or_default() += 1;
+-                            if op == "qexchm" {
+-                                s.change(&a[2], version, false)?;
+-                            }
+                         }
+                     }
+@@ -18071,4 +18548,16 @@
+                         .collect::<Result<Vec<_>>>()?
+                         .concat();
++                    if op == "swap" {
++                        for t in &targets {
++                            s.check_target(t, false)?;
++                        }
++                        let wires = targets
++                            .iter()
++                            .map(|t| s.wires(t))
++                            .collect::<Result<Vec<_>>>()?
++                            .concat();
++                        s.exchange(&wires, version, &reads)?;
++                        continue;
++                    }
+                     s.note_reads(&version, &reads)?;
+                     if diagonal {
+@@ -18090,7 +18579,8 @@
+                         }
+                         let key = format!(
+-                            "{op}:{}:{:?}",
++                            "{op}:{}:{:?}:{:?}",
+                             normalized.join(" "),
+-                            s.snapshot(&phase_reads)
++                            s.snapshot(&phase_reads),
++                            s.predicates
+                         );
+                         if !operands.is_empty() {
+@@ -18115,4 +18605,16 @@
+                     }
+                     s.check_target(&a[1], false)?;
++                    if op == "qexch" {
++                        s.check_target(&a[0], false)?;
++                        let wires = [s.wires(&a[0])?, s.wires(&a[1])?].concat();
++                        let version = format!(
++                            "qexch:{}:{:?}:{:?}",
++                            a.join(" "),
++                            s.read_snapshot(&[])?,
++                            s.predicates
++                        );
++                        s.exchange(&wires, version, &[])?;
++                        continue;
++                    }
+                     let version = format!(
+                         "{op}:{}:{:?}:{:?}",
+@@ -18355,5 +18857,7 @@
+                 return err("§4.8", "unknown comparison");
+             }
+-            same(&a[0], &a[1])?;
++            if !matches!(same(&a[0], &a[1])?, Type::Int(_) | Type::Ptr) {
++                return err("§3.3", "icmp requires integer or pointer bit-vectors");
++            }
+             result = Some(Type::Int(1));
+         } else if let Some((cast, suffix)) = op
+@@ -18816,6 +19320,11 @@
+     inputs: BTreeSet<String>,
+     predicates: Vec<String>,
++    /// qif/qloop expansion-owned selectors cannot be popped by their bodies.
++    predicate_floor: usize,
+     created: BTreeMap<String, Creation>,
+     versions: BTreeMap<String, Vec<String>>,
++    /// Collision-free identities for version references inside snapshots.
++    /// Keep keys once; do not recursively duplicate their computing histories.
++    value_ids: BTreeMap<String, String>,
+     /// Window-closing events per wire (non-diagonal gates, non-permutation
+     /// calls): a window opens at its computation (§6.2), so cleanups compare
+@@ -18826,4 +19335,5 @@
+     reads: BTreeMap<String, Vec<(String, Vec<String>)>>,
+     other_versions: BTreeSet<String>,
++    exchanges: BTreeMap<String, (String, Vec<String>)>,
+     local_regions: BTreeSet<String>,
+     cell_epochs: BTreeMap<String, u128>,
+@@ -18844,10 +19354,13 @@
+                 .collect(),
+             predicates: Vec::new(),
++            predicate_floor: 0,
+             created: BTreeMap::new(),
+             versions: BTreeMap::new(),
++            value_ids: BTreeMap::new(),
+             closed: BTreeMap::new(),
+             phases: Vec::new(),
+             reads: BTreeMap::new(),
+             other_versions: BTreeSet::new(),
++            exchanges: BTreeMap::new(),
+             local_regions: BTreeSet::new(),
+             cell_epochs: BTreeMap::new(),
+@@ -18896,5 +19409,11 @@
+             .iter()
+             .map(|w| {
+-                let mut log = self.versions.get(w).cloned().unwrap_or_default();
++                let mut log: Vec<String> = self
++                    .versions
++                    .get(w)
++                    .into_iter()
++                    .flatten()
++                    .map(|v| self.value_ids[v].clone())
++                    .collect();
+                 if let Some(epoch) = self.cell_epochs.get(w) {
+                     log.push(format!("cell_version:{epoch}"));
+@@ -19008,4 +19527,76 @@
+         Ok(())
+     }
++    /// Exchange outputs depend on the union of the OLD operand dependencies.
++    /// Commit their logs simultaneously: the matching exchange may discharge
++    /// its own outputs' mutual reads, but never an outstanding external reader.
++    fn exchange(
++        &mut self,
++        wires: &[String],
++        version: String,
++        extra_reads: &[String],
++    ) -> Result<()> {
++        let other = wires.iter().any(|w| self.wire_is_other(w));
++        let context = self.read_snapshot(&[])?;
++        let base = format!("{version}:context{context:?}:polarity{:?}", self.predicates);
++        let prior = wires
++            .first()
++            .and_then(|w| self.versions.get(w))
++            .and_then(|v| v.last());
++        let inverse = prior
++            .filter(|prior| {
++                self.exchanges
++                    .get(*prior)
++                    .is_some_and(|(op, outputs)| op == &base && outputs == wires)
++                    && wires
++                        .iter()
++                        .all(|w| self.versions.get(w).and_then(|v| v.last()) == Some(*prior))
++            })
++            .cloned();
++        let complete = if let Some(prior) = inverse {
++            // The whole joint computation is still current: use the captured
++            // entry versions, rather than treating its outputs as new inputs.
++            prior
++        } else {
++            let complete = format!("{base}:exchange_inputs{:?}", self.snapshot(wires));
++            let mut reads = wires.to_vec();
++            reads.extend_from_slice(extra_reads);
++            self.note_reads(&complete, &reads)?;
++            self.exchanges
++                .insert(complete.clone(), (base, wires.to_vec()));
++            complete
++        };
++        if other {
++            self.other_versions.insert(complete.clone());
++        }
++        let reads_group = |v: &String| {
++            self.reads
++                .get(v)
++                .is_some_and(|r| r.iter().any(|(w, _)| wires.contains(w)))
++        };
++        let blocked = other
++            && (self.phases.iter().any(reads_group)
++                || self
++                    .versions
++                    .iter()
++                    .any(|(w, log)| !wires.contains(w) && log.iter().any(reads_group))
++                || self
++                    .created
++                    .values()
++                    .any(|c| c.versions.iter().any(|(w, _)| wires.contains(w))));
++        for w in wires {
++            self.update_log(w, &complete, blocked);
++        }
++        Ok(())
++    }
++    fn wire_is_other(&self, w: &str) -> bool {
++        self.versions.get(w).is_some_and(|log| {
++            log.iter().any(|v| {
++                self.other_versions.contains(v)
++                    || ["h:", "rx:", "ry:", "call_other_"]
++                        .iter()
++                        .any(|p| v.starts_with(p))
++            })
++        })
++    }
+     fn change(&mut self, n: &str, version: String, other: bool) -> Result<()> {
+         self.check_target(n, false)?;
+@@ -19015,5 +19606,8 @@
+         // the operation key is taken before formatting, never re-split.)
+         let original = version;
+-        let version = format!("{original}:context{context:?}");
++        let version = format!(
++            "{original}:context{context:?}:polarity{:?}",
++            self.predicates
++        );
+         let reads = self.reads.get(&original).cloned().unwrap_or(context);
+         self.reads.insert(version.clone(), reads);
+@@ -19047,4 +19641,8 @@
+     }
+     fn update_log(&mut self, wire: &str, version: &str, blocked: bool) {
++        let next = self.value_ids.len();
++        self.value_ids
++            .entry(version.into())
++            .or_insert_with(|| format!("v{next}"));
+         self.modified.insert(wire.into());
+         let log = self.versions.entry(wire.into()).or_default();
+@@ -19063,17 +19661,11 @@
+     }
+     fn is_other(&self, n: &str) -> Result<bool> {
+-        Ok(self.wires(n)?.iter().any(|w| {
+-            self.versions.get(w).is_some_and(|log| {
+-                log.iter().any(|v| {
+-                    self.other_versions.contains(v) || {
+-                        ["h:", "rx:", "ry:", "call_other_"]
+-                            .iter()
+-                            .any(|p| v.starts_with(p))
+-                    }
+-                })
+-            })
+-        }))
++        Ok(self.wires(n)?.iter().any(|w| self.wire_is_other(w)))
+     }
+     fn record_change(&mut self, n: &str, version: String) -> Result<()> {
++        let next = self.value_ids.len();
++        self.value_ids
++            .entry(version.clone())
++            .or_insert_with(|| format!("v{next}"));
+         for wire in self.wires(n)? {
+             let log = self.versions.entry(wire).or_default();
+@@ -19103,4 +19695,13 @@
+         "x" | "cx" | "ccx" | "mcx" | "swap" | "h" | "cz" | "qxor" | "qexch" | "qexchm"
+         | "qstore" | "oracle_call" => op,
++        "qinplace" => {
++            // §5.3: exchange the two oracle identities, retaining tk, target
++            // and the complete captured effective-control version suffix.
++            let mut fields = rest.splitn(3, ' ');
++            let g = fields.next()?;
++            let ginv = fields.next()?;
++            let tail = fields.next()?;
++            return Some(format!("qinplace:{ginv} {g} {tail}"));
++        }
+         "rx" | "ry" | "rz" => {
+             let (angle, tail) = rest.split_once(' ')?;
+@@ -19186,4 +19787,56 @@
+         adjoint,
+     })
++}
++
++/// Lexical declarations, including zero-trip loops and both qif arms.
++pub(crate) fn region_declarations(f: &Function) -> Vec<&Instruction> {
++    fn gather<'a>(seq: &'a [Instruction], out: &mut Vec<&'a Instruction>) {
++        for i in seq {
++            if i.op == "qregion" {
++                out.push(i);
++            }
++            for body in &i.bodies {
++                gather(body, out);
++            }
++        }
++    }
++    let mut out = Vec::new();
++    for block in &f.blocks {
++        gather(&block.instructions, &mut out);
++    }
++    out
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn exchange_entry_histories_have_compact_references() {
++        let f = Function {
++            kind: "action".into(),
++            name: "a".into(),
++            params: std::array::from_fn(|_| vec![]),
++            regs: vec![],
++            bounds: vec![],
++            blocks: vec![],
++            lines: vec![],
++        };
++        let mut s = Discipline::new(
++            &f,
++            BTreeMap::from([("a".into(), Type::Wire(1)), ("b".into(), Type::Wire(1))]),
++        );
++        let wires = ["a[0]".to_string(), "b[0]".to_string()];
++        for _ in 0..12 {
++            s.exchange(&wires, "qexch:a b".into(), &[]).unwrap();
++            s.change("a", "x:a".into(), false).unwrap();
++        }
++        // Alternating exchanges and writes have only 24 computing events;
++        // a snapshot must reference them, not recursively duplicate their text.
++        let size: usize = s.versions.values().flatten().map(String::len).sum();
++        assert!(
++            size < 16_384,
++            "24 events expanded to {size} bytes of version keys"
++        );
++    }
+ }
+ ````
+@@ -19809,5 +20462,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (1049 lines)
++## `tests/cli_xam.rs` (1140 lines)
+ 
+ ````rust
+@@ -20859,4 +21512,95 @@
+         ],
+         "expected JSON array",
++    );
++}
++
++#[test]
++fn r2_finite_rotations_render_when_the_combined_angle_exceeds_binary64() {
++    for literal in [true, false] {
++        let sig = if literal {
++            r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#
++        } else {
++            r#"{"abi":"0.8","args":["f64"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#
++        };
++        let angle = if literal { "1e+308" } else { "theta" };
++        let params = if literal { "" } else { "theta:f64" };
++        let body = format!("action @a (t:wire mut) () () ({params}) ()\n^entry():\nrz {angle} t\nrz {angle} t\nrz {angle} t\nrz {angle} t");
++        let o = support::rehash(&support::object(&[("a", sig, &body)], "{}", ""));
++        let path = tmp_file(
++            if literal {
++                "r2-large-literal.bisa"
++            } else {
++                "r2-large-arg.bisa"
++            },
++            &o.text,
++        );
++        for t in ["0", "1"] {
++            let mut args = vec!["run-action", &path, "a", "--mut", t];
++            if !literal {
++                args.extend(["--arg", "f64:1e308"]);
++            }
++            let v = ok(&args);
++            let state = field(&v, "state").object().unwrap();
++            assert_eq!(state.len(), 1);
++            let amp = state[t].array().unwrap();
++            let re: f64 = amp[0].canonical().parse().unwrap();
++            let im: f64 = amp[1].canonical().parse().unwrap();
++            // theta is the EXACT binary64 1e308. Four single-gate phases
++            // multiply to exp(-i*2*theta) on |0>, its conjugate on |1>.
++            assert!((re - 0.588863244801576).abs() < 1e-12, "{re}");
++            let sign = if t == "0" { 1.0 } else { -1.0 };
++            assert!((im - sign * 0.8082326886001081).abs() < 1e-12, "{im}");
++            assert!((re * re + im * im - 1.0).abs() < 1e-12);
++            args[0] = "reverse";
++            let v = ok(&args);
++            assert_eq!(field(&v, "equals_entry"), &Json::Bool(true));
++            assert_eq!(field(&v, "state").canonical(), format!("{{\"{t}\":[1,0]}}"));
++        }
++    }
++}
++
++#[test]
++fn r2_qinplace_identity_workspace_cleanup_runs_and_reverses() {
++    let os =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    let ac = r#"{"abi":"0.8","args":["token"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let text = support::object(&[("g", os, "oracle @g (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x"), ("a", ac, "action @a (t:wire mut) () () (tk:token) ()\n^entry():\nd = qalloc any 1\nqinplace @g @g tk d\nqinplace @g @g tk d\nqfree d")], "{}", "");
++    let path = tmp_file("r2-qinplace-cli.bisa", &support::rehash(&text).text);
++    for t in ["0", "1"] {
++        for adj in [false, true] {
++            let mut args = vec![
++                "run-action",
++                &path,
++                "a",
++                "--mut",
++                t,
++                "--arg",
++                "token:1,0,0,0",
++            ];
++            if adj {
++                args.push("--adjoint");
++            }
++            assert_eq!(
++                field(&ok(&args), "state").canonical(),
++                format!("{{\"{t}\":[1,0]}}")
++            );
++        }
++        let v = ok(&["reverse", &path, "a", "--mut", t, "--arg", "token:1,0,0,0"]);
++        assert_eq!(field(&v, "equals_entry"), &Json::Bool(true));
++    }
++    // Published sum_db's n=0 path: wrapper 4 + callee 6 = 10 rows;
++    // 13 saved locations + 3 record cells = stack 16, payload and code zero.
++    let v = ok(&[
++        "run-oracle",
++        &fixture("sum_db"),
++        "sum_db",
++        "--input",
++        "0",
++        "--budget",
++        "10,4080,16,64",
++    ]);
++    assert_eq!(
++        (uint(&v, "payload"), uint(&v, "code"), uint(&v, "steps")),
++        (0, 0, 10)
+     );
+ }
+@@ -23318,5 +24062,5 @@
+ ````
+ 
+-## `tests/r1_borrow.rs` (115 lines)
++## `tests/r1_borrow.rs` (172 lines)
+ 
+ ````rust
+@@ -23436,7 +24180,64 @@
+     Object::parse(&perm_action(1, "qloop 2 {\ncx b t\ncx t b\n}", &[2])).unwrap_err();
+ }
++
++#[test]
++fn r2_opaque_borrow_calls_bind_classical_args_and_tokens_through_inlining() {
++    use bennett_isa_ref::{Argument, Budget};
++    let os = r#"{"abi":"0.8","args":["i1"],"fault":4,"in":[],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    let ps = r#"{"abi":"0.8","args":["token","i1","i1"],"bounds":[],"in":[],"kind":"perm_action","mem":[],"mut":[4],"tier":"q"}"#;
++    let cs = r#"{"abi":"0.8","args":["token","i1"],"bounds":[],"in":[],"kind":"perm_action","mem":[],"mut":[1,4],"tier":"q"}"#;
++    let oracle = "oracle @o () (t:wire) (f:wire[4]) () (n:i1)\n^entry():\nlift.retval n";
++    let child = "perm_action @child (d:wire mut, f:wire[4] mut) () () (token:token, value:i1) ()\n^entry():\noracle_call @o token () d f () (value)";
++    for inline in [false, true] {
++        let call = |v| {
++            if inline {
++                format!("action_call @child (d, f) () () (tk, {v})")
++            } else {
++                format!("oracle_call @o tk () d f () ({v})")
++            }
++        };
++        let build = |second| {
++            let body = format!("perm_action @a (f:wire[4] mut) () () (tk:token, x:i1, y:i1) ()\n^entry():\nd = qborrow any 1\n{}\n{}\nqreturn d", call("x"), call(second));
++            support::object(
++                &[("o", os, oracle), ("child", cs, child), ("a", ps, &body)],
++                "{}",
++                "",
++            )
++        };
++        let e = Object::parse(&build("y")).expect_err("x and y are not the same classical binding");
++        assert!(e.to_string().contains("§5.6"), "{e}");
++        let o = Object::parse(&build("x")).unwrap();
++        // d_out=d_in XOR x XOR x=d_in; fault XOR 0 twice, for every f,d.
++        for x in 0..2 {
++            for f in 0..16 {
++                for d in 0..2 {
++                    let mut q = QuantumState::new();
++                    let fw = q.allocate(4).unwrap();
++                    let dw = q.allocate(1).unwrap();
++                    for (j, w) in fw.iter().chain(&dw).enumerate() {
++                        if (f | (d << 4)) >> j & 1 == 1 {
++                            q.gate("x", &[*w], None, &[]).unwrap();
++                        }
++                    }
++                    let before = q.clone();
++                    let mut b = QuantumBindings::default();
++                    b.bundles.insert("f".into(), fw);
++                    b.borrowed.push(dw);
++                    b.args
++                        .insert("tk".into(), Argument::Token(Budget::steps(1)));
++                    b.args.insert("x".into(), Argument::Bits(x));
++                    b.args.insert("y".into(), Argument::Bits(1 - x));
++                    o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++                    assert_eq!(q, before);
++                    o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++                    assert_eq!(q, before);
++                }
++            }
++        }
++    }
++}
+ ````
+ 
+-## `tests/r1_certificates.rs` (216 lines)
++## `tests/r1_certificates.rs` (244 lines)
+ 
+ ````rust
+@@ -23657,7 +24458,35 @@
+     }
+ }
++
++#[test]
++fn r2_interval_claim_diagnostics_name_deliverable_eleven() {
++    let text = swap_frame(1);
++    let o = Object::parse(&text).unwrap();
++    let closure = o.identity().unwrap().closure_hashes["a"].clone().unwrap();
++    for kind in ["numerical", "channel"] {
++        let metric = if kind == "channel" {
++            "diamond"
++        } else {
++            "operator_norm"
++        };
++        let dual = if kind == "channel" {
++            ",\"dual\":[]"
++        } else {
++            ""
++        };
++        let claim = format!(
++            r#"{{"kind":"{kind}","subject":{{"closure_hash":"{closure}","variant":"fwd","inherited_controls":0,"schedule_hash":"{}"}},"metric":"{metric}","precision_bits":128,"bound":0{dual}}}"#,
++            "4".repeat(64)
++        );
++        let o = Object::parse(&certificate(&text, 1, &claim, "")).unwrap();
++        match o.verify_claim(&closure, 0).unwrap() {
++            ClaimVerdict::Unverified(why) => assert!(why.contains("deliverable 11"), "{why}"),
++            other => panic!("staged interval checker cannot prove a claim: {other:?}"),
++        }
++    }
++}
+ ````
+ 
+-## `tests/r1_discipline.rs` (246 lines)
++## `tests/r1_discipline.rs` (354 lines)
+ 
+ ````rust
+@@ -23907,4 +24736,112 @@
+     accept(&tmp("d0 = qalloc any 1\nd1 = qcopy p\nh d0\nccx d0 p d1\ncx d1 t\ncx d1 t\nccx d0 p d1\nh d0\nquncopy p d1\nqfree d0"));
+     accept(&tmp("d0 = qalloc any 1\nd1 = qcopy t\nh d0\ncx d0 d1\ncz d1 t\ncz d1 t\ncx d0 d1\nh d0\nquncopy t d1\nqfree d0"));
++}
++
++#[test]
++fn r2_regions_are_lexical_function_entry_declarations() {
++    for (body, bounds) in [
++        ("qloop 2 {\nqregion r 1 1\n}", vec![2]),
++        ("d = qload r p\nqunload r p d\nqregion r 1 1", vec![]),
++        (
++            "d = qload r p\nqunload r p d\nqloop 0 {\nqregion r 1 1\n}",
++            vec![0],
++        ),
++        (
++            "qif p {\nqregion r 1 1\n} {\nd = qload r p\nqunload r p d\n}",
++            vec![],
++        ),
++    ] {
++        run_basis(&accept(&action(body, &bounds)), |t, _| t);
++    }
++    reject(
++        &action("qregion r 1 1\nqloop 0 {\nqregion r 1 1\n}", &[0]),
++        "§3.3",
++    );
++    // Exercise borrow Compiler too: region use before a zero-trip declaration.
++    let text = action("b = qborrow any 1\nd = qload r p\nqxor d b\nqxor d b\nqunload r p d\nqreturn b\nqloop 0 {\nqregion r 1 1\n}", &[0]);
++    accept(&text);
++}
++
++#[test]
++fn r2_exchanges_preserve_transitive_entangling_read_dependencies() {
++    for exchange in ["swap", "qexch"] {
++        let body =
++            format!("d = qalloc any 1\nh d\n{exchange} d m\ncx m t\n{exchange} d m\nh d\nqfree d");
++        reject(&tmp(&body), "§6.2");
++        let good = body.replace("cx m t", "cx m t\ncx m t");
++        run_three_identity(&accept(&tmp(&good)));
++    }
++    let body = "qregion r 1 1\nd = qalloc any 1\nh d\nqexchm r p d\nz = qload r p\ncx z t\nqunload r p z\nqexchm r p d\nh d\nqfree d";
++    reject(&tmp(body), "§6.2");
++    run_three_identity(&accept(&tmp(&body.replace("cx z t", "cx z t\ncx z t"))));
++}
++fn run_three_identity(o: &Object) {
++    for input in 0..9u32 {
++        let mut q = QuantumState::new();
++        let wires = q.allocate(3).unwrap();
++        for (bit, w) in wires.iter().enumerate() {
++            if input == 8 {
++                q.gate("h", &[*w], None, &[]).unwrap();
++            } else if input >> bit & 1 == 1 {
++                q.gate("x", &[*w], None, &[]).unwrap();
++            }
++        }
++        let before = q.clone();
++        let mut b = QuantumBindings::default();
++        for (n, w) in ["t", "m", "p"].iter().zip(&wires) {
++            b.bundles.insert((*n).into(), vec![*w]);
++        }
++        o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++        assert_eq!(q, before);
++        o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++        assert_eq!(q, before);
++    }
++}
++
++#[test]
++fn r2_exchange_inverse_must_cancel_both_outputs_together() {
++    reject(&tmp("qregion r 1 1\nd0 = qalloc any 1\nd1 = qalloc any 1\nqexch d0 d1\nqexch d1 t\nx t\nqpred d0\nx t\nqunpred d0\nqexch d1 t\nqexch d0 d1\nqfree d1\nqfree d0"), "§6.2");
++}
++
++#[test]
++fn r2_qif_cross_arm_unconditional_lifetimes_reverse_the_expansion() {
++    // §3.5 lifetimes are unconditional; §4.6 expands then before else.
++    // The adjoint therefore recreates d (inverse else) before releasing it.
++    let o = accept(&action("qif p {\nd = qalloc any 1\n} {\nqfree d\n}", &[]));
++    run_basis(&o, |t, _| t);
++}
++
++#[test]
++fn r2_qif_body_cannot_temporarily_consume_its_implicit_selector() {
++    reject(
++        &two_mut("qif m {\nqunpred m\nx m\nqpred m\n} {\nx t\n}"),
++        "§3.5",
++    );
++}
++
++#[test]
++fn r2_exchange_computations_pin_their_entry_versions() {
++    reject(&tmp("qregion r 1 1\nd0 = qload r p\nd1 = qcopy p\nqexch d1 m\nccx d1 t d0\nqexch d1 m\nqxor t m\nqexch d1 m\nccx d1 t d0\nqexch d1 m\nquncopy p d1\nqunload r p d0"), "§6.2");
++}
++
++#[test]
++fn r2_memory_exchange_and_target_writes_do_not_cancel_independently() {
++    reject(&action("qregion r 1 1\nd0 = qalloc any 1\nqif t {\nqloop 3 {\nqexchm r p d0\n}\n} {\nqexchm r p d0\n}\nccx t p d0\nqpred p\nx d0\nqunpred p\nqpred p\nx d0\nqunpred p\nqif t {\nqloop 3 {\nqexchm r p d0\n}\n} {\nqexchm r p d0\n}\nccx t p d0\nqfree d0", &[3,3]), "§6.2");
++}
++
++#[test]
++fn r2_memory_operations_pin_predicate_polarity() {
++    reject(
++        &action(
++            "qregion r 1 1\nqif p {\nqstore r p t\n} {\nqstore r p t\n}",
++            &[],
++        ),
++        "§5.1",
++    );
++}
++
++#[test]
++fn r2_complementary_diagonal_phases_do_not_cancel() {
++    reject(&tmp("d0 = qalloc any 1\nd1 = qalloc any 1\nh d0\ncx d0 d1\nqif p {\ncz d1 t\n} {\ncz d1 t\n}\ncx d0 d1\nh d0\nqfree d1\nqfree d0"), "§6.2");
+ }
+ ````
+@@ -24637,5 +25574,5 @@
+ ````
+ 
+-## `tests/r1_fuzz_discipline.rs` (294 lines)
++## `tests/r1_fuzz_discipline.rs` (371 lines)
+ 
+ ````rust
+@@ -24678,5 +25615,5 @@
+ fn compute_op(r: &mut Rng, d: &str, controls: &[String]) -> Op {
+     let c = |r: &mut Rng| controls[r.below(controls.len() as u64) as usize].clone();
+-    match r.below(13) {
++    match r.below(16) {
+         0 => op(&format!("x {d}"), &format!("x {d}")),
+         1 | 2 => {
+@@ -24730,4 +25667,14 @@
+             )
+         }
++        13 | 14 => {
++            let c1 = c(r);
++            let gate = if r.chance(50) { "swap" } else { "qexch" };
++            let line = format!("{gate} {d} {c1}");
++            op(&line, &line)
++        }
++        15 => {
++            let line = format!("qexchm r p {d}");
++            op(&line, &line)
++        }
+         _ => {
+             let c1 = c(r);
+@@ -24742,5 +25689,5 @@
+ fn middle_op(r: &mut Rng, work: &[String]) -> String {
+     let d = &work[r.below(work.len() as u64) as usize];
+-    match r.below(20) {
++    match r.below(23) {
+         0..=2 => format!("cx {d} t"),
+         3 => format!("s {d}"),
+@@ -24760,4 +25707,7 @@
+         17 => format!("qstore r p {d}\nqstore r p {d}"),
+         18 => format!("qloop 2 {{\ncx {d} t\n}}"),
++        20 => format!("swap {d} m"),
++        21 => format!("qexch {d} m"),
++        22 => format!("qexchm r p {d}"),
+         _ => format!("cz {d} t"),
+     }
+@@ -24933,4 +25883,68 @@
+     let (accepted, rejected) = total;
+     println!("§6 differential sweep: {accepted} accepted (all clean), {rejected} rejected");
++}
++
++#[test]
++fn generated_borrow_frames_keep_differing_classical_bindings_distinct() {
++    use bennett_isa_ref::{Argument, Budget};
++    let os = r#"{"abi":"0.8","args":["i1"],"fault":4,"in":[],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    let ac = r#"{"abi":"0.8","args":["token","i1","i1"],"bounds":[],"in":[],"kind":"perm_action","mem":[],"mut":[4],"tier":"q"}"#;
++    let mut r = Rng(0x0b07_7002);
++    for _ in 0..80 {
++        let mut parity = [false; 2];
++        let mut body = "perm_action @a (f:wire[4] mut) () () (tk:token, x:i1, y:i1) ()\n^entry():\nd = qborrow any 1\n".to_string();
++        for _ in 0..2 * (1 + r.below(3)) {
++            let j = r.below(2) as usize;
++            parity[j] ^= true;
++            body.push_str(&format!(
++                "oracle_call @o tk () d f () ({})\n",
++                ["x", "y"][j]
++            ));
++        }
++        body.push_str("qreturn d");
++        let text = support::object(
++            &[
++                (
++                    "o",
++                    os,
++                    "oracle @o () (t:wire) (f:wire[4]) () (n:i1)\n^entry():\nlift.retval n",
++                ),
++                ("a", ac, &body),
++            ],
++            "{}",
++            "",
++        );
++        let parsed = Object::parse(&text);
++        // d' = d XOR parity_x*x XOR parity_y*y. This is identity for ALL
++        // classical bindings iff both formal-argument occurrence counts are even.
++        if parity.iter().any(|v| *v) {
++            assert!(parsed.unwrap_err().to_string().contains("§5.6"));
++            continue;
++        }
++        let o = parsed.unwrap();
++        for input in 0..16u32 {
++            let mut q = QuantumState::new();
++            let wires = q.allocate(5).unwrap();
++            for (bit, w) in wires.iter().enumerate() {
++                if (input & 3) >> (bit % 2) & 1 == 1 {
++                    q.gate("x", &[*w], None, &[]).unwrap();
++                }
++            }
++            let before = q.clone();
++            let mut b = QuantumBindings::default();
++            b.bundles.insert("f".into(), wires[..4].to_vec());
++            b.borrowed.push(vec![wires[4]]);
++            b.args
++                .insert("tk".into(), Argument::Token(Budget::steps(1)));
++            b.args
++                .insert("x".into(), Argument::Bits((input >> 2 & 1) as u128));
++            b.args
++                .insert("y".into(), Argument::Bits((input >> 3 & 1) as u128));
++            o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++            assert_eq!(q, before, "{body}");
++            o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++            assert_eq!(q, before, "{body}");
++        }
++    }
+ }
+ ````
+@@ -25383,5 +26397,5 @@
+ ````
+ 
+-## `tests/r1_qinplace.rs` (96 lines)
++## `tests/r1_qinplace.rs` (146 lines)
+ 
+ ````rust
+@@ -25482,7 +26496,57 @@
+     assert!(e.contains("§4.5"), "{e}");
+ }
++
++#[test]
++fn r2_qinplace_explicit_adjoint_cleans_workspace() {
++    for (oracle_body, steps) in [
++        ("lift.retval x", 1),
++        (
++            "one = lift.const.i1 1\nr = lift.xor x one\nlift.retval r",
++            3,
++        ),
++    ] {
++        let g = format!("oracle @g (x:wire in) (t:wire) (f:wire[4]) () ()\nregs {{ one:reg[1], r:reg[1] }}\n^entry():\n{oracle_body}");
++        let gi = g.replace("@g ", "@gi ");
++        let body = "action @a (t:wire mut, c:wire mut) () () (tk:token) ()\n^entry():\nd = qalloc any 1\nqxor t d\nqinplace @g @gi tk d\nqinplace @gi @g tk d\nqxor t d\nqfree d";
++        let build = |body: &str| {
++            support::object(
++                &[
++                    ("g", ORACLE1, &g),
++                    ("gi", ORACLE1, &gi),
++                    ("a", ACTION, body),
++                ],
++                "{}",
++                "",
++            )
++        };
++        let o = support::rehash(&build(body));
++        for t in 0..2 {
++            for c in 0..2 {
++                assert_eq!(run(&o, t, c, steps, false).unwrap(), (t, c));
++                assert_eq!(run(&o, t, c, steps, true).unwrap(), (t, c));
++            }
++        }
++        // Same text pair but different captured effective-control versions.
++        let bad = body.replace("qinplace @g @gi tk d\nqinplace @gi @g tk d", "qpred c\nqinplace @g @gi tk d\nqunpred c\nx c\nqpred c\nqinplace @gi @g tk d\nqunpred c");
++        let e = Object::parse(&build(&bad)).unwrap_err();
++        assert!(e.to_string().contains("§6.2"), "{e}");
++    }
++}
++
++#[test]
++fn r2_qinplace_complementary_arms_do_not_cancel() {
++    let g = "oracle @g (x:wire in) (t:wire) (f:wire[4]) () ()\nregs { one:reg[1], r:reg[1] }\n^entry():\none = lift.const.i1 1\nr = lift.xor x one\nlift.retval r";
++    let a = "action @a (t:wire mut, c:wire mut) () () (tk:token) ()\n^entry():\nd = qalloc any 1\nqif c {\nqinplace @g @g tk d\n} {\nqinplace @g @g tk d\n}\nqfree d";
++    let e = Object::parse(&support::object(
++        &[("g", ORACLE1, g), ("a", ACTION, a)],
++        "{}",
++        "",
++    ))
++    .unwrap_err();
++    assert!(e.to_string().contains("§6.2"), "{e}");
++}
+ ````
+ 
+-## `tests/r1_rules.rs` (324 lines)
++## `tests/r1_rules.rs` (422 lines)
+ 
+ ````rust
+@@ -25811,4 +26875,102 @@
+     );
+ }
++
++#[test]
++fn r2_multi_input_invocation_keys_preserve_tuple_boundaries() {
++    let si = r#"{"abi":"0.8","args":[],"fault":4,"in":[8,8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let so = r#"{"abi":"0.8","args":["token"],"fault":4,"in":[8,8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let build = |middle: &str| {
++        object(&[
++        ("sum2", si, "oracle @sum2 (x:wire[8] in, y:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\nregs { r:reg[8] }\n^entry():\nr = lift.add x y\nlift.retval r"),
++        ("p", so, &format!("oracle @p (a:wire[8] in, b:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)\nregs {{ x:reg[8], y:reg[8], out:reg[8], fr:reg[4] }}\n^entry():\nx = lift.mov a\ny = lift.mov b\nlift.oracle_call @sum2 tk (x, y) out fr () ()\n{middle}lift.oracle_uncall @sum2 tk (x, y) out fr () ()\nlift.retval out"))], "{}", "")
++    };
++    for middle in ["x = lift.add x y\n", "y = lift.const.i8 1\n"] {
++        rejects(&build(middle), "§5.5");
++    }
++    // (1+2) XOR (1+2)=0; 2 moves + call + uncall + retval = 5.
++    let o = rehash(&build(""));
++    let mut input = OracleInput::bits(&[1, 2]);
++    input.args.push(Argument::Token(Budget::steps(2)));
++    assert_eq!(check(&o, "p", &input, Budget::steps(5)), (0, 0, 5));
++}
++
++#[test]
++fn r2_qjumpr_can_enter_an_uncall_at_a_non_label_row() {
++    let si =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let so = r#"{"abi":"0.8","args":["token"],"fault":4,"in":[],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let inner =
++        "oracle @inner (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n^entry():\nlift.retval x";
++    let bad = "oracle @p () (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { x:reg[8], dest:reg[32], off:reg[32], out:reg[8], fr:reg[4] }\n^entry():\nx = lift.const.i8 1\ndest = lift.label ^pair\noff = lift.const.i32 1\ndest = lift.add dest off\nqjumpr dest\n^pair():\nlift.oracle_call @inner tk (x) out fr () ()\nlift.oracle_uncall @inner tk (x) out fr () ()\nlift.retval out";
++    rejects(
++        &object(&[("inner", si, inner), ("p", so, bad)], "{}", ""),
++        "§5.5",
++    );
++    // Call at entry dominates all targets of the computed jump. Every route
++    // to the uncall has an outstanding call (even if the jump revisits entry).
++    let good = "oracle @p () (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { x:reg[8], dest:reg[32], out:reg[8], fr:reg[4] }\n^entry():\nlift.oracle_call @inner tk (x) out fr () ()\ndest = lift.label ^cleanup\nqjumpr dest\n^cleanup():\nlift.oracle_uncall @inner tk (x) out fr () ()\nlift.retval out";
++    let o = rehash(&object(&[("inner", si, inner), ("p", so, good)], "{}", ""));
++    let mut input = OracleInput::bits(&[]);
++    input.args.push(Argument::Token(Budget::steps(1)));
++    assert_eq!(check(&o, "p", &input, Budget::steps(5)), (0, 0, 5));
++}
++
++#[test]
++fn r2_codex_changed_second_input_and_two_memory_regions() {
++    let si = r#"{"abi":"0.8","args":[],"fault":4,"in":[8,8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let so = r#"{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#;
++    let inner = "oracle @inner (x:wire[8] in, y:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n^entry():\nlift.retval y";
++    let outer = "oracle @outer (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { a:reg[8], b:reg[8], r:reg[8], fr:reg[4] }\n^entry():\na = lift.mov x\nlift.oracle_call @inner tk (a, b) r fr () ()\nb = lift.const.i8 1\nlift.oracle_uncall @inner tk (a, b) r fr () ()\nlift.retval r";
++    rejects(
++        &object(&[("inner", si, inner), ("outer", so, outer)], "{}", ""),
++        "§5.5",
++    );
++    let good = outer.replace("b = lift.const.i8 1\n", "");
++    let o = rehash(&object(
++        &[("inner", si, inner), ("outer", so, &good)],
++        "{}",
++        "",
++    ));
++    for x in [0, 1, 255] {
++        let mut input = OracleInput::bits(&[x]);
++        input.args.push(Argument::Token(Budget::steps(1)));
++        assert_eq!(check(&o, "outer", &input, Budget::steps(4)), (0, 0, 4));
++    }
++    let mem = r#"[{"A":1,"W":8,"role":"in"},{"A":1,"W":8,"role":"in"}]"#;
++    let si = si.replace("\"mem\":[]", &format!("\"mem\":{mem}"));
++    let so = so.replace("\"mem\":[]", &format!("\"mem\":{mem}"));
++    let inner = inner.replace(
++        "(f:wire[4]) () ()",
++        "(f:wire[4]) (db:region[1,8] in, aux:region[1,8] in) ()",
++    );
++    let layout = "\nsection layout\n{\"A_tab\":2,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":64,\"heap_limit_max\":0,\"interface_regions\":{\"inner\":{\"aux\":{\"base\":32},\"db\":{\"base\":16}},\"outer\":{\"aux\":{\"base\":32},\"db\":{\"base\":16}}},\"null_size\":16,\"ptr_width\":32}\n";
++    let outer = good
++        .replace(
++            "(f:wire[4]) () (tk:token)",
++            "(f:wire[4]) (db:region[1,8] in, aux:region[1,8] in) (tk:token)",
++        )
++        .replace("fr:reg[4]", "fr:reg[4], p:reg[32]")
++        .replace("r fr () ()", "r fr (db, aux) ()");
++    Object::parse(&object(
++        &[("inner", &si, &inner), ("outer", &so, &outer)],
++        "{}",
++        layout,
++    ))
++    .unwrap();
++    for region in ["db", "aux"] {
++        let bad = outer.replace(
++            "lift.oracle_uncall",
++            &format!("p = lift.addr @{region}\nlift.store.i8 p a\nlift.oracle_uncall"),
++        );
++        rejects(
++            &object(
++                &[("inner", &si, &inner), ("outer", &so, &bad)],
++                "{}",
++                layout,
++            ),
++            "§5.5",
++        );
++    }
++}
+ ````
+ 
+@@ -26075,4 +27237,93 @@
+     let w = bennett_isa_ref::DerivedWidths::derive(&o, "h", budget).unwrap();
+     assert_eq!(w.hc, 130);
++}
++````
++
++## `tests/r2_validation.rs` (84 lines)
++
++````rust
++//! Round 2 load-time witnesses; expectations follow §§3.3, 3.5, 16.1.
++mod support;
++use bennett_isa_ref::Object;
++use std::process::Command;
++fn reject(text: &str, rule: &str, tag: &str) {
++    let e = Object::parse(text).expect_err("malformed object accepted");
++    assert!(e.to_string().contains(rule), "{e}");
++    let path = format!("{}/.tmp/r2-{tag}.bisa", env!("CARGO_MANIFEST_DIR"));
++    std::fs::write(&path, text).unwrap();
++    for cmd in ["hash", "check"] {
++        let out = Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++            .args([cmd, &path])
++            .output()
++            .unwrap();
++        assert_eq!(out.status.code(), Some(1), "{:?}", out);
++        assert!(out.stdout.is_empty());
++        assert!(String::from_utf8_lossy(&out.stderr).contains(rule));
++    }
++}
++#[test]
++fn qif_arms_cannot_pop_or_leave_predicates() {
++    for (n, arm) in ["qunpred p", "qpred t"].iter().enumerate() {
++        let text = support::object(&[("a", support::ACTION_1_1, &format!("action @a (t:wire mut) (p:wire in) () () ()\n^entry():\nqif p {{\n{arm}\n}} {{\nx t\n}}"))], "{}", "");
++        reject(&text, "§3.5", &format!("pred-{n}"));
++    }
++    Object::parse(&support::object(&[("a", support::ACTION_1_1, "action @a (t:wire mut) (p:wire in) () () ()\n^entry():\nqif p {\nqpred p\nx t\nqunpred p\n} {\nqif p {\nx t\n} {\nx t\n}\n}")], "{}", "")).unwrap();
++}
++#[test]
++fn icmp_requires_integer_or_pointer_operands() {
++    for ty in ["token", "f64", "qreg[1]"] {
++        let sig = format!(
++            r#"{{"abi":"0.8","kind":"cc","params":["{ty}","{ty}"],"results":["i1"],"tier":"cc"}}"#
++        );
++        let text = support::object(&[("cmp", &sig, &format!("fn cc @cmp (a:{ty}, b:{ty}) (r:i1) () () ()\n^entry():\nr = icmp.eq a b\nret r"))], "{}", "");
++        reject(&text, "§3.3", ty);
++    }
++}
++#[test]
++fn lifted_memory_widths_are_canonical_at_load() {
++    for (fixture, op) in [("sum_db", "load"), ("heap", "store")] {
++        let text = std::fs::read_to_string(format!(
++            "{}/tests/fixtures/{fixture}.bisa",
++            env!("CARGO_MANIFEST_DIR")
++        ))
++        .unwrap();
++        let width = if fixture == "heap" { 16 } else { 8 };
++        let old = format!("lift.{op}.i{width}");
++        assert!(text.contains(&old));
++        reject(
++            &text.replace(&old, &format!("lift.{op}.i0{width}")),
++            "§16.1",
++            fixture,
++        );
++    }
++}
++
++#[test]
++fn integer_and_pointer_comparisons_execute_and_reverse() {
++    use bennett_isa_ref::{ClassicalMachine, ClassicalValue};
++    for ty in ["i8", "ptr"] {
++        let sig = format!(
++            r#"{{"abi":"0.8","kind":"cc","params":["{ty}","{ty}"],"results":["i1"],"tier":"cc"}}"#
++        );
++        let text = support::object(&[("cmp", &sig, &format!("fn cc @cmp (a:{ty}, b:{ty}) (r:i1) () () ()\n^entry():\nr = icmp.eq a b\nret r"))], "{}", "");
++        let o = Object::parse(&text).unwrap();
++        for b in [3, 4] {
++            let val = |v| {
++                if ty == "ptr" {
++                    ClassicalValue::Ptr(v)
++                } else {
++                    ClassicalValue::int(8, v).unwrap()
++                }
++            };
++            let mut m = ClassicalMachine::new(&o, "cmp", &[val(3), val(b)], &[]).unwrap();
++            let before = m.snapshot();
++            assert_eq!(
++                m.run(3).unwrap().values,
++                [ClassicalValue::int(1, u128::from(b == 3)).unwrap()]
++            );
++            m.reverse().unwrap();
++            assert_eq!(m.snapshot(), before);
++        }
++    }
+ }
+ ````
