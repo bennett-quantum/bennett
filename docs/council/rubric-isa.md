@@ -25,7 +25,14 @@ implementations built from the text would compute different results;
 or the semantics is unsound (irreversible where reversibility is
 claimed, unphysical, phase-unsafe, dependent on inspecting superposed
 data); or the text contradicts itself; or a normative decision is
-missing where one is needed to build at all.
+missing where one is needed to build at all; **or the document narrows
+north-star scope**: it rejects, refuses, faults, declares inert or
+omits a capability that `Bennett-NorthStar.md` promises (its thesis,
+§3–§5 and every rung of the §8 demo ladder), whatever reason it gives.
+A narrowing is blocking even when it is disclosed, labelled deferred,
+or given a default; the fix is the mechanism, or, where a contract the
+document depends on truly lacks something, an explicit blocker naming
+the exact change that contract needs.
 
 **S1** issues are ones where an implementer would have to choose, but
 any choice yields a conformant machine, or where the normative
@@ -34,7 +41,11 @@ level completeness of C headers, JSON schemas, numerical procedures,
 encodings). S1 items are **suggestions**, not blockers, **unless the
 document fails to state a default for them**; the document carries a
 section of decisions deferred to implementation, each with a default,
-and an S1 item with a stated default is closed.
+and an S1 item with a stated default is closed **only if the default
+keeps the capability**. A deferral may postpone mechanics (an encoding,
+a table layout, an optimisation); a default of "reject", "refuse",
+"none", "fault" or "no effect" for something the north star promises
+is a narrowing, hence S0, not a closed S1.
 
 Every blocking issue is tagged with a **scope**: `core` (machine model,
 instruction set, regions, uncomputation validity, memory and effects,
@@ -48,9 +59,11 @@ contracts follow. Members give both verdicts.
 
 The PTX ISA document, the JVM specification, the RISC-V unprivileged spec,
 the LLVM language reference: a stranger implements from the text alone,
-and two strangers get the same machine. Precision over breadth: a
-smaller instruction set defined exactly scores above a larger one
-defined loosely. Skepticism is required: check the quantum semantics
+and two strangers get the same machine. Precision within full scope:
+the scope is fixed by the north star and is not the document's to
+trade; within it, a mechanism defined exactly scores above one defined
+loosely, and a document never buys precision by cutting scope (that is
+a narrowing, S0 above). Skepticism is required: check the quantum semantics
 and the reversible-ABI claims against your own knowledge; when the
 document ships example objects with hashes and stated results, they are
 normative test vectors and have been executed before this round.
