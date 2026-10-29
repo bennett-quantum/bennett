@@ -321,7 +321,7 @@ def prepare(a):
     st.d.update({"run": a.run, "round": a.round, "doc": str(doc),
                  "doc_sha256": sha, "prepared": now(), "members": {},
                  "rubric": a.rubric or str(RUBRIC), "subject": a.subject,
-                 "context": list(a.context or []), "members": list(members),
+                 "context": list(a.context or []), "member_list": list(members),
                  "task": a.task, "cwd": cwd})
     st.save()
     print(f"prepared {rdir} (doc sha256 {sha[:12]}, prompt "
@@ -331,7 +331,7 @@ def prepare(a):
 def run_members(rdir):
     """The member list a round was prepared with (older rounds: the original three)."""
     st = State(rdir).d
-    return tuple(st.get("members") or MEMBERS[:3])
+    return tuple(st.get("member_list") or MEMBERS[:3])
 
 
 def run_cwd(rdir):
@@ -619,7 +619,7 @@ def selftest():
         assert any(c.startswith("Bash(cargo test") for c in cmd) and "Write" not in cmd
         stdin.close()
         st = State(rdir)
-        st.d["members"] = ["fable", "codex", "muse"]; st.d["cwd"] = "/tmp"; st.save()
+        st.d["member_list"] = ["fable", "codex", "muse"]; st.d["cwd"] = "/tmp"; st.save()
         assert run_members(rdir) == ("fable", "codex", "muse") and run_cwd(rdir) == "/tmp"
         tf = rdir / "task.md"; atomic_write(tf, "task for SUBJECT")
         pr = build_prompt("DOC", "r", 1, subject="X", rubric=str(RUBRIC), task_file=str(tf))
