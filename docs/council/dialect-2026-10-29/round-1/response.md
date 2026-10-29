@@ -198,3 +198,89 @@ Before edit: Sv39 supervisor alias V of physical P must refer to the same byte; 
 
 Edited §20.6: Translate every guest access in enabled effective privilege contexts, including kernel accesses, while runtime helpers use physical backing. Record virtual code mappings for dispatch/trap resumption. Witness: `sv39-kernel-alias`.
 
+## Final accounting and validation
+
+“Resolved” above means the disputed normative rule has been changed with its stated
+witness; it does not claim a green P-1/P-2 freeze gate or successful independent TDL
+execution. No blocker is declined and no normative-text blocker remains partial.
+The full checker requirement remains incomplete in the separately owned checker job.
+
+| Blocker | Status |
+|---|---|
+| BD2-1 | resolved |
+| BD2-2 | resolved |
+| BD2-3 | resolved |
+| BD2-4 | resolved |
+| BD2-5 | resolved |
+| BD2-6 | resolved |
+| D02-01 | resolved |
+| D02-02 | resolved |
+| D02-03 | resolved |
+| D02-04 | resolved |
+| D02-05 | resolved |
+| D02-06 | resolved |
+| D02-07 | resolved |
+| D02-08 | resolved |
+| D02-09 | resolved |
+| D02-10 | resolved |
+| D02-11 | resolved |
+| D02-12 | resolved |
+| D02-13 | resolved |
+| D02-14 | resolved |
+| D02-15 | resolved |
+| D02-16 | resolved |
+| D02-17 | resolved |
+| D02-18 | resolved |
+| D02-19 | resolved |
+| D02-20 | resolved |
+| D02-21 | resolved |
+| D02-22 | resolved |
+| B1 | resolved |
+| B2 | resolved |
+| B3 | resolved |
+| B4 | resolved |
+
+Validation (headless; local TMPDIR, offline Rust build; no push):
+
+- `cargo build --manifest-path ../bennett-isa-spec/reference-interpreter/Cargo.toml --offline`
+  succeeded. All nine ISA objects pass `check` and their `run-oracle` lines; all five
+  hash blocks reproduce. The three new objects were independently checked before insertion.
+- Final selected executable gate, `python3 scripts/dialect_check.py --family
+  parse,header,check,hash,run-oracle,xrefs`: **1702/1702 passed**. This includes 393 LLVM
+  verification cells across majors 18/20/23, header agreement, 9 object checks, 5 hash
+  blocks, 9 run blocks and 1285 reference checks. Existing six map and six prefix-reversal
+  families passed in the full run.
+- Full `python3 scripts/dialect_check.py --json .tmp/council-final.json`: exit 1,
+  **1939/2029 passed; 90 failed/blocked** (baseline **1922/1982; 60 failed/blocked**).
+  Outstanding: 35 coverage obligations; 29 state and 9 TDL executor obligations; 8 CC/R
+  executor/adapter failures; 2 recognition expectations, 1 new ISA-7 blocker expectation;
+  2 normaliser failures (old 24-byte frame, missing n-fcmp); 3 missing native adapters;
+  1 FP-aggregate map adapter. New examples remain obligations; none were removed or weakened.
+- Direct `python3 scripts/dialect_check_v02.py`: exit 0, no output; this module has no
+  main entry and is exercised by the frontend command above. Its empty run is not evidence
+  of a green check.
+- Independent clang 18 and 23 runs: packed i1 lane 7 and i129 add/sext vectors pass;
+  n-fcmp input and output modules give NaN-une=1/equal-une=0, and corrected ABI
+  ueq(1,1)=1/uno(1,2)=0 passes against a dedicated correct-enum contract seed.
+  Existing checker-owned softfloat seed still has the old wrong enum and was not edited.
+  Native aggregate packing yields 1099511627521; replay/adopting allocator contract
+  yields pointer 4112 with stack pointer 4097. `entry-stack` is explicitly a one-entry
+  runtime contract microvector, not an executed canonical general replay loop.
+- `git diff --check` passes. No scripts code, ISA source, worklog or handoff file edited.
+  The generated `.beads/issues.jsonl` and unrelated concurrent changes remain outside commits.
+
+Checker requests are appended as Q4–Q8 in `scripts/CHECKER-QUESTIONS.md` and tracked as
+`b-dialect-spec-ofu`. The two pre-existing spec/checker reading findings Q1 and Q2 were
+also corrected (candidate text order and NS-reference punctuation) during the final read.
+
+New ISA 0.8 dependency: **BLK-5/ISA-7**, Bead `b-dialect-spec-bz6`: add R `fault C`
+that terminates with record code C, executes no subsequent source effect and preserves
+reversible prefix history, plus the implicit trap-cause/code table. This resolves the
+council's classification defect without pretending the ISA change is implemented. BLK-3
+is retired because the parameterised in-place CC expansion exists on ISA 0.8. Existing
+BLK-1, BLK-2 and BLK-4 remain as specified; no ISA repository edit was made.
+
+Dialect commits by group: `25b52ea` (normalisation), `5186b42` (TDL), `bf9a5f3`
+(interfaces/objects), `40a4962` (R/platform), followed by the final consistency/validation
+commit containing this report's companion progress update. Response commits:
+`a75a35d`, `202b65b`, `6dbbad9`, `aa73a5a`, followed by this final report commit.
