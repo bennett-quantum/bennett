@@ -5,8 +5,9 @@ the caller). Resumable: all state lives under docs/council/<run>/round-<N>/
 in the repository; every command is safe to re-run.
 
   selftest
-  prepare   --run R --round N --doc PATH [--force]
-  run       --run R --round N [--member codex|muse|opus ...] [--dry-run]
+  prepare   --run R --round N --doc PATH [--force] [--members codex,muse,fable]
+            [--task FILE] [--cwd DIR] [--context ...] [--precheck CMD]
+  run       --run R --round N [--member codex|muse|opus|fable ...] [--dry-run]
             [--timeout SEC] [--attempts K]
   status    --run R
   aggregate --run R --round N
@@ -28,7 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 COUNCIL = ROOT / "docs" / "council"
 RUBRIC = COUNCIL / "rubric.md"
 CRITERIA = [f"C{i}" for i in range(1, 9)]
-MEMBERS = ("codex", "muse", "opus")
+MEMBERS = ("codex", "muse", "opus", "fable")  # known members; a run names its own subset
 VERDICTS = ("accept", "revise", "reject")
 BACKOFF = (60, 180, 420)
 
@@ -234,7 +235,8 @@ CONVERGENCE = (
     "procedure are stated. Block only on a statement that is false, unsound or ambiguous.\n")
 
 
-def build_prompt(doc_text, run, rnd, subject=None, rubric=None, contexts=(), diff_text=None):
+def build_prompt(doc_text, run, rnd, subject=None, rubric=None, contexts=(), diff_text=None,
+                 task_file=None):
     task = (
         "You are a member of a three-model council grading the document "
         f"below, {subject or DEFAULT_SUBJECT}. Grade "
@@ -262,6 +264,12 @@ def build_prompt(doc_text, run, rnd, subject=None, rubric=None, contexts=(), dif
         "and src/ (the deprecated v1). Reading is optional; the snapshot "
         "below is what you grade.\n\n"
         "Answer only with JSON matching the schema.")
+    convergence = CONVERGENCE
+    if task_file:
+        # A task file replaces both the task paragraph and the convergence rules (e.g. an
+        # implementation review); `SUBJECT` in it is replaced by --subject.
+        task = Path(task_file).read_text(encoding="utf-8").replace("SUBJECT", subject or DEFAULT_SUBJECT)
+        convergence = ""
     ctx = []
     if diff_text:
         ctx.append("# Diff from the previous round's snapshot (unified)\n\n```diff\n" + diff_text + "\n```")
@@ -269,7 +277,7 @@ def build_prompt(doc_text, run, rnd, subject=None, rubric=None, contexts=(), dif
         ctx.append(f"# Background (not graded): `{Path(c).name}`\n\n"
                    + Path(c).read_text(encoding="utf-8"))
     return "\n\n".join(p for p in [
-        "# Council", task, CONVERGENCE, previous_round_context(run, rnd),
+        "# Council", task, convergence, previous_round_context(run, rnd),
         "# Rubric", rubric_text(rubric), *ctx,
         f"# The document under review (round {rnd} snapshot)",
         doc_text] if p)
@@ -297,23 +305,43 @@ def prepare(a):
     sha = hashlib.sha256(text.encode()).hexdigest()
     rdir.mkdir(parents=True, exist_ok=True)
     atomic_write(rdir / "doc.md", text)
+    members = tuple(a.members.split(",")) if a.members else MEMBERS[:3]
+    bad = [m for m in members if m not in MEMBERS]
+    if bad:
+        sys.exit(f"unknown members {bad}; known: {MEMBERS}")
+    cwd = str(Path(a.cwd).resolve()) if a.cwd else str(ROOT)
+    if not Path(cwd).is_dir():
+        sys.exit(f"--cwd {cwd} is not a directory")
     atomic_write(rdir / "prompt.md", build_prompt(
         text, a.run, a.round, subject=a.subject, rubric=a.rubric,
-        contexts=a.context or (), diff_text=diff_text if not a.no_diff else None))
+        contexts=a.context or (), diff_text=diff_text if not a.no_diff else None,
+        task_file=a.task))
     atomic_write(rdir / "schema.json", json.dumps(schema(), indent=1))
     st = State(rdir)
     st.d.update({"run": a.run, "round": a.round, "doc": str(doc),
                  "doc_sha256": sha, "prepared": now(), "members": {},
                  "rubric": a.rubric or str(RUBRIC), "subject": a.subject,
-                 "context": list(a.context or [])})
+                 "context": list(a.context or []), "members": list(members),
+                 "task": a.task, "cwd": cwd})
     st.save()
     print(f"prepared {rdir} (doc sha256 {sha[:12]}, prompt "
-          f"{len((rdir / 'prompt.md').read_text())} chars)")
+          f"{len((rdir / 'prompt.md').read_text())} chars, members {','.join(members)}, cwd {cwd})")
+
+
+def run_members(rdir):
+    """The member list a round was prepared with (older rounds: the original three)."""
+    st = State(rdir).d
+    return tuple(st.get("members") or MEMBERS[:3])
+
+
+def run_cwd(rdir):
+    return State(rdir).d.get("cwd") or str(ROOT)
 
 
 # ------------------------------------------------------------------- run
 
-def member_cmd(m, rdir):
+def member_cmd(m, rdir, cwd=None):
+    cwd = cwd or str(ROOT)
     sch = rdir / "schema.json"
     prompt = rdir / "prompt.md"
     out = rdir / f"out-{m}.json"
@@ -328,16 +356,20 @@ def member_cmd(m, rdir):
     elif m == "muse":
         cmd = ["muse", "exec", "--model", "muse-wonder-full-1.0",
                "--reasoning-effort", "high", "--output-schema", str(sch),
-               "--prompt-file", str(prompt), "--workspace", str(ROOT),
+               "--prompt-file", str(prompt), "--workspace", cwd,
                "--disable-web-tools", "--disable-reminders",
                "--disable-request-user-input", "--no-session-log"]
-    elif m == "opus":
+    elif m in ("opus", "fable"):
         for k in list(env):
             if k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"):
                 env.pop(k)
-        cmd = ["claude", "-p", "--model", "opus", "--output-format", "json",
-               "--json-schema", sch.read_text(), "--allowedTools", "Read",
-               "Grep", "Glob", "--max-turns", "40"]
+        # fable reviews implementations too: it may run the crate's tests and binary, nothing else.
+        tools = ["Read", "Grep", "Glob"] + (
+            ["Bash(cargo test:*)", "Bash(cargo run:*)", "Bash(./reference-interpreter/target/debug/bennett-isa-ref:*)"]
+            if m == "fable" else [])
+        cmd = ["claude", "-p", "--model", m, "--output-format", "json",
+               "--json-schema", sch.read_text(), "--allowedTools", *tools,
+               "--max-turns", "40" if m == "opus" else "120"]
         stdin = open(prompt, "rb")
     else:
         raise ValueError(m)
@@ -349,7 +381,7 @@ def parse_member_output(m, stdout, out):
         if out.exists():
             return extract_json(out.read_text(encoding="utf-8"))
         return extract_json(stdout)
-    if m == "opus":
+    if m in ("opus", "fable"):
         obj = extract_json(stdout)
         if isinstance(obj, dict):
             so = obj.get("structured_output")
@@ -361,7 +393,8 @@ def parse_member_output(m, stdout, out):
 
 
 def run_member(m, rdir, st, timeout, attempts, dry):
-    cmd, env, stdin, out = member_cmd(m, rdir)
+    cwd = run_cwd(rdir)
+    cmd, env, stdin, out = member_cmd(m, rdir, cwd)
     shown = " ".join(shlex.quote(c) if len(c) < 120 else f"<{len(c)} chars>"
                      for c in cmd)
     print(f"[{m}] {shown}")
@@ -377,7 +410,7 @@ def run_member(m, rdir, st, timeout, attempts, dry):
             if stdin is not subprocess.DEVNULL:
                 stdin.seek(0)
             p = subprocess.run(cmd, capture_output=True, text=True, env=env,
-                               stdin=stdin, timeout=timeout, cwd=ROOT)
+                               stdin=stdin, timeout=timeout, cwd=cwd)
             rc, so, se = p.returncode, p.stdout, p.stderr
         except subprocess.TimeoutExpired as e:
             rc, so, se = -1, (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or ""), f"TIMEOUT after {timeout}s"
@@ -410,7 +443,7 @@ def run_cmd(a):
     if not (rdir / "prompt.md").exists():
         sys.exit(f"{rdir} not prepared")
     st = State(rdir)
-    members = a.member or list(MEMBERS)
+    members = a.member or list(run_members(rdir))
     todo = []
     for m in members:
         out = rdir / f"out-{m}.json"
@@ -443,7 +476,7 @@ def status_cmd(a):
     for rdir in sorted(base.glob("round-*")):
         st = State(rdir).d
         print(f"{rdir.name}: prepared {st.get('prepared')} doc {st.get('doc_sha256', '')[:12]}")
-        for m in MEMBERS:
+        for m in run_members(rdir):
             s = st.get("members", {}).get(m, {})
             done = (rdir / f"out-{m}.json").exists()
             print(f"  {m:6} {'done ' if done else s.get('status', 'pending'):8}"
@@ -459,7 +492,8 @@ def status_cmd(a):
 def aggregate_cmd(a):
     rdir = round_dir(a.run, a.round)
     outs = {}
-    for m in MEMBERS:
+    expected = run_members(rdir)
+    for m in expected:
         f = rdir / f"out-{m}.json"
         if not f.exists():
             print(f"{m}: no output")
@@ -490,11 +524,11 @@ def aggregate_cmd(a):
                      f" | {mean} | {'yes' if max(v) - min(v) >= 2 else ''} |")
     verdicts = {m: outs[m]["verdict"] for m in names}
     blocking = {m: outs[m]["blocking"] for m in names}
-    agree = (len(names) == len(MEMBERS) and all(v == "accept" for v in verdicts.values())
+    agree = (len(names) == len(expected) and all(v == "accept" for v in verdicts.values())
              and not any(blocking.values()))
     core_verdicts = {m: outs[m].get("verdict_core") for m in names}
     core_blocking = {m: [b for b in blocking[m] if b.get("scope") == "core"] for m in names}
-    core_agree = (len(names) == len(MEMBERS) and all(v == "accept" for v in core_verdicts.values())
+    core_agree = (len(names) == len(expected) and all(v == "accept" for v in core_verdicts.values())
                   and not any(core_blocking.values()))
     lines += ["", f"Overall mean: {round(sum(means) / len(means), 2)}",
               "", "Verdicts: " + ", ".join(f"**{m}: {v}**" for m, v in verdicts.items()),
@@ -565,8 +599,8 @@ def selftest():
         atomic_write(rdir / "schema.json", json.dumps(sch))
         for m in MEMBERS:
             cmd, env, stdin, out = member_cmd(m, rdir)
-            assert cmd[0] == m if m != "opus" else cmd[0] == "claude", cmd
-            if m == "opus":
+            assert cmd[0] == m if m not in ("opus", "fable") else cmd[0] == "claude", cmd
+            if m in ("opus", "fable"):
                 assert not any(k.startswith("CLAUDE_CODE_") or k == "CLAUDECODE" for k in env)
                 assert "--allowedTools" in cmd and cmd[-1] != "p", "prompt must go on stdin"
             if m == "codex":
@@ -576,6 +610,20 @@ def selftest():
         st = State(rdir)
         st.update("codex", status="running", attempts=1)
         assert json.loads((rdir / "state.json").read_text())["members"]["codex"]["attempts"] == 1
+    with tempfile.TemporaryDirectory() as td:
+        rdir = Path(td)
+        atomic_write(rdir / "schema.json", json.dumps(sch))
+        atomic_write(rdir / "prompt.md", "p")
+        cmd, env, stdin, out = member_cmd("fable", rdir, "/tmp")
+        assert "--model" in cmd and cmd[cmd.index("--model") + 1] == "fable"
+        assert any(c.startswith("Bash(cargo test") for c in cmd) and "Write" not in cmd
+        stdin.close()
+        st = State(rdir)
+        st.d["members"] = ["fable", "codex", "muse"]; st.d["cwd"] = "/tmp"; st.save()
+        assert run_members(rdir) == ("fable", "codex", "muse") and run_cwd(rdir) == "/tmp"
+        tf = rdir / "task.md"; atomic_write(tf, "task for SUBJECT")
+        pr = build_prompt("DOC", "r", 1, subject="X", rubric=str(RUBRIC), task_file=str(tf))
+        assert "task for X" in pr and "Convergence rules for this council" not in pr
     print("selftest ok")
 
 
@@ -595,6 +643,9 @@ def main():
                    help="background document(s) appended to the prompt, not graded")
     p.add_argument("--precheck", help="shell command that must exit 0 before the round is prepared")
     p.add_argument("--no-diff", action="store_true", help="do not attach the diff from the previous round")
+    p.add_argument("--members", help="comma-separated member list for this run (default codex,muse,opus)")
+    p.add_argument("--task", help="file replacing the task paragraph and convergence rules (e.g. docs/council/task-impl.md)")
+    p.add_argument("--cwd", help="directory the members run in and may read (default this repo)")
     r = sub.add_parser("run")
     r.add_argument("--run", required=True)
     r.add_argument("--round", type=int, required=True)
