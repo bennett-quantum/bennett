@@ -2,7 +2,7 @@
 """Run a long codex job robustly: resume after network drops, content-filter refusals and early stops.
 
   codex_job.py run --name NAME --cd DIR --prompt FILE --paths P [P ...] --progress REL
-                   [--model gpt-6.1-sol] [--effort xhigh] [--max-attempts 16] [--pace-margin 5] [--network]
+                   [--model gpt-6.1-sol] [--effort xhigh] [--max-attempts 16] [--pace-margin 5] [--network] [--thread ID]
   codex_job.py status --name NAME
 
 Protocol (appended to the brief): the agent keeps REL (a progress file inside DIR) current and ends its
@@ -171,7 +171,8 @@ def run(a):
     if a.network:  # crates.io etc.; cargo's registry and git caches live in ~/.cargo
         sandbox += ["-c", "sandbox_workspace_write.network_access=true",
                     "-c", f'sandbox_workspace_write.writable_roots=["{os.path.expanduser("~/.cargo")}"]']
-    thread, refusals, backoff = None, 0, 30
+    thread, refusals, backoff = a.thread, 0, 30
+    resuming = os.path.exists(os.path.join(cd, a.progress))  # a restarted job continues from its progress file
     save(st, name=a.name, cd=cd, state="running", attempts=0)
     for n in range(1, a.max_attempts + 1):
         while True:
@@ -186,7 +187,8 @@ def run(a):
             log(st, f"codex weekly {used:.1f}% > elapsed {elapsed:.1f}% + {a.pace_margin}; waiting 15 min")
             time.sleep(900)
         if thread is None:
-            cmd, text = base + sandbox, (brief if n == 1 else FRESH.format(progress=a.progress) + brief)
+            fresh = n > 1 or resuming
+            cmd, text = base + sandbox, (FRESH.format(progress=a.progress) + brief if fresh else brief)
         else:
             cmd = ["codex", "exec", "resume", thread, "-m", a.model, "-c",
                    f"model_reasoning_effort={a.effort}"] + sandbox
@@ -229,6 +231,7 @@ def main():
     r.add_argument("--max-attempts", type=int, default=16)
     r.add_argument("--pace-margin", type=float, default=5.0)
     r.add_argument("--network", action="store_true", help="allow network and a writable ~/.cargo (crates)")
+    r.add_argument("--thread", help="resume this codex session id first (e.g. from status.json)")
     s = sub.add_parser("status")
     s.add_argument("--name", required=True)
     a = ap.parse_args()

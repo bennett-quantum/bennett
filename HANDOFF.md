@@ -11,13 +11,12 @@ reference implementation and differential oracle; its worklog chunks
 
 | Repo | State | Next concrete step |
 |---|---|---|
-| `bennett` (this) | north star (consensus), council runner + rubrics + all 14 graded rounds, manifest | run the council on the dialect spec when a draft exists; `bd init` when code lands |
-| `bennett-isa-spec` | **spec 0.8 council-accepted**; `isa_check.py` = Python seed of the reference interpreter; Rust crates empty | port `isa_check.py` row by row to Rust (red-green on the two example objects); suite B then C; file the round-8 suggestions as issues |
-| `bennett-dialect-spec` | skeleton; **no draft** | north star §9 item 1: **legality spike before any text** (marker corpus vs every stock pass at O3 + native codegen; emission examples from clang, rustc, Julia); then draft `spec/` from north star §3 and take it through the council with `rubric-isa.md` |
+| `bennett` (this) | north star (consensus; amendments A1, A2 pending), council runner + rubrics (narrowing = S0), plan `docs/plan/2026-10-29-path-to-north-star.md`, `tools/codex_job.py`, bd | see "Open items" below |
+| `bennett-isa-spec` | spec 0.8 council-accepted, settled until dialect 0.2 is accepted; Rust reference interpreter in progress (codex job stopped, resumable; `wip/isa-ref-interpreter`) | resume the interpreter job (its HANDOFF has the command); then CLI b-isa-spec-xam; ISA 0.9 after dialect acceptance |
+| `bennett-dialect-spec` | legality spike done; draft 0.1 rejected (narrowings); SQLite rung-4 spike done (no ISA change); 0.2 outline ratified | write 0.2 full text (brief in `docs/briefs/`), extend the precheck, council |
 | `bennett-sched`, `-vm`, `-circuits`, `-plugin`, `-driver`, `-estimate`, `-targets`, `-runtimes`, `-arith`, `-conformance` | skeletons (LICENSE, CLAUDE.md, pre-push hook, one passing Rust test where applicable) | blocked on the dialect spec for plugin/driver; `-vm` and `-circuits` can start from the ISA spec now (§3–§7, §14, §16 are the accepted core) |
 
-Nothing is implemented anywhere. The maintainer's process rule stands:
-vision (done) → design (ISA done; dialect next) → spikes → code.
+Nothing in the toolchain is implemented yet (spike harnesses and the reference interpreter aside). Process: vision (done) → design (ISA 0.8 done; dialect 0.2 in progress) → spikes → code.
 
 ## Documents and their status
 
@@ -78,20 +77,23 @@ narrowing of north-star scope is accepted** (Grover over unmodified SQLite is th
 value proposition). The items below predate the plan; the plan's phase order
 supersedes them where they conflict.
 
-**State at 2026-10-29 (end of the dialect-spike session):**
+**State at 2026-10-29 (session ended by the maintainer; everything committed and pushed):**
 - Phase 0 (narrowing audit of dialect 0.1) and phase 2 (SQLite: **rung 4 feasible on ISA 0.8
   with no ISA change**, `../bennett-dialect-spec/docs/spikes/sqlite/REPORT.md`) are done.
-- Phase 1 (full Rust ISA reference interpreter) is a codex job (`tools/codex_job.py`,
-  name `isa-ref-interpreter`; progress in `../bennett-isa-spec/reference-interpreter/PROGRESS.md`;
-  backed up to branch `wip/isa-ref-interpreter`). Follow-up: CLI commands b-isa-spec-xam.
-- Phase 3: dialect 0.2 outline ratified (`../bennett-dialect-spec/spec/outline-0.2.md`, maintainer
-  rulings at its end: E1–E14 ratified, riscv64 platform); full 0.2 text being written; then
-  `scripts/dialect_check.py` must be extended to run every 0.2 example against the Rust
-  interpreter; then **council rounds on dialect 0.2** (rubric-isa.md, which now makes any
-  narrowing S0).
-- **Next session after dialect acceptance: ISA 0.9** for BLK-1..BLK-4 (outline §25: run-time-width
-  `qreg`, device-minted budgets, `qinplace` with parameters, `qreg` ops in R) plus wording items and
+- Phase 1 (full Rust ISA reference interpreter): codex job **stopped** after attempt 2, all seven
+  deliverables partial with green tests at the last checkpoint. Resume command and state in
+  `../bennett-isa-spec/HANDOFF.md`; full state on branch `wip/isa-ref-interpreter` (main there may
+  be red mid-TDD and is not pushed past the gate). Follow-up: CLI commands b-isa-spec-xam.
+- Phase 3: dialect 0.2 outline **ratified** (`../bennett-dialect-spec/spec/outline-0.2.md`, rulings at
+  its end: E1–E14 ratified, riscv64 platform). The full-text agent was stopped before writing;
+  its brief is `../bennett-dialect-spec/docs/briefs/2026-10-29-dialect-0.2-fulltext.md`. Then extend
+  `scripts/dialect_check.py` to every 0.2 example against the Rust interpreter; then **council rounds
+  on dialect 0.2** (rubric-isa.md now makes any narrowing S0).
+- **After dialect acceptance: ISA 0.9** for BLK-1..BLK-4 (outline §25: run-time-width `qreg`,
+  device-minted budgets, `qinplace` with parameters, `qreg` ops in R) plus wording items and
   evidence-backed I1–I8 (maintainer: dialect first, because it may be faulty).
+- Codex jobs: always via `tools/codex_job.py` (resume after refusals / network drops, pace check,
+  commits every 20 min, wip-branch backup, headless). No Daybreak access: assume refusals.
 - Issues live in bd in this repo, `bennett-dialect-spec` and `bennett-isa-spec` (`bd ready`).
 
 0. **Read `../bennett-isa-spec/docs/notes/2026-10-28-budgets-loops-variable-time.md`** before touching budgets, loops or the step machine: the two Collatz problems (R-tier per-input trace vs Q-tier one circuit), the wrapper pattern, and the reading of Jeffery et al. arXiv:2605.07518 (loop composition, variable-time search). It files open items I1–I8 in bennett-isa-spec's worklog; I5 (idle steps as identities) and I1 (pebbled realisations) are the first candidates for an ISA 0.9 council round.
