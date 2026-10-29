@@ -1,0 +1,280 @@
+exit 0 in 103s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "The revised schemas and r1_literals/r1_rules tests fix most round-1 witnesses, but validation still accepts malformed lifted suffixes and token comparisons, admits changed tuple inputs to matched cleanup, and can panic on qif nesting (R2-B01/B02/B05/B07).",
+      "change": "Fix the shared operand and predicate validation paths named in R2-B01, B02, B05 and B07; add each reproduced text as a parser plus CLI regression with the specified load-time outcome."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "identity.rs and linking.rs implement the envelopes, SCC identities, pinned closures and certificate rebinding/composition. The identity/linking tests and all pinned fixture identities pass; independent assembly and SHA-256 of the inc8 envelope exactly reproduces 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. No new identity deviation reproduced.",
+      "change": "No acceptance change identified. Preserve the independently assembled envelope and literal fixture digests when adding the new regression fixtures; do not compute their expected identity solely with Object::identity."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "oracle.rs now has one arbitrary-width sequential engine. Hand derivations agree for inc8(255) at B=0,2,3; sum_db(0) at stack=15 versus 16; and sum_db(3), db=1..16, B=52. Default tests cover all lifted rows and fault paths, and the u8 division sweep passes. No divergence on a well-formed oracle reproduced.",
+      "change": "No new engine fix required by this review; keep the hand-derived budget/stack boundary checks in tests/oracle.rs independent of machine.rs output, including (0,3,3) at stack=15 and (0,0,10) at stack=16 for sum_db(0)."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "machine.rs forward/inverse_call and forward/inverse_ret follow C1–C5/R1–R5 in the printed reverse order. The concrete sum_db call and return traces and CLI prefix reversals at 3,9,10 steps restore pc, counters, locations and clean frames. The default machine, wide and complete-small-domain tests pass. No incomplete machine reversal reproduced.",
+      "change": "No new machine change required. Preserve the recursive single-call/single-ret pre-step equality test, and run the existing full recursive-prefix sweep after changes to validation or slot layout."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "The dynamic-instance, segment-uncall, hostcall, device, handle and fault-reversal tests pass; reverse classical.bisa nested returns i64 0, clock 0, empty tape and equals_entry=true after 11 instructions. The remaining localized schema defect lets icmp on tokens/f64 escape to a hard runtime error (R2-B05).",
+      "change": "Implement R2-B05 in validation.rs::classical_instruction and require invalid non-bit-vector comparisons to fail at load; retain iN/ptr comparisons and existing whole-run/segment reversal tests."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "Exact cleanliness, wide state support, ANF borrow decisions and qinplace execution checks substantially improve round 1. However operation_inverse omits qinplace and loop analysis redeclares function-local qregions (R2-B03/B04); malformed qif nesting panics (R2-B07). The additional cross-arm lifetime case exposes a conflict in the printed qif adjoint rule, recorded as a suggestion rather than claiming the code contradicts that table.",
+      "change": "Complete the static adjoint transfer and function-entry region environment as R2-B03/B04 specify, and enforce predicate-stack boundaries per R2-B07. Extend tests to explicit inverse pairs and declaration-bearing bounded loops, not just gate-only loops."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "All 178 default tests pass; all 5 deliberately ignored sweeps also passed in a separate run. All 85 embedded source files match the checkout exactly. The fixture inventory and corruption test now test their claims; hand expectations match the published vectors. The new witnesses fall outside the current generated-action grammar and round-1 regression combinations.",
+      "change": "In tests/r1_fuzz_discipline.rs extend generation to qinplace inverse pairs, lexical qregion declarations in loops and malformed predicate-stack boundaries, and add multi-input/multi-region matched-call cases to tests/r1_rules.rs. Assert both parse diagnostics and execution/reversal for accepted programs."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "All 27 SPEC-QUESTIONS entries were compared with their cited rules; the declined banana enum and in-wire qstore objections are defensible. Deliverables 8–11 are explicitly staged and not penalized. The claim that canonical parsing and round-1 cleanup validation are complete is too strong, and finite-angle actions fail the documented JSON interface (R2-B06).",
+      "change": "Fix R2-B06 using exact support plus safe finite amplitude reporting, update PROGRESS.md/council response statuses for the remaining witnesses, and add the qif lifetime ambiguity and proposed wording described in suggestions to SPEC-QUESTIONS.md."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R2-B01",
+      "section": "§5.5; src/call_discipline.rs::Object::validate_matched_oracle_calls",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The new dataflow checker loses tuple boundaries by storing operands.join(\" \") and later using split(' '). With two inputs, list(o[2]) sees '(a,' and silently becomes an empty list; subsequent positions no longer denote tgt/fr/mem. Reproduced with these memoryless functions (ordinary matching oracle signatures, inner args=[], outer args=[token], fault=4, tgt=8):\noracle @inner (x:wire[8] in, y:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n^entry():\nlift.retval y\noracle @outer (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { a:reg[8], b:reg[8], r:reg[8], fr:reg[4] }\n^entry():\na = lift.mov x\nlift.oracle_call @inner tk (a, b) r fr () ()\nb = lift.const.i8 1\nlift.oracle_uncall @inner tk (a, b) r fr () ()\nlift.retval r\nAfter obtaining/storing the reported interface hashes, check returns status=ok. run-oracle outer --input 0 --budget 5 --arg token:1,0,0,0 returns {\"code\":0,\"payload\":1,\"steps\":5}; step-check --exhaustive with the same budget/token even reports 256 successful cases. The pair does not clean its first result: its input b changed from 0 to 1. This is a regression from 3dea965, whose checker parsed uncall.operands[2] directly and rejected intervening writes to either input.",
+      "fix": "In src/call_discipline.rs::validate_matched_oracle_calls, replace the serialized-string key with a typed invocation key retaining callee, token, parsed input names, target, fault, memory names and classical arguments (or retain Vec<String> operands and parse each original operand). Remove unwrap_or_default on these schema-guaranteed lists. §5.5 requires 'the same token, callee, ins and mem values (no intervening row writes those locations or cells: suite F)'. The quoted object must be rejected at load with §5.5, before execution. Add it to tests/r1_rules.rs, plus mutations writing each input and storing into each of two supplied regions. Positive control: remove the b assignment; B=4, token B=1, any x yields payload=0, code=0, steps=4 and complete prefix reversal. Keep the two-call/two-uncall and disjoint-global-store regressions."
+    },
+    {
+      "id": "R2-B02",
+      "section": "§16.1–§16.2, §4.8; src/object.rs::Object::validate_row",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Lifted load/store suffixes still use bare parse::<u64>() rather than the canonical INT reader. Reproduced by replacing both lift.load.i8 tokens in tests/fixtures/sum_db.bisa with lift.load.i08 and regenerating the interface hashes. hash accepts the object. run-oracle sum_db --input 0 --budget 10 then exits 1 with '§16.1: load width must be a canonical unsigned INT', rather than rejecting the text during parsing. The validator and executor disagree on a text spelling that §16.1 forbids. Round-1 B12's common canonical-schema fix is incomplete.",
+      "fix": "In src/object.rs::validate_row's lift.load.i/lift.store.i arm, parse the suffix with host_count (or another shared canonical positive-width reader) before checking N in {8,16,...,128}; use the same reader in every dispatch path. §16.1 specifies 'INT := -?(0|[1-9][0-9]*)', and §16.2 makes the dotted suffix part of the opcode schema. Add parser and CLI tests mutating sum_db's lift.load.i8 to lift.load.i08 and heap's lift.store.i8 to lift.store.i08: hash/check must exit 1 citing §16.1, never accept and defer failure to run-oracle. Canonical sum_db n=0 with B=10, heap=4080, stack=16, depth=64 must still return (0,0,10)."
+    },
+    {
+      "id": "R2-B03",
+      "section": "§4.5, §5.3 adjoint table, §6.2; src/validation.rs::operation_inverse and qinplace transfer",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The executor checks qinplace inverse pairs, but the static version checker has no inverse rule for qinplace, so it rejects explicit valid cleanup. Reproduced hash rejection '§6.2: released value has not been uncomputed' for a memoryless identity oracle g, signature in=[1],tgt=1,fault=4,args=[], body 'lift.retval x', and action a with mut=[1],in=[],args=[token],bounds=[]:\naction @a (t:wire mut) () () (tk:token) ()\n^entry():\nd = qalloc any 1\nqinplace @g @g tk d\nqinplace @g @g tk d\nqfree d\nAt tk=(1,0,0,0), g and its inverse are fault-free identity on both inputs. The second instruction is exactly the table-prescribed adjoint of the first; d is clean for every input, and the action is identity. operation_inverse returns None for every qinplace version.",
+      "fix": "Add a typed qinplace operation identity/inverse in src/validation.rs::operation_inverse and validate_action_sequence: invert by exchanging g and ginv while preserving token, target and the captured effective-control versions. §5.3 explicitly says 'qinplace @g @ginv ↦ qinplace @ginv @g'; §6.2 requires cleanup by the 'exact computing sequence, its inputs, their versions and its effective control context'. The quoted object must parse; run-action a --mut 0 --arg token:1,0,0,0 and its adjoint must return mut=[0], and reverse must restore entry. Test both target basis values, a nontrivial NOT/NOT pair with token B=3, and a changed-predicate negative control that must remain rejected."
+    },
+    {
+      "id": "R2-B04",
+      "section": "§4.6 qregion and qloop; src/validation.rs::validate_structured/validate_action_sequence",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The repeated loop transfer treats a function-local qregion declaration as a fresh dynamic declaration each iteration. Reproduced hash rejection '§3.3: region name already defined' for the memoryless action with signature mut=[1],in=[],args=[],mem=[],bounds=[2]:\naction @a (t:wire mut) () () () ()\nregs {  } bounds {2}\n^entry():\nqloop 2 {\nqregion r 1 1\n}\nThere is one lexical declaration of a two-cell zero region, no mutations, and no leaked workspace. §4.6 creates this region once at function entry. action.rs already gathers/allocates it once at entry and treats its body occurrence as a no-op; validation instead inserts the same name twice. The earlier one-pass loop validator accepted this case, so fixing iteration analysis introduced a rejection regression.",
+      "fix": "In src/validation.rs::validate_structured, collect all lexical qregion declarations recursively, reject duplicate lexical declarations, and establish their types/local-region state once at function entry. In validate_action_sequence, treat an already validated declaration occurrence as a no-op, matching action.rs::action_internal/gather_regions. §4.6 says 'created at function entry ... scope is the function', and qloop is 'body n times'; a declaration is not a new per-iteration allocation. Add the quoted bounds=[2] fixture: parsing, forward action and adjoint must succeed, preserve either t value, and reverse must restore entry. Add n=0 and a reference to the region before its textual declaration, plus a genuinely duplicated lexical declaration that still rejects."
+    },
+    {
+      "id": "R2-B05",
+      "section": "§3.3, §4.8; src/validation.rs::classical_instruction icmp arm",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "icmp checks matching Type values but never requires operands to have a bit width. Reproduced with the memoryless CC signature params=[token,token],results=[i1]:\nfn cc @cmp (a:token, b:token) (r:i1) () () ()\n^entry():\nr = icmp.eq a b\nret r\nhash and check accept it after normal rehashing. run-cc cmp --arg token:1,0,0,0 --arg token:1,0,0,0 exits 1 with '§3.3: expected classical bit-vector value' and no run JSON. The same happens with two f64 parameters. Thus an operand-kind error escapes validation and becomes an executor error rather than the specified load rejection.",
+      "fix": "In src/validation.rs::classical_instruction's icmp arm, require a bit-vector comparison type (iN or ptr) after same(), using Type::width or an explicit match; reject token, qreg and f64 unless a separately specified floating comparison opcode is introduced. §3.3 says 'binop/icmp operands equal width'; §4.8 requires fixed 'operand kinds and a result type', and supplies no token-comparison semantics. Add the quoted token function as a parser/CLI rejection test citing §3.3; include f64 and qreg negatives and i8/ptr equality positives. The token witness must fail hash/check at load, rather than reaching ClassicalValue::bits during run-cc."
+    },
+    {
+      "id": "R2-B06",
+      "section": "§4.4, §14.2; src/exact.rs::Amplitude::approximate, src/quantum.rs::exact_support, src/main.rs action output",
+      "scope": "contract",
+      "severity": "S0",
+      "problem": "Valid finite rotations can make both run-action and reverse fail during output conversion. Reproduced a memoryless action a with mut=[1],in=[],mem=[],args=[f64],bounds=[], header 'action @a (t:wire mut) () () (theta:f64) ()', and four consecutive 'rz theta t' instructions. After rehashing, run-action a --mut 0 --arg f64:1e308 and reverse with the same arguments both exit 1: '§16.1: non-finite binary64 has no JSON number'. Every input angle is finite; the action is a valid unitary. Its exact shadow combines the phase to exp(-i*2*theta), whose real argument exceeds binary64, and approximate converts that exponent to infinity before sin_cos. Independently evaluating the exact binary64 theta at 420 decimal digits gives amplitude approximately (0.58886324480157600487, 0.80823268860010801365), not a non-finite amplitude. The retained numerical gate-by-gate shadow also stays finite.",
+      "fix": "Change src/quantum.rs::exact_support and the CLI serializer to select support by exact nonzeroness but obtain display amplitudes without converting an unbounded combined exponent to f64. Reuse the retained finite numerical amplitudes for display, or implement range reduction of exact exponents before evaluating sin/cos in src/exact.rs. Preserve the exact shadow for cleanliness/equality. §4.4 defines rz(theta)=diag(exp(-i theta/2),exp(i theta/2)), with finite f64 angles, and §14.2 applies these gates to the state vector; the README promises one JSON result for successful run-action/reverse. Add the four-rz fixture with theta=binary64(1e308): run-action must exit 0 with finite JSON and the stated amplitude within binary64 tolerance, and reverse must exit 0 with final state {\"0\":[1,0]}. Do not reject finite theta merely because a symbolic sum of angles exceeds binary64."
+    },
+    {
+      "id": "R2-B07",
+      "section": "§3.5, §4.6, §15 suite F; src/validation.rs::validate_action_sequence qif arm",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Malformed predicate nesting reaches expect(\"qif predicate\") at validation.rs:111. Reproduced hash exit 101 and a Rust panic for a memoryless action with mut=[1],in=[1],args=[],bounds=[]:\naction @a (t:wire mut) (p:wire in) () () ()\n^entry():\nqif p {\nqunpred p\n} {\nx t\n}\nThe first arm consumes the qif-owned predicate. Before validating the second arm, last_mut().expect(...) assumes that predicate remains. This is a malformed-object rejection path, not an internal invariant. The round-1 implementation checked its final pop and returned the §3.5 error for this case; the new polarity update introduced the panic.",
+      "fix": "In src/validation.rs::validate_action_sequence, snapshot the predicate stack before each qif arm and verify immediately after that arm that it equals the expected outer stack plus the arm's selector, before replacing or popping its top. Use a section-citing Result instead of expect. §3.5 requires 'qunpred w pops the same wire' and an empty region-entry/exit stack; the §4.6 expansion owns its matching qpred/qunpred pair, so a body cannot consume it. Add the quoted object to parser and CLI tests: Object::parse must return Err and hash/check must exit 1 citing §3.5, never 101. Also test an arm leaving an extra qpred, and balanced nested qif/qpred positive cases."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "fable:R1-B1",
+      "status": "resolved",
+      "note": "Arbitrary-width bitvectors, wide lifted suffixes, counters and adapters replace the u128 semantic cap; r1_widths and wide_oracle pass."
+    },
+    {
+      "id": "fable:R1-B2",
+      "status": "resolved",
+      "note": "The quoted INT/FLOAT and constant-range witnesses are rejected by r1_literals; a remaining lifted memory suffix issue is separately raised as R2-B02/codex B12."
+    },
+    {
+      "id": "fable:R1-B3",
+      "status": "resolved",
+      "note": "Predicate dependency versions and computation-time window snapshots reject the dirty-cleanup witnesses; r1_discipline passes."
+    },
+    {
+      "id": "codex:B01",
+      "status": "resolved",
+      "note": "129/256/70000-bit and Hc=129/130 witnesses pass; one arbitrary-width engine pair now backs the adapters."
+    },
+    {
+      "id": "codex:B02",
+      "status": "resolved",
+      "note": "schema.rs collects lifted oracle/permutation/qinplace edges and rejects region SCCs; recursive lift.call remains supported."
+    },
+    {
+      "id": "codex:B03",
+      "status": "resolved",
+      "note": "Predicate-version negatives and the post-H/H new-window positive pass, including exact execution."
+    },
+    {
+      "id": "codex:B04",
+      "status": "partially",
+      "note": "Original qif-polarity and two-X loop witnesses are fixed; repeated transfer wrongly redeclares qregion (R2-B04), and the polarity update can panic (R2-B07)."
+    },
+    {
+      "id": "codex:B05",
+      "status": "resolved",
+      "note": "Modified qload cleanup, dirty local regions and mut-region child effects now have rejecting regression tests."
+    },
+    {
+      "id": "codex:B06",
+      "status": "resolved",
+      "note": "Local qregion child-call fixture parses, executes and reverses across all documented address/target cases."
+    },
+    {
+      "id": "codex:B07",
+      "status": "resolved",
+      "note": "The original zero/zero non-inverse pair is rejected before mutation and NOT/NOT is budget-checked; separate static adjoint omission is R2-B03."
+    },
+    {
+      "id": "codex:B08",
+      "status": "regressed",
+      "note": "Multiplicity and disjoint-store witnesses are fixed, but the replacement checker silently loses multi-input tuple boundaries and now accepts changed inputs (R2-B01)."
+    },
+    {
+      "id": "codex:B09",
+      "status": "resolved",
+      "note": "Whole-run reversal restores administrative control after an initially cancelled segment; r1_rules and nested CLI reversal pass."
+    },
+    {
+      "id": "codex:B10",
+      "status": "resolved",
+      "note": "Shared check_argument supports ptr values in permutation actions; pointer-forwarding regression passes."
+    },
+    {
+      "id": "codex:B11",
+      "status": "resolved",
+      "note": "Fixpoint typing accepts definitions later in textual block order; execution/reversal regression passes."
+    },
+    {
+      "id": "codex:B12",
+      "status": "partially",
+      "note": "Header, FLOAT, const-range, JSON integer and classical suffix witnesses are fixed; lift.load.i08 still passes parse (R2-B02)."
+    },
+    {
+      "id": "codex:B13",
+      "status": "partially",
+      "note": "The original malformed-callee panic is fixed by local schemas first; malformed qif nesting exposes another load-time panic (R2-B07)."
+    },
+    {
+      "id": "codex:B14",
+      "status": "resolved",
+      "note": "ANF decision removes the 16-wire cap; checked library/exhaustive borrow claims and altered/incomplete negatives pass."
+    },
+    {
+      "id": "codex:B15",
+      "status": "resolved",
+      "note": "Exact amplitudes replace epsilon-based cleanliness; tiny rotations fail release and exact adjoints clean successfully."
+    },
+    {
+      "id": "codex:B16",
+      "status": "resolved",
+      "note": "Recursive metadata typing/binding regressions pass; refusing arbitrary variant names was correctly declined because the spec has no such enum."
+    },
+    {
+      "id": "codex:B17",
+      "status": "resolved",
+      "note": "Certified client/callee linking, composite hash rebinding and exact decimal composition pass the new tests."
+    },
+    {
+      "id": "codex:B18",
+      "status": "resolved",
+      "note": "Fixture audit enumerates all .bisa files and detects corrupted tiny_memory hashes; published examples and pinned identities pass."
+    },
+    {
+      "id": "codex:B19",
+      "status": "partially",
+      "note": "Full launch/target/schedule/interval machinery remains unfinished but is explicitly staged as deliverables 8–11, permitted by this round’s convergence rules."
+    },
+    {
+      "id": "codex:B20",
+      "status": "resolved",
+      "note": "R→R and CC→CC/R policy is recorded; measurement wrapper is CC and illegal uncall still traps."
+    },
+    {
+      "id": "muse:B1",
+      "status": "resolved",
+      "note": "Wide interface values and registers now execute through BitVector; the old 256-bit move witness passes."
+    },
+    {
+      "id": "muse:B2",
+      "status": "resolved",
+      "note": "Header integer canonicality regressions now reject the supplied malformed headers."
+    },
+    {
+      "id": "muse:B3",
+      "status": "resolved",
+      "note": "Known effect names, operand counts/types and model declarations are validated at load; all four quoted negatives pass."
+    },
+    {
+      "id": "muse:B4",
+      "status": "resolved",
+      "note": "Resolved by a defensible recorded decline: qstore is defined as qxor with the value as an unmodified source; question 23 and its test cover the reading."
+    },
+    {
+      "id": "muse:B5",
+      "status": "resolved",
+      "note": "Loop bodies now compose per iteration; unconsumed repeated copies reject and balanced copies execute."
+    },
+    {
+      "id": "muse:B6",
+      "status": "resolved",
+      "note": "The 18-wire paired-CX identity and dependent negative are decided without an exhaustive-width cutoff."
+    },
+    {
+      "id": "muse:B7",
+      "status": "resolved",
+      "note": "Nested certificate/schedule schemas and composition have rejecting and positive regressions; checked borrow claims are available."
+    }
+  ],
+  "regressions": [
+    "R2-B01: 3dea965 parsed uncall.operands[2] directly and rejected an intervening write to either input; dc46d07 splits the serialized tuple at spaces and accepts the same changed-input program.",
+    "R2-B04: the old loop checker visited a lexical qregion declaration once, matching the executor’s function-entry allocation; the new repeated transfer rejects the second visit as a duplicate definition.",
+    "R2-B07: the old qif checker returned a §3.5 mismatch after an arm popped its implicit predicate; the new last_mut().expect polarity update panics before reaching that diagnostic."
+  ],
+  "suggestions": [
+    "S1, specification ambiguity: add a SPEC-QUESTIONS.md entry for cross-arm workspace lifetimes. Reproduced action @a (t:wire mut) (p:wire in) () () () with qif p { d = qalloc any 1 } { qfree d }: check and forward run-action --mut 0 --in 0 succeed as identity, but --adjoint and reverse fail 'unknown live bundle d'. §3.5 says allocations/releases are unconditional, and §4.6 expands then before else; reversing that expanded sequence requires inverse else before inverse then. Conversely §5.3 literally prints qif {adj A}{adj B}, which the implementation follows. These are competing readings when a lifetime crosses arms. Prefer supporting the function-scoped lifetime via reversal of the expanded sequence, and propose: 'The displayed qif adjoint shorthand assumes each arm’s workspace lifetimes are self-contained; otherwise take the adjoint of the complete §4.6 expansion, reversing unconditional lifetime operations as well.' Once this reading is recorded, change action.rs::action_sequence accordingly and add forward/adjoint round trips for both p values. Do not silently impose a new arm-local lifetime restriction on 0.8.",
+    "S1, reporting: update the stale deliverable references in SPEC-QUESTIONS.md entry 21 and claims.rs::verify_claim_guarded diagnostics to match PROGRESS.md’s authoritative numbering: launch=8, target=9, schedule=10, rigorous interval checker=11. In particular claims.rs currently calls the interval checker deliverable 10. Keep claims that require these deliverables Unverified until implemented; add a diagnostic assertion naming 11 for numerical/channel claims."
+  ],
+  "verdict_core": "revise",
+  "verdict": "revise",
+  "path_to_accept": "1. Make malformed input reliably reject: fix typed invocation keys (R2-B01), lifted suffix canonicality (R2-B02), comparison operand kinds (R2-B05), and per-arm predicate-stack checks (R2-B07). 2. Complete the static inverse/declaration semantics for qinplace and qregion (R2-B03/B04), retaining control-version and lifetime checks. 3. Make finite-angle action reporting total over the supported simulator states (R2-B06). 4. Add the exact negative/positive fixtures above, run the default and five ignored sweeps, and update round-1 statuses. These seven reproduced S0 issues must be closed for acceptance; staged deliverables 8–11 are not additional blockers in this round. Record the qif cross-arm ambiguity without claiming its literal adjoint table is an implementation divergence.",
+  "summary": "Reviewed frozen dc46d07, with the round-1 diff and response checked before new witnesses. All 85 packet files match the checkout. Previous-status entries cover all 30 blockers: the specific width, recursion, predicate-window, quantum-memory, local-region-call, inverse-pair execution, reversal, ptr, block-order, borrow, exact-cleanliness, metadata, linking, fixture and tier fixes are substantially confirmed; matched-call validation regresses, canonical suffix checking and panic-free validation remain partial, and B19 remains explicitly staged. No deduction was made merely for staged work.\nMethod 1: hand-derived inc8(255): B=0 gives (0,1,0), B=2 gives (0,1,2), B=3 gives (0,0,3); all reproduced with run-oracle. For sum_db(0), call at row 3 needs R_sum=16 cells: stack=15, B=3 gives (0,3,3); stack=16, B=10 gives (0,0,10). For sum_db(3), db=1..16, sufficient limits and B=52, sum=6 and steps=52; reproduced. Independently assembled the exact inc8 envelope as LF-terminated isa line, ptr_width line, canonical signature and the six published function lines; hashlib SHA-256 equals the published 8ce5e64f...d5be93.\nMethod 2: traced sum_db(0)'s call at pc=2: capture (0,0,4096), save the 13 sum locations, record return pc=3/old fp=0/destination id=2, bind parameters, and set fp=0, sp=16, depth=1. inverse_call restores counters, unbinds params, clears the three record cells, restores locations and finally clears captures. At lift.ret acc, R5 inverse restores callee fp/depth, R4 restores the destination/delivery value, R3 restores callee locations, R2 clears delivery, and R1 clears succ=3. CLI reverse prefixes of 3,9,10 rows all report equals_entry=true and frames_clean=true. Traced classical.bisa nested: g increments clock, f uncalls g, f returns, a pure load survives until outer uncall f, which skips already reversed g frames and its marker. The 11-instruction run returns i64 0; reverse reports entry equality, clock 0 and empty tape.\nMethod 3: audited all 27 SPEC-QUESTIONS entries against their cited text; the recorded interpretations are defensible, including no invented variant enum, qstore sources, row indexing, SCC ordering, zero-size free behavior, exact borrow proof, and runtime token-dependent qinplace checking. Additional qif lifetime/table conflict is isolated in suggestions.\nMethod 4: scanned all requested hazard patterns across the frozen crate. Production matches are checked-size/collection invariants, schema guards, JSON parser methods named expect, explicit unsupported model/sampler/cleanup diagnostics, and approximation/display code; no todo!/unimplemented! implementation stub was found. One purported predicate invariant is externally triggerable (R2-B07); exact amplitude display has a finite-input overflow (R2-B06). Test matches are fixture construction, assertions and deliberate rejection panics; seed unsupported-row handling is explicitly untrusted legacy code, and the documentation approximation hit is a timing statement. Also traced the unrequested unwrap_or_default fallback in invocation parsing, yielding R2-B01.\nMethod 5: compared the §4.2 row dispatches in object/oracle/machine, §4.1 and §4.8 classical and structured opcodes, §5.4 codes 0–10 (including R-only 8/10 and explicit callee code 9), §3.7 and §7.4 frame/inverse kinds, §9–§13 schema branches, §15 suites, and all README/CLI command arms. No missing lifted row was found; the specific schema/adjoint failures are listed above. Target/launch/schedule/interval coverage remains staged rather than silently certified.\nExecution: 178 default tests passed, 5 ignored. All five ignored sweeps passed: exhaustive u8 division (2.13 s), 17-wire borrow execution (12.05 s), 2^18-element borrow claim (80.88 s), 200,000-program discipline sweep (396.66 s), and all recursive prefixes (17.31 s). All new witnesses were run headlessly through the prebuilt binary, with fresh objects passed via anonymous memfd descriptors and hashes regenerated in memory. No source or repository files were edited; the sole review artifact is this JSON."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r2-codex.json

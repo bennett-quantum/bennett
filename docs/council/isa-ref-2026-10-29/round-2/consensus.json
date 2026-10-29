@@ -1,0 +1,152 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R2-B01",
+    "section": "\u00a76.1\u2013\u00a76.3, \u00a75.1; src/validation.rs::validate_action_sequence, Discipline::note_reads/change/dependencies",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Exchange does not transfer the source dependencies/provenance needed to detect outstanding entangling reads. Reproduced action signature mut=[1,1], in=[], args=[], bounds=[], body: action @a (t:wire mut, m:wire mut) () () () (); ^entry(): d = qalloc any 1; h d; swap d m; cx m t; swap d m; h d; qfree d. With the recomputed interface hash, check exits 0/status ok; run-action a --mut 0,0 exits 1 with E_QREG_NOT_CLEAN and a nonzero component of amplitude 0.5. Hand derivation: H(d); SWAP(d,m); CX(m,t); SWAP(d,m) leaves d,t Bell-entangled; H(d) leaves d=1 components, so release is illegal. Replacing both swap operations with qexch reproduces the same failure. A memory variant also passes check: add in p:wire, qregion r 1 1, and replace the middle with qexchm r p d; z = qload r p; cx z t; qunload r p z; qexchm r p d. run-action with t=m=p=0 fails identically. qexch records no operand reads, swap records only controls, and qexchm records only its address, losing the transferred dependency on d.",
+    "fix": "Change src/validation.rs::validate_action_sequence (swap gate, qexch and qexchm arms) and Discipline dependency/provenance bookkeeping. \u00a76.1 says qexch outputs have \"S_a \u222a S_b \u222a \u03a0\" and qexchm has \"S_v \u222a \u22c3S_cells \u222a {a} \u222a \u03a0\"; \u00a76.2 requires cleanup bound to \"its exact computing sequence\", and \u00a76.3 requires it to \"factorise them from the remaining state\". Snapshot the old dependencies of all exchanged operands/cells before updating any output, propagate the union and other provenance to every affected output, and retain those transitive readers until uncomputed. Add all three witnesses to tests/r1_discipline.rs expecting Object::parse Err citing \u00a76.2 (currently Ok); add positive variants with the middle cx m t/cx z t repeated twice, requiring acceptance, clean forward/adjoint execution on all small inputs, and exact restoration. Extend the differential generator with these operations."
+   },
+   {
+    "id": "SOL-R2-B02",
+    "section": "\u00a75.5; src/call_discipline.rs::validate_matched_oracle_calls transfer/retain",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Matching keys are built with row.operands.join(\" \") then decoded by k.split(' '), which splits legal lists such as (x, y). The list parse errors are discarded with unwrap_or_default, so changes to multi-input bundles are missed. Reproduced child sum2: in=[8,8], tgt=8, fault=4, args=[], body r = lift.add x y; lift.retval r. Parent p: in=[8,8], tgt=8, fault=4, args=[token], regs x:reg[8], y:reg[8], out:reg[8], fr:reg[4]; body x = lift.mov a; y = lift.mov b; lift.oracle_call @sum2 tk (x, y) out fr () (); x = lift.add x y; lift.oracle_uncall @sum2 tk (x, y) out fr () (); lift.retval out. Rehashed check exits 0. run-oracle p --input 1,2 --budget 6 --arg token:2 gives {code:0,payload:6,steps:6}: 3 XOR 5, rather than a matched cleanup. step-check --samples 4 also says ok because both engines execute the same invalidly accepted object.",
+    "fix": "Change src/call_discipline.rs::validate_matched_oracle_calls State.outstanding to use a typed call identity containing the original operands or parsed callee/token/ins/tgt/fr/mem/args fields; do not recover fields using whitespace splitting or silently discard parse errors. \u00a75.5 requires \"same token, callee, ins and mem values (no intervening row writes those locations or cells: suite F)\". The exact expected behavior is parse rejection citing \u00a75.5 for the parent above. Add it to tests/r1_rules.rs, plus a multi-region case and a positive identical call/uncall without x = lift.add x y (input 1,2, tk=2, B=5 must yield payload 0/code 0/steps 5)."
+   },
+   {
+    "id": "SOL-R2-B03",
+    "section": "\u00a73.6, \u00a74.2 qjumpr, \u00a75.5; src/call_discipline.rs::validate_matched_oracle_calls successors",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The rewritten CFG sends qjumpr only to block labels, but the interpreter and spec allow any row index in the containing function's range. Reproduced by appending to normative inc8 an oracle p with no inputs, tgt8, fault4, arg tk:token; regs x:reg[8], dest:reg[32], off:reg[32], out:reg[8], fr:reg[4]. ^entry(): x = lift.const.i8 1; dest = lift.label ^pair; off = lift.const.i32 1; dest = lift.add dest off; qjumpr dest. ^pair(): lift.oracle_call @inc8 tk (x) out fr () (); lift.oracle_uncall @inc8 tk (x) out fr () (); lift.retval out. Label ^pair has index 5, so dest=6 jumps directly to the uncall, without a computing invocation. Rehashed check nevertheless exits 0. run-oracle p --input \"\" --budget 7 --arg token:3 returns {code:0,payload:2,steps:7}. The old snapshot conservatively included all rows as qjumpr destinations; this is a regression.",
+    "fix": "Change src/call_discipline.rs::validate_matched_oracle_calls successors: conservatively include every row of the function for qjumpr, or compute a sound value analysis that includes every reachable numeric target. \u00a74.2 defines qjumpr's invalid-target flag only outside \"[first_f, first_f + n_f)\"; \u00a75.5 says the pair \"shares a dynamic invocation identity\". Reject the exact p witness with \u00a75.5 because no call is outstanding on its actual path. Add the witness to tests/r1_rules.rs and a positive computed-jump case where the computing call precedes the jump and dominates every target path to cleanup, requiring acceptance and clean reversal. If implementing target-value analysis, additionally accept a proven constant target that lands on the computing call."
+   },
+   {
+    "id": "SOL-R2-B04",
+    "section": "\u00a75.6, \u00a714.2; src/borrow.rs::Compiler::compile oracle_call/Node::Opaque and Evaluation::apply",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Opaque oracle symbols are keyed only by callee.name and token operand; ca[6] classical arguments are omitted. Consequently calls to different classical functions are falsely treated as equal and can cancel a dirty borrowed target. Reproduced child o: oracle @o () (t:wire) (f:wire[4]) () (n:i1); ^entry(): lift.retval n. Parent: perm_action @a (f:wire[4] mut) () () (tk:token, x:i1, y:i1) (); ^entry(): d = qborrow any 1; oracle_call @o tk () d f () (x); oracle_call @o tk () d f () (y); qreturn d. Both hash and rehashed check return status ok without a certificate. run-action a --mut 0 --arg token:1 --arg 0 --arg 1 exits 1: \u00a75.6 borrowed wires were not returned to their entry state. Hand result is d_out=d_in XOR x XOR y, so x=0,y=1 flips the borrowed bit. x=y=1 is a reproduced successful positive control. In round 1 this class was conservatively rejected as an opaque borrow frame.",
+    "fix": "Change src/borrow.rs::Compiler::compile (oracle_call and inlined permutation-call environments) and Node::Opaque identity construction. \u00a75.6 requires \"operation \u2297 identity on every borrowed bundle\" and factorisation \"P_F = P\u2032 \u2297 I_B\"; \u00a74.7 includes the complete classical args. Include the complete classical binding and token identity in each opaque function key, substituting actual arguments through inlined child calls; equate calls only when those bindings are demonstrably identical. The witness must reject at parse with \u00a75.6, whereas the version passing x to both calls must parse and preserve borrowed bits for tk=1, x=0/1 and every initial f,d. Add these cases to tests/r1_borrow.rs and include differing arguments in the differential generator."
+   },
+   {
+    "id": "SOL-R2-B05",
+    "section": "\u00a73.5, \u00a74.6 qif; src/validation.rs::validate_action_sequence qif arm",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Malformed qif can remove the validator's synthetic predicate, then the next arm reaches last_mut().expect(\"qif predicate\"). Reproduced complete body: action @a (t:wire mut) (p:wire in) () () (); ^entry(): qif p { qunpred p } { x t } (braces and instructions each on canonical separate lines). hash /dev/stdin exits 101 with thread main panicked at src/validation.rs:111:50, qif predicate, rather than reporting an ill-formed object. The previous qif implementation returned the \u00a73.5 body-altered-stack error for this input.",
+    "fix": "Change src/validation.rs::validate_action_sequence's qif arm to record the entry stack and verify after each arm that the arm restored its exact entry stack, including the synthetic positive/negative selector; do not mutate last_mut under an unvalidated assumption. \u00a73.5 says \"qunpred w pops the same wire\" and \u00a74.6 expands qif as \"qpred w; then; qunpred w; x w; qpred w; else; qunpred w; x w\". The witness must return Err citing \u00a73.5, and the CLI must exit 1 with no stdout, never panic. Add it as a subprocess regression in tests/cli.rs and a parser regression alongside balanced nested qpred/qunpred positive controls in tests/r1_discipline.rs."
+   },
+   {
+    "id": "SOL-R2-B06",
+    "section": "\u00a74.6 qregion, \u00a75.1; src/validation.rs::validate_structured/validate_action_sequence and src/borrow.rs::Compiler",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Qregion declarations are treated as dynamic statements by the static checker, although the executor already hoists them to function entry. Reproduced action @a (t:wire mut) () () () (), bounds [2], regs {  } bounds {2}, body qloop 2 { qregion r 1 1 }: hash rejects \u00a73.3 region name already defined on the second iteration, although the declared region is allocated once and stays at its zero image. A second legal identity action with in p:wire and body d = qload r p; qunload r p d; qregion r 1 1 is rejected \u00a73.3 unknown region. There is no textual-order restriction on qregion in the spec. The old one-pass loop checker happened to accept the first witness.",
+    "fix": "Change src/validation.rs::validate_structured to gather/register each lexical qregion declaration once before validating instruction effects, independently of loop trip count, qif arm or textual position; make the qregion sequence arm a declaration check rather than repeated insertion. Hoist regions in src/borrow.rs::Compiler consistently with src/action.rs::action_internal/gather_regions. \u00a74.6 explicitly says \"created at function entry ... scope is the function\" and \"back at its image before exit\". Add both witnesses to tests/structured.rs requiring acceptance, then run-action/adjoint with t=0/1 and p=0/1 requiring the unchanged interface and no leaked wires. Also test duplicate lexical declarations still reject and a declaration inside a zero-trip loop remains available at function entry."
+   },
+   {
+    "id": "SOL-R2-B07",
+    "section": "\u00a73.3 operand schema, \u00a74.8 icmp; src/validation.rs::classical_instruction icmp arm",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The classical icmp validator checks only that operand types match, so non-bit-vector operands pass load validation and then hard-error during execution. Reproduced fn r @a (x:token) (r:i1) () () (); ^entry(): r = icmp.eq x x; ret r, with signature params=[\"token\"], results=[\"i1\"]. hash returns status ok; after rehash, run-cc a --arg token:1 exits 1 with \u00a73.3 expected classical bit-vector value, with no run result. Token values have no integer comparison width and are not operands of the ISA integer comparison.",
+    "fix": "Change src/validation.rs::classical_instruction's icmp arm to require both operands to be equal-width integer/pointer bit-vector values, rejecting token, f64 and qreg; keep ptr comparison support where width ptr_width determines the comparison. \u00a73.3 requires \"a fixed arity, operand kinds and a result type\" and \u00a74.8 specifies \"values of equal width ... icmp: i1\". The exact witness must reject at parse with \u00a73.3/\u00a74.8, not reach a hard runtime error. Add token and f64 rejection fixtures to tests/parser.rs plus positive i8 and ptr comparisons in tests/classical.rs with exact i1 results and complete history reversal."
+   },
+   {
+    "id": "SOL-R2-B08",
+    "section": "\u00a74.4 finite-angle rotations, \u00a714.2; src/exact.rs::Amplitude::approximate/Dyadic::to_f64, src/quantum.rs::exact_support, src/main.rs::action_state_json",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "The exact shadow can represent a valid amplitude whose Laurent exponent cannot be converted to a finite f64 angle; CLI rendering then rejects a valid action. Reproduced action @a (t:wire mut) () () () (); ^entry(): four consecutive rz 1e+308 t instructions. hash returns ok, but after rehash run-action a --mut 0 exits 1 with \u00a716.1 non-finite binary64 has no JSON number. Each input angle is canonical and finite. By \u00a74.4 the state is exp(-i*2*theta)|0>, theta the exact binary64 1e308, a unit-modulus finite complex amplitude. Independently multiplying four single-gate phases gives approximately [0.588863244801576,0.8082326886001081]; no population is created on |1>. The accumulated real angle overflows f64 before sin_cos in Amplitude::approximate, although the phase never does.",
+    "fix": "Change src/exact.rs::Amplitude::approximate (and Dyadic::to_f64 as needed) to evaluate monomial phases without first narrowing an arbitrarily large exact exponent to a finite binary64 angle, using safe argument reduction or a bounded-factor evaluation; retain the exact zero/cleanliness decisions. Ensure src/quantum.rs::exact_support/main.rs::action_state_json emit finite amplitudes for this valid program. \u00a74.4 permits \"finite f64 literals\" and defines \"rz(\u03b8) ... diag(e^{-i\u03b8/2}, e^{i\u03b8/2})\"; \u00a714.2 applies those gates. Add the four-rz witness to tests/cli_xam.rs: run-action --mut 0 must exit 0 with only key \"0\", unit modulus, amplitude agreeing with the independently multiplied phases within binary64 tolerance; also reverse must restore [1,0]. This is implemented CLI formatting/semantics, not the staged rigorous interval checker."
+   }
+  ],
+  "codex": [
+   {
+    "id": "R2-B01",
+    "section": "\u00a75.5; src/call_discipline.rs::Object::validate_matched_oracle_calls",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The new dataflow checker loses tuple boundaries by storing operands.join(\" \") and later using split(' '). With two inputs, list(o[2]) sees '(a,' and silently becomes an empty list; subsequent positions no longer denote tgt/fr/mem. Reproduced with these memoryless functions (ordinary matching oracle signatures, inner args=[], outer args=[token], fault=4, tgt=8):\noracle @inner (x:wire[8] in, y:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n^entry():\nlift.retval y\noracle @outer (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)\nregs { a:reg[8], b:reg[8], r:reg[8], fr:reg[4] }\n^entry():\na = lift.mov x\nlift.oracle_call @inner tk (a, b) r fr () ()\nb = lift.const.i8 1\nlift.oracle_uncall @inner tk (a, b) r fr () ()\nlift.retval r\nAfter obtaining/storing the reported interface hashes, check returns status=ok. run-oracle outer --input 0 --budget 5 --arg token:1,0,0,0 returns {\"code\":0,\"payload\":1,\"steps\":5}; step-check --exhaustive with the same budget/token even reports 256 successful cases. The pair does not clean its first result: its input b changed from 0 to 1. This is a regression from 3dea965, whose checker parsed uncall.operands[2] directly and rejected intervening writes to either input.",
+    "fix": "In src/call_discipline.rs::validate_matched_oracle_calls, replace the serialized-string key with a typed invocation key retaining callee, token, parsed input names, target, fault, memory names and classical arguments (or retain Vec<String> operands and parse each original operand). Remove unwrap_or_default on these schema-guaranteed lists. \u00a75.5 requires 'the same token, callee, ins and mem values (no intervening row writes those locations or cells: suite F)'. The quoted object must be rejected at load with \u00a75.5, before execution. Add it to tests/r1_rules.rs, plus mutations writing each input and storing into each of two supplied regions. Positive control: remove the b assignment; B=4, token B=1, any x yields payload=0, code=0, steps=4 and complete prefix reversal. Keep the two-call/two-uncall and disjoint-global-store regressions."
+   },
+   {
+    "id": "R2-B02",
+    "section": "\u00a716.1\u2013\u00a716.2, \u00a74.8; src/object.rs::Object::validate_row",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Lifted load/store suffixes still use bare parse::<u64>() rather than the canonical INT reader. Reproduced by replacing both lift.load.i8 tokens in tests/fixtures/sum_db.bisa with lift.load.i08 and regenerating the interface hashes. hash accepts the object. run-oracle sum_db --input 0 --budget 10 then exits 1 with '\u00a716.1: load width must be a canonical unsigned INT', rather than rejecting the text during parsing. The validator and executor disagree on a text spelling that \u00a716.1 forbids. Round-1 B12's common canonical-schema fix is incomplete.",
+    "fix": "In src/object.rs::validate_row's lift.load.i/lift.store.i arm, parse the suffix with host_count (or another shared canonical positive-width reader) before checking N in {8,16,...,128}; use the same reader in every dispatch path. \u00a716.1 specifies 'INT := -?(0|[1-9][0-9]*)', and \u00a716.2 makes the dotted suffix part of the opcode schema. Add parser and CLI tests mutating sum_db's lift.load.i8 to lift.load.i08 and heap's lift.store.i8 to lift.store.i08: hash/check must exit 1 citing \u00a716.1, never accept and defer failure to run-oracle. Canonical sum_db n=0 with B=10, heap=4080, stack=16, depth=64 must still return (0,0,10)."
+   },
+   {
+    "id": "R2-B03",
+    "section": "\u00a74.5, \u00a75.3 adjoint table, \u00a76.2; src/validation.rs::operation_inverse and qinplace transfer",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The executor checks qinplace inverse pairs, but the static version checker has no inverse rule for qinplace, so it rejects explicit valid cleanup. Reproduced hash rejection '\u00a76.2: released value has not been uncomputed' for a memoryless identity oracle g, signature in=[1],tgt=1,fault=4,args=[], body 'lift.retval x', and action a with mut=[1],in=[],args=[token],bounds=[]:\naction @a (t:wire mut) () () (tk:token) ()\n^entry():\nd = qalloc any 1\nqinplace @g @g tk d\nqinplace @g @g tk d\nqfree d\nAt tk=(1,0,0,0), g and its inverse are fault-free identity on both inputs. The second instruction is exactly the table-prescribed adjoint of the first; d is clean for every input, and the action is identity. operation_inverse returns None for every qinplace version.",
+    "fix": "Add a typed qinplace operation identity/inverse in src/validation.rs::operation_inverse and validate_action_sequence: invert by exchanging g and ginv while preserving token, target and the captured effective-control versions. \u00a75.3 explicitly says 'qinplace @g @ginv \u21a6 qinplace @ginv @g'; \u00a76.2 requires cleanup by the 'exact computing sequence, its inputs, their versions and its effective control context'. The quoted object must parse; run-action a --mut 0 --arg token:1,0,0,0 and its adjoint must return mut=[0], and reverse must restore entry. Test both target basis values, a nontrivial NOT/NOT pair with token B=3, and a changed-predicate negative control that must remain rejected."
+   },
+   {
+    "id": "R2-B04",
+    "section": "\u00a74.6 qregion and qloop; src/validation.rs::validate_structured/validate_action_sequence",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The repeated loop transfer treats a function-local qregion declaration as a fresh dynamic declaration each iteration. Reproduced hash rejection '\u00a73.3: region name already defined' for the memoryless action with signature mut=[1],in=[],args=[],mem=[],bounds=[2]:\naction @a (t:wire mut) () () () ()\nregs {  } bounds {2}\n^entry():\nqloop 2 {\nqregion r 1 1\n}\nThere is one lexical declaration of a two-cell zero region, no mutations, and no leaked workspace. \u00a74.6 creates this region once at function entry. action.rs already gathers/allocates it once at entry and treats its body occurrence as a no-op; validation instead inserts the same name twice. The earlier one-pass loop validator accepted this case, so fixing iteration analysis introduced a rejection regression.",
+    "fix": "In src/validation.rs::validate_structured, collect all lexical qregion declarations recursively, reject duplicate lexical declarations, and establish their types/local-region state once at function entry. In validate_action_sequence, treat an already validated declaration occurrence as a no-op, matching action.rs::action_internal/gather_regions. \u00a74.6 says 'created at function entry ... scope is the function', and qloop is 'body n times'; a declaration is not a new per-iteration allocation. Add the quoted bounds=[2] fixture: parsing, forward action and adjoint must succeed, preserve either t value, and reverse must restore entry. Add n=0 and a reference to the region before its textual declaration, plus a genuinely duplicated lexical declaration that still rejects."
+   },
+   {
+    "id": "R2-B05",
+    "section": "\u00a73.3, \u00a74.8; src/validation.rs::classical_instruction icmp arm",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "icmp checks matching Type values but never requires operands to have a bit width. Reproduced with the memoryless CC signature params=[token,token],results=[i1]:\nfn cc @cmp (a:token, b:token) (r:i1) () () ()\n^entry():\nr = icmp.eq a b\nret r\nhash and check accept it after normal rehashing. run-cc cmp --arg token:1,0,0,0 --arg token:1,0,0,0 exits 1 with '\u00a73.3: expected classical bit-vector value' and no run JSON. The same happens with two f64 parameters. Thus an operand-kind error escapes validation and becomes an executor error rather than the specified load rejection.",
+    "fix": "In src/validation.rs::classical_instruction's icmp arm, require a bit-vector comparison type (iN or ptr) after same(), using Type::width or an explicit match; reject token, qreg and f64 unless a separately specified floating comparison opcode is introduced. \u00a73.3 says 'binop/icmp operands equal width'; \u00a74.8 requires fixed 'operand kinds and a result type', and supplies no token-comparison semantics. Add the quoted token function as a parser/CLI rejection test citing \u00a73.3; include f64 and qreg negatives and i8/ptr equality positives. The token witness must fail hash/check at load, rather than reaching ClassicalValue::bits during run-cc."
+   },
+   {
+    "id": "R2-B06",
+    "section": "\u00a74.4, \u00a714.2; src/exact.rs::Amplitude::approximate, src/quantum.rs::exact_support, src/main.rs action output",
+    "scope": "contract",
+    "severity": "S0",
+    "problem": "Valid finite rotations can make both run-action and reverse fail during output conversion. Reproduced a memoryless action a with mut=[1],in=[],mem=[],args=[f64],bounds=[], header 'action @a (t:wire mut) () () (theta:f64) ()', and four consecutive 'rz theta t' instructions. After rehashing, run-action a --mut 0 --arg f64:1e308 and reverse with the same arguments both exit 1: '\u00a716.1: non-finite binary64 has no JSON number'. Every input angle is finite; the action is a valid unitary. Its exact shadow combines the phase to exp(-i*2*theta), whose real argument exceeds binary64, and approximate converts that exponent to infinity before sin_cos. Independently evaluating the exact binary64 theta at 420 decimal digits gives amplitude approximately (0.58886324480157600487, 0.80823268860010801365), not a non-finite amplitude. The retained numerical gate-by-gate shadow also stays finite.",
+    "fix": "Change src/quantum.rs::exact_support and the CLI serializer to select support by exact nonzeroness but obtain display amplitudes without converting an unbounded combined exponent to f64. Reuse the retained finite numerical amplitudes for display, or implement range reduction of exact exponents before evaluating sin/cos in src/exact.rs. Preserve the exact shadow for cleanliness/equality. \u00a74.4 defines rz(theta)=diag(exp(-i theta/2),exp(i theta/2)), with finite f64 angles, and \u00a714.2 applies these gates to the state vector; the README promises one JSON result for successful run-action/reverse. Add the four-rz fixture with theta=binary64(1e308): run-action must exit 0 with finite JSON and the stated amplitude within binary64 tolerance, and reverse must exit 0 with final state {\"0\":[1,0]}. Do not reject finite theta merely because a symbolic sum of angles exceeds binary64."
+   },
+   {
+    "id": "R2-B07",
+    "section": "\u00a73.5, \u00a74.6, \u00a715 suite F; src/validation.rs::validate_action_sequence qif arm",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Malformed predicate nesting reaches expect(\"qif predicate\") at validation.rs:111. Reproduced hash exit 101 and a Rust panic for a memoryless action with mut=[1],in=[1],args=[],bounds=[]:\naction @a (t:wire mut) (p:wire in) () () ()\n^entry():\nqif p {\nqunpred p\n} {\nx t\n}\nThe first arm consumes the qif-owned predicate. Before validating the second arm, last_mut().expect(...) assumes that predicate remains. This is a malformed-object rejection path, not an internal invariant. The round-1 implementation checked its final pop and returned the \u00a73.5 error for this case; the new polarity update introduced the panic.",
+    "fix": "In src/validation.rs::validate_action_sequence, snapshot the predicate stack before each qif arm and verify immediately after that arm that it equals the expected outer stack plus the arm's selector, before replacing or popping its top. Use a section-citing Result instead of expect. \u00a73.5 requires 'qunpred w pops the same wire' and an empty region-entry/exit stack; the \u00a74.6 expansion owns its matching qpred/qunpred pair, so a body cannot consume it. Add the quoted object to parser and CLI tests: Object::parse must return Err and hash/check must exit 1 citing \u00a73.5, never 101. Also test an arm leaving an extra qpred, and balanced nested qif/qpred positive cases."
+   }
+  ]
+ },
+ "means": {
+  "C1": 3.0,
+  "C2": 4.5,
+  "C3": 4.5,
+  "C4": 4.5,
+  "C5": 4.0,
+  "C6": 3.0,
+  "C7": 3.5,
+  "C8": 3.5
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

@@ -1,0 +1,287 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "object.rs/schema.rs reject the round-1 width, literal and arity witnesses, but validation.rs still accepts an ill-typed token comparison, panics on a malformed qif, and rejects function-entry qregion declarations based on lexical position/repetition (SOL-R2-B05\u2013B07).",
+   "change": "In validation.rs::validate_action_sequence and classical_instruction, implement B05\u2013B07: preserve each qif arm's entry predicate stack, register qregions once at function entry, and restrict icmp to equal-width integer/pointer operands; add the exact negative and positive fixtures below."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "identity.rs and linking.rs implement envelopes, SCCs, import fingerprints/pins, composition and rebinding. I reconstructed the complete LF-terminated inc8 envelope independently and obtained 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93; hash also reproduced zero, sum and sum_db. Round-1 linking/identity tests pass; no new identity deviation was reproduced.",
+   "change": "In tests/identity.rs, add independently assembled complete CC/R envelopes for classical.bisa @g and a quoted hostcall service, including every layout/data/device line and terminal LF, with digests computed independently of Object::identity; retain the published four-hash assertions."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "oracle.rs::run_oracle_vectors now supplies the sole sequential engine over BitVector. Hand-derived inc8(255) at B=2/3 gives (0,1,2)/(0,0,3); sum_db(0), stack=15 faults (0,3,3), and stack=16/depth=1 succeeds at B=10, all reproduced. Arithmetic, heap, recursive/nested and wide tests pass. Acceptance of unmatched calls is a validator defect, not evidence that these execution results are miscomputed.",
+   "change": "In tests/oracle.rs, add a hand-derived multi-input nested-oracle fixture with fixed classical arguments, checking exact payload/code/row counts immediately before call, after call and at retval; pair it with the parse-rejection witnesses in B02/B03 so engine agreement cannot conceal invalid source acceptance."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "machine.rs::forward_step/inverse_step and forward_call/inverse_call/forward_ret/inverse_ret follow the printed exchange/capture order. I traced C5^-1,C4^-1,C3^-1,C2^-1,C1^-1 and R5^-1,R4^-1,R3^-1,R2^-1,R1^-1 for sum_db(0); reverse at prefixes 3 and 9 returns pc=pc_prime=0, all locations/counters restored and frames_clean=true. The independent sequential/machine tests pass.",
+   "change": "In tests/step_machine.rs, pin the hand-derived sum_db(0) call/return intermediate values (record return index 3, 16 cells, depth 1, monotonic sp=16 after return), in addition to snapshot round trips; this independently checks the printed sub-operation meanings rather than only their mutual inversion."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "classical.rs implements dynamic instances, atomic effects, faults and segment traversal. classical.bisa @nested returns i64 0 in 11 instructions with clock/tape zero; reverse restores the memory digest and complete entry tuple. The localized remaining schema defect is token/f64 icmp acceptance, which reaches a hard execution error rather than a defined instruction (B07).",
+   "change": "Change validation.rs::classical_instruction's icmp arm as B07 specifies and add tests/classical.rs/parser.rs cases proving token and f64 comparisons reject at load, while i8 and ptr comparisons still execute and reverse."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "Exact release and the original predicate/loop/window witnesses are substantially repaired. However, exchange-mediated entanglement escapes the dependency checker (B01), and borrow.rs falsely proves independence when classical oracle arguments differ (B04). Both hash/check acceptance and failing execution were reproduced; these violate the prerequisites of T5 and the borrowed-system identity.",
+   "change": "Implement B01 and B04 in validation.rs::Discipline and borrow.rs::Compiler::compile/Evaluation::apply: propagate pre-instruction dependency sets across both exchanged operands/cells, and distinguish opaque functions by their complete classical binding and canonical argument identities. Add the given entangled-scratch and dirty-borrow regressions."
+  },
+  {
+   "id": "C7",
+   "score": 3,
+   "evidence": "The normal offline suite passes 178 tests with 5 ignored; round-1 regression fixtures, inventory/hash pins and recorded red/green history are present. The differential generator in tests/r1_fuzz_discipline.rs omits swap-mediated computations, region calls and differing classical oracle bindings, so its successful sweep misses B01/B04. The original hand budget/hash/reversal fixtures checked here agree.",
+   "change": "Extend tests/r1_fuzz_discipline.rs::compute_op/middle_op/program to generate swap/qexch/qexchm information transfers and action/oracle calls with distinct classical bindings; require every accepted generated action to execute cleanly on all small basis inputs and a superposition, and retain each B01\u2013B07 witness as a deterministic regression."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "All 27 SPEC-QUESTIONS readings were compared with their cited clauses; the recorded qstore-source interpretation (23), producer-chosen variants (11), counter/SCC/index readings and staged 8\u201311 work are defensible. No omission is blocked merely for that staging. But check reports ok for ill-formed objects, malformed qif exits 101, and exact amplitude rendering rejects finite-angle programs (B08), undermining the reported verified milestone.",
+   "change": "Fix main.rs::action_state_json/exact.rs::Amplitude::approximate as B08 specifies; after B01\u2013B07 pass, update PROGRESS.md's verification section with these new regression names and results, preserving the explicit staging of launch/target/schedule/interval work."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R2-B01",
+   "section": "\u00a76.1\u2013\u00a76.3, \u00a75.1; src/validation.rs::validate_action_sequence, Discipline::note_reads/change/dependencies",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Exchange does not transfer the source dependencies/provenance needed to detect outstanding entangling reads. Reproduced action signature mut=[1,1], in=[], args=[], bounds=[], body: action @a (t:wire mut, m:wire mut) () () () (); ^entry(): d = qalloc any 1; h d; swap d m; cx m t; swap d m; h d; qfree d. With the recomputed interface hash, check exits 0/status ok; run-action a --mut 0,0 exits 1 with E_QREG_NOT_CLEAN and a nonzero component of amplitude 0.5. Hand derivation: H(d); SWAP(d,m); CX(m,t); SWAP(d,m) leaves d,t Bell-entangled; H(d) leaves d=1 components, so release is illegal. Replacing both swap operations with qexch reproduces the same failure. A memory variant also passes check: add in p:wire, qregion r 1 1, and replace the middle with qexchm r p d; z = qload r p; cx z t; qunload r p z; qexchm r p d. run-action with t=m=p=0 fails identically. qexch records no operand reads, swap records only controls, and qexchm records only its address, losing the transferred dependency on d.",
+   "fix": "Change src/validation.rs::validate_action_sequence (swap gate, qexch and qexchm arms) and Discipline dependency/provenance bookkeeping. \u00a76.1 says qexch outputs have \"S_a \u222a S_b \u222a \u03a0\" and qexchm has \"S_v \u222a \u22c3S_cells \u222a {a} \u222a \u03a0\"; \u00a76.2 requires cleanup bound to \"its exact computing sequence\", and \u00a76.3 requires it to \"factorise them from the remaining state\". Snapshot the old dependencies of all exchanged operands/cells before updating any output, propagate the union and other provenance to every affected output, and retain those transitive readers until uncomputed. Add all three witnesses to tests/r1_discipline.rs expecting Object::parse Err citing \u00a76.2 (currently Ok); add positive variants with the middle cx m t/cx z t repeated twice, requiring acceptance, clean forward/adjoint execution on all small inputs, and exact restoration. Extend the differential generator with these operations."
+  },
+  {
+   "id": "SOL-R2-B02",
+   "section": "\u00a75.5; src/call_discipline.rs::validate_matched_oracle_calls transfer/retain",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Matching keys are built with row.operands.join(\" \") then decoded by k.split(' '), which splits legal lists such as (x, y). The list parse errors are discarded with unwrap_or_default, so changes to multi-input bundles are missed. Reproduced child sum2: in=[8,8], tgt=8, fault=4, args=[], body r = lift.add x y; lift.retval r. Parent p: in=[8,8], tgt=8, fault=4, args=[token], regs x:reg[8], y:reg[8], out:reg[8], fr:reg[4]; body x = lift.mov a; y = lift.mov b; lift.oracle_call @sum2 tk (x, y) out fr () (); x = lift.add x y; lift.oracle_uncall @sum2 tk (x, y) out fr () (); lift.retval out. Rehashed check exits 0. run-oracle p --input 1,2 --budget 6 --arg token:2 gives {code:0,payload:6,steps:6}: 3 XOR 5, rather than a matched cleanup. step-check --samples 4 also says ok because both engines execute the same invalidly accepted object.",
+   "fix": "Change src/call_discipline.rs::validate_matched_oracle_calls State.outstanding to use a typed call identity containing the original operands or parsed callee/token/ins/tgt/fr/mem/args fields; do not recover fields using whitespace splitting or silently discard parse errors. \u00a75.5 requires \"same token, callee, ins and mem values (no intervening row writes those locations or cells: suite F)\". The exact expected behavior is parse rejection citing \u00a75.5 for the parent above. Add it to tests/r1_rules.rs, plus a multi-region case and a positive identical call/uncall without x = lift.add x y (input 1,2, tk=2, B=5 must yield payload 0/code 0/steps 5)."
+  },
+  {
+   "id": "SOL-R2-B03",
+   "section": "\u00a73.6, \u00a74.2 qjumpr, \u00a75.5; src/call_discipline.rs::validate_matched_oracle_calls successors",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The rewritten CFG sends qjumpr only to block labels, but the interpreter and spec allow any row index in the containing function's range. Reproduced by appending to normative inc8 an oracle p with no inputs, tgt8, fault4, arg tk:token; regs x:reg[8], dest:reg[32], off:reg[32], out:reg[8], fr:reg[4]. ^entry(): x = lift.const.i8 1; dest = lift.label ^pair; off = lift.const.i32 1; dest = lift.add dest off; qjumpr dest. ^pair(): lift.oracle_call @inc8 tk (x) out fr () (); lift.oracle_uncall @inc8 tk (x) out fr () (); lift.retval out. Label ^pair has index 5, so dest=6 jumps directly to the uncall, without a computing invocation. Rehashed check nevertheless exits 0. run-oracle p --input \"\" --budget 7 --arg token:3 returns {code:0,payload:2,steps:7}. The old snapshot conservatively included all rows as qjumpr destinations; this is a regression.",
+   "fix": "Change src/call_discipline.rs::validate_matched_oracle_calls successors: conservatively include every row of the function for qjumpr, or compute a sound value analysis that includes every reachable numeric target. \u00a74.2 defines qjumpr's invalid-target flag only outside \"[first_f, first_f + n_f)\"; \u00a75.5 says the pair \"shares a dynamic invocation identity\". Reject the exact p witness with \u00a75.5 because no call is outstanding on its actual path. Add the witness to tests/r1_rules.rs and a positive computed-jump case where the computing call precedes the jump and dominates every target path to cleanup, requiring acceptance and clean reversal. If implementing target-value analysis, additionally accept a proven constant target that lands on the computing call."
+  },
+  {
+   "id": "SOL-R2-B04",
+   "section": "\u00a75.6, \u00a714.2; src/borrow.rs::Compiler::compile oracle_call/Node::Opaque and Evaluation::apply",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Opaque oracle symbols are keyed only by callee.name and token operand; ca[6] classical arguments are omitted. Consequently calls to different classical functions are falsely treated as equal and can cancel a dirty borrowed target. Reproduced child o: oracle @o () (t:wire) (f:wire[4]) () (n:i1); ^entry(): lift.retval n. Parent: perm_action @a (f:wire[4] mut) () () (tk:token, x:i1, y:i1) (); ^entry(): d = qborrow any 1; oracle_call @o tk () d f () (x); oracle_call @o tk () d f () (y); qreturn d. Both hash and rehashed check return status ok without a certificate. run-action a --mut 0 --arg token:1 --arg 0 --arg 1 exits 1: \u00a75.6 borrowed wires were not returned to their entry state. Hand result is d_out=d_in XOR x XOR y, so x=0,y=1 flips the borrowed bit. x=y=1 is a reproduced successful positive control. In round 1 this class was conservatively rejected as an opaque borrow frame.",
+   "fix": "Change src/borrow.rs::Compiler::compile (oracle_call and inlined permutation-call environments) and Node::Opaque identity construction. \u00a75.6 requires \"operation \u2297 identity on every borrowed bundle\" and factorisation \"P_F = P\u2032 \u2297 I_B\"; \u00a74.7 includes the complete classical args. Include the complete classical binding and token identity in each opaque function key, substituting actual arguments through inlined child calls; equate calls only when those bindings are demonstrably identical. The witness must reject at parse with \u00a75.6, whereas the version passing x to both calls must parse and preserve borrowed bits for tk=1, x=0/1 and every initial f,d. Add these cases to tests/r1_borrow.rs and include differing arguments in the differential generator."
+  },
+  {
+   "id": "SOL-R2-B05",
+   "section": "\u00a73.5, \u00a74.6 qif; src/validation.rs::validate_action_sequence qif arm",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Malformed qif can remove the validator's synthetic predicate, then the next arm reaches last_mut().expect(\"qif predicate\"). Reproduced complete body: action @a (t:wire mut) (p:wire in) () () (); ^entry(): qif p { qunpred p } { x t } (braces and instructions each on canonical separate lines). hash /dev/stdin exits 101 with thread main panicked at src/validation.rs:111:50, qif predicate, rather than reporting an ill-formed object. The previous qif implementation returned the \u00a73.5 body-altered-stack error for this input.",
+   "fix": "Change src/validation.rs::validate_action_sequence's qif arm to record the entry stack and verify after each arm that the arm restored its exact entry stack, including the synthetic positive/negative selector; do not mutate last_mut under an unvalidated assumption. \u00a73.5 says \"qunpred w pops the same wire\" and \u00a74.6 expands qif as \"qpred w; then; qunpred w; x w; qpred w; else; qunpred w; x w\". The witness must return Err citing \u00a73.5, and the CLI must exit 1 with no stdout, never panic. Add it as a subprocess regression in tests/cli.rs and a parser regression alongside balanced nested qpred/qunpred positive controls in tests/r1_discipline.rs."
+  },
+  {
+   "id": "SOL-R2-B06",
+   "section": "\u00a74.6 qregion, \u00a75.1; src/validation.rs::validate_structured/validate_action_sequence and src/borrow.rs::Compiler",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Qregion declarations are treated as dynamic statements by the static checker, although the executor already hoists them to function entry. Reproduced action @a (t:wire mut) () () () (), bounds [2], regs {  } bounds {2}, body qloop 2 { qregion r 1 1 }: hash rejects \u00a73.3 region name already defined on the second iteration, although the declared region is allocated once and stays at its zero image. A second legal identity action with in p:wire and body d = qload r p; qunload r p d; qregion r 1 1 is rejected \u00a73.3 unknown region. There is no textual-order restriction on qregion in the spec. The old one-pass loop checker happened to accept the first witness.",
+   "fix": "Change src/validation.rs::validate_structured to gather/register each lexical qregion declaration once before validating instruction effects, independently of loop trip count, qif arm or textual position; make the qregion sequence arm a declaration check rather than repeated insertion. Hoist regions in src/borrow.rs::Compiler consistently with src/action.rs::action_internal/gather_regions. \u00a74.6 explicitly says \"created at function entry ... scope is the function\" and \"back at its image before exit\". Add both witnesses to tests/structured.rs requiring acceptance, then run-action/adjoint with t=0/1 and p=0/1 requiring the unchanged interface and no leaked wires. Also test duplicate lexical declarations still reject and a declaration inside a zero-trip loop remains available at function entry."
+  },
+  {
+   "id": "SOL-R2-B07",
+   "section": "\u00a73.3 operand schema, \u00a74.8 icmp; src/validation.rs::classical_instruction icmp arm",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The classical icmp validator checks only that operand types match, so non-bit-vector operands pass load validation and then hard-error during execution. Reproduced fn r @a (x:token) (r:i1) () () (); ^entry(): r = icmp.eq x x; ret r, with signature params=[\"token\"], results=[\"i1\"]. hash returns status ok; after rehash, run-cc a --arg token:1 exits 1 with \u00a73.3 expected classical bit-vector value, with no run result. Token values have no integer comparison width and are not operands of the ISA integer comparison.",
+   "fix": "Change src/validation.rs::classical_instruction's icmp arm to require both operands to be equal-width integer/pointer bit-vector values, rejecting token, f64 and qreg; keep ptr comparison support where width ptr_width determines the comparison. \u00a73.3 requires \"a fixed arity, operand kinds and a result type\" and \u00a74.8 specifies \"values of equal width ... icmp: i1\". The exact witness must reject at parse with \u00a73.3/\u00a74.8, not reach a hard runtime error. Add token and f64 rejection fixtures to tests/parser.rs plus positive i8 and ptr comparisons in tests/classical.rs with exact i1 results and complete history reversal."
+  },
+  {
+   "id": "SOL-R2-B08",
+   "section": "\u00a74.4 finite-angle rotations, \u00a714.2; src/exact.rs::Amplitude::approximate/Dyadic::to_f64, src/quantum.rs::exact_support, src/main.rs::action_state_json",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "The exact shadow can represent a valid amplitude whose Laurent exponent cannot be converted to a finite f64 angle; CLI rendering then rejects a valid action. Reproduced action @a (t:wire mut) () () () (); ^entry(): four consecutive rz 1e+308 t instructions. hash returns ok, but after rehash run-action a --mut 0 exits 1 with \u00a716.1 non-finite binary64 has no JSON number. Each input angle is canonical and finite. By \u00a74.4 the state is exp(-i*2*theta)|0>, theta the exact binary64 1e308, a unit-modulus finite complex amplitude. Independently multiplying four single-gate phases gives approximately [0.588863244801576,0.8082326886001081]; no population is created on |1>. The accumulated real angle overflows f64 before sin_cos in Amplitude::approximate, although the phase never does.",
+   "fix": "Change src/exact.rs::Amplitude::approximate (and Dyadic::to_f64 as needed) to evaluate monomial phases without first narrowing an arbitrarily large exact exponent to a finite binary64 angle, using safe argument reduction or a bounded-factor evaluation; retain the exact zero/cleanliness decisions. Ensure src/quantum.rs::exact_support/main.rs::action_state_json emit finite amplitudes for this valid program. \u00a74.4 permits \"finite f64 literals\" and defines \"rz(\u03b8) ... diag(e^{-i\u03b8/2}, e^{i\u03b8/2})\"; \u00a714.2 applies those gates. Add the four-rz witness to tests/cli_xam.rs: run-action --mut 0 must exit 0 with only key \"0\", unit modulus, amplitude agreeing with the independently multiplied phases within binary64 tolerance; also reverse must restore [1,0]. This is implemented CLI formatting/semantics, not the staged rigorous interval checker."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "fable:R1-B1",
+   "status": "resolved",
+   "note": "Arbitrary-width BitVector engines and wide CLI regression tests pass; no remaining 128-bit lifted-value cap in the reviewed paths."
+  },
+  {
+   "id": "fable:R1-B2",
+   "status": "resolved",
+   "note": "Canonical literal/range/suffix tests pass and const truncation witnesses reject."
+  },
+  {
+   "id": "fable:R1-B3",
+   "status": "resolved",
+   "note": "Original predicate-version witnesses and positive controls pass; the different exchange-transfer hole is B01."
+  },
+  {
+   "id": "codex:B01",
+   "status": "resolved",
+   "note": "129/256/70000-bit parsing/execution and derived-width tests pass."
+  },
+  {
+   "id": "codex:B02",
+   "status": "resolved",
+   "note": "schema.rs includes lifted and qinplace edges; self/cross-region recursion rejects."
+  },
+  {
+   "id": "codex:B03",
+   "status": "resolved",
+   "note": "Predicate versions and computation-relative window closures are repaired in the dedicated tests."
+  },
+  {
+   "id": "codex:B04",
+   "status": "partially",
+   "note": "Original polarity/two-iteration witnesses pass; the rewritten qif panics on B05 and repeated qregion validation narrows loops in B06."
+  },
+  {
+   "id": "codex:B05",
+   "status": "partially",
+   "note": "Original dirty-load/local-image/mutating-child witnesses reject, but qexchm still loses cross-operand dependencies (B01)."
+  },
+  {
+   "id": "codex:B06",
+   "status": "resolved",
+   "note": "Local qregions reach child actions and the indexed-image execution/adjoint test passes."
+  },
+  {
+   "id": "codex:B07",
+   "status": "resolved",
+   "note": "Runtime full-domain inverse/fault-free checks reject zero/zero before mutation; NOT/NOT controls and adjoint tests pass."
+  },
+  {
+   "id": "codex:B08",
+   "status": "partially",
+   "note": "Repeated calls/uncalls and disjoint stores are fixed, but multi-input key decoding and qjumpr CFG coverage are unsound (B02/B03)."
+  },
+  {
+   "id": "codex:B09",
+   "status": "resolved",
+   "note": "Initial cancelled-segment whole-run reversal regression passes, including repeated execution/reversal."
+  },
+  {
+   "id": "codex:B10",
+   "status": "resolved",
+   "note": "Pointer classical arguments reach permutation actions; out-of-width values reject."
+  },
+  {
+   "id": "codex:B11",
+   "status": "resolved",
+   "note": "Fixpoint classical typing accepts out-of-text-order definitions; dedicated execution/reversal test passes."
+  },
+  {
+   "id": "codex:B12",
+   "status": "resolved",
+   "note": "Canonical literal/header/opcode suffix checks now reject the original cases."
+  },
+  {
+   "id": "codex:B13",
+   "status": "resolved",
+   "note": "Malformed callee arity is checked before interprocedural passes; original panic regression passes; B05 is a distinct stack-state panic."
+  },
+  {
+   "id": "codex:B14",
+   "status": "partially",
+   "note": "Large ANF frames and exhaustive/library route tests pass, but new opaque-call canonicalization can falsely prove borrowed identity (B04)."
+  },
+  {
+   "id": "codex:B15",
+   "status": "resolved",
+   "note": "Exact shadow rejects tiny nonzero rotations at release; adjoints and CC unclean-free tests pass."
+  },
+  {
+   "id": "codex:B16",
+   "status": "resolved",
+   "note": "Typed recursive metadata and binding tests pass; accepting a nonempty producer-chosen variant is defensible and recorded (question 11)."
+  },
+  {
+   "id": "codex:B17",
+   "status": "resolved",
+   "note": "Certified client/callee union, rebinding, conflict handling and exact epsilon composition tests pass."
+  },
+  {
+   "id": "codex:B18",
+   "status": "resolved",
+   "note": "Fixture inventory dynamically enumerates every .bisa and catches a corrupted tiny_memory hash; published fixtures and pinned identities pass."
+  },
+  {
+   "id": "codex:B19",
+   "status": "partially",
+   "note": "Full launch/target/schedule/interval modules remain explicitly staged as deliverables 8\u201311; per convergence rules their disclosed absence is not re-raised as S0."
+  },
+  {
+   "id": "codex:B20",
+   "status": "resolved",
+   "note": "Call-tier policy is recorded; R\u2192CC rejection and CC segment/measurement tests pass."
+  },
+  {
+   "id": "muse:B1",
+   "status": "resolved",
+   "note": "Wide move/retval and high-bit execution/reversal tests pass."
+  },
+  {
+   "id": "muse:B2",
+   "status": "resolved",
+   "note": "Header/fault/bounds/width canonical-INT tests pass."
+  },
+  {
+   "id": "muse:B3",
+   "status": "resolved",
+   "note": "Known effect operation arity/type/model validation is present and all original malformed effects reject."
+  },
+  {
+   "id": "muse:B4",
+   "status": "resolved",
+   "note": "Declined interpretation is justified: qstore expands to qxor with an unchanged source (\u00a74.6), allowed by \u00a75.1; question 23 records it."
+  },
+  {
+   "id": "muse:B5",
+   "status": "resolved",
+   "note": "Unbalanced repeated qcopy lifetime rejects; balanced per-iteration compute/uncompute executes and reverses."
+  },
+  {
+   "id": "muse:B6",
+   "status": "resolved",
+   "note": "18-wire paired-CX identity accepts, its dependent variant rejects, and the fixed 16-wire refusal is removed."
+  },
+  {
+   "id": "muse:B7",
+   "status": "resolved",
+   "note": "Typed nested claims/domains/frame/schedule validation and certificate composition are implemented and dedicated regressions pass."
+  }
+ ],
+ "regressions": [
+  "B02: round-1 validate_matched_oracle_calls read uncall.operands[2]/[5] with list(), detecting changed multi-input locations; the new join/split representation silently loses these fields.",
+  "B03: round-1 qjumpr predecessors conservatively included every row; round 2 includes only block labels and admits a computed jump directly into an unmatched uncall.",
+  "B04: round 1 rejected opaque borrow frames without a checked claim; round 2 incorrectly proves the differing-classical-argument witness by identifying different functions.",
+  "B05: the round-1 qif branch returned \u00a73.5 for the reproduced stack-removing arm; the new polarity update uses expect and panics.",
+  "B06: the round-1 one-pass loop checker accepted the once-per-function region declaration in qloop 2; the new repeated validation inserts its name twice and rejects it. These baseline comparisons were made from git show 3dea965 and the supplied diff, not by modifying or rebuilding the old checkout."
+ ],
+ "suggestions": [
+  "Expand tests/r1_fuzz_discipline.rs beyond compute/uncompute gate patterns: include swaps and quantum-memory exchanges, child actions/oracles, multiple input/memory lists, and different classical bindings; compare all accepted small actions on each basis input and a superposition, then preserve minimized failures as deterministic fixtures.",
+  "In tests/wide_oracle.rs::vector_execution_matches_narrow_reference_for_recursion_memory_and_all_rows, describe run_oracle as the checked u128 adapter and keep its comparison as adapter compatibility; use independently hand-derived constants or the separate OracleVectorMachine for claims of implementation independence.",
+  "Keep PROGRESS.md deliverables 8\u201311 as explicit staged work and retain Unverified/E_SCHEDULE_INFEASIBLE outcomes until those implementations exist; when each lands, add the exact \u00a78 division-by-zero, \u00a710 state/ownership, \u00a711 selector/expansion and \u00a712 positive-pivot tests named by its staging entry.",
+  "In SPEC-QUESTIONS.md entries 11, 16, 21 and 23, carry the already proposed schema/free-row/claim-binding/qstore wording into a future spec proposal; the current recorded choices are defensible. In particular keep qstore source-only use legal and do not invent an unlisted variant enum."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Repair information-flow and proof soundness: B01 exchange dependencies/provenance, B04 complete opaque-call bindings, and B02/B03 typed invocation identities plus sound computed-jump CFG edges. 2. Repair load-time behavior: B05 checked qif arm-stack boundaries, B06 function-entry qregion registration, B07 bit-vector comparison kinds. 3. Repair B08 overflow-safe amplitude rendering. 4. Add each exact failing witness and its stated positive control, extend the generator, and rerun normal/ignored offline suites plus hand budget/hash/inverse/segment reproductions. No completion of the explicitly staged deliverables8\u201311 is required for this round's acceptance, but the existing Unverified/staged diagnostics must remain truthful.",
+ "summary": "Reviewed frozen dc46d07 against ISA 0.8, the supplied round-1 diff/response and all 27 SPEC-QUESTIONS entries. Method 1: independently assembled the full inc8 LF envelope (isa line, ptr_width, JCS signature, all six function lines, terminal LF) and SHA-256 matched 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93; all four published hashes matched. Derived and ran inc8(255): B2=(payload0,code1,steps2), B3=(0,0,3). Derived sum_db(0): 3 entry rows + 5 lproc dispatch rows + ret + retval =10; B9 gives step fault, B10 succeeds; stack15 fails at the third executed row, stack16/depth1 fits. Method 2: traced complete call and return inverse lists C5^-1..C1^-1/R5^-1..R1^-1: sum_db(0) call at pc2 captures (0,0,4096), pushes 13 locations, writes record (return3,saved_fp0,destination_id2), binds params and sets (fp,sp,depth)=(0,16,1); inverse restores counters, params, record, saved locations, then captures. At return, R5^-1 restores callee fp/depth, R4^-1 restores destination and delivery value, R3^-1 restores callee locations, R2^-1 clears captured acc=0, R1^-1 clears successor3; sp stays16. Ran reverse at prefixes3/9; entry counters, locations, stack and clean frames restore. Traced classical @nested call f/call g/clock.read/uncall g/ret f/load/uncall f/ret: result0,11 instructions, clock/tape0; CLI reversal restores the entry digest and complete state. Method 3: audited questions1\u201327 against their clauses; no blocker is raised solely for a defensible recorded reading, and staged8\u201311 are not penalized. Method 4: searched source, tests, Python seed and docs for the required markers. No Rust todo!/unimplemented! stub was found; source expect/unreachable hits are predominantly arity/type/cardinality/control invariants, ASCII/UTF-8 conversions, Tarjan stacks or host-size SHA bounds; JSON Parser::expect is a checked Result-returning helper. Unsupported model/sampler/cleanup hits are mandated rejection paths; numerical approximation helpers do not decide cleanliness; test unwrap/panic hits are harness assertions, and the Python seed's unsupported-row branch is its disclosed untrusted subset. One claimed predicate invariant is externally falsifiable and reproduced as B05. Method 5: compared the \u00a74.1\u20134.8 row/opcode families, \u00a75.4 codes0\u201310, \u00a77.4 frame kinds, \u00a79/11/12/13 fields and eight README CLI commands against dispatch/validation; the concrete gaps are B01\u2013B08. All new witnesses were run headlessly through the prebuilt CLI using /dev/stdin and in-memory rehashing where execution required valid stored hashes. DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER were unset and TMPDIR was the requested checkout-local .tmp. cargo test --offline --manifest-path reference-interpreter/Cargo.toml passed178 tests,5 ignored. cargo test --offline --manifest-path reference-interpreter/Cargo.toml -- --ignored also passed all5 sweeps: division2.30s,17-wire borrow11.93s,17-wire certificate83.07s,differential discipline401.97s,recursive prefixes14.50s. The unchanged Python isa_check.py also passed. All30 previous blockers have individual statuses. The implementation has improved substantially, but core acceptance is blocked by unsound static proofs and parser failures; whole-crate acceptance additionally needs finite-amplitude CLI output."
+}

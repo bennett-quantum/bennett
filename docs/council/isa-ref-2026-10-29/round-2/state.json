@@ -4,7 +4,26 @@
  "doc": "docs/council/isa-ref-2026-10-29/packet-round-2.md",
  "doc_sha256": "3f3b66d8f1f72efd3bc59f34afbae721ac1d8ace0e2f9919c2a5c40e1fda1bd2",
  "prepared": "2026-10-29T17:55:22+00:00",
- "members": {},
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T18:09:34+00:00",
+   "exit": 0,
+   "seconds": 218,
+   "errors": [],
+   "updated": "2026-10-29T18:13:11+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-29T18:11:29+00:00",
+   "exit": 0,
+   "seconds": 103,
+   "errors": [],
+   "updated": "2026-10-29T18:13:11+00:00"
+  }
+ },
  "rubric": "docs/council/rubric-impl.md",
  "subject": "the Rust reference interpreter bennett-isa-ref (snapshot at commit dc46d07, round 2: all 30 round-1 blockers answered in council/response-round-1.md, embedded first, plus the CLI commands run-cc/reverse/run-action/run-program) against the accepted ISA specification draft 0.8; the crate's brief and progress file are embedded first; the unified diff from the round-1 snapshot 3dea965 is on disk at /home/tobias/Projects/bennett-workspace/bennett/docs/council/isa-ref-2026-10-29/round-2/diff.patch (928 KB) for members to read",
  "context": [
