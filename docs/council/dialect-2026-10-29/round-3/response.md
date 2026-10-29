@@ -42,3 +42,19 @@ clean flags. This resolves the ambiguity without changing adj into an instrument
 rejecting Co loops as a class, or assuming a nonexistent earlier invocation.
 
 Validation: red missing adapter, then green mutation-sensitive loop regression.
+
+## Theme B — deterministic standalone adjoint channel placement
+
+| ID | Status | Section | Witness / checker |
+|---|---|---|---|
+| R3-CODEX-02 | resolved | §18.2, §7.5(a) contract preserved | deferred-channel-adj-place; state / Rust run-action |
+| BD3-R3-2 | resolved | same | same, zero-input/final-H probe |
+
+Hand derivation: H on the source does not commute with its record copy. Choose
+latest-before-consumer as both members recommend: H(a), qcopy(a,w), CX(w,t).
+Plus input gives joint a=t=w=0 with probability 1. Zero input then final H gives
+P(a=0)=P(a=1)=1/2. The text also pins unused records at reversed source position,
+source-order ties, producer dependencies, unconditional inverse-allocation hoisting,
+and source lifetime extension. Compute still reuses its actual records. Optimisation
+must preserve the complete instrument. Red missing scheduler; green executable and
+mutated-probability tests. No decline, partial, or new ISA dependency.
