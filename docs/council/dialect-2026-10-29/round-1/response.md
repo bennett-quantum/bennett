@@ -54,3 +54,69 @@ Before edit: ceil(24/16)*16=32. Choosing the rounded-size rule preserves the rat
 
 Edited §14.3 n-varargs, §17.3: Corrected the example to push 32 bytes and stated frame alignment/end. Witness: `normalisation-boundaries; corrected normalise-out=n-varargs`.
 
+## BD2-1 — resolved
+
+Before edit: Popping f hides its writes; use must see 9 between masks 0 xor 9.
+
+Edited §10 TDL-2, §18.3: Retain f recorder visibility through use and adjoint. Witness: `compute-view`.
+
+## BD2-2 — resolved
+
+Before edit: Clearing byte 1 while K remains Co makes a later load return 0.
+
+Edited §10 TDL-2/TDL-11: Retain basis bytes in arena until full object observation. Choose fable’s per-object alternative; invalidate observation coverage on writes. Witness: `partial-observe`.
+
+## D02-02 — resolved
+
+Before edit: Same two-byte derivation as BD2-2.
+
+Edited §10 TDL-2/TDL-11: Use its explicitly permitted alternative: authoritative arena remains intact for partial observe. Witness: `partial-observe`.
+
+## BD2-4 — resolved
+
+Before edit: Unpredicated stores to local would leave 2 for every w.
+
+Edited §10 MC4, TDL-3/TDL-5: Mark instructions including stores/calls; keep Co workspace stores and dependent reads together through the join. Witness: `branch-views`.
+
+## D02-03 — resolved
+
+Before edit: Both masks need old=0, giving 5 under w and 7 under not-w.
+
+Edited §10 TDL-3: Fork branch views and merge only at the join. Witness: `branch-views`.
+
+## D02-04 — resolved
+
+Before edit: Zero payload is not a no-op for exchange or negative predicates.
+
+Edited §10 TDL-8/TDL-10, §18.8: Require producing slice codes zero on every dependent effect; failed conditions select neither arm. Witness: `fault-consumers`.
+
+## D02-05 — resolved
+
+Before edit: Visible images [0,0] are not injective; measuring a retained condition creates a channel.
+
+Edited §10 TDL-5(b)/TDL-7, A11: Check whole predicated updates for bijectivity and clean non-fault workspace, restoring E3. Witness: `clean-predicate`.
+
+## D02-06 — resolved
+
+Before edit: Measuring the copied record dephases q, whereas quncopy undoes that channel.
+
+Edited §10 §7.5(a): Retain intentional measurement records to the permitted CC boundary, separate from workspace. Witness: `deferred-channel`.
+
+## D02-07 — resolved
+
+Before edit: Controlled append is invertible on declared virtual console state without external output.
+
+Edited §10 TDL-12, §11.1, §18.8, A10: Inherit per-run device bindings and apply reversible transitions with explicit model undo state; code 8 only for unbound/unmodelled operations or genuine host calls. Witness: `updated tdl-effect`.
+
+## D02-08 — resolved
+
+Before edit: A classical self-loop contains no budgeted slice and could hang G.
+
+Edited §10 TDL-9, §18.4: Bound G before each counted instruction; enforce heap/depth before mutation; exhaustion emits a controlled fault then stops. Witness: `generation-budget`.
+
+## B1 — resolved
+
+Before edit: 3 xor 5=6, so shadow xor 6=5 with arena zero; later controlled add gives 8.
+
+Edited §10 TDL-2/TDL-5, §18.2: Specify Cl/M/Co routing for each arena event form, materialising controlled or Co-valued writes. Witness: `classical-event-application`.
+
