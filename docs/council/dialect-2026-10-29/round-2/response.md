@@ -51,3 +51,59 @@ ISA grading target remains 0.8. No declines. Derivations below precede each edit
 - Text now: Logical base/size/live check is distinct from physical bounds; materialised helper is charged, store mutation is success-gated, metadata transfers/allocator updates are explicit. Static containment may discharge it.
 - Witness: `arena-logical-bounds`. Checker: state (Rust run-oracle helper; native dead/padding/store probes).
 
+## SOL-R2-01 — resolved
+
+- Section: TDL-9, §18.4.
+- Hand derivation: One step records qalloc; exhaustion before the gate never reaches qfree, so unconditional source leak checking was wrong.
+- Text now: Cancel the unapplied composite and provisional allocations outside budget; preserve foreign handles and emit only controlled fault. Failed f skips use.
+- Witness: `generation-cancel`. Checker: state/native.
+
+## REG-SOL-TDL9 — resolved
+
+- Section: TDL-9, §18.4.
+- Hand derivation: Same newly introduced exhaustion/leak interaction.
+- Text now: Successful source completion still enforces T-LEAK; exhaustion finalizes by cancellation.
+- Witness: `generation-cancel`. Checker: state/native.
+
+## R2-CODEX-03 — resolved
+
+- Section: TDL-2.
+- Hand derivation: Parent speculative store gives t=9 before child generation; delayed application does not mean the child sees entry shadow 0.
+- Text now: Nested ctrl/adj/compute inherit visible classical recorder updates in order; outer control is added at composition; siblings remain isolated.
+- Witness: `nested-cl-view`. Checker: state/native + Rust run-action.
+
+## BD3-1 — resolved
+
+- Section: TDL-8, §18.4.
+- Hand derivation: Faulting f is nonzero; freeing after combine traps cleanliness, while retaining without a release point leaks.
+- Text now: Declare fault outputs, exempt invocation leaks, retain to program end and report combined statistics once; measure/correct/free there. Clean f reused by adjoint may then be released.
+- Witness: `fault-output-lifetime`. Checker: state/Rust run-action and branch-conditioned release.
+
+## BD3-2 — resolved
+
+- Section: TDL-7, TDL-10, §18.2.
+- Hand derivation: Flat reverse first uses uncomputed flags. For n=2 a forward flag preparation must precede two inverse increments.
+- Text now: Structured loop adjoint computes flags before inverse bodies and cleans in reverse; compute reuses flags. Explicit retained controls are distinct from incidental workspace; preserve overwritten trajectory inputs.
+- Witness: `co-loop-adjoint`. Checker: state/Rust run-action incl standalone inverse and compute checkpoints.
+
+## BD3-3 — resolved
+
+- Section: §7.5(a), §7.7, §18.2.
+- Hand derivation: Copying |+> to a record then H gives a uniform q marginal; erasing the record gives interference and changes the channel.
+- Text now: Deferred record qcopy never becomes quncopy; adj allocates a retained record before consumers, compute reuses/retains it to boundary.
+- Witness: `deferred-channel-adj`. Checker: state/Rust run-action.
+
+## REG-MUSE-7.7 — resolved
+
+- Section: §7.7.
+- Hand derivation: The old nonnormative release note contradicted retain-to-boundary.
+- Text now: Note now states retention and boundary measurement on adj/compute too.
+- Witness: `deferred-channel-adj`. Checker: state/Rust run-action.
+
+## BD3-6 — resolved
+
+- Section: TDL-2, TDL-11.
+- Hand derivation: Co arena is authoritative: shadow-only store loses the write, and free/reuse carries garbage.
+- Text now: All CC accesses guard Co; observed bytes may be written consistently; dirty Co release traps 4 before reuse unless restored then dematerialised.
+- Witness: `co-store-release`. Checker: state/native lifecycle.
+
