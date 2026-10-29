@@ -45,6 +45,18 @@ FRESH = ("You are continuing a software job that an earlier session started. The
          "already exist. Read {progress} first and continue from there.\n\n")
 
 
+def headless_env(st):
+    """No route to the desktop for anything the job runs (LLVM view-* passes once opened ~80,000
+    .dot files in the maintainer's editor via xdg-open over D-Bus); temp files stay in the job dir."""
+    env = dict(os.environ)
+    for key in ("DISPLAY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "BROWSER"):
+        env.pop(key, None)
+    tmp = os.path.join(st, "tmp")
+    os.makedirs(tmp, exist_ok=True)
+    env["TMPDIR"] = tmp
+    return env
+
+
 def log(st, msg):
     line = f"{dt.datetime.now().isoformat(timespec='seconds')} {msg}"
     print(line, flush=True)
@@ -105,7 +117,8 @@ def attempt(st, a, cmd, stdin_text, cd, paths, n):
     t = threading.Thread(target=checkpoints, daemon=True)
     t.start()
     with open(out_path, "w") as out:
-        p = subprocess.run(cmd, cwd=cd, input=stdin_text, stdout=out, stderr=subprocess.STDOUT, text=True)
+        p = subprocess.run(cmd, cwd=cd, input=stdin_text, stdout=out, stderr=subprocess.STDOUT, text=True,
+                           env=headless_env(st))
     stop.set()
     commit(st, cd, paths, f"attempt {n} end")
     text = open(out_path, errors="replace").read()
