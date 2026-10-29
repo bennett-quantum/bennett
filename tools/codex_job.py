@@ -2,7 +2,7 @@
 """Run a long codex job robustly: resume after network drops, content-filter refusals and early stops.
 
   codex_job.py run --name NAME --cd DIR --prompt FILE --paths P [P ...] --progress REL
-                   [--model gpt-6.1-sol] [--effort xhigh] [--max-attempts 16] [--pace-margin 5]
+                   [--model gpt-6.1-sol] [--effort xhigh] [--max-attempts 16] [--pace-margin 5] [--network]
   codex_job.py status --name NAME
 
 Protocol (appended to the brief): the agent keeps REL (a progress file inside DIR) current and ends its
@@ -140,6 +140,9 @@ def run(a):
     brief = open(a.prompt).read() + PROTOCOL.format(progress=a.progress, paths=", ".join(a.paths))
     base = ["codex", "exec", "-m", a.model, "-c", f"model_reasoning_effort={a.effort}"]
     sandbox = ["-c", 'sandbox_mode="workspace-write"']
+    if a.network:  # crates.io etc.; cargo's registry and git caches live in ~/.cargo
+        sandbox += ["-c", "sandbox_workspace_write.network_access=true",
+                    "-c", f'sandbox_workspace_write.writable_roots=["{os.path.expanduser("~/.cargo")}"]']
     thread, refusals, backoff = None, 0, 30
     save(st, name=a.name, cd=cd, state="running", attempts=0)
     for n in range(1, a.max_attempts + 1):
@@ -197,6 +200,7 @@ def main():
     r.add_argument("--effort", default="xhigh")
     r.add_argument("--max-attempts", type=int, default=16)
     r.add_argument("--pace-margin", type=float, default=5.0)
+    r.add_argument("--network", action="store_true", help="allow network and a writable ~/.cargo (crates)")
     s = sub.add_parser("status")
     s.add_argument("--name", required=True)
     a = ap.parse_args()
