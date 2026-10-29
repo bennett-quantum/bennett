@@ -77,7 +77,20 @@ narrowing of north-star scope is accepted** (Grover over unmodified SQLite is th
 value proposition). The items below predate the plan; the plan's phase order
 supersedes them where they conflict.
 
-**State at 2026-10-29 (session ended by the maintainer; everything committed and pushed):**
+**State at 2026-10-29 afternoon (second session, wound up by the maintainer; see the three repos' HANDOFFs for detail):**
+- **Reference interpreter**: council run `docs/council/isa-ref-2026-10-29` round 1 (fable/astra/muse, `rubric-impl.md`, `task-impl.md`,
+  `tools/review_packet.py`, worktree `../bennett-isa-spec-review`): 30 blockers, no consensus. Opus implementer reached milestone 1
+  at `bennett-isa-spec` e8629de (all 30 resolved/declined/staged; 152 tests + 5 sweeps green). **Round 2 not run**: instructions in
+  `../bennett-isa-spec/HANDOFF.md`. The codex interpreter job is stopped for good.
+- **Dialect 0.2**: full text written (`../bennett-dialect-spec`, ac32fa7, 7,341 lines). Council run `docs/council/dialect-2026-10-29`
+  round 1 started 10:50 UTC (`task-spec.md`, `rubric-isa.md`); if `round-1/report.md` is missing, `run` (resumes) then `aggregate`.
+  The 0.2 pre-flight checker (codex job dialect-check-0.2) is checkpointed and resumable (that repo's HANDOFF).
+- **ISA 0.9**: evidence note done (no rung blocked at fixed widths); **draft 0.9 written alongside 0.8** (`../bennett-isa-spec/spec/
+  Bennett-ISA-Spec-0.9-draft.md`, 9861107); maintainer accepted all open questions Q1-Q14; the Q14 edit (lproc token/classical
+  params) is still to be made. Grading gate: interpreter accepted AND dialect round 1 done.
+- Council tooling: `fable` member, `--members`, `--task`, `--cwd` (see worklog). Pace at wind-up: Claude weekly +5% ahead of linear.
+
+**State at 2026-10-29 morning (session ended by the maintainer; everything committed and pushed):**
 - Phase 0 (narrowing audit of dialect 0.1) and phase 2 (SQLite: **rung 4 feasible on ISA 0.8
   with no ISA change**, `../bennett-dialect-spec/docs/spikes/sqlite/REPORT.md`) are done.
 - Phase 1 (full Rust ISA reference interpreter): codex job **stopped** after attempt 2, all seven
