@@ -1,0 +1,285 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Tiers/variants (\u00a74), Cl/M/Co states with per-form event routing (\u00a710 TDL-2, \u00a718.2) and the \u00a718.1 state tuple let two implementers draw the same state diagram; classical-event-application pins the round-1 ambiguity. One transition is missing: CC store/free on a Co object outside a generation (BD3-6).",
+   "change": "Extend TDL-11's T-TAINT-HOST rule from reads to stores and releases on Co objects outside generations (BD3-6)."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Marker ABI (\u00a73), normalisation N0-N35 with the 546-intrinsic completeness table (Appendix C), soft-float contract (\u00a713) with corrected fcmp numbers, and map rows (\u00a716.4) including FP carriers and aggregate packing; I re-ran all 15 isa objects (59 run lines, 17 hashes) against bennett-isa-ref with exact matches.",
+   "change": "Spell out the abbreviated canonical rows (N22 sub borrows and lexicographic icmp; \u00a716.2 p<j> locations) so step counts and hashes cannot diverge."
+  },
+  {
+   "id": "C3",
+   "score": 3,
+   "evidence": "Oracle F_B, wide delivery, in-place expansion, bounded generation and fault-gated consumers are now pinned (\u00a78.6-8.7, TDL-8/TDL-9), but retained wires have no consistent lifecycle: per-slice fault registers (TDL-8 vs \u00a718.4 T-LEAK), Co-loop flags (TDL-10 vs TDL-7) and deferred-measurement records under adjoint (\u00a718.2 vs \u00a77.5a); the \u00a76.5 instance bound is also unsound under longjmp re-entry (BD3-1, BD3-2, BD3-3, BD3-5).",
+   "change": "Give every retained wire class (fault registers, loop flags, measurement records) one declared-output lifecycle with leak exemption, adjoint rule and program-end release (BD3-1 to BD3-3)."
+  },
+  {
+   "id": "C4",
+   "score": 3,
+   "evidence": "Budgets are complete (\u00a79: record, table, unit, run-time resolution with BLK-2 for device-computed values) and classes are dispatched (\u00a73.4), but the platform profile still defers its row lists and board constants to the \u00a720.7 spike (D32) and \u00a720.6 Sv39 translation names no helper rows in N35/\u00a716.4.",
+   "change": "Fix the \u00a720.2/\u00a720.5 row lists and board constants from the spike and name the N35 Sv39 translation helpers as ordinary rt_ calls."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "Descriptor/shape/entry-state contracts (\u00a78) and content identity (\u00a77.3, \u00a716.5) are decided and witnessed (fp-aggregate payload 1099511627521, entry-stack 4112, both reproduced), but BLK-5 has no verdict classification rule: \u00a711.5/\u00a717.6 make typed R faults blocked:BD-B-ISA7 while seven R-program examples still carry verdict=accept (BD3-4).",
+   "change": "State the single BLK-5 verdict rule for modules containing R-tier variants and retag the R examples (BD3-4)."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Reference semantics (\u00a718) with outcome table, plus P-1/P-2 example discipline; I reproduced the full pre-flight gate headless (dialect_check_v02.py: OK 2311/2311, 0 failed or blocked) and independently re-executed every isa object/hash/run line. Remaining formal gaps are statement-level lifecycle rules, not proofs (convergence rule 6).",
+   "change": "Add an executed isa object=/run= witness for a k=2 wide shape proving \u00a716.2 common-delivery row identity, which today has only a state= vector."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "No north-star narrowing found: \u00a71.4 departures are supersets or maintainer decisions 1-4; capabilities ISA 0.8 lacks are specified in full with blocked: verdicts and exact ISA changes (BLK-1, BLK-2, BLK-4, BLK-5, \u00a725.1), and round 1's D02-19 correctly retired BLK-3 via the CC expansion instead of narrowing in-place updates.",
+   "change": "Keep the BLK-5 accounting honest by classifying R-program verdicts as blocked on ISA 0.8 (BD3-4), so rungs 3/5/6 are not overclaimed as accept."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "A plugin author can start on \u00a73-\u00a79 and \u00a712-\u00a718 tomorrow and the checker executes every example, but two implementers still diverge on retained-wire traps (BD3-1/BD3-2), CC accesses to Co objects (BD3-6), handle instance bounds under setjmp (BD3-5) and R verdicts (BD3-4); \u00a724 deferrals otherwise each keep their capability with a default.",
+   "change": "Close BD3-1 to BD3-6; each is a one-paragraph normative rule plus a witness, no restructuring needed."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "BD3-1",
+   "section": "\u00a710 TDL-8; \u00a718.4 (T-LEAK); \u00a718.8 tdl-b/tdl-d",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Per-slice fault registers have no defined release, and the literal text traps its own examples. TDL-8: 'f_k holds the slice's code and is retained (TDL-7)' and firstfault XORs the first nonzero code into Phi, but no rule ever frees f_k (or compute's retained copies g_k), and on a faulting branch f_k holds a nonzero code entangled with the inputs, so qreg.free would violate ISA \u00a73.3 cleanliness (dialect T-CLEAN). \u00a718.4's leak rule says for ctrl/adj 'every register allocated during the generation is freed during it'; the tdl-b event list frees m1 and f1b but never f1 or Phi1. Reading A (leak rule covers plugin registers): every slice-containing invocation traps T-LEAK, contradicting tdl-b's state vectors. Reading B (plugin frees f_k after the combine): T-CLEAN trap exactly on faulting branches. Reading C (retain unmeasured past return): no trap. Reading D (measure plugin Phi/f_k at 'the CC epilogue', a point the text never defines - invocation end, device-entry return, or program end): frees via measurement at an unspecified time. Trap versus no trap on the same program is an observable divergence.",
+   "fix": "In \u00a710 TDL-8 and \u00a718.4 state: 'The registers f_k, compute's copies g_k and a plugin-allocated Phi are declared fault outputs of the invocation owned by the CC tier. They are exempt from the \u00a718.4 leak rule, are neither measured nor freed at invocation return or device-entry return, and are released only at program end: each is measured for the run's fault statistics and freed after outcome-conditioned X corrections. No f_k is freed at the firstfault combine; adjoint(E_f) reuses the same f_k wires (as f9 in tdl-d). The CC epilogue of TDL-8 is this program-end release.' Add a state= witness: a slice that faults with code 1 on one superposed branch, budget fault field null; after the invocation: no T-LEAK/T-CLEAN, Phi=1 on that branch, data state otherwise as tdl-b; at program end the statistics record code 1 with the branch probability. The alternative (accumulate into Phi at slice time and clean each f_k with its own uncomputing call into the same register, retaining only Phi) is also acceptable if spelled out; I would take the retained-declared-outputs rule as the smaller change."
+  },
+  {
+   "id": "BD3-2",
+   "section": "\u00a710 TDL-10 (Co loops) vs TDL-7; \u00a718.2 (adjoint)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Three rules contradict each other for a loop whose trip count is Co. TDL-10 unrolls it with flags c_i (c_{i+1} = c_i and condition_i via ccx into fresh wires) and says 'the flags are history (TDL-7)'. The rewritten TDL-7 has no history category: 'Non-fault workspace ... MUST be cleaned by the adjoint of its exact computing sequence before the invocation returns; it is never implicitly made an output or measured.' But the flags cannot in general be cleaned at loop exit: uncomputing c_{i+1} needs condition_i recomputed from iteration-i state, which later iterations have overwritten (e.g. for (i < @n) @cnt += 1, or a condition reading a byte the body flips). And \u00a718.2's adjoint (reverse the list, ccx self-adjoint) uses the flag wires before anything computes them in a standalone adj(body), unlike ISA \u00a75.3's special qloop-while adjoint ('flags computed forward; adj A for i=n..1 under c_i; flags uncomputed'). Implementer readings diverge observably: retain flags (leak trap per BD3-1 reading A), free them dirty (T-CLEAN), measure them (the channel D02-05 removed), or reject Co loops (narrows NS \u00a74.2 coherent internal control). No example exercises a Co-trip-count loop in an action body.",
+   "fix": "Replace 'the flags are history (TDL-7)' in TDL-10 with: 'The flags c_i and the per-iteration condition wires are retained declared control outputs of the invocation, with the fault-register lifecycle of TDL-8 (leak-exempt, unmeasured until program end). The adjoint of an unrolled Co loop is a special case in \u00a718.2, not plain ccx reversal: conditions and flags are computed forward from the preserved inputs, body adjoints run for i = N..1 under c_i, then flags and conditions are uncomputed in reverse. Inside compute(f, ...) adjoint(E_f) reuses and cleans the same flag wires.' Add a tdl=/state= witness: body B = 'for (i = 0; i < @n; i++) @cnt = add @cnt, 1' with @n in (|0>+|2>)/sqrt(2), @cnt = 0, steps budget 4: after adj(B) then compute(B, use) the state during use is (|n=0,cnt=0> + |n=2,cnt=2>)/sqrt(2) up to retained flags, after compute @cnt = 0 on both branches with flags clean, no trap; standalone adj(B) from |n=2,cnt=2> gives cnt=0. The alternative (clean flags at loop exit, restricting Co loops to conditions computed from wires the body does not modify, ISA qloop-style, with a named rejection otherwise) narrows NS \u00a74.2 and should not be taken."
+  },
+  {
+   "id": "BD3-3",
+   "section": "\u00a77.5(a) deferred measurement; \u00a718.2 adjoint table; \u00a718.3 adj/compute",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "D02-06's fix is undone on the adjoint paths. \u00a77.5(a) now requires retaining the qcopy outcome record to a measurement boundary ('an open window alone never justifies quncopy'), but \u00a718.2 states without exception 'qcopy and quncopy are mutual adjoints', and \u00a77.7's non-normative note still describes the old rule ('w released by the region's uncomputation'). For adj(f) where f defers a measurement, gen(f) records E = [qcopy a.0 -> w, cx w t.0, ...] and the marker applies adjoint(E) = [..., cx w t.0, quncopy a.0 w]: w is used before any event allocates or copies into it, and the closing quncopy XORs a into a fresh |0> wire, which is then not clean (T-CLEAN) - and where it does not trap it erases exactly the measurement channel \u00a77.5(a) forbids erasing. The same erasure occurs inside compute(f, use) when adjoint(E_f) quncopies f's record before any boundary. Two readings of adj on |+> with an unused deferred measure then H then measure: keep-record gives P(0)=P(1)=1/2 (deferred-channel witness), adjoint-table gives a trap or P(0)=1.",
+   "fix": "In \u00a77.5(a) and \u00a718.2 state: 'A deferred-measurement qcopy is never adjointed to quncopy. In a standalone adj(f), each qcopy of E is emitted again as a qcopy onto a fresh retained record wire, placed before (in application order) every adjointed event predicated on it, and measured under the same boundary rule; all other events are adjointed as \u00a718.2 states. Inside compute(f, use), records created in E_f are retained through E_u and adjoint(E_f) (which reuses the same record wires and does not quncopy them) and are measured at the first boundary after compute returns.' Correct the \u00a77.7 note to the same rule. Add state=deferred-channel-adj: defer flag set, body measures q unused, invoked by adj, q = |+>, then H(q), measure(q) -> P(0)=1/2, P(1)=1/2, no T-CLEAN. The alternative (reject deferring candidates for adj as BD-E-REGION-MEASURE) narrows the deferral capability and I would not take it."
+  },
+  {
+   "id": "BD3-4",
+   "section": "\u00a71.6 verdicts; \u00a711.5; \u00a717.5-\u00a717.6; \u00a725.1 BLK-5; \u00a77.7/\u00a711.6/\u00a714.5-\u00a714.7/\u00a720.7 example verdicts",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "BLK-5 has no classification rule, so the module verdict (a compile-time observable: exit 0 versus distinct status 3, \u00a71.6) is ambiguous for every R program. \u00a711.5: typed R faults have 'verdict blocked:BD-B-ISA7 at affected points'; \u00a717.6 inserts a step counter in every R variant whose exhaustion is __bennett_nz_fault(1), and materialisation inserts F(C) points (trapped calls, N11, runtimes fault sites such as ss_push overflow) in ordinary R closures, so under \u00a71.6 ('blocked: at least one program point needs a capability ISA 0.8 cannot express') essentially every module with R-tier code is blocked. Yet region-reversible-marker, region-reversible-qalloc-static, effect-console-r, sjlj-two-frames, fiber-pingpong, exit-status and platform-uart-write all carry verdict=accept, while the two materialised-IR examples r-budget-prefix and r-fault-code carry blocked:BD-B-ISA7. One plugin returns accept (and then must either report a generic trap code on exhaustion, violating \u00a717.5/\u00a718.7, or silently claim the typed contract \u00a717.6 says is 'not claimed implemented'); another returns blocked for the same module. \u00a725.1's blocker trap ('hostcall bennett.fault ... then trap (\u00a711.5)') is also stated in its CC form only; R cannot hostcall, so the R blocker-trap form is undefined.",
+   "fix": "State one rule in \u00a711.5 and \u00a725.1; I would take: 'On ISA 0.8 a module whose device program contains an R-tier variant reached as an R entry (a reversible region candidate, or the \u00a719.2 whole-program R mode) has verdict blocked:BD-B-ISA7. The blocker trap in R is the ISA generic trap with no hostcall, reached only on executions that would report a typed fault (budget exhaustion, F(C), nz_fault(C)); all other executions are unaffected. A reversible call treated as a direct call under \u00a77.4 is not an R entry and does not by itself block the module.' Retag region-reversible-marker, region-reversible-qalloc-static, effect-console-r, sjlj-two-frames, fiber-pingpong, exit-status and platform-uart-write to verdict=blocked:BD-B-ISA7 with their blocker= lines; their cc-run/state expectations are unchanged. The viable alternative (blocked only when the materialised R closure contains an explicit nz_fault/F(C) point, budget counters excluded by a stated generic-trap semantics for exhaustion on ISA 0.8) reintroduces D02-21's divergent fault codes and depends on run-time budget values, so I would not take it."
+  },
+  {
+   "id": "BD3-5",
+   "section": "\u00a76.5 reference instance bound (rules 1-2); \u00a77.5(b); \u00a714.5 N29",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The reference instance bound is unsound under longjmp re-entry, because setjmp's second return is invisible to the CFG/call-graph conditions. Rule 1 deems a site self-disjoint (N(s)=1) when every CFG path from s to a ret, to s again, or to 'a call whose callee may reach F through the call graph' passes a qfree of exactly {s}; rule 2 counts executions from loop trip counts and call sites. Witness (CC-tier F, handle stored in two non-escaping allocas so the site needs the static file): 'while (1) { r = setjmp(b); h = qalloc(0,1); store h into slot[r]; if (r) break; g(); break; } free both slots' where g longjmps to b on its first call. Execution: setjmp returns 0, qalloc #1 -> slot[0], g longjmps, setjmp returns 1 at the same site, qalloc #2 executes with #1 still live. In the source CFG there is no path from s back to s avoiding qfree, and g does not reach F in the \u00a74.1 call graph (it calls the runtimes longjmp), so the text gives N(s)=1: the second qalloc has no free instance, and the plugin must trap, reuse the live register (aliasing two distinct handles), or invent behaviour - all different from the reference semantics (two registers, both freed, no trap). E(s) in rule 2 undercounts the same way, and \u00a77.5(b) R-hoisting inherits both by reference.",
+   "fix": "Add to \u00a76.5 before rules 1-2: 'For rules 1 and 2 the CFG of F is taken after adding, for every setjmp site in F (N29, \u00a714.5), an edge from every call instruction in F to that setjmp's continuation, and the setjmp call itself counts as a call that may reach F. A site reachable from such a continuation is self-disjoint only if every added-edge path also passes the qfree; E(s) counts executions over the augmented CFG.' A simpler sufficient default ('if F contains a setjmp site whose continuation can reach s, s is not self-disjoint and E(s) = infinity') is also acceptable; I would take the added-edge version since it keeps bounded cases accepted. Add a checked example of the witness above: with the added-edge rule N(s)=2, verdict accept, both handles gate distinct registers and both qfree clean (under the simple default: blocked:BD-B-ISA4 - state which)."
+  },
+  {
+   "id": "BD3-6",
+   "section": "\u00a710 TDL-2 (object states), TDL-4 (shadow rewrite), TDL-11/TDL-12; \u00a718.2",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Classical accesses to a Co object outside any generation are defined only for reads. TDL-11 bullet 2 compiles 'code outside every region that may read a may-Co object' in Cl/Co variants with the Co variant trapping T-TAINT-HOST; TDL-4 rewrites CC loads/stores to address+delta_sh 'when the object's state is Cl or M' and says 'when the state is Co, TDL-11 applies'; TDL-2 gives Co->Cl transitions only by full observe 'also by its release (free, end of lifetime)'. Witness 1: in @tdl_a insert 'store i8 0, ptr @cnt' between ctrl(@bump) (which leaves @cnt Co in (|0>+|5>)/sqrt(2)) and observe. Reading A (store rewritten to shadow): the store is silently lost because the arena is authoritative, observe still returns 0/5 - a classical write with no effect. Reading B (T-TAINT-HOST by analogy with reads): fault 4. Reading C (dematerialise-then-store): impossible for Co without measurement. Witness 2: free of a Co heap object (inside or outside a generation) followed by coherent-allocator reuse of its cells: TDL-2's unconditional 'Co -> Cl by release' restores the Cl invariant 'arena cells are |0>' only on paper, so the next object's materialisation XORs its shadow into superposed garbage and slices read the garbage; TDL-12's 'release requires clean/restored state' names no trap or code when it is not clean.",
+   "fix": "Extend TDL-11 bullet 2 to all CC accesses and fix TDL-2: 'Code outside every generation that may load from, store to, free or otherwise release an object traps T-TAINT-HOST (code 4) on executions where that object's dynamic state is Co; a CC store to such an object is legal only after __bennett_observe of every byte it writes. Release of an object whose state is Co (free, end of lifetime, inside or outside a generation) traps T-TAINT-HOST unless its arena cells are first restored to the basis state equal to its shadow by the invocation's own events (e.g. adjoint(E_f)), in which case it is dematerialised and released as Cl. Delete TDL-2's unconditional Co->Cl by release.' Add witnesses: (1) the @tdl_a store variant -> T-TAINT-HOST code 4, and the observe-first variant -> store wins, subsequent load returns 0 on both branches; (2) alloc/write-Co/free/realloc inside one adj -> trap at free, no garbage read."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "BD2-1",
+   "status": "resolved",
+   "note": "TDL-2 retains gen(f) recorder for gen(use)/adjoint; \u00a718.3 compute row updated; compute-view witness (xmask 09, x H1, xmask 09) present."
+  },
+  {
+   "id": "BD2-2",
+   "status": "resolved",
+   "note": "Partial observe leaves basis bytes in arena with K=Co and per-byte coverage since last write; partial-observe witness returns 1."
+  },
+  {
+   "id": "BD2-3",
+   "status": "resolved",
+   "note": "coh first in <mems>, arena globals have no G symbol, hidden base threaded to lprocs; arena-o1 object check/hash/run reproduced (payloads 1/6, 10 steps)."
+  },
+  {
+   "id": "BD2-4",
+   "status": "resolved",
+   "note": "MC4 restated over instructions incl. stores/calls; Co workspace stores stay in slices through join; branch-views select(w,1,2) witness present."
+  },
+  {
+   "id": "BD2-5",
+   "status": "resolved",
+   "note": "\u00a713.1 now lists LLVM numbers uno 8..une 14; n-fcmp pair (une -> i32 14) plus native NaN lines and fcmp-abi vectors present."
+  },
+  {
+   "id": "BD2-6",
+   "status": "resolved",
+   "note": "Rounded-size rule kept; n-varargs corrected to ss_push(i64 32, i64 16); \u00a717.3 states aligned base and base+S end."
+  },
+  {
+   "id": "D02-01",
+   "status": "resolved",
+   "note": "\u00a78.6/\u00a716.2 common delivery: every W_j computes and validates all projections identically before its retval; wide-delivery state witness (20x 0x11 or all-unchanged+code 1)."
+  },
+  {
+   "id": "D02-02",
+   "status": "resolved",
+   "note": "Same fix as BD2-2 via the permitted arena-authoritative alternative; subsequent slice load returns observed byte."
+  },
+  {
+   "id": "D02-03",
+   "status": "resolved",
+   "note": "TDL-3 forks pre-branch views per arm, merges at join; branch-views emits masks 05/07 from old 0 with no overwrite rejection."
+  },
+  {
+   "id": "D02-04",
+   "status": "resolved",
+   "note": "TDL-8 predicates every dependent event on producing codes == 0; fault-consumers witness: xchg suppressed, cell stays 05, Phi=1, neither arm on failed condition."
+  },
+  {
+   "id": "D02-05",
+   "status": "partially",
+   "note": "Slice/predicate workspace measurement removed and total-bijection rule added (clean-predicate rejects), but fault registers and loop flags are still retained wires with no lifecycle - re-raised as BD3-1/BD3-2."
+  },
+  {
+   "id": "D02-06",
+   "status": "partially",
+   "note": "Forward deferral fixed (retain record, measure at boundary; deferred-channel P=1/2,1/2), but \u00a718.2 still adjoints qcopy to quncopy under adj/compute - re-raised as BD3-3."
+  },
+  {
+   "id": "D02-07",
+   "status": "resolved",
+   "note": "TDL-12 inherited per-run virtual device bindings with reversible transitions and undo state; tdl-effect bound console appends 210a under control with Phi=0; code 8 only unbound/unmodelled/host."
+  },
+  {
+   "id": "D02-08",
+   "status": "resolved",
+   "note": "TDL-9 bounds G per counted instruction with pre-mutation heap/depth checks and nested-limit consumption; generation-budget witness finite with controlled fault 1."
+  },
+  {
+   "id": "D02-09",
+   "status": "resolved",
+   "note": "\u00a78.5 translates read set to normalised backing allocations incl. shadow-stack block/metadata; entry-backing returns 7, entry-stack object reproduced."
+  },
+  {
+   "id": "D02-10",
+   "status": "resolved",
+   "note": "Snapshot released by 128-bit slice-view xor128 unpreparation then clean whole free; observe chunked at 16 bytes into non-view registers; no wide/view measure remains."
+  },
+  {
+   "id": "D02-11",
+   "status": "resolved",
+   "note": "PT6 seeds every global's initialiser; PT2 uses stride plus sound index bounds only, never syntactic dimensions; normalisation-boundaries witnesses for @cb and [1 x ptr] index 1."
+  },
+  {
+   "id": "D02-12",
+   "status": "resolved",
+   "note": "\u00a712.6 packed-bit-layout scalarisation for sub-byte lanes; <8 x i1> from 0x80 lane 7 returns 1 reading one byte."
+  },
+  {
+   "id": "D02-13",
+   "status": "resolved",
+   "note": "\u00a712.7 per-limb widths w_k incl. i1 top carry; sext sign at w_top-1 with widened partial limb; i129 add/sext limb vectors present."
+  },
+  {
+   "id": "D02-14",
+   "status": "resolved",
+   "note": "Same correction as BD2-5 in LLVM enum order; fcmp-abi ueq(1,1)=1 with P=9, uno(1,2)=0 with P=8."
+  },
+  {
+   "id": "D02-15",
+   "status": "resolved",
+   "note": "\u00a716.1/\u00a716.4 carrier rows for all retained FP forms/constants plus aggregate pack/unpack rows; fp-sign-carrier (fneg +1.0 -> 0xbff0...) and fp-aggregate object reproduced."
+  },
+  {
+   "id": "D02-16",
+   "status": "resolved",
+   "note": "\u00a714.4 strips noreturn/tail constraints from returning nonlocal-transfer replacements, uses dedicated __bennett_rt_ symbols, validator rejects survivors; caught-throw-7 expectation retained."
+  },
+  {
+   "id": "D02-17",
+   "status": "resolved",
+   "note": "\u00a712.8 resolves gc base/offset via LLVM base-pointer analysis with carried provenance before statepoint erasure; p=b+8 returns base b offset 8."
+  },
+  {
+   "id": "D02-18",
+   "status": "resolved",
+   "note": "\u00a78.7: B_sample is lower bound only; sampled validity assumes universal inverses plus sound B_bound with recorded obligation; inplace-bound witness present."
+  },
+  {
+   "id": "D02-19",
+   "status": "resolved",
+   "note": "\u00a78.7 CC oracle_call/swap/oracle_call expansion with preserved bindings on ISA 0.8; BLK-3 retired to efficiency; inplace-param-quantum accepts incl. superposed y with clean scratch."
+  },
+  {
+   "id": "D02-20",
+   "status": "resolved",
+   "note": "N34/\u00a717.6 charge-and-check before every counted instruction incl. suffix/ret; batching must preserve first-fault boundary and effect prefix; zero-step witness faults before console bytes."
+  },
+  {
+   "id": "D02-21",
+   "status": "partially",
+   "note": "ISA-7 promoted to BLK-5 with exact R fault C change and no generic-trap claim, but which modules get blocked:BD-B-ISA7 is unstated and R examples still say accept - re-raised as BD3-4."
+  },
+  {
+   "id": "D02-22",
+   "status": "resolved",
+   "note": "\u00a720.6 translates all guest accesses in translation-enabled contexts incl. supervisor kernel alias; sv39-kernel-alias witness P/V share byte, no code 7, reversal restores."
+  },
+  {
+   "id": "B1",
+   "status": "resolved",
+   "note": "\u00a718.2 per-form Cl/M/Co routing for xmask/xstore/perm/xchg; unconditional Cl events keep K; classical-event-application 3->5->ctrl add3->observe 8 witness present."
+  },
+  {
+   "id": "B2",
+   "status": "resolved",
+   "note": "\u00a78.1/\u00a78.2 flattened carrier fields, FP via IN/ARG on carrier bits, low-field-first packing; fp-aggregate object reproduced payload 0xffffffff01 = 1099511627521."
+  },
+  {
+   "id": "B3",
+   "status": "resolved",
+   "note": "ss_init idempotent/adopting (\u00a717.3), snapshot always includes stack state globals+block; entry-stack object reproduced payload 4112 in 42 steps."
+  },
+  {
+   "id": "B4",
+   "status": "resolved",
+   "note": "\u00a722.1 corrected to unique-candidate-only matching \u00a77.2; region-two-measure-candidates accepts with both trap bodies dispatching to code 4."
+  }
+ ],
+ "regressions": [
+  "Editorial (non-blocking): \u00a77.7's non-normative note on region-measure-deferred still says the copy wire w is 'released by the region's uncomputation', which was consistent with round 1's \u00a77.5(a) and contradicts round 2's retain-to-boundary rule (see BD3-3).",
+  "Editorial (non-blocking): \u00a72 Terminology still defines Blocker as 'BLK-1 to BLK-4', correct in round 1 and now incomplete after BLK-5 was added and BLK-3 retired."
+ ],
+ "suggestions": [
+  "\u00a72 Terminology: change 'BLK-1 to BLK-4' to 'BLK-1, BLK-2, BLK-4 and BLK-5 (BLK-3 retired, \u00a725.1)'.",
+  "Appendix B 'Execution status of the former 35 omissions' paragraph is stale: it says the frozen checker cannot execute five normalisation transforms, five maps and seven driver/platform scenarios, but the current gate is green (I reproduced dialect_check_v02.py OK 2311/2311 at doc sha256 9f20567e). Replace the paragraph with the green-gate statement and the checker/interpreter commits from dialect_check.LAST-RUN.json.",
+  "\u00a722.4 lists BD-W-COHERENT-HISTORY (TDL-7) but the rewritten TDL-7 never says when it is emitted; either state its emission point in TDL-7/TDL-10 or delete the row.",
+  "\u00a78.5 snapshot format: state explicitly that k is an 8-byte little-endian field, live_i is 0 or 1, and each live allocation's Hb segment length is size_i bytes (not max(size_i,1)); the A_s formula implies the 8-byte k but the byte-string definition should not rely on inference.",
+  "\u00a712.7: write the sub borrow rows in full (t = sub a_k b_k; u = icmp ult a_k, b_k; m = sub t, zext borrow; v = icmp ugt m, t; borrow = or u v) and the lexicographic icmp row sequence in full; 'the same with sub' admits a mechanically wrong borrow (icmp ult m, t) and divergent step counts. Likewise add p<j>:reg[w_j] to \u00a716.2's wrapper-location list used by common delivery.",
+  "\u00a712.6 packed vectors: state that an unmasked packed store zeroes the padding bits above bit L*M in the final byte (the N22 choice), while a masked store read-modify-writes its bytes preserving inactive lane bits; add the <4 x i1> zero-store over 0xFF then i8 load = 0x00 vector to normalisation-boundaries.",
+  "\u00a75 PT2: state how the residue class [lo, hi) is derived for a nonconstant index, including negative indices (lo from a sound signed index bound, else '*'), and state that a load through (X, '*') unions AV over all slots of X (PT6); today both are left to inference.",
+  "TDL-5(c): state the decision procedure for 'use MUST NOT write bytes that f wrote by case (c)' as byte-interval overlap on the reference analysis (object plus offset ranges of AV(p) for stores in use's closure versus case-(c) stores in f's closure), so BD-E-COHERENT-OVERWRITE verdicts do not depend on alias precision.",
+  "\u00a715.2 cpuid default: replace 'the table the driver reads on the build machine' with a fixed baseline leaf table published in spec/asm/x86-64.toml for the default x86-64 model (build-machine reads make identical sources produce different reference objects on different builders and fail on non-x86 builders); keep build-record recording for non-default --bennett-cpu models.",
+  "\u00a718.3 measure row: state the release of the fresh one-wire copy register (apply x when the outcome m is 1, then qreg.free), matching the snapshot-release and observe chunk rules.",
+  "Add one executed k=2 wide-output isa object= with hash=/run= lines and both W_0/W_1 texts (e.g. oracle-wide-out's fill20 shape) so \u00a716.2 common-delivery row identity and the p<j> naming are pinned by an object, not only by state=wide-delivery."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "In order: (1) BD3-1 - give TDL-8 fault registers (f_k, g_k, plugin Phi) a declared-output lifecycle with \u00a718.4 leak exemption and program-end release, plus faulting-branch witness. (2) BD3-2 - replace TDL-10 'flags are history (TDL-7)' with the same retained-output lifecycle and the ISA-style forward-compute/reverse-uncompute adjoint special case in \u00a718.2, plus a Co-loop witness. (3) BD3-3 - exempt deferred-measurement qcopy from adjoint-to-quncopy in \u00a77.5(a)/\u00a718.2 (standalone adj re-copies forward; compute retains through adjoint(E_f)), fix the \u00a77.7 note, add deferred-channel-adj. (4) BD3-6 - extend T-TAINT-HOST to CC stores and releases of Co objects and delete unconditional Co->Cl by release, with store and free witnesses. (5) BD3-5 - add setjmp re-entry edges to the \u00a76.5 instance-bound CFG (or the stated sufficient default), with the two-slot longjmp witness. (6) BD3-4 - state the BLK-5 verdict rule for modules with R entries, define the R blocker trap (generic trap, no hostcall), and retag the seven R examples to blocked:BD-B-ISA7. No other changes are needed for accept; all six are paragraph-sized rules with witnesses.",
+ "summary": "Round 2 resolves 29 of the 32 round-1 blockers outright and the remaining three (D02-05, D02-06, D02-21) in their stated witnesses; each is marked partially only for a residual re-raised below. Verification reproduced independently: full pre-flight gate headless at doc sha256 9f20567e (dialect_check_v02.py OK 2311/2311), and all 15 isa objects re-checked with bennett-isa-ref (59/59 run lines and 17/17 interface hashes exact, including new arena-o1, fp-aggregate payload 1099511627521 and entry-stack payload 4112). Six new S0 issues remain, five core: retained wires still lack a consistent lifecycle - per-slice fault registers are neither freed nor leak-exempt so faulting invocations trap under two literal readings (BD3-1), Co-loop flags are called 'history (TDL-7)' by a TDL-7 that forbids uncleaned workspace and have no correct adjoint (BD3-2), and \u00a718.2 still adjoints deferred-measurement qcopy to the forbidden quncopy under adj/compute (BD3-3); CC stores and frees of Co objects outside generations are undefined while TDL-2 asserts an unsound Co->Cl by release (BD3-6); the \u00a76.5 reference instance bound is unsound under setjmp/longjmp re-entry (BD3-5). One contract S0: BLK-5 names the right ISA change but gives no rule for which R modules are blocked:BD-B-ISA7, and seven R examples still claim accept (BD3-4). No north-star narrowing was found and no semantic regressions; the two listed regressions are stale editorial text. Verdict core revise, overall revise; the path to accept is six paragraph-sized rules with witnesses."
+}

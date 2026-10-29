@@ -1,0 +1,261 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "\u00a74 and \u00a718 specify tiers and state, and the revised object-state transitions are substantially clearer. However \u00a78.5 omits a dependency of allocator-only functions and nested Cl views still disagree with sequential generation.",
+   "change": "Apply R2-CODEX-02/03: make allocator metadata an explicit entry dependency and define each child view as the parent's current speculative view."
+  },
+  {
+   "id": "C2",
+   "score": 3,
+   "evidence": "The marker ABI and most normalisation/map rows are explicit; FP carriers and aggregate transport now close the earlier gap. The new ctlz positive witnesses contradict N27/V4 and have no retained lifting row.",
+   "change": "In \u00a712 state that false-flag ctlz/cttz still pass through N27, and replace the full-output and validator-positive examples with the runtime helper forms in R2-CODEX-04."
+  },
+  {
+   "id": "C3",
+   "score": 3,
+   "evidence": "Common wide delivery, success predicates, clean workspace, partial observation and bounded G address the prior quantum defects. Nested generation still omits a required controlled gate, and coherent memory validation can change fault outputs.",
+   "change": "Add the TDL-2 inherited-view rule and the nested two-control witness of R2-CODEX-03; require arena accesses to satisfy R2-CODEX-01 before mutating state."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "\u00a79 distinguishes generation instructions, reference rows and R instructions; \u00a78.7 now separates sampled observations from a universal budget bound. Target accounting is appropriately inherited from ISA \u00a78. Allocator-state omission still moves heap-fault boundaries.",
+   "change": "Add to \u00a78.5: \"An allocation-only closure inherits heap_used and allocation history before its first allocation.\" Check both the sufficient-heap and exhausted-heap cases of R2-CODEX-02."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "\u00a77\u2013\u00a79 and \u00a719 give concrete binding, identity, layout and launch obligations with defaults; parameterised in-place pairs now have an ISA-0.8 construction. The no-output invocation edge case lacks an explicit expansion despite \u00a716.2's one-bit dummy width.",
+   "change": "In \u00a78.6 specify the k=0 default: execute one wrapper with an always-zero one-bit payload into clean dummy scratch and the supplied fault register, then free the dummy; retain all execution and fault checking."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "\u00a718.7 states observable conformance and the revised examples cover the prior witnesses. The supplied interpreter independently confirms the arena bounds counterexample; the V4 positive expectation is inconsistent with its normative rule. Checker counts cannot settle those contradictions.",
+   "change": "Extend DM/DT/DN in \u00a721.3 with the four R2-CODEX witnesses, judged against the stated logical bounds, inherited state, nested event sequence and full normalisation boundary rather than only a successful ISA parse."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Inherited action device models, universal inverse obligations and all-guest Sv39 translation preserve the promised capabilities. BLK-5 is now an honest dependency rather than a false ISA-0.8 typed-fault implementation. The arena map still violates NS \u00a73.2's live-allocation fault contract.",
+   "change": "State and implement the logical arena-allocation check of R2-CODEX-01; do not resolve it by declaring the whole arena one program allocation or excluding these reference-fault executions."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "The section structure, diagnostics and defaults let implementers start, and all 32 earlier findings have concrete text repairs. Four remaining semantic conflicts would nevertheless force divergent results or verdicts. Historical verification notes also need clearer separation from current receipts.",
+   "change": "After the four fixes, update \u00a71.5/Appendix B with a versioned receipt identifying the spec, checker and interpreter revisions and distinguish normative expected vectors from independently executed results; keep historical failure reports explicitly dated."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R2-CODEX-01",
+   "section": "\u00a710 TDL-4; \u00a716.3\u2013\u00a716.4; \u00a716.11 arena-o1; \u00a717.1",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a717.1 requires every access to lie wholly in one live allocation. TDL-4 puts distinct globals and coherent heap objects into one arena, while \u00a716.3 removes their individual global entries and \u00a716.4 checks only the ISA allocation containing the address. ISA \u00a77.2 gives the whole coh interface region one pinned live entry. Thus logical object bounds and liveness disappear. Use the arena-o1 layout with two distinct one-byte globals at offsets 0 and 1, containing 01 and 02. A slice performing load i16 at offset 0 must fault 7: neither global contains both bytes. The specified boundscheck/load rows instead succeed with 513. I reproduced this by adapting arena-o1 in an anonymous memory file, updating its hashes, and running the supplied interpreter: check accepted; run-oracle with coh=0102, arg=0 and budget=100,0,32,1 returned code=0, payload=513, steps=7. Arena padding and freed coherent allocations have the same missing validation. This is a dialect-to-ISA mapping defect, not an ISA gap.",
+   "fix": "In TDL-4 and \u00a716.4 state: \"The arena interface range is storage, not a logical allocation. Maintain the base, size and live state of each arena object. Before every program-memory access of n bytes at p, require that the entire nonwrapping range [p,p+n) lies in one live logical allocation; otherwise produce fault 7 before the access. The pinned coh entry does not satisfy this logical check.\" Use an ordinary materialised runtime helper over this metadata as the default, with its rows charged in the reference object; apply the same validation to event-producing stores and gate their mutation on success. Include coherent allocator allocation/free updates and metadata transfer in the contract. Retain one physical coh region so superposed addressing remains available. Correct witness: the spanning i16 load gives payload=0/code=7, whereas either separate i8 load succeeds with 1 or 2."
+  },
+  {
+   "id": "R2-CODEX-02",
+   "section": "\u00a78.5 entry-state selection and caching; \u00a716.2 prologue",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a78.5 promises a private copy of the caller's whole memory and allocator state, but R is still selected from objects the closure may load; \"if R is empty, no transfer runs\". Allocation primitives read hidden allocator state without an LLVM load. Consider a caller that has allocated 16 bytes at heap_base=4096 and then invokes a materialised oracle consisting only of p=__bennett_nz_alloc(1); return ptrtoint(p). It has no load, global or shadow-stack use, so R is empty and its reference object starts with heap_used=0. It returns 4096; the promised call-entry-state execution returns 4112. With heap budget 16, the inherited-state execution must instead fault 2, while the fresh-heap map succeeds. The stack-adoption fix does not cover this allocation-only closure. Reusing a snapshot solely because no store to R occurred can also miss intervening alloc/free operations.",
+   "fix": "In \u00a78.5 state: \"Allocation, deallocation and allocation-validity checks read allocator metadata even when the closure contains no LLVM load. Treat that metadata as an entry-state dependency. Replay the caller's allocation history and live bits whenever those operations can execute, independently of the byte read set; an empty byte read set does not permit resetting allocator state. Snapshot reuse requires unchanged dependent allocation metadata as well as unchanged dependent bytes.\" Default to replaying the complete allocation table for any closure with such a dependency; bytes may still be omitted when unread. Add the allocation-only witness: after the caller's 16-byte allocation, sufficient-budget payload=4112/code=0, and heap budget 16 gives payload=0/code=2. Neither oracle invocation changes the caller's allocation state."
+  },
+  {
+   "id": "R2-CODEX-03",
+   "section": "\u00a710 TDL-2 View; \u00a718.4 nested generation",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The compute-specific recorder fix leaves ordinary nested generations inconsistent. TDL-2 checks enclosing recorders for Co writes, but a Cl byte is still \"the shadow updated by the recorder's own classical events\". Parent events have not been applied while the parent recorder is active (\u00a718.2). Witness: t starts Cl(0); outer f stores 9 to t and calls ctrl(c2,g), where g flips target z iff t==9; invoke f under c1, with both controls equal to 1 and z=0. The child has no own write to t, K(t) is still Cl, and the parent's unpredicated xmask is not a Co write. The literal child view reads shadow 0, so it omits the flip. The sequential branch semantics promised by TDL-2/\u00a718.4 reads the parent's 9 and flips z. The new retained-recorder sentence applies to compute, not this nested ctrl.",
+   "fix": "Replace the Cl-view sentence in TDL-2 with: \"A child generation inherits the invoking generation's current speculative view. A Cl byte is obtained by applying the visible enclosing recorders' classical updates in execution order, then the child's own updates, to the invocation-entry shadow. The enclosing invocation control is not added to that inherited view until event composition. Co writes remain Co, and sibling branch recorders remain isolated until the join.\" Apply this to nested ctrl, adj and compute consistently with branch-local views. Add the witness with expected events xmask t+0 0x09 ctrl c1; x z ctrl c1 c2. For c1=c2=1 the final t is 9 and z is 1; for c1=0 both remain zero."
+  },
+  {
+   "id": "R2-CODEX-04",
+   "section": "\u00a712.2 n-defined-zero; \u00a712.4 V4 and validator-v4-clean; \u00a712.8 N27; Appendix C",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The new examples contradict the existing materialisation boundary. N27 explicitly replaces ctlz and cttz with __bennett_rt_<name>_i<W> calls; Appendix C assigns them to N27; V4 rejects any intrinsic N27 removes. Nevertheless n-defined-zero's full normalise-out retains both LLVM intrinsics, and validator-v4-clean says \"ctlz with false is retained\" and requires accept for a residual llvm.ctlz.i8 call. A validator following V4 rejects that exact positive example; one following the example accepts it. \u00a716.4 also has no retained ctlz row. Correctly setting the N12 poison flag is an intermediate step, not the specified full N27 output.",
+   "fix": "Keep N27 and add to \u00a712.2/\u00a712.4: \"N12 totalises the flag before N27; it does not exempt abs, ctlz or cttz from their later expansion. Full materialised output contains no calls to these LLVM intrinsics, including false-flag calls.\" Change n-defined-zero's output calls to %a = call i8 @__bennett_rt_ctlz_i8(i8 %x, i1 false) and %b = call i8 @__bennett_rt_cttz_i8(i8 %x, i1 false), with matching runtime declarations/definitions; the add and returns remain unchanged. Give validator-v4-clean the materialised helper form, and make residual ctlz(false) a negative V4 witness alongside ctlz(true). Expected f(0)=16 and f(1)=7 remain unchanged. Alternatively retaining these intrinsics requires changing N27, V4, Appendix C and adding a canonical \u00a716 row; I would keep the existing runtime-expansion design."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "BD2-1",
+   "status": "resolved",
+   "note": "Resolved for compute: gen(f) remains visible to gen(use); compute-view now yields target 1 and restores t. The distinct enclosing-recorder case is R2-CODEX-03."
+  },
+  {
+   "id": "BD2-2",
+   "status": "resolved",
+   "note": "Partial observation leaves measured basis bytes in the authoritative arena until complete, write-invalidated coverage permits dematerialisation."
+  },
+  {
+   "id": "BD2-3",
+   "status": "resolved",
+   "note": "The overlapping G symbol is removed, coh is explicit, and its base is threaded into lprocs. Logical allocation validation is a separate remaining issue, R2-CODEX-01."
+  },
+  {
+   "id": "BD2-4",
+   "status": "resolved",
+   "note": "MC4 covers instructions including stores/calls, and dependent workspace stores and reads stay together through the join."
+  },
+  {
+   "id": "BD2-5",
+   "status": "resolved",
+   "note": "The unordered fcmp predicates now use LLVM numbers 8 through 14 in the correct order."
+  },
+  {
+   "id": "BD2-6",
+   "status": "resolved",
+   "note": "n-varargs now pushes 32 bytes aligned to 16, consistent with the rounded-frame rule."
+  },
+  {
+   "id": "D02-01",
+   "status": "resolved",
+   "note": "All wide variants compute and validate every projection before selecting their final return; budget failure is common to all outputs."
+  },
+  {
+   "id": "D02-02",
+   "status": "resolved",
+   "note": "The permitted per-object alternative is implemented: partial observation retains measured values in the arena."
+  },
+  {
+   "id": "D02-03",
+   "status": "resolved",
+   "note": "Each coherent branch arm now starts from its own pre-branch view; the 5/7 witness uses masks 05/07."
+  },
+  {
+   "id": "D02-04",
+   "status": "resolved",
+   "note": "Dependent operations, including exchanges and negative predicates, now require all producing fault codes to be zero."
+  },
+  {
+   "id": "D02-05",
+   "status": "resolved",
+   "note": "TDL-7 no longer turns incidental workspace into measured outputs; TDL-5(b) requires the whole predicated update to be bijective."
+  },
+  {
+   "id": "D02-06",
+   "status": "resolved",
+   "note": "The unused deferred outcome is retained and measured at the boundary; the stated interference witness now gives equal probabilities."
+  },
+  {
+   "id": "D02-07",
+   "status": "resolved",
+   "note": "Actions inherit virtual device bindings, with declared reversible model state and observation-delayed external effects."
+  },
+  {
+   "id": "D02-08",
+   "status": "resolved",
+   "note": "G has pre-instruction budget checks, and nested generation consumes enclosing limits as well as its own."
+  },
+  {
+   "id": "D02-09",
+   "status": "resolved",
+   "note": "Source alloca/frame read sets are translated to live shadow-stack backing allocations and metadata before snapshot selection."
+  },
+  {
+   "id": "D02-10",
+   "status": "resolved",
+   "note": "Snapshot release uses chunked unpreparation; observe uses fresh non-view measurement registers of at most 128 wires."
+  },
+  {
+   "id": "D02-11",
+   "status": "resolved",
+   "note": "All global initialisers are seeded and GEP dimensions no longer bound indices independently of the underlying allocation."
+  },
+  {
+   "id": "D02-12",
+   "status": "resolved",
+   "note": "Vector memory scalarisation now preserves packed sub-byte lanes and inactive bits."
+  },
+  {
+   "id": "D02-13",
+   "status": "resolved",
+   "note": "Partial top limbs use their actual widths for carry and sign extraction/extension."
+  },
+  {
+   "id": "D02-14",
+   "status": "resolved",
+   "note": "fcmp uno=8, ueq=9, and une=14 now agree with the stated LLVM enum contract."
+  },
+  {
+   "id": "D02-15",
+   "status": "resolved",
+   "note": "The map now has FP carrier operations and explicit aggregate packing/unpacking; V10 admits their transport."
+  },
+  {
+   "id": "D02-16",
+   "status": "resolved",
+   "note": "Returning nonlocal-transfer replacements lose noreturn and incompatible tail constraints and use dedicated runtime symbols."
+  },
+  {
+   "id": "D02-17",
+   "status": "resolved",
+   "note": "GC base/offset queries preserve analysed provenance before statepoint erasure; relocation alone is the identity."
+  },
+  {
+   "id": "D02-18",
+   "status": "resolved",
+   "note": "B_sample is explicitly only a lower bound; sampled pairs require universal inverse/totality hypotheses and a sound B_bound."
+  },
+  {
+   "id": "D02-19",
+   "status": "resolved",
+   "note": "Parameterized pairs use the CC oracle/swap/inverse construction; BLK-3 is retired."
+  },
+  {
+   "id": "D02-20",
+   "status": "resolved",
+   "note": "R charges precede every counted materialised instruction, including returns and straight-line effects."
+  },
+  {
+   "id": "D02-21",
+   "status": "resolved",
+   "note": "Typed R faults are explicitly BLK-5/ISA-7 dependencies with exact required terminal-code and reversible-prefix semantics."
+  },
+  {
+   "id": "D02-22",
+   "status": "resolved",
+   "note": "Sv39 translation now covers supervisor and user accesses, with physical runtime helpers and virtual code-address mapping."
+  },
+  {
+   "id": "B1",
+   "status": "resolved",
+   "note": "Cl/M/Co application routing is now explicit for each arena-writing event; the 3-to-5-to-8 witness is consistent."
+  },
+  {
+   "id": "B2",
+   "status": "resolved",
+   "note": "FP parameters use carriers, nparam counts flattened fields, and aggregate payloads pack low-field-first without padding."
+  },
+  {
+   "id": "B3",
+   "status": "resolved",
+   "note": "ss_init adopts replayed stack state rather than allocating twice; the supplied stack witness returns 4112. Allocation-only entry state is a separate issue, R2-CODEX-02."
+  },
+  {
+   "id": "B4",
+   "status": "resolved",
+   "note": "The measurement diagnostic now consistently rejects only the unique invalid candidate; multiple candidates retain trap bodies."
+  }
+ ],
+ "regressions": [
+  "The round-2 additions n-defined-zero and validator-v4-clean introduce a false-flag ctlz/cttz retention rule inconsistent with the pre-existing N27/V4 materialisation boundary (R2-CODEX-04)."
+ ],
+ "suggestions": [
+  "\u00a78.6: add \"When k=0, call the one-bit zero-payload wrapper once using a clean dummy target and the descriptor's fault register, then free the dummy.\" \u00a716.2 should return a materialised zero bit after the ordinary prologue, body and checks. A void oracle containing fault 8 must XOR 8 into fault even with no requested payload.",
+  "\u00a725.1: qualify the blocker-trap hostcall recipe by tier: \"CC blocker reporting may use hostcall; R blocker points stop with an R trap and are identified by the static blocker report. Exact typed R reporting remains BLK-5 and is not claimed for this fallback.\" This reconciles the fallback prose with \u00a711.5 without pretending an R hostcall exists.",
+  "\u00a719.1: change the illustrative -bennett-dialect=0.2 option to -bennett-dialect=0.2.2, as required by \u00a719.9. In \u00a722.4 remove the obsolete BD-W-COHERENT-HISTORY reference or explicitly mark it retired: TDL-7 no longer permits that history policy.",
+  "\u00a71.5/Appendix B: state \"A green example count establishes only the checks identified by the receipt; it does not establish equivalence of a hand-written object to every normative source rule.\" Keep the progress log's unexecuted families labelled as text obligations and attach the later checker receipt separately. No missing mechanised proof or checker implementation is itself an additional S0 here."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Preserve logical object bounds/liveness inside coh and add the spanning-access fault witness. 2. Make allocator metadata an entry dependency and invalidate snapshots on relevant allocation changes. 3. Define nested generations to inherit the complete parent view and add the two-control gate witness. 4. Reconcile the new ctlz/cttz examples with N27/V4 and update their normalised outputs and verdicts. These four semantic repairs, with internally consistent expected results, would remove my blockers; no new proof machinery or ISA version change is required for them.",
+ "summary": "Revise, including core. All 32 prior blockers are resolved in their originally reported cases; previous_status records each individually. The V10 correction is also consistent with the retained FP-carrier contract. Four S0 findings remain: lost arena object bounds, missing allocator-only entry dependencies, missing enclosing classical-view updates in nested generation, and contradictory new ctlz/cttz witnesses. The arena witness was checked and executed with the supplied ISA interpreter using anonymous memory files and the required headless environment; it returned success/513 where the dialect requires fault 7. The other findings follow directly from conflicting normative rules. I graded the embedded 0.2.2/ISA-0.8 snapshot, did not edit repositories, and did not run the full pre-flight checker."
+}

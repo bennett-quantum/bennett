@@ -1,0 +1,267 @@
+exit 0 in 18s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "TDL-2 now separates actual Cl/M/Co state from recorder views, and §18.2 fixes event routing. TDL-9 exhaustion still contradicts §18.4 leak checking for a valid body interrupted after qalloc (SOL-R2-01).",
+      "change": "In TDL-9/§18.4 state: \"Generation failure finalizes the invocation through compiler cleanup rather than the source-return leak check; provisional local allocations are cancelled and the controlled fault is delivered.\" Specify failed-recorder behavior as in SOL-R2-01."
+    },
+    {
+      "id": "C2",
+      "score": 3,
+      "evidence": "The marker ABI, scalar map, corrected fcmp enum and FP carriers are concrete. N21 lacks a legal expansion for lane-changing bitcasts and wrongly applies inactive-zero semantics to VP selection (§12.6; SOL-R2-03/04).",
+      "change": "Add to §12.6: \"A vector bitcast resegments the packed bit string rather than casting corresponding lanes; VP selection preserves defined false-condition values, and only genuinely poison inactive results become zero.\" Add the concrete witnesses in SOL-R2-03/04."
+    },
+    {
+      "id": "C3",
+      "score": 3,
+      "evidence": "TDL-7 restores clean workspace; TDL-8 gates fallible consumers; §7.5(a) retains measurement records; §8.7 supplies parameterised oracle/swap/inverse. Interrupted G can nevertheless produce an unconditional leak trap instead of its controlled fault.",
+      "change": "State in TDL-9: \"Budget exhaustion executes no further source instruction, but compiler finalization is mandatory and is not charged to the exhausted generation budget.\" The local-qalloc witness must leave no local register live and produce Φ=0/1 for control=0/1."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "§3.4 classes, §9 budget units, §19.9 build records and the imported ISA target/scheduling contract preserve resource-vector ownership and classical scheduling. Accounting of the new device undo state and retained fault bundles is scattered.",
+      "change": "Add to TDL-12: \"Frame/resource descriptions include the arena, device undo-log capacity, retained slice codes and deferred-measurement records over their complete live intervals; allocations and calls are charged by the ISA target and schedule rules.\" This consolidates an existing obligation without a new cost model."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "§8 fixes flattened carrier bindings and common wide delivery; §16 separates arena globals from data symbols and threads the arena base. §19 defines modes, versions and defaults. BLK-3 is correctly retired and typed R faults are correctly BLK-5. Field-level encodings with defaults are not blockers.",
+      "change": "In §19.1 change the executable invocation to \"-bennett-dialect=0.2.2\" and state: \"Command examples use the full compatibility string of §23.\" The current 0.2 invocation is necessarily refused by §19.9."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "§18.7 states observational/state conformance, and the ISA supplies explicit totality and prefix-reversal hypotheses. I inspected stored implementation-final-freeze.json and orchestrator-freeze.json, each with 2311 passed checks; I did not rerun the full gate. The four additional witnesses expose untested semantic disagreements.",
+      "change": "Add indexed independent checks for the four blockers with the outcomes in their fixes. State in §21.4: \"Passing indexed examples does not establish semantic completeness; each new disagreement becomes a conformance witness.\" No proof format or mechanisation is required."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Virtual action devices, all-format bit-exact FP transport, parameterised in-place construction and all-guest Sv39 preserve the north-star ladder. Empty-read-set replay still violates deterministic native-equal allocation addresses (SOL-R2-02), and the N21 witnesses fail ordinary LLVM semantics.",
+      "change": "In §8.5 state: \"Allocation metadata is observable state even when no caller bytes are loaded; allocation-sensitive regions begin from the caller allocation history.\" Keep route A for regions insensitive to that state."
+    },
+    {
+      "id": "C8",
+      "score": 3,
+      "evidence": "Numbered rules, full objects, the prior-issue response and defaults make the draft actionable. Four remaining choices change payloads or faults. Appendix B and the progress log also retain historical red-checker claims despite newer green receipts.",
+      "change": "After semantic correction, append a dated status paragraph: \"Earlier frozen-checker failures describe the historical baseline; the authoritative current receipt is <commit/hash>, with <counts>; independently executed and text-only families are listed separately.\" Retain historical reports while identifying current evidence."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R2-01",
+      "section": "§10 TDL-9/TDL-7; §18.3–§18.4",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "TDL-9 says exhaustion \"stops the generation ... no further source instruction executes\", but §18.4 requires for ctrl/adj that \"every register allocated during the generation is freed during it\", otherwise T-LEAK. Witness: an action body executes `%h = call ptr @__bennett_qalloc(i64 0, i64 1); call void @__bennett_gate(i32 1, ptr %h, i64 0); call void @__bennett_gate(i32 1, ptr %h, i64 0); call void @__bennett_qfree(ptr %h); ret void`. With one G step it records qalloc, exhausts before the first gate, and never reaches qfree. Literal leak checking traps with code 4 during generation, even when the outer control is 0; TDL-9 instead promises code 1 under that control. Suppressing the trap alone leaves an unmatched allocation. This is an interaction introduced by the D02-08 fix, not a demand for a cleanup proof.",
+      "fix": "State in TDL-9 and §18.4: \"Generation exhaustion is an invocation failure, not a source leak. Compiler finalization runs after exhaustion without consuming the exhausted generation budget. By default, abort before applying recorded events: discard the invocation's speculative views and recorders, cancel its invocation-owned provisional allocations, preserve foreign handles, and emit only the appropriate fault event under its invocation/path controls. Failed compute generation does not execute use; failure of either part cancels the still-unapplied composite invocation. Normal T-LEAK checking applies to a successfully completed source generation.\" Alternatively preserve the prefix with an explicit reversible cleanup of every local allocation/workspace; I would cancel the recorder because §18.4 records before application. Add the witness: no local h remains live, foreign registers are unchanged, control=0 gives Φ=0, control=1 gives Φ=1, and neither branch traps T-LEAK/T-CLEAN."
+    },
+    {
+      "id": "SOL-R2-02",
+      "section": "§8.5 empty-R optimization and snapshot reuse; §16.2 prologue",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "§8.5 promises a \"private copy of the caller's whole classical memory\" and says replay makes heap_used/atop equal caller entry values, but omits transfer when the load read-set R is empty. Allocation state affects results without loading caller bytes. Use §16.9's normative malloc body, just __bennett_nz_alloc: a CC caller has already allocated 16 bytes at heap_base=4096, then invokes an oracle containing malloc(16), ptrtoint and return, with no alloca or other memory load. R is empty and no stack-use addition applies. The prescribed fresh wrapper returns 4096; private caller-state execution returns 4112. Both succeed with sufficient budget. Independently checked/hashed ISA probes through the supplied interpreter via stdin confirmed payloads 4096 versus 4112, code 0. Snapshot reuse also invalidates only on \"store to an object of R\"; allocation/free changes k, bump or live bits without such a store.",
+      "fix": "State in §8.5: \"Entry-state dependencies include allocation history/liveness metadata whenever the closure may allocate, free, validate caller storage or observe an allocation-derived address. Replay k, sizes and live bits in these cases even when the byte read-set is empty; include bytes only as required by byte dependencies. Omit replay only when both byte and allocator-state dependencies are absent. Invalidate cached snapshots on relevant alloc/free and shadow-stack push/pop/restore operations as well as stores.\" Apply this decision in §16.2 before private allocations. The witness returns 4112, code 0, preserving caller state; after another caller allocation of 16 bytes, the next invocation returns 4128. Replaying full allocation history for allocation-sensitive closures is the sound default; a smaller proven dependency is optional."
+    },
+    {
+      "id": "SOL-R2-03",
+      "section": "§12.6 N21; §16.1 completeness",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "§12.6 includes \"casts\" among elementwise instructions, but LLVM bitcast can change lane count/width or cross scalar/vector boundaries. No other N21 row handles that case. Little-endian witness: `%v = load <2 x i32>, ptr %p, align 1; %b = bitcast <2 x i32> %v to <4 x i16>; %r = extractelement <4 x i16> %b, i32 1; ret i16 %r`, with bytes 44 33 22 11 88 77 66 55. Correct result is 0x1122 (4386). An elementwise i32-to-i16 bitcast is illegal and cannot produce four lanes; retaining the vector violates V13/§16.1. LLVM 18 and 23 verify and fold the equivalent constant-pattern probe to `ret i16 4386`. The missing expansion also leaves canonical row counts, hence F_B, undefined for an accepted construct.",
+      "fix": "Add to §12.6: \"Bitcast is elementwise only when source and destination lane geometries agree. Otherwise form the source packed bit string in datalayout order and resegment it into destination lanes or a scalar. On supported little-endian targets, lane 0 occupies the low bits. The default expansion zero-extends source carriers to total width, shifts by cumulative widths and ORs in increasing source-lane order; extracts destination lanes by logical right shift and truncation in increasing destination-lane order, omitting identity casts and zero shifts. N22 legalises total widths above 128. Legalization drops no source memory access.\" Add scalar↔vector and lane-changing pairs. For the witness retain both i32 loads at offsets 0/4 and return trunc.i16(lshr.i32(first_load,16))=4386, code 0. Rejecting the cast would narrow scope."
+    },
+    {
+      "id": "SOL-R2-04",
+      "section": "§12.6 N21 blanket llvm.vp.* rule; Appendix C",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The blanket VP rule defines active as k<evl and mask[k], with inactive lanes yielding 0 except masked-load passthrough. That is false for VP selection: false-condition lanes have defined values. Witness: `%v = call <2 x i32> @llvm.vp.merge.v2i32(<2 x i1> <i1 true,i1 false>, <2 x i32> <i32 5,i32 6>, <2 x i32> <i32 7,i32 9>, i32 2); %r = extractelement <2 x i32> %v, i32 1`. The blanket rule gives 0; LLVM gives 9. LLVM 18/23 verify the module; LLVM 23 native lowering independently emits `movl $9, %eax; retq`. Installed LLVM 23 VPIntrinsics.def explicitly says vp.select/vp.merge do not report their condition as a predication mask because false lanes have defined results. Appendix C promises both names.",
+      "fix": "State in §12.6: \"The generic inactive-zero rule applies only where the intrinsic's LangRef result is poison. For vp.select/vp.merge the condition is a selector, not an inactivity mask: within explicit vector length lower each lane to select(condition[k], on_true[k], on_false[k]). Preserve each intrinsic's specified behavior outside that length and replace only poison by N7 zero; vp.merge preserves its on_false value outside the selected active prefix as well.\" Give these rules precedence over the generic bullet. Add the witness as a normalisation/native pair returning 9, plus an analogous vp.select false-condition witness. Also state: \"VP reductions fold the start value with active lanes only, in increasing lane order; inactive lanes contribute no zero unless zero is that reduction's identity.\" This prevents the blanket rule from zeroing masked products/AND reductions."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "BD2-1",
+      "status": "resolved",
+      "note": "TDL-2/§18.3 retain f recorder visibility through use; compute-view sees intermediate 9."
+    },
+    {
+      "id": "BD2-2",
+      "status": "resolved",
+      "note": "TDL-11 retains observed basis cells while K stays Co and dematerialises only after complete coverage."
+    },
+    {
+      "id": "BD2-3",
+      "status": "resolved",
+      "note": "§16 excludes arena globals from data images and threads coh base; arena-o1 supplies the reference object."
+    },
+    {
+      "id": "BD2-4",
+      "status": "resolved",
+      "note": "MC4 includes stores/calls and TDL-3 retains dependent private-memory operations through the join."
+    },
+    {
+      "id": "BD2-5",
+      "status": "resolved",
+      "note": "§13.1 uses LLVM uno=8 through une=14; n-fcmp/fcmp-abi fix the ABI witnesses."
+    },
+    {
+      "id": "BD2-6",
+      "status": "resolved",
+      "note": "n-varargs pushes 32 bytes; §17.3 states alignment and frame end."
+    },
+    {
+      "id": "D02-01",
+      "status": "resolved",
+      "note": "§8.6/§16.2 require identical computation/validation of all projections before final variant selection."
+    },
+    {
+      "id": "D02-02",
+      "status": "resolved",
+      "note": "The permitted per-object alternative retains measured values in the authoritative arena during partial observation."
+    },
+    {
+      "id": "D02-03",
+      "status": "resolved",
+      "note": "TDL-3 forks pre-branch views, hides sibling recorders and merges at the join."
+    },
+    {
+      "id": "D02-04",
+      "status": "resolved",
+      "note": "TDL-8 predicates exchange, negative branches and dependent consumers on success; failure selects neither arm."
+    },
+    {
+      "id": "D02-05",
+      "status": "resolved",
+      "note": "TDL-5(b)/TDL-7 require the complete predicated bijection and clean workspace; the original many-to-one update is rejected."
+    },
+    {
+      "id": "D02-06",
+      "status": "resolved",
+      "note": "§7.5(a) retains/measures intentional records; an open window no longer permits erasing the measurement channel."
+    },
+    {
+      "id": "D02-07",
+      "status": "resolved",
+      "note": "TDL-12 supplies inherited virtual bindings and declared reversible device state, retaining bound console output."
+    },
+    {
+      "id": "D02-08",
+      "status": "partially",
+      "note": "TDL-9 bounds G/nesting, but interruption before qfree still triggers T-LEAK instead of a controlled budget outcome (SOL-R2-01)."
+    },
+    {
+      "id": "D02-09",
+      "status": "resolved",
+      "note": "§8.5 explicitly maps caller allocas to live backing storage/stack metadata; entry-backing/entry-stack cover the original omission."
+    },
+    {
+      "id": "D02-10",
+      "status": "resolved",
+      "note": "Snapshot release uses 128-bit unpreparation views; observe uses fresh non-view chunks of at most 128 bits."
+    },
+    {
+      "id": "D02-11",
+      "status": "resolved",
+      "note": "PT2 no longer bounds indices by array syntax; PT6 seeds mutable global initializers."
+    },
+    {
+      "id": "D02-12",
+      "status": "resolved",
+      "note": "N21 preserves non-byte packed lane layout, including the one-byte lane-7 witness."
+    },
+    {
+      "id": "D02-13",
+      "status": "resolved",
+      "note": "N22 uses actual limb widths for carries/signs and widens partial top limbs."
+    },
+    {
+      "id": "D02-14",
+      "status": "resolved",
+      "note": "The unordered fcmp predicate ABI is corrected consistently with BD2-5."
+    },
+    {
+      "id": "D02-15",
+      "status": "resolved",
+      "note": "§16 supplies FP carrier rows and packed aggregate return/call-result rules; fp-aggregate covers the missing boundary."
+    },
+    {
+      "id": "D02-16",
+      "status": "resolved",
+      "note": "§14.4 strips noreturn/incompatible tail constraints and requires dedicated returning runtime symbols."
+    },
+    {
+      "id": "D02-17",
+      "status": "resolved",
+      "note": "N27 preserves actual derived-pointer bases/offsets before erasing statepoints."
+    },
+    {
+      "id": "D02-18",
+      "status": "resolved",
+      "note": "§8.7 distinguishes B_sample from universal B_bound and states totality/inverse/budget correctness obligations."
+    },
+    {
+      "id": "D02-19",
+      "status": "resolved",
+      "note": "§8.7 supplies the CC-level parameter-preserving oracle/swap/inverse expansion and retires BLK-3."
+    },
+    {
+      "id": "D02-20",
+      "status": "resolved",
+      "note": "N34/§17.6 charge before every counted R instruction, including suffix/return, preserving exact effect prefixes."
+    },
+    {
+      "id": "D02-21",
+      "status": "resolved",
+      "note": "BLK-5/ISA-7 explicitly requires exact typed R fault codes, no later effects and retained prefix history."
+    },
+    {
+      "id": "D02-22",
+      "status": "resolved",
+      "note": "§20.6 translates all enabled effective-privilege guest accesses, including supervisor aliases; helpers use physical backing."
+    },
+    {
+      "id": "B1",
+      "status": "resolved",
+      "note": "§18.2 routes events per Cl/M/Co without double-applying speculative shadow updates; the original witness is fixed."
+    },
+    {
+      "id": "B2",
+      "status": "resolved",
+      "note": "§8 flattens carrier fields and packs results low-field-first without padding; fp-aggregate yields 0xffffffff01."
+    },
+    {
+      "id": "B3",
+      "status": "resolved",
+      "note": "§17.3 ss_init adopts replayed stack state without a duplicate allocation; the original stack-adoption defect is fixed."
+    },
+    {
+      "id": "B4",
+      "status": "resolved",
+      "note": "§22.1 agrees with §7.2 on unique-only rejection; two measuring candidates are accepted trap bodies."
+    }
+  ],
+  "regressions": [
+    "New TDL-9 early termination prevents a previously balanced qalloc/qfree body from reaching release while §18.4 still imposes unconditional T-LEAK checking; SOL-R2-01 records this introduced budget/finalization conflict."
+  ],
+  "suggestions": [
+    "S1, Appendix B/progress: append \"The historical frozen-checker failures are superseded by the current 2311/2311 receipt at <commit/hash>; text-only and independently executed obligations are distinguished.\" I inspected stored receipts, not a new full-gate run. Preserve old reports but identify current evidence.",
+    "S1, §19.1: use `-bennett-dialect=0.2.2` in the invocation example; §19.9 requires the exact full version and refuses the current `0.2`.",
+    "S1, §3.2 observe summary/§7.7 deferred-measurement explanation: replace \"afterwards they are Cl\" with \"partial observation retains authoritative basis cells in a Co object until full coverage permits Cl\", and replace \"w released by the region's uncomputation\" with \"w retained and measured at the CC boundary of §7.5(a)\". The revised normative rules are sound; these old summaries should agree.",
+    "S1, §17.1/§17.3: state explicitly whether a dead shadow frame remains address-accessible through its live backing heap block. If frame liveness is intended to forbid it, state \"Program accesses to shadow-stack storage require a live frame covering the range; the parent backing block alone is insufficient\", and add that check before mapped accesses. Otherwise document the backing-allocation reading as the default. This clarifies the allocation abstraction, not reconstruction of source dangling-pointer UB.",
+    "S1, TDL-7/TDL-8/§18.4: state \"Retained slice codes are explicit fault outputs; compiler-owned copies are uncomputed when their inputs are restored or measured with declared fault outputs at the CC epilogue, and are excluded from accidental user-handle leak checks.\" Delete or repurpose the stale §22.4 BD-W-COHERENT-HISTORY reference now that incidental workspace is never implicitly measured."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Reconcile G exhaustion with leak/workspace finalization and add the controlled local-qalloc witness (SOL-R2-01). 2. Replay allocator metadata even with an empty byte read-set and invalidate snapshots on lifecycle changes (SOL-R2-02). 3. Specify packed scalar/vector and lane-changing bitcast resegmentation (SOL-R2-03). 4. Replace blanket VP inactive-zero semantics with the correct selection/reduction rules (SOL-R2-04). Verify the stated outcomes while retaining the existing common-delivery, observation, carrier and ISA-dependency fixes. Acceptance does not require a new proof format, completed implementation or field-level schema expansion.",
+  "summary": "Reviewed the round-2 prompt, rubric, prior response/diff, full draft, progress log, north star and attached ISA 0.8. Confirmed that commit 642e265 and the working document match the snapshot. Of 32 previous blockers, 31 are resolved and D02-08 is partially resolved: G is bounded but interruption conflicts with local-allocation finalization. The separate V10 correction is resolved and preserves all-format bit-exact transport. Four S0 core issues remain: interrupted generation leaks/traps, empty-read-set replay loses allocation state, lane-changing bitcasts lack scalarisation, and VP selection false lanes are zeroed. Allocation and bitcast outcomes were independently reproduced with the supplied interpreter/LLVM tools; generation failure is a textual derivation, not a claimed executor run. Stored 2311/2311 receipts do not cover these witnesses. Explicit ISA-0.8 dependencies are accepted disclosures under the convergence rules, not re-raised as dialect omissions."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r2-sol.json
