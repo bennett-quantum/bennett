@@ -24,7 +24,10 @@ hard scope.
 
 ## Real blockers and risks
 
-Nothing known makes any rung impossible. Open risks:
+Nothing known makes any rung impossible. **Rung 4 (Grover over unmodified SQLite) is shown
+feasible on ISA 0.8 with no ISA change** (phase 2, 2026-10-29); what remains is dialect, plugin,
+runtimes, arith, driver and executor work, plus structure recovery for a meaningful 2^20 estimate.
+Open risks:
 
 | # | Risk | Kind | State |
 |---|---|---|---|
@@ -82,7 +85,7 @@ The demo ladder is the acceptance gate: rungs 1 → 2 → 3 → 4, then 5–8.
 |---|---|---|
 | 0 audit | Opus | `bennett-dialect-spec/docs/audit/` |
 | 1 interpreter | codex gpt-6.1-sol xhigh via `tools/codex_job.py` | `bennett-isa-spec/reference-interpreter/` |
-| 2 SQLite spike | Opus | `bennett-dialect-spec/docs/spikes/sqlite/`, scratch outside the repo |
+| 2 SQLite spike | Opus | **done 2026-10-29**: `bennett-dialect-spec/docs/spikes/sqlite/REPORT.md` — rung 4 needs **no ISA change**; database as SQLite file image in an oracle `in` region (memdb VFS); B ≈ 2.9e5 rows/call, flat in N; ≥ 92 % rowid-invariant; 13 ranked work items |
 
 Agents commit their own paths regularly (unstable network); nothing is pushed
 without the maintainer's say-so.
