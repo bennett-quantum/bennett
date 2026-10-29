@@ -58,3 +58,14 @@ source-order ties, producer dependencies, unconditional inverse-allocation hoist
 and source lifetime extension. Compute still reuses its actual records. Optimisation
 must preserve the complete instrument. Red missing scheduler; green executable and
 mutated-probability tests. No decline, partial, or new ISA dependency.
+
+## BD3-R3-3 — resolved (theme C)
+
+Sections: TDL-2/11, §18.2. Hand derivation: observed byte 0 remains basis-known
+after the CC store writes 9 to both copies, so it needs no second measurement.
+Choose the existing TDL-11 retain reading and state its exception in TDL-2 and
+observe completion; event-application writes still invalidate coverage. Witness
+co-observe-write-observe executes via state/native coherence seed on clang 18/23:
+final K=Cl, load=9/code 0, arena=0. It also checks pre-observe store traps 4
+and applied writes invalidate coverage. Red absent adapter, then green mutation test.
+No decline, partial, or ISA gap.
