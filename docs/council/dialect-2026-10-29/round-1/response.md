@@ -120,3 +120,63 @@ Before edit: 3 xor 5=6, so shadow xor 6=5 with arena zero; later controlled add 
 
 Edited §10 TDL-2/TDL-5, §18.2: Specify Cl/M/Co routing for each arena event form, materialising controlled or Co-valued writes. Witness: `classical-event-application`.
 
+## BD2-3 — resolved
+
+Before edit: A G data symbol inside coh overlaps an interface range and would read a classical image. ISA also scopes @coh to the wrapper, so L1 needs its base threaded.
+
+Edited §16.2–§16.4, §16.11: Exclude relocated globals from layout.globals/data, reserve coh at A_coh, thread its hidden base into lprocs, and address globals by arena offsets. Witness: `arena-o1: check/hash pass, inputs coh=0000/0500 produce 1/6 in 10 rows`.
+
+## D02-01 — resolved
+
+Before edit: Different offset/load rows let one projection succeed while another exhausts the same B.
+
+Edited §8.6, §16.2 delivery: Every wide variant computes/validates every projection with identical rows; only final retval selection differs. Single-slice rows stay unchanged. Witness: `wide-delivery`.
+
+## D02-09 — resolved
+
+Before edit: Source alloca objects precede N24, so a heap-only source read-set misses their later backing bytes.
+
+Edited §8.5: Translate source objects to normalized backing allocations and snapshot live stack storage and metadata; uncertain reachability copies all live backing allocations. Witness: `entry-backing and entry-stack`.
+
+## D02-10 — resolved
+
+Before edit: 17 bytes need 136 wires, exceeding the 128-wire ISA measure limit.
+
+Edited §8.5 release, TDL-11, A2: Unprepare snapshots in 128-bit views with original xor128 args and clean-free the whole register; observe copies/measures chunks of at most 16 bytes. Witness: `entry-backing and partial-observe`.
+
+## D02-15 — resolved
+
+Before edit: Retained FP bits have no integer row without carriers; binary64 fneg toggles bit 63. Aggregate results require explicit packing.
+
+Edited §16.1/§16.4, §16.11: Use §13.1 carriers for all FP forms and constants; specify bit operations, field packing and call-result unpacking. Witness: `fp-sign-carrier; checked fp-aggregate`.
+
+## B2 — resolved
+
+Before edit: {1,-1} packed low-field-first is 1|(0xffffffff<<8)=0xffffffff01, independent of memory padding.
+
+Edited §8.1/§8.2, §16.1/§16.4, §16.11: Flatten scalar carrier fields, bind FP through IN/ARG, count flattened nparam, and pack/unpack aggregate results. Witness: `fp-aggregate: check/hash/run pass, payload 1099511627521; clang18/23 native match`.
+
+## B3 — resolved
+
+Before edit: Replaying the 16-byte stack block already advances bump from 4096 to 4112; allocating it again would move malloc to 4128.
+
+Edited §8.5, §17.3, §16.11: ss_init adopts replayed base/size/sp and allocates nothing; snapshot includes stack block and state globals. Witness: `entry-stack: checked one-entry replay microvector, run payload 4112 in 42 rows; clang18/23 contract seed matches. General replay-loop canonical map is not claimed by this microvector.`.
+
+## B4 — resolved
+
+Before edit: E14 and §7.2 reject only a unique invalid candidate; two measuring candidates are distinct trap bodies.
+
+Edited §22.1, §7.7: Corrected diagnostic parenthetical to unique-only, retaining the wider capability. Witness: `region-two-measure-candidates accept, dispatched trap code 4`.
+
+## D02-18 — resolved
+
+Before edit: A sampled maximum 10 can miss an identity input taking 1000 steps, so it is not a universal bound.
+
+Edited §8.7: B_sample is a lower bound; sampled pairs assume universal inverse/totality and a sound B_bound across all input/parameter values. Witness: `inplace-bound`.
+
+## D02-19 — resolved
+
+Before edit: After g and swap, x=g(old,y) and t=old; XOR ginv(x,y) clears t for every y, hence by linearity for superposed y.
+
+Edited §8.7/§8.8, §22.2, §25.1/§25.3: CC-level call/swap/inverse with preserved bindings implements ISA 0.8; retire BLK-3 and move parameterised qinplace to efficiency. Witness: `inplace-param-quantum accept; state for basis and superposed y`.
+
