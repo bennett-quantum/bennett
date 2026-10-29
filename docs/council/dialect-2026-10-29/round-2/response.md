@@ -107,3 +107,33 @@ ISA grading target remains 0.8. No declines. Derivations below precede each edit
 - Text now: All CC accesses guard Co; observed bytes may be written consistently; dirty Co release traps 4 before reuse unless restored then dematerialised.
 - Witness: `co-store-release`. Checker: state/native lifecycle.
 
+## BD3-4 — resolved
+
+- Section: §1.6, §11.5, §17.5–§17.6, §25.1; seven R examples.
+- Hand derivation: N34 inserts a typed budget fault point in every R entry. A successful run cannot prove the module free of this capability dependency.
+- Text now: Every R entry is BLK-5 on ISA 0.8; direct reversible calls inside generation are excluded. R fallback uses generic trap without hostcall only when a typed-fault execution is reached, preserving successful paths. Required ISA 0.9 K5: literal 0≤C<2^64, exact nonzero C (zero→4), one terminal FAILED record, no successor effects, intact reversible prefix and cause table.
+- Witness: Seven retagged R source examples and blocker lines; positive CC sjlj/fiber companions retain N29/N30 acceptance; existing success run/state/cc-run expectations unchanged. Checker: recognise, blocker, frontend, cc-run, run-program, state.
+
+## BD3-5 — resolved
+
+- Section: §6.5, §7.5(b).
+- Hand derivation: The setjmp second return repeats the allocation while the first h remains live, despite no source CFG back edge to the site. N=1 is unsound.
+- Text now: Chose the explicitly permitted simple reference default: if a setjmp continuation can reach s, not self-disjoint and E(s)=infinity. BLK-1 (R hoisting BLK-4), with bounded file fallback. This preserves the source capability and never aliases two live handles. It does not claim a finite N=2 analysis.
+- Witness: handle-setjmp-reentry, including source, blocker and state; native setjmp confirms two distinct instances and balanced release. Checker: parse, recognise, blocker, state/native.
+
+## E-MUSE-TERM — resolved
+
+- Section: §2 Terminology.
+- Hand derivation: BLK-3 is retired and BLK-5 is active; 1-to-4 is no longer the active set.
+- Text now: Names BLK-1, BLK-2, BLK-4 and BLK-5, with BLK-3 explicitly retired.
+- Witness: All active blocker witnesses retained, with expanded BLK-5 classification reports. Checker: blocker, xrefs.
+
+## E-MUSE-7.7 — resolved
+
+- Section: §7.7.
+- Hand derivation: The obsolete release note conflicts with the retained measurement-channel rule.
+- Text now: Retain and measure at the §7.5(a) boundary, including adj/compute; also indexed as REG-MUSE-7.7.
+- Witness: deferred-channel-adj Checker: state/Rust run-action.
+
+The BD3-5 finite-bound refinement is optional follow-up for the maintainer, b-dialect-spec-egm. The normative conservative default and its fallback are resolved in this pass. ISA-7 remains the external dependency b-dialect-spec-bz6; no ISA source was edited. No declines or partial resolutions.
+
