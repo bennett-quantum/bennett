@@ -71,7 +71,14 @@ taint-driven outlining under `ctrl` (R1), dirty borrowing, budget tables, mixed-
 links. Pre-flight against the phase-1 interpreter. Council rounds to acceptance.
 
 **Phase 4 — ISA 0.9, only on evidence and with the maintainer's go.** Verified R3
-items plus I1–I8, through the council.
+items plus I1–I8, through the council. **Evidence done 2026-10-29**
+(`../../bennett-isa-spec/docs/notes/2026-10-29-isa-09-evidence.md`): no proved ISA gap blocks any rung at its
+fixed demo width; the four BLK items plus ISA-7/ISA-8 and an observable zero fault code are genuine gaps
+against the north star's general promises; the rest is wording or efficiency. **Maintainer 2026-10-29: draft 0.9
+now, alongside 0.8** (`spec/Bennett-ISA-Spec-0.9-draft.md`, 0.8 untouched), one combined council dossier;
+**grade it only after** (a) the reference interpreter is council-accepted (trusted precheck) and (b) dialect 0.2
+has had its first council round. Dialect 0.2 stays graded against 0.8 with `blocked:` verdicts; a dialect 0.3
+round follows 0.9 acceptance.
 
 **Phase 5 — north star iteration 8.** A1 + A2 (+ anything phases 2–4 force), council.
 
@@ -85,6 +92,9 @@ The demo ladder is the acceptance gate: rungs 1 → 2 → 3 → 4, then 5–8.
 |---|---|---|
 | 0 audit | Opus | `bennett-dialect-spec/docs/audit/` |
 | 1 interpreter | codex gpt-6.1-sol xhigh via `tools/codex_job.py` | `bennett-isa-spec/reference-interpreter/` |
+| 4 evidence | codex gpt-6.1-sol xhigh | **done 2026-10-29**: `bennett-isa-spec/docs/notes/2026-10-29-isa-09-evidence.md` |
+| 4 draft 0.9 | Opus | in progress 2026-10-29: `bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md` |
+| 1 council loop | council fable/astra/muse; Opus implementer | round 1 2026-10-29: 30 blockers, no consensus; loop until acceptance |
 | 2 SQLite spike | Opus | **done 2026-10-29**: `bennett-dialect-spec/docs/spikes/sqlite/REPORT.md` — rung 4 needs **no ISA change**; database as SQLite file image in an oracle `in` region (memdb VFS); B ≈ 2.9e5 rows/call, flat in N; ≥ 92 % rowid-invariant; 13 ranked work items |
 
 Agents commit their own paths regularly (unstable network); nothing is pushed

@@ -89,9 +89,15 @@ supersedes them where they conflict.
   its brief is `../bennett-dialect-spec/docs/briefs/2026-10-29-dialect-0.2-fulltext.md`. Then extend
   `scripts/dialect_check.py` to every 0.2 example against the Rust interpreter; then **council rounds
   on dialect 0.2** (rubric-isa.md now makes any narrowing S0).
-- **After dialect acceptance: ISA 0.9** for BLK-1..BLK-4 (outline §25: run-time-width `qreg`,
-  device-minted budgets, `qinplace` with parameters, `qreg` ops in R) plus wording items and
-  evidence-backed I1–I8 (maintainer: dialect first, because it may be faulty).
+- **ISA 0.9 (revised 2026-10-29):** evidence note done (`../bennett-isa-spec/docs/notes/2026-10-29-isa-09-evidence.md`:
+  no rung blocked at fixed widths; BLK-1..4, ISA-7, ISA-8 and the zero fault code are real gaps against the north
+  star). Maintainer: **draft 0.9 now alongside 0.8** (`../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md`, Opus,
+  brief `docs/briefs/2026-10-29-isa-09-draft.md`); **grade only after** the reference interpreter is council-accepted
+  and dialect 0.2 has had round 1. Dialect 0.2 stays graded against 0.8 with `blocked:` verdicts.
+- **Reference interpreter under council review** (run `docs/council/isa-ref-2026-10-29`, members fable/astra/muse,
+  rubric `docs/council/rubric-impl.md`, `tools/review_packet.py` + a detached worktree per round): round 1 no
+  consensus (30 blockers); Opus is the sole implementer (`../bennett-isa-spec/docs/briefs/2026-10-29-isa-ref-council-fixes.md`);
+  loop until all three accept.
 - Codex jobs: always via `tools/codex_job.py` (resume after refusals / network drops, pace check,
   commits every 20 min, wip-branch backup, headless). No Daybreak access: assume refusals.
 - Issues live in bd in this repo, `bennett-dialect-spec` and `bennett-isa-spec` (`bd ready`).
