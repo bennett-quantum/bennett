@@ -92,6 +92,19 @@ def codex_pace():
     return None
 
 
+def backup(st, cd):
+    """Off-machine backup of work in progress (maintainer-ratified 2026-10-29): push HEAD to
+    wip/<job> with the pre-push gate skipped, because mid-TDD trees are red by design. main stays
+    gated and is pushed only by the orchestrator when green. Failures are logged, never fatal."""
+    ref = f"HEAD:refs/heads/wip/{os.path.basename(st)}"
+    try:
+        r = subprocess.run(["git", "push", "--no-verify", "--force", "-q", "origin", ref], cwd=cd,
+                           capture_output=True, text=True, timeout=600)
+        log(st, f"wip backup: {'ok' if r.returncode == 0 else r.stderr.strip()[:200]}")
+    except Exception as e:
+        log(st, f"wip backup failed: {e}")
+
+
 def commit(st, cd, paths, label):
     try:
         subprocess.run(["git", "add", "-A", "--", *paths], cwd=cd, check=True, capture_output=True, timeout=120)
@@ -100,6 +113,8 @@ def commit(st, cd, paths, label):
         msg = f"wip(codex job {os.path.basename(st)}): {label}{TRAILER}"
         r = subprocess.run(["git", "commit", "-q", "-m", msg], cwd=cd, capture_output=True, text=True, timeout=120)
         log(st, f"commit ({label}): {'ok' if r.returncode == 0 else r.stderr.strip()[:200]}")
+        if r.returncode == 0:
+            backup(st, cd)
     except Exception as e:  # a failed checkpoint must not kill the job; it is retried next time
         log(st, f"commit ({label}) failed: {e}")
 
