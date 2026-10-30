@@ -1,0 +1,114 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The \u00a716 parser, typed opcode schemas and validation passes cover the defined forms, and malformed-input diagnostics generally cite the governing rule. A well-formed zero-trip lifetime change is nevertheless rejected because borrow::Compiler::compile carries the dead body's bundle map into its successor (SOL-R8-B02).",
+   "change": "In src/borrow.rs::Compiler::compile, isolate the compile-time environment of qloop 0 bodies; add the scalar-to-bundle dead-body regression described in SOL-R8-B02 to tests/r1_borrow.rs and tests/cli_xam.rs."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The independently reconstructed inc8 envelope hashes to 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. The nine identity tests and three r1_linking tests pass, including literal multi-member SCC envelopes. Exact certificate composition has a signedness defect for multiplicities at or above 2^127 (SOL-R8-B03).",
+   "change": "Replace the u128-to-i128 conversion in src/exact.rs::Decimal::mul_int with an unsigned BigInt construction, and add the boundary multiplication and linked-certificate assertions in SOL-R8-B03."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Every \u00a74.2 row and \u00a75.4 fault is dispatched in oracle.rs/machine.rs. Hand-derived inc8(255) at B=0/2/3 gives (payload,code,steps)=(0,1,0)/(0,1,2)/(0,0,3), matching independent CLI runs. For sum_db(0), B=9/10 with stack=16 gives (0,1,9)/(0,0,10), and stack=15 faults 3 at row 3. All seven active oracle tests pass.",
+   "change": "In tests/oracle.rs, add a literal recursive depth-limit cutoff beside council_r4_sum_db_literal_step_and_stack_cutoffs, asserting the exact fault row and unchanged pre-call state, to complement the existing literal step/stack pins."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Traced forward_call/inverse_call against C1\u2013C5 and their reverse ordering, including capture before moving recursive callee locations, restored-counter addressing, and clearing successor/old-PC exchanges. Traced the ret inverse restoring callee fp before destination delivery. The six active step_machine tests pass, including nonzero target/fault and memory domains and every-prefix small recursive cases.",
+   "change": "In tests/step_machine.rs, add a focused call/ret test exposing the three activation-record metadata cells and captured argument slots before and after one inverse step; assert their literal values as well as the existing complete snapshot equality."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The CC/R dispatch, atomic fault paths, device/entropy tapes, register ownership and history reversal were reread. Hand-traced nested -> f -> g, inner uncall(g), return(f), and uncall(f): clock and tape return to zero and the already-reversed g segment is skipped. CLI nested returns i64 zero in 11 rows and reverse reports equals_entry=true; all four classical tests pass.",
+   "change": "In tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once, add explicit assertions for the history markers around the inner and outer uncall, so skipping already-reversed segments is checked independently of the final snapshot."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "Audited all fourteen \u00a74.4 gates: X-family ANF updates, predicate-controlled swap outputs, diagonal basis preservation, non-diagonal unknowns, full borrowed-touch guards, inverse invalidation, and exact/repeated-state/unknown-top loop routes. The previous bad loops now reject and previous positives pass, but the new domain cannot recover a clean fact after a compound computation/adjoint, and its compiler leaks zero-trip lifetime changes (SOL-R8-B01/B02). These reject valid identity actions before execution.",
+   "change": "Implement compound matched-inverse restoration in src/borrow.rs::Facts while preserving entanglement/read dependencies, then fix zero-trip Compiler environments; gate both changes with independently expected full interface/borrow/reference identity maps from SOL-R8-B01/B02."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Read the whole frozen packet, including fixtures, historical responses, test bodies and progress disclosures. Fresh runs: 19 targeted R7 tests, three generated R7 families (93 accepted/63 rejected), and 29 active oracle/step/classical/identity/linking tests all pass; two unrelated ignored sweeps were not rerun. Published 297-test/five-sweep counts are historical evidence, not this review's executions. Missing compound-adjoint, post-zero-loop use, and unsigned-multiplicity boundaries explain the uncovered defects.",
+   "change": "Add a separate deterministic family in tests/r1_fuzz_discipline.rs that follows U;adj(U) on workspace with a borrow controlled by that workspace, varies zero/nonzero/nested loops and renamed unrollings, and uses U\u2020U=I plus per-return identity as its independent oracle; retain the existing RNG distribution."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Audited all 30 SPEC-QUESTIONS entries against the accepted text; their recorded readings remain defensible. CLI failures are atomic and section-cited. Deliverables 8\u201311 and Unverified results remain explicitly staged. The new failures arise from implementation facts/environments, not an ambiguity that needs another reading. The 5000-H/T output and scaled/subnormal/cancellation regression tests now pass.",
+   "change": "After fixing SOL-R8-B01/B02, update README.md's borrow-analysis paragraph and PROGRESS.md with the compound-adjoint and dead-loop-environment pins and their actual commands/counts; describe the achieved behavior without treating uncertainty as a definite \u00a75.6 violation."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R8-B01",
+   "section": "\u00a7\u00a74.4, 5.3, 5.6, 6.2, 14.2; reference-interpreter/src/borrow.rs::Facts::sequence and Facts::forget_inverses",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Compound matched uncomputation still loses the known-zero entry fact. Memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Exact function, LF after every line:\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nh c\nx c\nx c\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nIndependently constructed \u00a79.2 envelope/interface/closure H=0fd6d6eadcb219457ce3d9aa091a2176d38ce9f81551235799dae7cabe6e0e2f. With sole symbol 0 carrying that H, the standard 0.8 header, section symbols, blank line, section functions and final LF, object_hash=5eff1283a8f71dcce612e1802e510fdcae30c609395686311962bd630f01461c. check, hash, run-action a --mut 0, and independently initialized run-action a --mut 1 --adjoint all actually exit 1 with empty stdout and '\u00a75.6: a wire released inside a borrow frame is not clean'. Hand: the computation H;X is followed by its exact adjoint X;H, so H X X H=I and c=0 at the borrow. CX(0,b)=I for every unknown b, including b entangled with an external reference; c is clean at qfree. The whole action is I_t \u2297 I_bR. sequence forgets the saved first-H fact at the first X and cannot recover it after the X pair is undone. H;S;Sdg;H, H;CX(c,t);CX(c,t);H, H;swap(c,t);swap(c,t);H, and Rx(0.25);Ry(0.5);Ry(-0.5);Rx(-0.25) before the same borrow also actually reject. This is a definite rejection, not an unresolved opaque proof or a resource/budget limit.",
+   "fix": "Change reference-interpreter/src/borrow.rs::Facts::sequence/forget_inverses and its saved-history representation so a fully matched computation/adjoint restores established expressions and correlations after all intervening operand effects and readers have been undone. A causal operation history or sound reuse of the \u00a76 matched-sequence proof is suitable. Do not simply retain a saved H across arbitrary operand touches: H;CX(c,t);H with an outstanding reader must not manufacture clean c. Preserve physical non-permutation frame boundaries, the full borrowed-touch guard and every return obligation. \u00a75.3 requires 'reverse order, instruction replaced, versions renumbered' and lists x and h as 'self-adjoint'; \u00a76.2 says '`other` values are released only by the adjoint of the sequence that produced them'; \u00a714.2 says '`qalloc` tensors |0\u27e9'; \u00a75.6 requires 'P_F = P\u2032 \u2297 I_B'. Here those sentences determine c=0 and exact identity, with no certificate needed. Add r8_compound_adjoint_restores_borrow_control to tests/r1_borrow.rs and a literal pinned counterpart to tests/cli_xam.rs using the function/signature/H/object_hash above. The parse-success assertion fails now. After the fix Object::parse/hash/check must succeed; run-action at t=0 and 1 must respectively return state {\"0\":[1,0]} and {\"1\":[1,0]}, wires=1, and the complex input 0.6|0>+0.8i|1> must be unchanged. Initialize forward and adjoint independently, require no escaping workspace and reverse equals_entry=true; use support::r6_map(&object,false) to include a borrowed wire entangled with an untouched reference. Add the other four-gate adjoint examples above and loop-wrapped/renamed variants. Keep the unmatched-H, changed-control, outstanding-entanglement and illegal borrowed-quantum-touch negatives. No execution budget is needed."
+  },
+  {
+   "id": "SOL-R8-B02",
+   "section": "\u00a7\u00a73.3, 4.3, 4.6, 5.3, 5.6; reference-interpreter/src/borrow.rs::Compiler::compile (qloop arm), produce and scalar",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Skipping a zero Repeat in Facts does not undo its compiler-environment effects. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function, with final LF:\naction @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nc = qalloc any 1\nqloop 0 {\nqfree c\nc = qalloc any 2\n}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nIndependently hashed H=c9cbc01c190e4454e37b553e1d7e8e9eeea856631a6ab397029577447b053b87 and canonical sole-symbol object_hash=708531c08cb63447ea2bbaa966c69562300ab1bc89e07efb9c3278799c54922d. check and run-action a --mut 0 actually exit 1, empty stdout, '\u00a73.3: c must be one wire'. The zero-trip body executes no release or allocation: the original one-wire c remains clean, CX(c,b) is disabled and the full action is identity on t and bR. The ordinary \u00a76 validator correctly validates the dead body in a cloned state. Borrow Compiler::compile instead compiles that body against self, calls produce(c,2), and leaves bundles[c] pointing to two dead-body wires. Compiling the following CX then calls scalar(c) on this wrong map, before Facts can skip Repeat(0,...).",
+   "fix": "Change reference-interpreter/src/borrow.rs::Compiler::compile's qloop arm so a zero-trip body cannot mutate the successor bundle/lifetime/borrow/control environment. Either compile against an isolated environment and discard its dynamic effects, or omit its dynamic compilation after the existing static validation; retain function-entry qregion hoisting and all required static checks of dead bodies. \u00a74.6 says 'body n times', so n=0 means zero body lifetime operations; \u00a74.3 supplies 'n clean wires'; \u00a75.3 explicitly requires adjoint 'versions renumbered'. Expected successor binding is the original one-wire c=0, not the two-wire dead definition. Add r8_zero_trip_lifetime_environment_does_not_escape in tests/r1_borrow.rs using the exact function and hashes above, plus tests/cli_xam.rs assertions for hash/check, forward and independently started adjoint at t=0/1 and the complex superposition, wires=1, no remaining workspace and reverse equals_entry=true. These parse/check success assertions fail now; after the fix every result must be the unchanged interface state and an externally entangled borrowed entry must also be preserved. Include nested zero loops and dead qcopy/qload/qborrow bindings followed by actual uses of the surviving binding. A dead body that redefines a still-live wire without releasing it must still fail static validation; changing this fixture's trip count to 1 while retaining scalar CX c must still reject the two-wire operand. No execution budget or certificate is involved."
+  },
+  {
+   "id": "SOL-R8-B03",
+   "section": "\u00a7\u00a79.1, 9.3, 12.3; reference-interpreter/src/exact.rs::Decimal::mul_int and src/linking.rs::compose_certificates",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "Exact certificate composition silently treats a large unsigned multiplicity as negative. Decimal::mul_int(n:u128) constructs BigInt::from_i128(n as i128). For n=340282366920938463463374607431768211455 (u128::MAX), this is -1. Adapt tests/r1_linking.rs's existing client/callee fixture: give both forward:0 local error maps {\"diamond\":1}, callee inclusive {\"diamond\":1}, client inclusive {\"diamond\":\"340282366920938463463374607431768211456\"}, and client composition multiplicity \"<INC_HASH>:forward:0\":\"340282366920938463463374607431768211455\". Keep the existing signatures, pins, versions, matching target/dialect and bindings. Both independently constructed input certificates actually pass CLI check (client status unlinked, callee ok). By direct code trace, compose_certificates computes local(callee)*n + local(root) as 1*(-1)+1=0 and emits epsilon_total.diamond as JSON number 0; Object::link's subsequent parse accepts that nonnegative zero. The required sum is the exact decimal 340282366920938463463374607431768211456 (2^128). There is no CLI link command, so the composed result here is established by the explicit Rust code path, not claimed as a CLI execution. The same cast makes n=2^127 a negative multiplier. This is the already-implemented exact composition arithmetic, independent of the staged interval claim verifier.",
+   "fix": "Change reference-interpreter/src/exact.rs::Decimal::mul_int to construct a nonnegative BigInt from the complete u128 magnitude, without an intermediate signed cast; add an unsigned constructor if needed. Keep src/linking.rs::compose_certificates exact and do not cap multiplicities at i128::MAX. \u00a79.3 says 'Linking = resolution, validation, certificate composition (\u00a712.3), rebinding to closure hashes.' \u00a712.3 specifies 'inclusive(R, key) = local(R, key) + \u03a3_callees n_c \u00d7 inclusive(c, key_c)' and names method 'sum_over_multiplicities'; \u00a79.1 permits large integers as decimal strings. Add an exact.rs unit test asserting Decimal::parse(\"1\").unwrap().mul_int(u128::MAX).to_text() == \"340282366920938463463374607431768211455\"; it currently yields \"-1\". Cover 0, i128::MAX, 2^127 and u128::MAX and a fractional decimal as well. Add r8_unsigned_multiplicity_composition to tests/r1_linking.rs using its certify/region/client_text helpers: construct the two records and multiplicity in the problem, call Object::link(&[client,callee]).unwrap(), and assert composition.epsilon_total.diamond == Json::String(\"340282366920938463463374607431768211456\".into()), followed by check_hashes(). The assertion currently sees Json::Number(\"0\"); it must see the exact positive string after the fix. This test needs no execution budget, large allocation, schedule execution or interval verifier."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R7-B01",
+   "status": "partially",
+   "note": "The exact H/H witness, its literal hashes, CLI checks and independent forward/adjoint state tests now pass. Restoration of a matched multi-operation sequence remains incomplete; SOL-R8-B01 gives a new H;X;X;H witness."
+  },
+  {
+   "id": "SOL-R7-B02",
+   "status": "resolved",
+   "note": "The diff replaces n.min(3) by structured actual-count transfer; the exact four-trip negative rejects and positive accepts in fresh library/CLI tests, with the evolved-control family also passing."
+  },
+  {
+   "id": "SOL-R7-B03",
+   "status": "resolved",
+   "note": "Scaled net-exponent dyadic rounding, exact subnormal construction and Root2 cancellation refinement replace the overflowing conversion; both numeric units and the pinned 5000-H/T CLI forward/adjoint/reverse test pass."
+  },
+  {
+   "id": "R7-B01",
+   "status": "resolved",
+   "note": "Actual-count obligations now inspect the fourth/eighth rotating-control return; both exact rotation negatives reject in fresh library/CLI tests, and the generated evolving-loop family passes."
+  },
+  {
+   "id": "R7-B02",
+   "status": "resolved",
+   "note": "Quantum nodes separate full touches from changed targets. The exact diagonal and known-zero read-only-control objects now hash/check and preserve the complex input; their R7 library/CLI tests pass while illegal borrowed quantum touches remain guarded."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In tests/r1_fuzz_discipline.rs, extend the separate deterministic R7 boundary family with nested U/adj(U) prefixes whose restored scratch is subsequently a borrow control, including a temporary entangling reader that is either canceled or left outstanding. Derive acceptance from U\u2020U and the per-return map, check entangled external references in both independently initialized directions, and retain the original random generator and seeds.",
+  "In reference-interpreter/README.md, add a compact mapping from each \u00a74.4 gate family to its borrow fact-transfer rule and the corresponding positive/negative regression names after the fixes. Include compound restoration and zero-trip environment behavior so future gate or compiler changes have an explicit coverage target."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Restore established facts after complete matched computation/adjoint sequences, retaining reader/entanglement invalidation and physical frame boundaries; make SOL-R8-B01 and its negative controls pass. 2. Keep zero-trip compilation environments isolated, retaining dead-body static validation and qregion hoisting; make SOL-R8-B02 and its lifetime variants pass. 3. Remove signed narrowing from Decimal::mul_int and pass SOL-R8-B03's exact multiplication and linked-certificate assertions. Then rerun the affected R7 pins/families, normal tests and required ignored sweeps, recording actual counts and preserving explicit staging for deliverables 8\u201311.",
+ "summary": "Read the entire frozen prompt/packet and diff in slices of at most 1500 lines, rereading truncated intervals. Confirmed the R7 fixes in the diff before the full-crate audit. Performed all five mandatory methods before trusting execution output: (1) hand-derived inc8(255) at B=0/2/3, sum_db(0)'s B=9/10 and stack=15/16 cutoffs, and the exact LF inc8 envelope; subsequent CLI/hashlib results match the tuples and published hash. (2) Traced one complete \u00a73.6 call inverse, including counter exchanges, restored-stack addressing, parameter/record/location/argument uncomputation and PC exchanges, and checked the ret inverse order; traced the \u00a77.4 nested call/ret/inner-uncall/outer-uncall segment, independently expecting clock=0, empty tape, result=0 and complete reversal. Fresh CLI nested/reverse agrees. (3) Audited all 30 SPEC-QUESTIONS readings against the accepted text; none requires reopening the specification for these findings. (4) Grepped all required todo/unimplemented/unwrap/expect/panic/unreachable/unsupported/simplif/assume/for-now/approximat patterns. Classified test assertions and fixture destructuring separately from production invariants (Tarjan, queued/validated blocks, nonempty vectors, ASCII/UTF-8 and finite-float formatting, selected CLI branches and measured widths). Unsupported sampler/device/cleanup strings are explicit schema rejections, diagnostic amplitude approximations do not decide cleanliness or Born selection, and staged paths remain explicit; no additional spec-reported panic outcome was demonstrated. (5) Matched the \u00a74.2 rows, all fourteen \u00a74.4 gates, \u00a74.8 tiers/opcodes, fault codes 0\u201310, history/frame kinds, object/certificate/coverage/schedule schemas, suites and eight CLI commands to dispatch and tests, retaining disclosed deliverables 8\u201311 as staging. Audited exact traversal, full-state cycle skipping, unknown-top joins, per-return equations and inverse invalidation. Fresh tests: 19 targeted R7 pins/units/CLI tests, all three R7 generated families (93 accepted/63 rejected), and 29 active identity/linking/oracle/step/classical tests pass: 51 tests, zero failures; two unrelated ignored tests were not rerun. No claim is made to have rerun all historical 297 tests or five sweeps. Independently hashed and actually reproduced two valid-action rejection families, and traced the unsigned-multiplicity composition defect after checking both input certificates. Two core S0 issues and one contract S0 remain; no demonstrated newly introduced regression. No tracked files or live repository were modified.",
+ "verdict_core": "revise"
+}

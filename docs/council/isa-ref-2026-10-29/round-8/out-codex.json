@@ -1,0 +1,111 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "Read the complete parser, schema and validation implementation. Grammar/JCS, interface typing, CFG checks and existing malformed-object tests pass. However, R8-B01 admits a non-permutation operation on a live borrowed wire, and R8-B02/R8-B03 reject well-formed identity actions. These are suite-F failures, not staged features.",
+   "change": "In src/borrow.rs::Compiler::compile, make zero-trip loops preserve dynamic wire bindings and lifetime classification. Add the invalid H/S and valid clean-control witnesses from R8-B01 to tests/r1_borrow.rs and tests/cli_xam.rs."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "Audited identity.rs, linking.rs, json.rs and sha256.rs. Independently reconstructed the inc8 envelope and SHA-256 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. All four published hashes, literal mutual-SCC envelopes, FIPS vectors, fixture pins and linking tests passed. Independently hashed the new witnesses, including the external-reference trailer for @u. No identity defect found.",
+   "change": "In tests/identity.rs, add the literal two-symbol envelope from R8-B03: replace @u by @c0c51a4bf1e9713e237601daaf342134f91eae5fd7143f8638595157d33db5b6 and append that digest once as the reference trailer; @a must hash to 63ae90bc9af75ebe3e958956282567f52129b0097651a445c08f7c5f2845ac79. This is additional independent coverage, not a semantic correction."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Audited every \u00a74.2 row, inherent check, fault code and budget component against oracle.rs and the vector path. Hand-derived inc8(255) gives (payload,code,steps)=(0,0,3) at B=3, (0,1,2) at B=2, and (0,1,0) at B=0. sum_db(0) needs 10 steps/16 stack cells; 15 cells gives code 3 at step 3. With db bytes 1..16, sum_db(2) gives (3,0,38); B=37 gives (0,1,37); stack=47 or depth=2 gives code 3 at step 29. All CLI corroborations matched. Arithmetic, heap, nested and arbitrary-width tests passed.",
+   "change": "In tests/oracle.rs, consolidate an independently expected joint-boundary table for n=2 with budgets (38,4080,48,3), (37,4080,48,3), (38,4080,47,3), (38,4080,48,2), expecting respectively (3,0,38), (0,1,37), (0,3,29), (0,3,29). No interpreter correction is requested."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Traced full inverse dispatch and recursive call/return against \u00a7\u00a73.6\u20133.7: restore old_pc, clear successor scratch, undo fault writes, exchange depth/sp/fp before clearing counter slots, unbind arguments, erase the record at restored sp, restore callee locations, clear captured arguments and the flag. In sum_db's first recursive call the counters (fp,sp,depth)=(0,16,1) become (16,32,2), with arguments (1,2,4096); inverse recovers the complete pre-step tuple. Checked R5-to-R1 return ordering as well. Default full-tuple, fault, memory and recursive-prefix tests passed. Historical ignored sweeps are recorded; I did not rerun them.",
+   "change": "In tests/step_machine.rs, supplement whole-snapshot equality with the literal recursive-call snapshot above: immediate inverse must restore fp=0, sp=16, depth=1, all caller locations and next 16 stack cells, and a completely clean consumed frame."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Read classical.rs, call_discipline.rs, handle_validation.rs and registers.rs, including every history variant and atomic fault rollback. Hand-traced the \u00a77.4 nested example: g performs clock.read, f uncalls g, and outer uncall f skips the already-reversed g segment and marker. CLI returns i64 0 after 11 rows, clock=0 and empty tape; reverse restores entry memory and equals_entry=true. Device, entropy, hostcall, dynamic SSA, alias and fault-prefix tests passed. No additional CC/R divergence found.",
+   "change": "In tests/classical.rs, annotate nested_uncall_and_effects_are_reversed_exactly_once with the explicit 11-row trace and assert result, clock, tape length and full entry snapshot together, making its segment-accounting expectation independently visible."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The new engine correctly transfers X-family/controlled-swap ANFs, retains diagonal basis facts, handles false primitive predicates and invalidates inverse facts on entangling touches. Actual-loop and per-return regressions, repeated-state/unknown-top families and every \u00a74.4 gate test pass. But zero-trip lifetime rebinding bypasses the touch guard (R8-B01), nested computation/adjoint loses restored zero (R8-B02), and action calls erase read-only facts (R8-B03). These are core conformance failures.",
+   "change": "In src/borrow.rs, restore facts from verified nested reversible histories and represent action-call controls/read-only inputs separately from modified outputs. Retain complete touched sets for the independent \u00a75.6 guard. Implement the exact R8-B02/R8-B03 tests after correcting R8-B01."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Ran cargo test --offline against the frozen manifest: 297 passed, 0 failed, 5 ignored. Named round-7 tests pass, including 5000 H/T display, intermediate rotation returns and large-loop invariants. Read all tests and recorded RED/GREEN evidence. Generated families miss dead-loop lifetime rebinding, nested inverse pairs on the same operand, and replacing a primitive controlled gate by an action call. The new witnesses fail despite the green suite; ignored sweeps were not rerun.",
+   "change": "Extend tests/r1_fuzz_discipline.rs with independently expected families for zero-trip lifetime rebinding, nested U/U-adjoint inside an outer inverse pair, and primitive-versus-call control transfer. Include arbitrary/entangled borrowed inputs and unmatched entangling negatives; do not derive acceptance expectations from Object::parse."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Audited all 30 SPEC-QUESTIONS entries against the accepted text; no additional unjustified interpretation found. Explicitly staged deliverables 8\u201311 were not penalized. CLI schema/diagnostic tests pass. However, response-round-7's zero-trip and all-resolved statements exceed the implemented behavior: dynamic compiler bindings still change at zero trips, and nested/call restoration is incomplete.",
+   "change": "After fixing the code, update council/response-round-7.md and PROGRESS.md with the new pinned witnesses and named RED/GREEN runs. Distinguish primitive-gate transfer, nested inverse restoration, action-call roles and zero-trip compiler bindings, and record fresh test counts."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R8-B01",
+   "section": "\u00a7\u00a74.3, 4.4, 4.6, 5.6; reference-interpreter/src/borrow.rs::Compiler::compile (qloop/lifetimes), check_permutation_touches and Facts::sequence",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "A zero-trip loop changes Compiler.bundles/live_borrowed even though Facts::sequence skips its Repeat. A live borrowed wire can be relabelled as an allocation that never happened, bypassing the non-permutation touch guard. Memoryless ptr_width=32 signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Exact LF-terminated function:\naction @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nb = qborrow any 1\nqloop 0 {\nqreturn b\nb = qalloc any 1\n}\nh b\nqreturn b\nIndependent interface=closure H=90cbbcb904bff3ae413e3aaa3ec398173654dc1690354777bcb3837881098080; canonical sole-symbol stored-H object_hash=60865de88a18adc53e2ecb23ab54d86f44836e4895cb7fb54e3ac78c0c879280. hash/check /dev/stdin exit 0 (check status ok), although run-action /dev/stdin a --mut 0 and reverse /dev/stdin a --mut 1 exit 1, empty stdout, \u00a75.6: borrowed wires were not returned to their entry state. Hand: the loop executes nothing, so H acts on the original borrowed b; |0> becomes |+>. Replacing h b by s b also accepts: H=1c0599e2f06674ccbc34f0017d5d158af1588d7d54982aa1adfebddc4262fa58, object_hash=fd5167fefabbbc72d9cd486e6cf036119f2ba5088558cccb155f898eaa7285ec. The S variant even runs and reverses successfully on the CLI zero pool, but changes borrowed |+> into (|0>+i|1>)/sqrt(2), violating identity on arbitrary/entangled borrowed inputs. Removing the zero-trip block makes both gates reject correctly. No budget or certificate is involved.",
+   "fix": "Change src/borrow.rs::Compiler::compile so qloop 0 cannot publish dynamic bundle/allocation/live-borrow changes from its body. Preserve syntax/type validation and the separate \u00a74.6 function-entry hoisting of qregion declarations. \u00a74.6 specifies qloop as \"body n times\"; \u00a75.6 says \"Borrowed wires (set B) are touched (as control or target) only inside borrow frames\", which are \"permutation-only subcircuits\", and requires \"identity on every borrowed bundle and on any external system entangled with it\". Add both exact H/S subjects to tests/r1_borrow.rs and tests/cli_xam.rs. Currently parse succeeds and hash/check exit 0; afterwards Object::parse must reject with \u00a75.6, and CLI hash/check must exit 1 with empty stdout before execution, also with a certificate present. Include this positive with the same signature:\naction @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nc = qalloc any 1\nqloop 0 {\nqfree c\nc = qalloc any 1\n}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nIts H=d607c1df25e3a4d8f4e730501cf13a04a62cfa6adbeae5c36133a4f140f406bd and object_hash=568f2a4ee6c4cb927cafe4bd54414def5e91257186832704e6be7abfe99fd1bc. It currently rejects as unclean; actually c remains the original zero, so parse/hash/check must succeed and execution must be I_t tensor I_bR for t=0/1, 0.6|0>+0.8i|1>, and supplied b entangled with a reference, independently forward/adjoint. Reverse must report equals_entry=true and one surviving interface wire. Test nested zero trips, alpha-renaming, and a zero-trip qregion declaration to protect unconditional hoisting."
+  },
+  {
+   "id": "R8-B02",
+   "section": "\u00a7\u00a74.3, 4.4, 5.3, 5.6, 6.2; reference-interpreter/src/borrow.rs::Facts::forget_inverses, Facts::sequence and InverseFact",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Inverse restoration only recognizes an untouched single gate. An intervening computation permanently destroys the outer saved fact even when its exact adjoint follows. Memoryless ptr_width=32 signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Exact function:\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nh c\ns c\nsdg c\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nIndependent interface=closure H=a8a4f90c95a1995df9a28afe4369f3455239ae54b6c22b5c8133df7a60253401; canonical sole-symbol stored-H object_hash=535f274d3c7328e13cfd99e8785751ec3874e4d3090da3544e781855ca35439f. check/hash, run-action a --mut 0, independently initialized --adjoint --mut 1, and reverse with --state \"0=0.6,0;1=0,0.8\" all exit 1, empty stdout, \u00a75.6: a wire released inside a borrow frame is not clean. Hand: Sdg*S=I and H*H=I, so c=0 before the borrow, CX(0,b)=I for every b and external reference, and qfree is clean. Removing the borrow frame makes that identical H;S;Sdg;H cleanup pass the \u00a76 checker. H;X;X;H and H c;CX c t;CX c t;H c likewise reject with a subsequent identity borrow. S destroys the saved H record and nested restoration cannot recover it.",
+   "fix": "Change src/borrow.rs::Facts::sequence/forget_inverses/InverseFact to restore saved basis expressions after a verified nested computation and exact adjoint, using a structured reversible history with complete control/read dependencies or sound facts exported from the \u00a76 discipline. Do not merely retain an outer record across arbitrary touches: an unmatched entangling reader must still prevent restoration. \u00a75.3 lists \"s \u2194 sdg\" and \"x cx ccx mcx swap h cz: self-adjoint\"; \u00a76.2 says \"`other` values are released only by the adjoint of the sequence that produced them\"; \u00a74.3 gives qalloc \"n clean wires\"; \u00a75.6 requires \"P_F = P' \u2297 I_B\". Here P_F is I. Add the literal object to tests/r1_borrow.rs and tests/cli_xam.rs: its parse-success assertion fails now; afterwards parse/hash/check must succeed with the supplied pins. --mut 0 and --mut 1 must yield state {\"0\":[1,0]} and {\"1\":[1,0]}; --state \"0=0.6,0;1=0,0.8\" must be unchanged. Require the same for standalone adjoint, one surviving interface wire and reverse equals_entry=true. Library tests must use arbitrary borrowed basis states, superpositions and a Bell-paired reference. Extend to nested X/CX and nonzero literal Rx/Ry inverse pairs, retaining an unmatched-entangling-operation negative. No budget or certificate is needed."
+  },
+  {
+   "id": "R8-B03",
+   "section": "\u00a7\u00a73.5, 4.7, 5.6, 6.1; reference-interpreter/src/borrow.rs::Compiler::compile (non-permutation action_call) and Facts::sequence (Node::Other)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Action calls still become Other(all touched wires), so a read-only control becomes unknown even when its known-zero value disables the call. Both symbols have memoryless ptr_width=32 signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Put @u in symbol 0 and @a in symbol 1, with exact functions in that order:\naction @u (v:wire mut) () () () ()\n^entry():\nh v\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nctl c action_call @u (t) () () ()\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nIndependent @u H=c0c51a4bf1e9713e237601daaf342134f91eae5fd7143f8638595157d33db5b6, @a H=63ae90bc9af75ebe3e958956282567f52129b0097651a445c08f7c5f2845ac79, stored-H object_hash=c4a3c1adad250d856a334556766f0cc398a71b6c65df3ce5f81adf86d07f968e. check/hash/run-action/reverse reject with empty stdout and \u00a75.6: a wire released inside a borrow frame is not clean. Hand: c=0 disables controlled H and CX(c,b); the entire action is I_t tensor I_bR. Replacing the call with qpred c;h t;qunpred c is the passing round-7 primitive-control witness. Removing the borrow frame makes this call version check, execute and reverse correctly. Passing c as an in parameter to a local action that uses it only as H's control also loses c's fact. These operands are read-only.",
+   "fix": "Change src/borrow.rs::Compiler::compile and Facts::sequence to distinguish call controls/read-only inputs and regions from modified outputs, or soundly inline structured action bodies. A known-false predicate must disable dynamic fact transfer. Retain the FULL touched set for the independent borrowed-wire non-permutation guard, even on disabled calls. \u00a74.7 says \"`ctl w <call>` \u2261 the call under `qpred w`\"; \u00a76.1 specifies non-permutation action_call changes \"every mut and every mut-region cell: other\", not controls/in operands; \u00a75.6 requires identity on borrowed/external systems. Add the exact two-function object to tests/r1_borrow.rs and tests/cli_xam.rs: parse/hash/check must succeed with the pins above, and execution must preserve t=0/1 and 0.6|0>+0.8i|1>, independently forward and adjoint, with one surviving interface wire and reverse equals_entry=true. In library tests require exact identity for arbitrary/entangled borrowed entries. Add the equivalent in-parameter-control callee, nested wrappers, and known-one controls with an independently expected H on t. Retain negatives where the borrowed wire itself is a non-permutation call's effective control or operand. No token, budget or certificate is needed."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R7-B01",
+   "status": "partially",
+   "note": "The exact adjacent H/H witness and pinned CLI/library tests now pass; general matched-computation/adjoint restoration still fails for H;S;Sdg;H and nested reversible touches (R8-B02)."
+  },
+  {
+   "id": "SOL-R7-B02",
+   "status": "resolved",
+   "note": "The diff removes n.min(3) and uses actual loop transfers/obligations. The literal four-trip bad subject rejects and the good subject passes; generated and large-bound tests passed. R8-B01 is a separate zero-trip compiler-binding failure."
+  },
+  {
+   "id": "SOL-R7-B03",
+   "status": "resolved",
+   "note": "The diff scales dyadic mantissa/exponent and refines Root2 cancellation. Boundary/subnormal/cancellation tests and pinned 5000-H/T forward, adjoint and reversal CLI regression passed."
+  },
+  {
+   "id": "R7-B01",
+   "status": "resolved",
+   "note": "Four/eight-trip rotation witnesses reject before hash/check output, including the globally restored eight-trip case. Their regressions and per-return generated family passed."
+  },
+  {
+   "id": "R7-B02",
+   "status": "partially",
+   "note": "Primitive diagonal and known-zero controlled-H witnesses now preserve facts and pass. Equivalent action-call controls/read-only inputs still lose those facts (R8-B03)."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [],
+ "verdict_core": "revise",
+ "verdict": "revise",
+ "path_to_accept": "1. Correct zero-trip compiler lifetime/binding transfer so H/S negatives reject and the clean-control positive accepts (R8-B01). 2. Restore facts after verified nested computation/adjoint sequences without weakening entanglement invalidation (R8-B02). 3. Give calls role-aware, predicate-aware transfer while preserving the full borrowed-touch guard (R8-B03). Add the pinned CLI/library regressions and independent/entangled-domain cases, rerun the default suite and affected generated families, and update evidence. With those S0 defects resolved and no new divergence, both verdicts can become accept. Explicitly staged deliverables are not conditions of this review.",
+ "summary": "Read the entire 39,739-line frozen prompt in slices of at most 1,500 lines, including response, complete diff, specification, all crate source/tests and all 30 SPEC-QUESTIONS entries. Confirmed fixes in the diff before the whole-crate reread. Performed all five mandatory methods: (1) hand-derived inc8 wrap/tight-budget outcomes, sum_db step/stack/depth failures and the LF-terminated inc8 envelope (isa=0.8, ptr_width=32, canonical signature, six body lines, no reference trailer); independent SHA-256 and subsequent CLI outputs matched. (2) Traced complete \u00a73.6 inverse dispatch, recursive C5-to-C1/R5-to-R1 restoration, and \u00a77.4 call/ret/uncall reversal; whole-tuple tests and the 11-row nested clock example corroborated restoration. (3) Audited every SPEC-QUESTIONS entry against the spec; no additional unjustified reading found. (4) Ran the required grep across the crate and classified all 1,084 matching lines: 53 source matches (validated invariants, fallible parser expect methods, cfg(test), deliberate reported unsupported model/sampler/realisations, or documented amplitude approximations); 1,022 test/helper/fixture matches; four README/progress/question matches; four historical response matches; one earlier Python-seed unsupported-row assertion. No todo!/unimplemented! stub or new reported-outcome panic found; the seed was not used as an oracle. (5) Compared every \u00a74.2 row, \u00a74.4 gate, fault code, frame/history kind, metadata field family and CLI command against dispatch, respecting staged deliverables 8\u201311. Audited gate fact transfer, entanglement invalidation, exact loop traversal, repeated-state skipping and unknown-top joins. Independently derived all three new witnesses before their CLI runs and pinned their hashes. Found an invalid admission through zero-trip lifetime rebinding and two valid-program rejections from incomplete inverse/call transfer. cargo test --offline: 297 passed, 0 failed, 5 ignored. Did not rerun the ignored sweeps or separate conformance harness. All literal round-7 regression tests are green, but two broader findings remain partial. No regression relative to the prior snapshot is asserted without a demonstrated prior-pass comparison."
+}
