@@ -4,7 +4,17 @@
  "doc": "docs/council/isa-ref-2026-10-29/packet-round-11.md",
  "doc_sha256": "78459ee8ff4d2ab7c8674f666f85f0efbdb11762ab4ccf09b5097c121d5f883d",
  "prepared": "2026-10-30T22:24:32+00:00",
- "members": {},
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-30T22:41:14+00:00",
+   "exit": 0,
+   "seconds": 15,
+   "errors": [],
+   "updated": "2026-10-30T22:41:29+00:00"
+  }
+ },
  "rubric": "docs/council/rubric-impl.md",
  "subject": "Bennett ISA reference interpreter, round 11 (round-10 fixes: strict \u00a716.2 grammar; canonical effective-control identities)",
  "context": [
