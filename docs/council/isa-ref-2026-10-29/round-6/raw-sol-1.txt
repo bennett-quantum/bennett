@@ -1,0 +1,123 @@
+exit 0 in 21s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "object.rs, schema.rs and validation.rs cover the grammar, opcode arities, widths, call graph, roles and linear cleanup; parser/structured/discipline tests pass. SOL-R6-B01 nevertheless rejects a well-formed action because frame analysis loses an untouched allocation invariant.",
+      "change": "In src/borrow.rs::Object::decide_frames/factorises, preserve proven facts about untouched live workspace across non-permutation boundaries, as specified in SOL-R6-B01; add the exact H-separated positive and dirty-control negative to tests/r1_borrow.rs."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "identity.rs and linking.rs implement the §9.2 envelopes, import fingerprints/pins, SCC replacement/order, object exclusions and §9.3 conflicts/composition. Independently hashing the literal 261-byte inc8 envelope gives 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93; CLI hash reproduces all four §16.3 digests. FIPS, mutual-SCC, CC-service, fixture and linking tests pass.",
+      "change": "No correctness change required by this review. Extend tests/identity.rs with an independently written envelope for a CC caller of an R function using clock.read, explicitly pinning each function's direct device-envelope lines and its dependency-hash line."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "oracle.rs::run_oracle_vectors dispatches every §4.2 row using arbitrary-width BitVector values and independent activations. Hand-derived inc8(255), B=3/2 yields (0,0,3)/(0,1,2); afterfree yields (0,7,5); heap with heap_limit=1 yields (0,2,2). sum_db(0) needs 10 rows and 16 stack cells: B=9 gives (0,1,9), stack=15 gives (0,3,3). All reproduced with the frozen CLI.",
+      "change": "No correctness change required by this review. Add the literal afterfree five-row derivation and heap_limit=1 two-row derivation as named normal tests in tests/oracle.rs, with payload/code/steps asserted as constants rather than inferred from the step machine."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "machine.rs::{inverse_step,inverse_call,inverse_ret,exchange} follow the §3.6/§3.7 inverse ordering, including restored addresses. Independently traced sum_db(0) call at step 3 and ret at step 9, then executed each isolated inverse and compared complete snapshots; both equal their pre-step tuples. Heap allocation at prefix 2 and recursive prefix 9 reverse with clean frames. Normal prefix and wide-machine tests pass; all five ignored sweeps have recorded runs in PROGRESS.md.",
+      "change": "No correctness change required by this review. In tests/step_machine.rs add a normal call/return case with nonzero displaced caller and callee locations, pinning literal counters and values before checking complete snapshot restoration."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "classical.rs retains dynamic instances and row-specific undo records, checks terminal faults and uncall suffix purity, and reverses tapes, device presence, allocations and register ownership. Hand-traced classical.bisa nested: g increments clock once, its inner uncall restores it, the outer uncall skips those reversed frames; CLI reverse completes 11 rows, result 0, clock/tape 0 and equals_entry=true. Dynamic CC/R interface/control aliases still fault atomically and reverse in the normal suite.",
+      "change": "No correctness change required by this review. Extend tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once with two consecutive completed outer segments and retained pure load results, asserting that each uncall selects the latest unreversed segment and whole-run reversal restores the entry."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "The exact measurement fix and the published R4/R5 borrow witnesses pass, including certified rejection, large-trip clean controls, superposition and entangled-reference pins. Two core defects remain: SOL-R6-B01 loses clean workspace across an unrelated H, and SOL-R6-B02 makes runtime lifetime widths insensitive to zero trips and iteration-dependent matching producers, breaking legal adjoints.",
+      "change": "Implement SOL-R6-B02 in action.rs::infer_widths/action_sequence and SOL-R6-B01 in borrow.rs::decide_frames/factorises. Require exact forward/adjoint identity for both witnesses, including a borrowed system entangled with a reference for B01; preserve every existing certified invalid-return and non-permutation rejection."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "cargo test --offline passed 262 tests, 0 failed, 5 ignored; the ignored runs and their exact domains are recorded in PROGRESS.md. All 91 embedded packet files match the checkout byte for byte. New deterministic R5 families test real admission and full quantum state, but omit unrelated frame-boundary gates and loop-carried changes of allocation width; the new witnesses expose those gaps. Disclosed deliverables 8–11 are not counted as defects merely for being staged.",
+      "change": "In tests/r1_fuzz_discipline.rs add separate deterministic families inserting unrelated H/H boundaries around clean-control borrowed lifetimes, and varying zero/one/multiple loop trips with outer-to-inner width-changing lifetimes. Use hand-derived identity and alpha-renamed unrolling as expectations, checking each direction independently; keep the existing RNG distribution unchanged."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Audited SPEC-QUESTIONS entries 1–30 against their cited spec sections; the recorded readings are defensible, including complete qif expansion, exact borrow proofs, draw order and static-body frame maximality. README reports staged facilities and Unverified claims explicitly. Its claim that widths belong to producing/consuming lifetimes, including inverse releases, is incomplete for SOL-R6-B02; source diagnostics otherwise cite rules.",
+      "change": "After fixing SOL-R6-B01/B02, update README.md's Round-2 static and display semantics paragraph and PROGRESS.md with the exact boundary/zero-trip/loop-carried pins and observed results; qualify the old R5 width evidence as covering its tested lifetimes rather than all structured cases."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R6-B01",
+      "section": "§§4.3, 5.2 domain D, 5.6, 14.2; src/borrow.rs::Object::decide_frames and factorises",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "An unrelated non-permutation gate erases known-clean surrounding workspace from borrow analysis. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function:\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nh t\nb = qborrow any 1\ncx c b\nqreturn b\nh t\nqfree c\nThe independently computed interface/closure hash is ba813954a842962eecd96263d6dbe2f549f7f8d4c99241c660f0a3c7626cf10a; with that stored hash object_hash is db747f53ae732bd2cef0eeeaed48b8bb2a523dc74f53b38d2876601a3760445f. hash, check, run-action a --mut 1 and reverse a --mut 1 all exit 1 with empty stdout and §5.6: qreturn does not restore borrowed wire v2_0. Hand: c is always |0>, hence CX(c,b) is identity at this lifetime for every unknown/entangled b; H(t);H(t)=I and c is freed clean. Removing both H instructions accepts and runs/reverses as identity. An independent in-memory harness bypassing only parse admission executes the H-separated body as exact identity in each direction on all four t,b basis pairs, superposition, and b entangled with an untouched reference. decide_frames partitions at Other(H t), then factorises initializes c as a free variable because its Alloc lies in the preceding run. No certificate or budget is involved.",
+      "fix": "Change src/borrow.rs::Object::decide_frames/factorises and their analysis-state plumbing. §4.3 says qalloc produces \"n clean wires\"; §5.2 domain D specifies \"qalloc'ed wires at 0\"; §14.2 says \"qalloc tensors |0⟩\"; §5.6 requires the frame to satisfy \"P_F = P′ ⊗ I_B\". Carry established facts about still-live, untouched workspace across a non-permutation boundary, invalidating facts affected by that operation while keeping fresh borrowed entries independent and preserving the mandatory permutation-only borrowed-touch check. H on t must not make c arbitrary. Add the exact fixture to tests/r1_borrow.rs and tests/cli_xam.rs: parse/hash/check must accept; forward and adjoint at t=0/1 and a superposition must preserve t; reverse must report equals_entry=true; library execution must preserve b entangled with an external reference. Also put H after qborrow and before CX, and wrap the lifetime in a loop. Negative control: X c before borrowing and X c after return for explicit cleanup must still reject each one-CX lifetime, including with a correctly bound certificate. This is a reachable-state proof requirement, not permission to merge frames across H or waive a return."
+    },
+    {
+      "id": "SOL-R6-B02",
+      "section": "§§3.3, 4.3, 4.6, 5.3 adjoint table; src/action.rs::infer_widths, Environment::widths and Object::action_sequence",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The R5 width fix keys each release by its static source line and walks every structured body once, which is not the executed lifetime graph. First exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}; function:\nperm_action @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nd = qalloc any 1\nqloop 0 {\nqfree d\n}\nqfree d\nH=9a453b6720abda445235294c98c6288e616dc5bc1907c78af1755104b3a2e48a; stored-H object_hash=1e9a003077d2afd78e6f14384902f031c6aa140bebaf14702889de13d4cd814a. check succeeds, but run-action a --mut 1 (also --adjoint) and reverse exit 1, empty stdout, §3.3: missing consumed lifetime width. Hand: zero body executions leave d live for the final free; this is identity. infer_widths wrongly removes d while scanning the zero-trip body. Second witness changes bounds to [2], regs bounds {2}, and uses body: d = qalloc any 1; qloop 2 { qfree d; d = qalloc any 2; x d[1]; x d[1] }; qfree d (one instruction per line). H=de76a9295cf8233d97909660d48c9f6ed82abe593735257858457d35a0c0557e; object_hash=128fa2a938dfbdcccdd255aafd128d125737a4a00fb63e9aef791a1f405bfb1a. check and forward execution succeed as identity, but --adjoint and reverse exit 1, empty stdout, §3.3: wire index out of range. The inner free consumes width 1 on iteration 1 and width 2 on iteration 2; inverse execution must recreate width 2 and then width 1. One widths[line]=1 recreates width 1 at both inverse visits, so the next inverse X d[1] fails. Removing the zero-trip wrapper/body from the first witness runs and reverses correctly. No execution budget is involved.",
+      "fix": "Change src/action.rs::infer_widths, Environment::widths and action_sequence so lifetime resolution respects structured execution and the actual producer matched to each dynamic release. §4.6 defines qloop as \"body n times\"; §4.3 defines qalloc as \"n clean wires\"; §3.3 makes a consumed name unavailable until a new production; §5.3 defines the adjoint in \"reverse order, instruction replaced, versions renumbered\". A zero-trip body must have no effect on the outer live-width environment. A source-line id alone cannot identify both releases of differently sized lifetimes at different loop iterations; derive the loop entry/iteration-specific matching widths (or an equivalent sound structured lifetime representation) for reverse traversal, without adding a trip-count restriction or banning these well-formed objects. Add both exact fixtures to tests/quantum.rs and tests/cli_xam.rs. For t=0/1 and superposed t, check, forward, adjoint independently, and reverse must all succeed, preserve the complete input and leave no workspace; reverse must report equals_entry=true. Cover nested zero-trip loops, the analogous qborrow/qreturn case, and alpha-renamed unrollings of the changing-width loop. Retain the original R5 straight-line reused-width fixture and live-name redefinition rejection."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R5-B01",
+      "status": "resolved",
+      "note": "Exact certified and uncertified X/CX lifetime witnesses reject with §5.6; direct library frame/return replay and the older R4 carried/doubled positives pass."
+    },
+    {
+      "id": "SOL-R5-B02",
+      "status": "resolved",
+      "note": "Exact clean-d loop accepts at trips 1,2,3 and 2^40; clean-context, nested, entangled-reference and dirty-control pins pass. B01 is a distinct lost-invariant path at a non-permutation boundary."
+    },
+    {
+      "id": "SOL-R5-B03",
+      "status": "partially",
+      "note": "Exact straight-line width-1/width-2 reuse and its quantum/CLI pins pass; zero-trip and iteration-dependent producer matching still fail, as SOL-R6-B02 demonstrates."
+    },
+    {
+      "id": "SOL-R5-B04",
+      "status": "resolved",
+      "note": "Both two-wire measurement branches now expose probability 1/2 and sparse/dense residual amplitude 1; H on the survivor gives two normalized 1/sqrt(2) amplitudes. Tiny-projection pins pass."
+    },
+    {
+      "id": "R5-B01",
+      "status": "resolved",
+      "note": "Codex: all three exact certified/uncertified loop-local X/CX witnesses reject; source and public certificate replay retain independent per-return checks."
+    },
+    {
+      "id": "R5-B02",
+      "status": "resolved",
+      "note": "Codex: exact certified CZ rejects with §5.6; mandatory borrowed-touch structure, phase-sensitive execution, clean-auxiliary CZ-pair and unrelated-H positive pins pass."
+    },
+    {
+      "id": "R5-B03",
+      "status": "resolved",
+      "note": "Codex: both one-iteration qfree placements reproduce their published hashes and accept check/run/adjoint/reverse; dirty-release negatives and unrolled comparison pass."
+    }
+  ],
+  "regressions": [
+    "SOL-R6-B02 zero-trip witness: round-5 infer_widths retained the outer d width because releases did not remove it; the round-6 source-order live.remove scans the unexecuted body and then fails at the real release. This regression is visible directly in the supplied action.rs diff; current CLI reproduction is recorded in B02. The original R4 invalid-lifetime and tiny-measurement witnesses, and the original R5 exact witnesses, continue to pass."
+  ],
+  "suggestions": [
+    "Extend tests/r1_fuzz_discipline.rs with the two deterministic families described under C7, comparing loop expansion and frame-boundary insertion against independent identity maps on basis, superposed and entangled-reference inputs; do not change the existing random sweep distribution.",
+    "Keep deliverables 8–11 in the recorded PROGRESS.md order. When each lands, replace its corresponding explicit Unverified/staged path with the actual target, launch, schedule or interval verification and promote the matching unavailable conformance cases; do not relabel unavailable cases as passes."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Fix structured/dynamic lifetime widths in action.rs for both zero-trip and changing-width-loop witnesses (SOL-R6-B02), preserving the original R5 reuse positives. 2. Preserve untouched clean-workspace facts across borrow-frame boundaries (SOL-R6-B01), retaining per-return, per-frame and permutation-premise negatives. Add the specified independent regressions, rerun the normal suite and the affected ignored sweeps, and update the evidence to the results actually observed. No completion of truthfully staged deliverables 8–11 is demanded by these blockers.",
+  "summary": "Reviewed frozen commit 9e4984f; verified all 91 embedded source-packet files match the checkout. Confirmed round-5 fixes from the diff before new hunting: all published exact witnesses pass their intended outcomes, with the R5 width issue only partially resolved over structured lifetimes. Both generations of R4/R5 X/CX lifetime negatives reject, including correctly bound certificates; carried-even and doubled-gate positives, large clean-control loops and tiny-measurement/entangled-residual pins pass. New findings are two S0 core issues, one containing a zero-trip regression. All executions used the review directory, unset DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER and the requested project-local TMPDIR. No tracked files were modified. cargo test --offline --manifest-path reference-interpreter/Cargo.toml: 262 passed, 0 failed, 5 ignored. The ignored sweeps were not rerun in this review; their counts and successful runs are recorded in PROGRESS.md. Required method (1): before observing CLI answers, derived inc8(255) at B=3/2 as (payload,code,steps)=(0,0,3)/(0,1,2); afterfree as (0,7,5); heap_limit=1 allocation as (0,2,2); sum_db(0) at B=10/9 and stack=16/15 as (0,0,10)/(0,1,9)/(0,3,3). All reproduced. Independently assembled the exact LF-terminated 261-byte inc8 semantic envelope (isa line, ptr_width line, JCS signature, header/regs/label/three instructions) and SHA-256 matched the published digest; CLI also reproduced zero, sum and sum_db hashes. Method (2): traced complete call/return inverses for sum_db(0): call step 3 captures (0,0,4096), pushes 13 locations and the (return=3, old-fp=0, destination-id) record, then sets sp=16/depth=1; C5 inverse restores counters before C4/C3/C2/C1 clear bindings/record/push/captures. Return step 9 restores callee fp/depth before inverse delivery, location exchanges, result capture and successor uncompute. Isolated inverses restored complete snapshots; CLI allocation and recursive prefix reversal reported clean frames/equality. Traced §7.4 nested call/ret/uncall including the inner clock effect and already-reversed frames; reverse returned the complete entry at 11 rows with result 0 and empty tape/clock 0. Method (3): audited all 30 SPEC-QUESTIONS entries against §§3–17; no new unjustified reading identified. Method (4): scanned every Rust source/test for all requested patterns: 44 source occurrences and 1025 test occurrences. Production expects are guarded representation/parser/validated-object invariants (including constructed arrays, checked HEX, nonempty UTF-8/widths, control/graph queues and mode dispatch); the parser's expect method is fallible; test unwrap/panic hits assert fixture/test expectations. Unsupported sampler/device/cleanup hits are explicit required rejections; approximation hits concern diagnostics, not semantic cleanliness/support. No todo!/unimplemented! production macro was found. The opcode default diagnostics were checked against dispatch coverage. Method (5): compared §4.2 rows with object.rs::validate_row, oracle.rs and machine.rs; §4.1/§4.3–4.8 families with schema.rs, validation.rs, classical.rs and action.rs; fault codes 0–10 with interpreter/device/CLI dispatch; §3.6/§3.7 slots and §7.4 history kinds with their inverse paths; §9/§11/§12/§13 fields with object.rs/metadata.rs/certificate.rs; and documented CLI commands with main.rs. Target/schedule/launch/interval and related suite D/E/G/H omissions remain explicitly staged, not newly counted as S0. Separate read-only-library harnesses reproduced the measurement correction and the B01 identity over basis/superposed/entangled states; all new witnesses were also exercised through the frozen CLI."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r6-sol.json

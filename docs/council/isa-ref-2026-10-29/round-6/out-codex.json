@@ -1,0 +1,118 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Object::parse, schema.rs, validation.rs and the parser/discipline tests cover the grammar, operand schemas, call graph, ownership and cleanup. The round-5 malformed borrow witnesses now reject. R6-B02 nevertheless rejects an explicitly clean allocation solely because an unrelated H ends a permutation run.",
+   "change": "In borrow.rs::decide_frames/factorises, preserve established clean workspace facts across disjoint non-permutation boundaries, as specified in R6-B02; add the exact H-separated allocation/release positive to tests/r1_borrow.rs."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "identity.rs and linking.rs implement the \u00a79.2 envelopes, import fingerprints/pins, SCC ordering, reference replacement and composition. All four published hashes, FIPS vectors, independent SCC/service envelopes and fixture audits passed. Independently reconstructed inc8's LF-terminated envelope and obtained 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93.",
+   "change": "Optional strengthening in tests/identity.rs: independently hash the two new witnesses' literal envelopes given in R6-B01/B02 and pin their object hashes, so subsequent fixes cannot alter identity to hide the semantic failures."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "oracle.rs::run_oracle_vectors and bits.rs dispatch the \u00a74.2 row families, including wide values, inherent memory checks, nested delivery and all budget components. Hand-derived inc8(8), division faults and the first sum_db stack cutoff matched CLI output. Normal arithmetic, memory, recursive and wide-oracle tests passed.",
+   "change": "Optional strengthening in tests/oracle.rs: add a literal first-call cutoff for sum_db(2), db=01..10, budget=(3,4080,15,64), requiring payload=0, code=3, steps=3; this isolates R_sum=16 from later recursion."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "machine.rs::inverse_step/inverse_call/inverse_ret follow \u00a73.6 and the reversed C5..C1/R5..R1 lists. Traced the first sum_db call with captured (2,0,4096), record base 0 and R_sum=16; the CLI three-step prefix restores all locations, counters and frames. inc8 step-check exhaustively passed 256 inputs; normal every-prefix and wide-machine tests passed.",
+   "change": "Optional strengthening in tests/step_machine.rs: pin the numeric first-call intermediate state for sum_db(2): fp=0, sp=16, depth=1, return index=3 and captured arguments (2,0,4096), then require one inverse step to restore the entire pre-call snapshot."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "classical.rs history/undo, registers.rs handles and the normal CC/R tests passed, including dynamic alias faults, nested uncall, effects, host replies and forbidden measurement reversal. An independent inc(8)=9; z=y+y; uncall inc; ret z program returned 18 in seven rows and reversed exactly. The nested clock fixture also restored clock, memory and tape.",
+   "change": "Add that independent seven-row compute/copy/uncall case to tests/classical.rs: inc has const 1, add and ret; parent calls inc, adds y+y into z, uncalls with (x)/(y), and returns z. Assert result 18, seven steps, and complete entry equality after reversal."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The round-5 lifetime, certificate-permutation, reachable-loop-entry, consumed-width and conditional-amplitude witnesses all pass, including entangled-reference controls and retained round-4 negatives. Two remaining concrete divergences are R6-B01 (dead-loop width-state mutation) and R6-B02 (clean workspace lost at an unrelated frame boundary).",
+   "change": "Implement R6-B01 in action.rs::infer_widths and R6-B02 in borrow.rs::decide_frames/factorises; require both exact positives to parse, execute forward/adjoint and reverse with their hand-derived states while retaining every certified invalid-return negative."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The normal offline suite passed 262 tests with five ignored. New round-5 pins independently bind invalid certificates and compare phase-sensitive/external-reference states; generators retain their declared distributions. The two new witnesses expose missing interactions despite those green tests. All five ignored sweeps also passed: u8 division, 2^17 borrow inputs, 2^18 certificate elements, 200,000 discipline programs (64,717 accepted/all clean; 135,283 rejected), and recursive prefixes for 256 inputs.",
+   "change": "Extend tests/r1_fuzz_discipline.rs with a separate deterministic metamorphic family: insert zero-trip cleanup bodies into valid live lifetimes, and commute H on a disjoint interface wire across clean allocation/borrow/cleanup. Expected maps must come from the original program, with unchanged existing seeds; execute every accepted variant forward and adjoint."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Audited SPEC-QUESTIONS entries 1\u201330 against their cited rules; the recorded readings remain defensible, including draw ordering and static nested-frame maximality. README and PROGRESS explicitly retain staged deliverables 8\u201311 and Unverified results. The new execution/admission failures limit the advertised completed Q-tier coverage.",
+   "change": "After fixing R6-B01/B02, append their exact prior failures, regression provenance, test names and fresh headless results to PROGRESS.md and council/response-round-6.md; retain the existing staged/unavailable disclosures and distinguish normal from ignored sweeps."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R6-B01",
+   "section": "\u00a7\u00a74.3, 4.6, 5.1, 5.3; src/action.rs::infer_widths (lines 919\u2013966)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Regression in the round-5 consumed-width fix: infer_widths executes the lifetime effects of a zero-trip body against the outer live-width map. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function:\nperm_action @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nd = qalloc any 1\nqloop 0 {\nqfree d\n}\nqfree d\nIndependently computed interface/closure hash 9a453b6720abda445235294c98c6288e616dc5bc1907c78af1755104b3a2e48a; with that stored hash, object_hash 1e9a003077d2afd78e6f14384902f031c6aa140bebaf14702889de13d4cd814a. CLI hash and check exit 0/status ok. run-action /dev/stdin a --mut 1, run-action with --mut 0 --adjoint, and reverse a --mut 1 all exit 1 with empty stdout and '\u00a73.3: missing consumed lifetime width'. Hand: the loop executes no rows; the final qfree consumes the one clean d, leaving exactly the input t. Removing the zero-trip loop executes and reverses successfully. infer_widths unconditionally recurses into every body, removes d for the unexecuted qfree, then fails at the real qfree. The diff shows the previous name-width scan did not remove bindings at releases, so this specific failure is newly introduced; the original differing-width witness remains fixed.",
+   "fix": "Change src/action.rs::infer_widths to model qloop's executed lifetime environment. At n=0, do not propagate any body producer/consumer changes into the outer live map (skip runtime width inference for the dead body, or analyze it with an isolated clone); keep lexical qregion hoisting and normal static validation intact. \u00a74.6 defines qloop as 'body n times'; \u00a74.3 defines qalloc as 'n clean wires' and qfree as release of a bundle 'clean on every basis configuration'; \u00a75.3 requires the adjoint in 'reverse order' with 'versions renumbered'. Therefore this exact object must execute identity for t=0/1 and arbitrary superpositions in either direction, and reverse must report equals_entry=true with no remaining workspace. Add it to tests/quantum.rs and tests/cli_xam.rs, checking the pinned hashes, check success, forward/adjoint state equality and reversal. Add nested zero-trip variants and dead qcopy/quncopy and qborrow/qreturn lifetime changes. Retain SOL-R5-B03's width-1 then width-2 reused-name positive and rejection of producing a still-live name. No execution budget or certificate is involved."
+  },
+  {
+   "id": "R6-B02",
+   "section": "\u00a7\u00a74.3, 5.1, 5.6, 6.1\u20136.2, 14.2; src/borrow.rs::Object::decide_frames, factorises, Evaluation::apply(Node::Free)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The clean-entry repair is confined to one permutation run: an unrelated non-permutation gate discards an established clean allocation and causes rejection of a valid action. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function:\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nh t\nb = qborrow any 1\nqreturn b\nqfree c\nIndependently computed interface/closure H=6c7101e365eccc827653aa5dc596d68fefae112b9e4b6df00b5078f5639bf7d3; stored-H object_hash=e5517c39c82f32f9c006828c6b9535d899dad9c0a7b59339ba9fabea3672fc3f. hash/check/run-action/reverse all exit 1 with empty stdout and '\u00a75.6: a wire released inside a borrow frame is not clean'. Hand: c stays |0>, b is untouched for its entire lifetime, and the operation is H on t tensor identity on b and every external reference. There is no gate on c or b and no window dependency on t. Moving only h t after qfree c gives H=ec71f6ec8d4ff0efca8dd1faff95c483aed5ece49e92e00ec64ef1602ff78818; check succeeds, forward t=1 gives amplitudes +1/sqrt(2), -1/sqrt(2), adjoint t=0 gives two +1/sqrt(2) amplitudes, and reverse restores t=1. Adding x b; x b before qreturn also wrongly rejects the separated positive, so the issue is not peculiar to an empty borrowed circuit. decide_frames starts a fresh factorises evaluation after Other(H t), initializes c as an arbitrary variable, and tests the trailing Free against zero without its earlier allocation. This is a newly exposed boundary case, not a failure of the exact round-5 loop witnesses.",
+   "fix": "Change src/borrow.rs::decide_frames/factorises so cleanup obligations use established lifetime/cleanliness facts across frame boundaries on disjoint wires. Separate the full-domain borrow-factorisation check from unrelated workspace release obligations, or carry sound entry constraints into each run; do not universally quantify a known-zero c merely because H touched t. \u00a74.3 says qalloc produces 'n clean wires'; \u00a714.2 says 'qalloc tensors |0\u27e9' and 'qfree removes clean factors'; \u00a76.1 gives qalloc 'perm, S = \u2205'; \u00a76.2 closes windows on wires in the dependency set or the value itself. \u00a75.6 still requires 'P_F = P\u2032 \u2297 I_B' for every actual frame. Add the exact positive and the doubled-X-on-b variant to tests/r1_borrow.rs, including hash/check and CLI forward/adjoint t=0/1: expected H|0>=(|0>+|1>)/sqrt(2), H|1>=(|0>-|1>)/sqrt(2), reverse equals_entry=true. In library tests use b entangled with an untouched reference and require H_t tensor I_bR with no workspace. Retain the dirty control x c before release (reject \u00a76.2), one-X-on-b control (reject \u00a75.6), and every round-4/5 invalid-return/certificate negative. No certificate or budget should be required for this positive."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R5-B01",
+   "status": "resolved",
+   "note": "Exact X/CX loop lifetimes reject with and without certificates; direct certificate replay checks returns and non-permutation boundaries. Retained round-4 fresh-lifetime negatives and carried/doubled-gate positives pass."
+  },
+  {
+   "id": "SOL-R5-B02",
+   "status": "resolved",
+   "note": "Clean d controlling each borrowed lifetime now accepts at 1,2,3,2^40 and nested bounds; dirty and later-iteration controls reject. Separate cross-frame clean-state loss is R6-B02."
+  },
+  {
+   "id": "SOL-R5-B03",
+   "status": "resolved",
+   "note": "Exact width-1 then width-2 consumed-name witness and mixed qalloc/qcopy/qload/qborrow positives execute and reverse. Its new zero-trip inference regression is R6-B01."
+  },
+  {
+   "id": "SOL-R5-B04",
+   "status": "resolved",
+   "note": "Two-wire projection reports sparse and dense conditional amplitude 1; H on the survivor, tiny residuals and Bell projections pass, while arbitrary set_state_vector input retains its scale."
+  },
+  {
+   "id": "R5-B01",
+   "status": "resolved",
+   "note": "All three independently hash-bound X, CX b t and CX t b certificates reject at parse/hash/check; straight-line/nested forms and original round-4 witnesses remain rejected."
+  },
+  {
+   "id": "R5-B02",
+   "status": "resolved",
+   "note": "Exact CZ witness rejects with borrow_frames=[0], [], or no certificate; public certificate API rejects even cancelling known-clean CZ touches, and the |++> test detects the -1/2 phase."
+  },
+  {
+   "id": "R5-B03",
+   "status": "resolved",
+   "note": "Both exact one-iteration qfree variants and their unrolling pass pinned hashes, execution, reversal and entangled-reference tests; dirty c remains rejected."
+  }
+ ],
+ "regressions": [
+  "R6-B01: the diff replaces the non-consuming global width scan with live.remove at releases but still visits zero-trip bodies using the outer map. The formerly harmless dead qfree now makes the subsequent executed qfree fail before execution. The original SOL-R5-B03 differing-width witness remains resolved."
+ ],
+ "suggestions": [
+  "S1: Keep the existing random distribution in tests/r1_fuzz_discipline.rs unchanged, but add a separate deterministic transformation family for zero-trip body insertion and moving an operation across disjoint workspace lifetimes. Derive the expected map from \u00a74.6's zero repetitions and \u00a714.2's tensor factors; gate parse, forward, standalone adjoint and round-trip behavior, not just acceptance.",
+  "S1: Preserve the explicit staging table in PROGRESS.md. When deliverable 8 resumes, implement src/launch.rs with the \u00a710 CREATED/RUNNING/HOST_REQUEST/COMPLETED/REVERSED/CLOSED transition API over ClassicalMachine and tests for unload with an open run (E_INVALID_STATE) and reversal after measurement (E_NOT_REVERSIBLE); continue reporting unavailable conformance cases until their actual surfaces exist."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Correct zero-trip lifetime propagation in action.rs::infer_widths (R6-B01). 2. Preserve clean workspace facts, or correctly separate unrelated cleanup obligations, across non-permutation frame boundaries in borrow.rs (R6-B02). 3. Add the exact positive/negative and independent-state tests specified above and rerun the headless normal suite and retained round-4/5 regression suites. Acceptance requires both new witnesses to execute their hand-derived maps and reverse exactly, with no reopening of certified bad lifetimes or phase-touch admission. Staged deliverables 8\u201311 are not additional blockers in this round.",
+ "summary": "Reviewed commit 9e4984f from the requested read-only checkout; all 91 embedded packet files matched the checkout byte-for-byte. Inspected the round-5 diff and confirmed the seven fixes before testing new witnesses. SOL-R5-B01/B02/B03/B04 and codex R5-B01/B02/B03 are resolved on their exact witnesses. Both generations of the round-4 X/CX lifetime failures were exercised: original uncertified forms and the round-5 certified bypasses reject; carried-borrow, doubled-gate, large-bound and entangled-reference positives remain green. The separate new failures are R6-B01 and R6-B02; only R6-B01 is identified as a new regression from the attached diff.\n\nMethod 1 (independent hand reproductions): inc8(8) executes const 1, add to 9, retval, hence (payload,code,steps)=(9,0,3) at B=3 and (0,1,2) at B=2; run-oracle matched both. udiv(8,0) faults on its first row with (0,5,1), and sdiv(128,255) is signed MIN/-1 at width 8, giving (0,6,1); both matched, including reverse after an idle HALT step. sum_db(2), db bytes 01..10, budget=(3,4080,15,64), faults at the first lift.call because R_sum=3+(3 params+1 result+9 regs)=16>15: CLI gave (0,3,3). Independently constructed inc8's envelope as LF-terminated isa=0.8, ptr_width=32, its JCS signature, then the six canonical function lines, with no dependency/layout suffix; Python SHA-256 and CLI agreed with published hash 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. Independently hashed both new witness envelopes before supplying their symbol hashes to check.\n\nMethod 2 (inverse and segment traces): traced sum_db's first call at row 2 through the printed \u00a73.6 pc exchanges/successor XOR and \u00a73.7 C5^-1..C1^-1. Captures are (2,0,4096); the record base is 0, return index 3, destination id 2; forward counters become fp=0, sp=16, depth=1. Inverse restores counters first, clears parameters from captures, clears the record at restored sp/fp, restores callee locations, then clears captures from restored arguments; all fields clear. The three-step CLI prefix reverse and existing per-call/per-ret one-step tests passed. Also traced inc8's add inverse: swap r=9 with displaced 0, XOR 8+1 into its now-9 slot, and clear pc scratch. An independently constructed R parent calls inc(8), copies y=9 into z=y+y=18, uncalls with original boundary values, and returns z. The call/ret segment reverses LIFO, leaves pure z, and is skipped by whole-run reversal; run-cc returned 18 in seven rows and reverse restored entry. The nested clock/uncall fixture also reversed exactly.\n\nMethod 3: audited all 30 SPEC-QUESTIONS entries against their cited sections. No additional unjustified reading is raised; the new draw-order and nested static-frame maximality readings are defensible. Neither new blocker needs a spec change: zero repetitions and an untouched clean factor are specified directly.\n\nMethod 4: searched the packet/crate for todo!, unimplemented!, unwrap(, expect(, panic!, unreachable!, not supported, unsupported, TODO, simplif, assume, for now and approximat. Classified matches as test assertions/fixture construction (970), historical/documentation text (7), the untrusted Python seed (1), or Rust production/unit code (44). Production expects are guarded cardinality/shape, validated labels, worklist/Tarjan, ASCII/UTF-8, finite-float rendering or internal SHA-size invariants; the unit-test unwraps are assertions. The unsupported strings reject noncanonical samplers, device versions and cleanup realisations. Approximation references concern amplitude diagnostics, not exact support/cleanliness or Born selection. No new reachable panic or silent fallback witness was established by this scan.\n\nMethod 5: compared \u00a74.1/4.2/4.8 row families with object/schema validation and oracle.rs, machine.rs, classical.rs and action.rs dispatch; checked the ten nonzero \u00a75.4 fault codes and normal success mapping, \u00a73.6/3.7 and \u00a77.4 frame/undo kinds, \u00a7\u00a79\u201313 schema field validation, and the eight implemented README/BRIEF CLI commands. The relevant uncovered behaviors are the two reported Q lifetime failures. Full launch/target/schedule/interval surfaces remain explicitly staged as deliverables 8\u201311, not silently counted as complete; the reported 445/491 conformance status was not independently rerun in this review.\n\nExecution: cargo test --offline --manifest-path reference-interpreter/Cargo.toml passed 262 tests, zero failures, five ignored. The separate --ignored --nocapture run passed all five sweeps: 262,144 u8 division/remainder executions, 2^17 borrow entries, 2^18 certificate domain elements, 200,000 discipline programs (64,717 accepted and exactly clean / 135,283 rejected), and all retained recursive prefixes over 256 inputs. CLI step-check inc8 --exhaustive --budget 3 passed all 256 inputs. Every execution used DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset and the requested absolute TMPDIR. New witnesses were supplied through /dev/stdin; no source or tracked checkout files were edited. Overall/core verdict: revise for the two concrete core failures."
+}

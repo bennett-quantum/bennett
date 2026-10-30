@@ -1,0 +1,64 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R6-B01",
+    "section": "\u00a7\u00a74.3, 5.2 domain D, 5.6, 14.2; src/borrow.rs::Object::decide_frames and factorises",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "An unrelated non-permutation gate erases known-clean surrounding workspace from borrow analysis. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function:\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nh t\nb = qborrow any 1\ncx c b\nqreturn b\nh t\nqfree c\nThe independently computed interface/closure hash is ba813954a842962eecd96263d6dbe2f549f7f8d4c99241c660f0a3c7626cf10a; with that stored hash object_hash is db747f53ae732bd2cef0eeeaed48b8bb2a523dc74f53b38d2876601a3760445f. hash, check, run-action a --mut 1 and reverse a --mut 1 all exit 1 with empty stdout and \u00a75.6: qreturn does not restore borrowed wire v2_0. Hand: c is always |0>, hence CX(c,b) is identity at this lifetime for every unknown/entangled b; H(t);H(t)=I and c is freed clean. Removing both H instructions accepts and runs/reverses as identity. An independent in-memory harness bypassing only parse admission executes the H-separated body as exact identity in each direction on all four t,b basis pairs, superposition, and b entangled with an untouched reference. decide_frames partitions at Other(H t), then factorises initializes c as a free variable because its Alloc lies in the preceding run. No certificate or budget is involved.",
+    "fix": "Change src/borrow.rs::Object::decide_frames/factorises and their analysis-state plumbing. \u00a74.3 says qalloc produces \"n clean wires\"; \u00a75.2 domain D specifies \"qalloc'ed wires at 0\"; \u00a714.2 says \"qalloc tensors |0\u27e9\"; \u00a75.6 requires the frame to satisfy \"P_F = P\u2032 \u2297 I_B\". Carry established facts about still-live, untouched workspace across a non-permutation boundary, invalidating facts affected by that operation while keeping fresh borrowed entries independent and preserving the mandatory permutation-only borrowed-touch check. H on t must not make c arbitrary. Add the exact fixture to tests/r1_borrow.rs and tests/cli_xam.rs: parse/hash/check must accept; forward and adjoint at t=0/1 and a superposition must preserve t; reverse must report equals_entry=true; library execution must preserve b entangled with an external reference. Also put H after qborrow and before CX, and wrap the lifetime in a loop. Negative control: X c before borrowing and X c after return for explicit cleanup must still reject each one-CX lifetime, including with a correctly bound certificate. This is a reachable-state proof requirement, not permission to merge frames across H or waive a return."
+   },
+   {
+    "id": "SOL-R6-B02",
+    "section": "\u00a7\u00a73.3, 4.3, 4.6, 5.3 adjoint table; src/action.rs::infer_widths, Environment::widths and Object::action_sequence",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The R5 width fix keys each release by its static source line and walks every structured body once, which is not the executed lifetime graph. First exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}; function:\nperm_action @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nd = qalloc any 1\nqloop 0 {\nqfree d\n}\nqfree d\nH=9a453b6720abda445235294c98c6288e616dc5bc1907c78af1755104b3a2e48a; stored-H object_hash=1e9a003077d2afd78e6f14384902f031c6aa140bebaf14702889de13d4cd814a. check succeeds, but run-action a --mut 1 (also --adjoint) and reverse exit 1, empty stdout, \u00a73.3: missing consumed lifetime width. Hand: zero body executions leave d live for the final free; this is identity. infer_widths wrongly removes d while scanning the zero-trip body. Second witness changes bounds to [2], regs bounds {2}, and uses body: d = qalloc any 1; qloop 2 { qfree d; d = qalloc any 2; x d[1]; x d[1] }; qfree d (one instruction per line). H=de76a9295cf8233d97909660d48c9f6ed82abe593735257858457d35a0c0557e; object_hash=128fa2a938dfbdcccdd255aafd128d125737a4a00fb63e9aef791a1f405bfb1a. check and forward execution succeed as identity, but --adjoint and reverse exit 1, empty stdout, \u00a73.3: wire index out of range. The inner free consumes width 1 on iteration 1 and width 2 on iteration 2; inverse execution must recreate width 2 and then width 1. One widths[line]=1 recreates width 1 at both inverse visits, so the next inverse X d[1] fails. Removing the zero-trip wrapper/body from the first witness runs and reverses correctly. No execution budget is involved.",
+    "fix": "Change src/action.rs::infer_widths, Environment::widths and action_sequence so lifetime resolution respects structured execution and the actual producer matched to each dynamic release. \u00a74.6 defines qloop as \"body n times\"; \u00a74.3 defines qalloc as \"n clean wires\"; \u00a73.3 makes a consumed name unavailable until a new production; \u00a75.3 defines the adjoint in \"reverse order, instruction replaced, versions renumbered\". A zero-trip body must have no effect on the outer live-width environment. A source-line id alone cannot identify both releases of differently sized lifetimes at different loop iterations; derive the loop entry/iteration-specific matching widths (or an equivalent sound structured lifetime representation) for reverse traversal, without adding a trip-count restriction or banning these well-formed objects. Add both exact fixtures to tests/quantum.rs and tests/cli_xam.rs. For t=0/1 and superposed t, check, forward, adjoint independently, and reverse must all succeed, preserve the complete input and leave no workspace; reverse must report equals_entry=true. Cover nested zero-trip loops, the analogous qborrow/qreturn case, and alpha-renamed unrollings of the changing-width loop. Retain the original R5 straight-line reused-width fixture and live-name redefinition rejection."
+   }
+  ],
+  "codex": [
+   {
+    "id": "R6-B01",
+    "section": "\u00a7\u00a74.3, 4.6, 5.1, 5.3; src/action.rs::infer_widths (lines 919\u2013966)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Regression in the round-5 consumed-width fix: infer_widths executes the lifetime effects of a zero-trip body against the outer live-width map. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function:\nperm_action @a (t:wire mut) () () () ()\nregs {  } bounds {0}\n^entry():\nd = qalloc any 1\nqloop 0 {\nqfree d\n}\nqfree d\nIndependently computed interface/closure hash 9a453b6720abda445235294c98c6288e616dc5bc1907c78af1755104b3a2e48a; with that stored hash, object_hash 1e9a003077d2afd78e6f14384902f031c6aa140bebaf14702889de13d4cd814a. CLI hash and check exit 0/status ok. run-action /dev/stdin a --mut 1, run-action with --mut 0 --adjoint, and reverse a --mut 1 all exit 1 with empty stdout and '\u00a73.3: missing consumed lifetime width'. Hand: the loop executes no rows; the final qfree consumes the one clean d, leaving exactly the input t. Removing the zero-trip loop executes and reverses successfully. infer_widths unconditionally recurses into every body, removes d for the unexecuted qfree, then fails at the real qfree. The diff shows the previous name-width scan did not remove bindings at releases, so this specific failure is newly introduced; the original differing-width witness remains fixed.",
+    "fix": "Change src/action.rs::infer_widths to model qloop's executed lifetime environment. At n=0, do not propagate any body producer/consumer changes into the outer live map (skip runtime width inference for the dead body, or analyze it with an isolated clone); keep lexical qregion hoisting and normal static validation intact. \u00a74.6 defines qloop as 'body n times'; \u00a74.3 defines qalloc as 'n clean wires' and qfree as release of a bundle 'clean on every basis configuration'; \u00a75.3 requires the adjoint in 'reverse order' with 'versions renumbered'. Therefore this exact object must execute identity for t=0/1 and arbitrary superpositions in either direction, and reverse must report equals_entry=true with no remaining workspace. Add it to tests/quantum.rs and tests/cli_xam.rs, checking the pinned hashes, check success, forward/adjoint state equality and reversal. Add nested zero-trip variants and dead qcopy/quncopy and qborrow/qreturn lifetime changes. Retain SOL-R5-B03's width-1 then width-2 reused-name positive and rejection of producing a still-live name. No execution budget or certificate is involved."
+   },
+   {
+    "id": "R6-B02",
+    "section": "\u00a7\u00a74.3, 5.1, 5.6, 6.1\u20136.2, 14.2; src/borrow.rs::Object::decide_frames, factorises, Evaluation::apply(Node::Free)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The clean-entry repair is confined to one permutation run: an unrelated non-permutation gate discards an established clean allocation and causes rejection of a valid action. Exact memoryless ptr_width=32 signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Function:\naction @a (t:wire mut) () () () ()\n^entry():\nc = qalloc any 1\nh t\nb = qborrow any 1\nqreturn b\nqfree c\nIndependently computed interface/closure H=6c7101e365eccc827653aa5dc596d68fefae112b9e4b6df00b5078f5639bf7d3; stored-H object_hash=e5517c39c82f32f9c006828c6b9535d899dad9c0a7b59339ba9fabea3672fc3f. hash/check/run-action/reverse all exit 1 with empty stdout and '\u00a75.6: a wire released inside a borrow frame is not clean'. Hand: c stays |0>, b is untouched for its entire lifetime, and the operation is H on t tensor identity on b and every external reference. There is no gate on c or b and no window dependency on t. Moving only h t after qfree c gives H=ec71f6ec8d4ff0efca8dd1faff95c483aed5ece49e92e00ec64ef1602ff78818; check succeeds, forward t=1 gives amplitudes +1/sqrt(2), -1/sqrt(2), adjoint t=0 gives two +1/sqrt(2) amplitudes, and reverse restores t=1. Adding x b; x b before qreturn also wrongly rejects the separated positive, so the issue is not peculiar to an empty borrowed circuit. decide_frames starts a fresh factorises evaluation after Other(H t), initializes c as an arbitrary variable, and tests the trailing Free against zero without its earlier allocation. This is a newly exposed boundary case, not a failure of the exact round-5 loop witnesses.",
+    "fix": "Change src/borrow.rs::decide_frames/factorises so cleanup obligations use established lifetime/cleanliness facts across frame boundaries on disjoint wires. Separate the full-domain borrow-factorisation check from unrelated workspace release obligations, or carry sound entry constraints into each run; do not universally quantify a known-zero c merely because H touched t. \u00a74.3 says qalloc produces 'n clean wires'; \u00a714.2 says 'qalloc tensors |0\u27e9' and 'qfree removes clean factors'; \u00a76.1 gives qalloc 'perm, S = \u2205'; \u00a76.2 closes windows on wires in the dependency set or the value itself. \u00a75.6 still requires 'P_F = P\u2032 \u2297 I_B' for every actual frame. Add the exact positive and the doubled-X-on-b variant to tests/r1_borrow.rs, including hash/check and CLI forward/adjoint t=0/1: expected H|0>=(|0>+|1>)/sqrt(2), H|1>=(|0>-|1>)/sqrt(2), reverse equals_entry=true. In library tests use b entangled with an untouched reference and require H_t tensor I_bR with no workspace. Retain the dirty control x c before release (reject \u00a76.2), one-X-on-b control (reject \u00a75.6), and every round-4/5 invalid-return/certificate negative. No certificate or budget should be required for this positive."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 3.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}
