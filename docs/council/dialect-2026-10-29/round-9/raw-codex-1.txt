@@ -1,0 +1,88 @@
+exit 0 in 24s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "Sections 4, 10, 17 and 18 distinguish H/CC/R/L execution, speculative generation views and applied events. The Cl/M/Co states, logical allocation liveness, replayed allocator state and explicit fault outcomes determine the observable machine. Sections 11.5, 17.6 and 25.1 consistently classify mandatory typed R faults as an ISA-0.8 dependency rather than claiming that a generic trap preserves the code. I found no remaining S0 contradiction in this model.",
+      "change": "No normative change required."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "PT3 now transfers geometry-changing bitcasts through the virtual N21 packing/resegmentation, and PT1/PT6/PT8 include the specified zero-byte initial images. This closes the two distinct S2/execution mismatches from round 8. Sections 12–16 and Appendix C provide normalisation and mapping obligations across the supported LLVM input. The remaining PT12 phrase \"a load plus a store\" is terse about which value is stored; the general S2 materialisation obligation and N9 supply the semantics, so I retain this as an S1 clarification, not a new blocker.",
+      "change": "In §5.2 PT12 replace \"atomicrmw/cmpxchg: a load plus a store (PT6, PT7)\" with: \"atomicrmw/cmpxchg: analyse the virtual N9 expansion. PT6 supplies the old value; the arithmetic, comparison and selection transfers compute N9’s update and result fields; PT7 receives the resulting stored value. For cmpxchg, propagate the old value and success flag to their respective result fields and union the conditional new-value store. Apply this during S2 before verdicts and dispatch domains freeze.\" Add a DB test for atomicrmw nand whose loaded post-update domain includes the complemented AND, alongside a cmpxchg aggregate-result test."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "TDL-5/7/8/10 and §18.2 distinguish clean control workspace, retained fault outputs and deferred-measurement records. The overwritten-loop adjoint requires a total inverse or retained compute history; it does not invent an inverse by testing the exit-state guard. Section 8.6 requires common F_B evaluation across output projections, and §8.7 retains total-bijection and sufficient-budget obligations. The new bitcast native checks establish widths, gate bounds and cleanliness, but do not themselves execute a coherent controlled invocation.",
+      "change": "Add to §21.3 DS: \"For pt3-pack257 and pt3-pack256, also invoke the allocation/two-X/free body under ctrl(c) with c initially |+>. After the invocation, apply H(c): the outcome is 0 with probability 1, all body-local wires are zero and released, and the fault code is 0. The source allocation width remains respectively 257 or 256 on generation; control changes application of the X events, not that width.\" Treat this as additional conformance coverage, not a new admission requirement."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Section 9 separates budget selection_identity from final semantic identity, freezes layout capacities before identity overlays and states the counting units for generation, lifted execution and R execution. Class selection and resource/target ownership remain at the ISA boundary. Dynamic widths, device-minted budgets and unbounded R allocations have named dependencies with exact required ISA changes in §25.1; the defaults do not silently remove the promised capability.",
+      "change": "No normative change required."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "Sections 7.3, 16, 19 and 23 specify content identity, deterministic mapping, comparison layout, driver invocation, full-version compatibility and certificate/build-record bindings. Keeping unchanged mapping and normaliser subversions while bumping the full dialect to 0.2.10 is expressly decided. The independent pre-flight rerun passed all 22 object checks and all nine hash checks. Sections 25.1–25.3 separate capability blockers, ISA wording items and efficiency alternatives.",
+      "change": "No normative change required."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "Section 18.7 supplies an observable conformance relation and separates native-comparable success, reference faults, layout dependence and classifier exclusions. The new witnesses test the exact S2 domains against independently compiled execution, including negative expected-width mutations. My full rerun of scripts/dialect_check_v02.py passed 2767/2767 checks, with zero failed or unavailable checks; the four targeted round-8 domain/execution unit tests also passed. Appendix B still introduces run-cc/reverse/run-action/run-program as merely requested, although its later execution-status paragraph and the current gate supersede that historical status.",
+      "change": "Replace Appendix B’s introductory executor-status sentence with: \"isa-ref denotes the Rust bennett-isa-ref executor used by the recorded freeze receipt. The receipt identifies the interpreter snapshot, commands exercised and per-family results; historical requested labels below describe the original adapter work, not current unavailability. A passing BLK-5 verdict check verifies classification and the stated dependency, not execution of ISA-0.9 typed R faults on ISA 0.8.\" Remove the obsolete \"(requested)\" suffixes from executor cells whose commands execute in that receipt."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The text retains the north-star materialised-program contract, ordinary unmodified LLVM input, whole-program analysis, coherent and reversible modes, effect models and demo-ladder mechanisms. The round-8 fixes restore successful finite width cases without new rejections, source preconditions or ISA blockers. Existing ISA-0.8 capability gaps remain explicit dependencies with concrete extensions. I found no new narrowing of north-star scope.",
+      "change": "No normative change required."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The rule tables, executable witnesses, mapping objects and defaults make implementation possible without redesigning the machine. One explanatory exact-set statement was not updated for the new initial-image rule: §5.3’s pt-variable-index paragraph still gives AV(%hk)={ROOT(%h0)}. The normative rules and the current recogniser instead include INT(0); I independently checked accept with AV(%hk)={ROOT(%h0),INT(0)}. This is an editorial regression in a paragraph explicitly marked non-normative.",
+      "change": "In the non-normative pt-variable-index explanation in §5.3, replace the exact-set/count discussion with: \"The load %hk reads slots 0, 8, 16 and 24, so AV(%hk)={ROOT(%h0),INT(0)}: the zero-byte initial image remains a possibility under the flow-insensitive union. The count field is at offset 32, outside that class. AV(%n) includes INT(0), INT(3) and the closure of its incrementing store until the INT cap is exceeded and the non-handle top flag is set. It contains no ROOT atom, so its arithmetic is legal.\" The example verdict remains accept."
+    }
+  ],
+  "blocking": [],
+  "previous_status": [
+    {
+      "id": "SOL-R8-01",
+      "status": "resolved",
+      "note": "PT3 limits lane copies to equal geometry and otherwise uses virtual N21 with Cartesian finite domains, per-output K and explicit provenance. Hand derivation gives 1|(1<<8)=257; LLVM 18/23 verification, instcombine, S2 and native O0/O3 execution agree, including two X gates at index 256, clean free and code 0."
+    },
+    {
+      "id": "R8-CODEX-01",
+      "status": "resolved",
+      "note": "Section 5.2 now seeds zero-byte alloca/allocation-site images, including symbolic extents; PT6 unions zero with stores and PT8 propagates it through copies without replacing inputs or replayed bytes. Stack, heap and copy witnesses have raw/index domains {0,1} and widths {1,3}; LLVM 18/23 materialised native O0/O3 runs produce widths 1/3 and clean frees."
+    },
+    {
+      "id": "R8-CODEX-02",
+      "status": "resolved",
+      "note": "The geometry-changing transfer now computes <0,1> as scalar 256, then zext preserves it; the inverse companion splits 769 into <1,3> and extracts width 3. LLVM 18/23 source O0, instcombine and materialised checks plus native O0/O3 width guards agree. These finite cases accept without BLK-1."
+    }
+  ],
+  "regressions": [
+    "Nonblocking editorial regression: §5.3’s explicitly non-normative pt-variable-index explanation still prints AV(%hk)={ROOT(%h0)} and omits the initial zero from the count discussion. After the round-9 initial-image repair, INT(0) belongs to both loads’ initial possibilities. The normative transfer and implemented recogniser are correct; the precise replacement is in C8."
+  ],
+  "suggestions": [
+    "S1, §5.2 PT12: make the existing N9 dependence explicit with the replacement in C2, and add DB witnesses for NAND’s computed store value and cmpxchg’s old-value/success result fields. The instruction to analyse materialised value effects already supplies the obligation; this is the previously recorded atomic-update follow-up, not an unresolved round-8 blocker.",
+    "S1, §21.3 DS: add the controlled pt3-pack257/pt3-pack256 vectors specified in C3. Expected final H-control outcome is deterministically 0, all local workspace is clean and released, and code is 0. This complements the executed classical width/domain checks with interference coverage.",
+    "Editorial, Appendix B: use the receipt-based executor-status wording in C6 and remove superseded requested labels from executed command rows. Preserve the explicit distinction between a passing blocked-verdict check and execution of the unavailable capability.",
+    "Editorial, §5.3 pt-variable-index: apply the exact replacement in C8, including INT(0) in AV(%hk) and in the count’s initial possibilities. Keep accept and the conclusion that the count arithmetic has no ROOT provenance."
+  ],
+  "verdict": "accept",
+  "path_to_accept": "No blocking change is required: accept now. To raise the lowest-scoring criteria from 4 to 5, first clarify PT12 with the virtual-N9 wording and tests in C2, then correct the zero-image explanation and current executor-status wording in C8/C6, and add the controlled packing witnesses in C3. These are nonblocking improvements, not prerequisites for acceptance.",
+  "summary": "Reviewed the complete 16,156-line packet, confirming the round-8 diff first and then rereading the document and supplied background. Reviewed checkout HEAD is d0a160d7a6972ee8e4cfd5f2ac7953941a3a7bce. SOL-R8-01, R8-CODEX-01 and R8-CODEX-02 are all resolved. Hand derivations and LLVM 18/23/native harness checks agree on packed widths 257 and 256, inverse unpacking width 3, and zero-image widths 1/3. The full pre-flight rerun passed 2767/2767 checks; four targeted round-8 domain/execution unit tests passed, including expected-width negative controls. These checks are evidence for the exercised cases, not proof of arbitrary program correctness or implementation of the retained ISA dependencies. No S0 issue or new north-star narrowing remains identified. Both verdict_core and verdict are accept; the blocking list is empty. The only identified round-9 regression is a non-normative explanatory set that omitted the newly required zero possibility.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r9-codex.json
