@@ -30,12 +30,17 @@ ISA-REF-LIB, EPS-DECADE, BLOCK-IMAGE, K12, K13 and open beads for topology schem
 round waits on the maintainer decisions below. Hold: bennett-estimate (K12 contracts), bennett-sched (§11 library),
 plugin/driver (dialect acceptance).
 
-**Maintainer decisions pending (orchestrator, 2026-10-29 evening, unattended run):**
-- **ISA §11 reference library `ref` (bennett-vm-47t).** ISA 0.8 §11/§17 name the library the ISA repository "publishes" but define neither its serialization, hash rule, ordinals nor gate decompositions. Nothing was invented for 0.8: a sol agent is drafting the contract into `../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md` (item ISA-REF-LIB) with the decision points stated in the mirrored bead. VM scheduled execution and the suite-E/G schedule cases stay `unavailable` until 0.9 is accepted. Decide: the decomposition set and the hash rule.
-- **Circuits M2 proof contracts (bennett-circuits, 2026-10-30).** `docs/design/2026-10-30-m2-open-proofs.md` in that repo: two design choices (proof-IR / action-CFG representation, bead 7bu; opaque workspace proof summaries, z9r) and three ISA 0.9 publication items (certificate replay tuple encoding 4pf, frame schema JSON encoding 4fa, operation-identity publication for §6.4 recompute matching yz8, the last depending on the §11 library). Each states the alternatives and costs; the specialiser refuses those paths with the bead id until decided.
-- **ISA 0.9 K12 LAUNCH-ESTIMATE and K13 CLAIM-REPLAY (from bennett-vm beads hsd, clw; ISA beads c15, 9uy).** Drafted at §10.1 and §12.1/§12.3 of the 0.9 draft with both readings recorded in `spec/isa-0.9.PROGRESS.md`: request API and defaults, per-class representation, 34-digit decimal policy, sampled-claim default and comparison relation, invocation encoding/location, table encoding. Accept or amend before the 0.9 council round.
-- **Q14 reading** (lproc token/classical params) applied to the 0.9 draft from the worklog wording; overrule if wrong.
-- **Council seats:** sol (gpt-6.1-sol) substitutes for opus/fable; muse is council-only; isa-ref rounds 2-3 closed with two seats after the muse provider outage, muse rejoined at round 4.
+**Maintainer decisions RATIFIED 2026-10-30** (all recommendations in
+`docs/decisions/2026-10-30-maintainer-decision-memo.md`, "Ratification" section; recorded as `bd note` on every
+affected bead in bennett-isa-spec, bennett-vm, bennett-circuits): ISA-REF-LIB schema/hash/decomposition as drafted
+(catalog to be serialised, `ref/` published after 0.9 acceptance); LAUNCH-ESTIMATE = explicit 0.9 signature, flat
+escaped class keys, exact rationals + 34-digit upward enclosure; CLAIM-REPLAY = `expected` mandatory, per-claim
+invocation, positional complete tuples; Q14 as applied; EPS-DECADE, BLOCK-IMAGE, draw ordering (reference CLI
+convention) accepted; §8.3 optional `topology` field with all-to-all default, routing costs to 0.10; circuits:
+multi-block actions = text-order fragments (one sentence in 0.9 §5.3), histories proof IR, pending obligations for
+opaque imports, closure-registry resolver, typed-record frame schema in 0.9 §9.4; north-star round 7 (A1+A2) when
+muse is back; council seats unchanged; plugin M1 may start against dialect 0.2.x, driver M1 after the lowering text
+settles. The previous "decisions pending" list (2026-10-29 evening) is superseded by the memo.
 
 ## State in one table
 
