@@ -1,0 +1,98 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Sections 4, 10 and 18 define tiers, recorder views, coherence states and state transitions precisely. The remaining mismatch is the use of the address-space-0 pw for other pointer types in sections 16.2\u201316.4 (SOL-R5-01).",
+   "change": "In sections 1.5 and 16.2\u201316.4 state: \"P(A) is the datalayout representation width of address space A; pw remains P(0). Every pointer conversion and carrier transport preserves P(A)-bit semantics before conversion to the ISA address representation.\" Apply the concrete bridge in SOL-R5-01."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Sections 12\u201316 supply comprehensive normalization and mapping rules. The corrected borrow, narrow-index and contiguous-vector rules are explicit; their four new normalization pairs match the checker output on majors 18/20/23 in this review. The pointer-cast rows still compute the wrong function for a supported x86 address space.",
+   "change": "Replace the universal pw-based pointer-cast rows in section 16.4 with P(A)-based conversions, and add the dynamic AS270 round-trip witness of SOL-R5-01 to the map and native suites."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Sections 8.6, 10 TDL-5/7/8/9/10 and 18.2 distinguish XOR oracles, bijective updates, control workspace, retained fault outcomes and deferred-measurement records. Inverses reconstruct overwritten trajectories, generation failure cancels unapplied events, and declared fault outputs retain their required lifetime. No new coherent-semantics blocker found.",
+   "change": "Already at 5; no semantic change requested. Retain the explicit total-bijection, dependency-window and complete-instrument requirements when implementing these constructions."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Sections 9, 16.3 and 19.5 determine budgets and layout; target resources, capacities, cost aggregation and schedule realization remain owned by ISA 0.8 sections 8 and 11. The dialect does not introduce a competing resource model or claim that finite fallback files implement unbounded allocation.",
+   "change": "Already at 5; no change required. Preserve the rule that reference rows determine faults while target schedules determine realization costs."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Sections 1.3, 19.9, 23 and 25 identify the ISA-owned object, launch, scheduling, certificate and coverage contracts, the full compatibility version, build-record binding and exact missing ISA operations. Existing defaults retain capabilities; BLK-1/2/4/5 are explicit dependencies rather than hidden rejection rules.",
+   "change": "Already at 5; no additional schema enumeration is required for acceptance. Keep section 25.1 dependency verdicts tied to ISA 0.8 until the target version is deliberately advanced."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Sections 18.1\u201318.7 define an implementable reference relation and conformance observations; sections 1.5 and 21 distinguish independent execution from expected artifacts. The 2514-check receipt is useful finite evidence, but its vectors do not cover the representation-width counterexample. This review independently reproduced that mismatch with LLVM 18 and 23.",
+   "change": "Add a checked dynamic AS270 source/map pair with input 4294967296, expected payload 0 and code 0, and assert the truncation/extension rows so optimization of a constant source cannot hide SOL-R5-01."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The full draft preserves the demo ladder and supplies explicit mechanisms or named ISA blockers for the difficult cases. The remaining universal-pw cast rule contradicts the materialized LLVM meaning promised by NS section 3.2, even on x86-64 with its ordinary p270:32:32 datalayout entry.",
+   "change": "Resolve SOL-R5-01 by preserving each integral address space's source semantics in the carrier bridge; do not add a blanket rejection of mixed pointer widths or classify this memory-free arithmetic witness as layout-dependent."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Rule ids, defaults, examples and the progress history make the design actionable. Some current example documentation still labels interpreter commands as requested despite the later executed freeze receipts, and the active-lane formula could state its no-overflow arithmetic more explicitly. These are suggestions, not additional blockers.",
+   "change": "Refresh section 1.5 and Appendix B with: \"Execution availability is recorded by the dated freeze receipt for the named interpreter commit; historical requested labels are not the current capability status.\" Keep historical progress entries dated and unchanged."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R5-01",
+   "section": "1.5 pw; 16.2\u201316.4 pointer carriers and ptrtoint/inttoptr rows; 17.4 CC/R lowering; 18.1 C state",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Section 1.5 defines pw from address space 0. Section 16.3 then gives \"ptr \u2192 pw\", and section 16.4 maps ptrtoint/inttoptr with \"M = pw: v = lift.mov A\". These rules do not account for a different representation width in another address space. Witness under target triple x86_64-unknown-linux-gnu and datalayout \"e-p:64:64-p270:32:32-p271:32:32-p272:64:64\": define i64 @f(i64 %x) { %p = inttoptr i64 %x to ptr addrspace(270); %r = ptrtoint ptr addrspace(270) %p to i64; ret i64 %r }. At x=4294967296, LLVM truncates to the 32-bit pointer and zero-extends back, yielding 0. The specified pw=64 map emits two 64-bit moves and yields 4294967296. LLVM 18 and 23 both verify the source and fold its dynamic body to and i64 %x,4294967295; constant source probes fold to ret i64 0 while the prescribed-move equivalent folds to ret i64 4294967296. These probes ran headlessly through stdin/stdout. The dynamic form can survive the supported O0 envelope; it accesses no memory, encounters no UB and is not layout-dependent. The round-4 GEP fix correctly addresses index width, but does not fix this separate representation-width case. [LLVM 18 pointer conversion semantics](https://releases.llvm.org/18.1.8/docs/LangRef.html#inttoptr-to-instruction).",
+   "fix": "In sections 1.5 and 16.2\u201316.4 state: \"For an integral pointer in address space A, let P(A) be its datalayout representation width, falling back to the datalayout default pointer entry; pw=P(0) is the ISA address width, not the width of every LLVM pointer. inttoptr first truncates or zero-extends its integer operand to P(A); ptrtoint truncates or zero-extends the P(A)-bit pointer value to the destination integer width. Preserve these conversions in constant expressions, parameters, aggregate fields, results and pointer memory operations. GEP computes within its address space's P(A)-bit representation using I(A), preserving only representation bits above I(A). A carrier bridge to ISA addresses must preserve these source semantics; addrspacecast uses the incoming target's conversion semantics rather than an unconditional move.\" Apply the bridge equally in section 17.4 and the native build, keeping section 18.1 consistent. For the witness, the canonical value computation must be trunc i64 %x to i32 followed by zext i32 to i64 (or an equivalent explicit low-32-bit mask); f(4294967296)=0/code 0 and f(4294967297)=1/code 0. Add a checked dynamic source/map pair and native constant probes. Two viable implementations are (a) normalize nonzero-address-space operations into width-correct integer carriers and target conversion code before the existing map, or (b) carry P(A) explicitly throughout the mapper and bridge at ISA memory operands. I recommend (a), which retains the single-width ISA address model. Do not reject mixed-width layouts; ISA 0.8 integer truncation/extension rows already express this witness."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R4-01",
+   "status": "resolved",
+   "note": "Section 12.7 now propagates beta=(a<b) OR (t<z), discards final borrow and handles i1 identity conversion; n-wide-sub has the expected high limb 0 and matches exact normalization on majors 18/20/23."
+  },
+  {
+   "id": "SOL-R4-02",
+   "status": "resolved",
+   "note": "Sections 16.4, 17.4 and 18.1 distinguish GEP index width and preserve higher representation bits; n-gep-index covers truncation, negative offset and wrap. SOL-R5-01 is a different representation-width defect."
+  },
+  {
+   "id": "R4-CODEX-01",
+   "status": "resolved",
+   "note": "Section 12.6 uses contiguous vector bit spacing, actual byte offsets and alignment, and restricts the scalar-GEP fast path; n-vector-i24 uses offsets 0/3 and matches exact normalization on majors 18/20/23."
+  },
+  {
+   "id": "R4-CODEX-02",
+   "status": "resolved",
+   "note": "N15 and N21 widen the unsigned index enough to represent L and every lane exactly; n-narrow-lane matches exact normalization on majors 18/20/23 and retains the specified extraction/insertion results."
+  },
+  {
+   "id": "BD3-R4-1",
+   "status": "resolved",
+   "note": "Section 6.5 checks entry-boundary liveness before finite TC/E bounds, forces infinity and BLK-1 for persistent instances, and section 7.5(b) applies the same precondition to R with BLK-4; the put/use witness specifies two distinct instances."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In section 12.6 make the arithmetic domain of get.active.lane.mask explicit: \"For W-bit base,n and L lanes, use M=1+max(W,ceil(log2 L)); zero-extend base and n to M, represent k exactly, and compare base+k<n without wrap. Choose all-zero for n=0 under poison totalization.\" Add base=n=0xffffffff,L=4 -> [false,false,false,false]. LLVM 18/23 fold this intrinsic to mask 0, whereas a wrapping i32 add/ult expansion gives mask 14. The current mathematical formula has a correct no-wrap reading, so this is a defensive clarification rather than another S0. [LLVM active-lane semantics](https://releases.llvm.org/18.1.8/docs/LangRef.html#llvm-get-active-lane-mask-intrinsics).",
+  "In section 1.5 and Appendix B replace present-tense \"requested\" labels for run-cc/reverse/run-action/run-program with a reference to the dated interpreter capability receipt: \"The freeze receipt identifies which commands execute each family at the bound interpreter commit.\" Preserve historical unavailable-family entries in the progress log and keep named ISA blocker verdict checks distinguished from execution of the unavailable ISA capability."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Correct the nonzero-address-space pointer representation bridge in sections 16.2\u201316.4 and 17.4 as SOL-R5-01 specifies, retaining mixed-width inputs and the section 18.1 LLVM meaning. 2. Add and execute the dynamic AS270 round-trip map/native witness at 2^32 and 2^32+1, expecting payloads 0 and 1 with code 0; retain all five round-4 fixes and their existing expectations. No new ISA capability or proof format is needed.",
+ "summary": "All five round-4 blockers are resolved: SOL-R4-01, SOL-R4-02, R4-CODEX-01, R4-CODEX-02 and BD3-R4-1. The diff introduces no identified regression. One newly identified core S0 remains: the universal-pw pointer cast map loses nonzero-address-space representation truncation, with an independently reproduced 0 versus 4294967296 result on LLVM 18 and 23. The quantum lifecycle rules and named ISA-0.8 dependency treatment otherwise withstand this pass. Four round-4 normalization pairs were rechecked in memory on majors 18/20/23; the full writing pre-flight was not rerun during this read-only review.",
+ "verdict_core": "revise"
+}

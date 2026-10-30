@@ -1,0 +1,105 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Sections 4, 10 and 18 define persistent CC/R/L state, coherence transitions and observable outcomes. The round-4 entry-liveness correction now agrees with persistent state. However, sections 1.5 and 16.3\u201316.4 use the address-space-0 pointer width for pointer values in other address spaces; R5-CODEX-02 gives a defined computation with the wrong result.",
+   "change": "In sections 1.5, 16.3\u201316.4 and 18.1 state: \"A pointer value in address space a has representation width P(a), obtained from that address space in DataLayout; pw=P(0) is not a replacement for P(a).\" Apply the conversion and memory-width corrections in R5-CODEX-02."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The marker ABI, operation tables, normalization rules and deterministic lifting rows are substantially implementable. The new subtraction, vector-spacing and narrow-index rules close their specific wrong-result cases. PT6 nevertheless supplies an unsound finite dispatch domain when a load spans multiple integer slots (R5-CODEX-01).",
+   "change": "Replace PT6\u2019s whole-atom union for mismatched storage intervals with the explicit byte-image decoding/conservative-top rule in R5-CODEX-01. State: \"A finite dispatch set must contain every concrete loaded value; unioning component integers does not represent their concatenation.\""
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Sections 7.5, 8.6\u20138.7, 10 and 18 distinguish generation from application, place deferred records, retain fault outcomes, gate dependent effects on success and require clean temporary release. In-place validity states totality, universal inverse and sound budget-bound hypotheses; sampled evidence is explicitly insufficient to establish those hypotheses.",
+   "change": "No semantic change required. Retain section 8.7\u2019s rule that sampled maxima do not substitute for a sound bound over all inputs and parameters, and TDL-8\u2019s preservation of fault outcomes through cleanup."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Sections 3.4, 9, 17.6 and 25 give class selection, explicit budget units and defaults, run-time checks and exact ISA dependencies. BLK-1/2/4/5 have bounded realizations and named required ISA changes; the draft does not claim that passing blocker checks implements those capabilities on ISA 0.8.",
+   "change": "No semantic change required. Retain section 25.1\u2019s rule that generic R traps are only the ISA-0.8 fallback and do not satisfy the typed-fault contract."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Sections 8, 11, 16, 19 and 23 specify descriptors, runtime interfaces, reference identity, driver modes, comparison layout, full-version compatibility and build metadata. Deferred output naming and platform enumeration have stated defaults; the five round-4 corrections also update the relevant semantic subversions.",
+   "change": "No independent contract change required. Preserve section 23\u2019s rule that semantic changes bump the dialect/map compatibility version and recheck reference objects; apply it when incorporating the two new corrections."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Sections 1.5, 18.7 and 21 provide explicit semantic claims, independent-executor obligations and a derivable conformance suite. The freeze receipt reports 2514 passing checks, but the suite misses cross-slot integer reconstruction and nonzero-address-space pointer truncation. I checked four normalization pairs in memory, the cross-entry recognizer verdict, and both new witnesses with LLVM 18/23; I did not rerun the full freeze gate.",
+   "change": "Add checked PT6/map witnesses with these required results: bytes [1,1] loaded as i16 produce VS={257} and a successful 257-wire allocation; inttoptr i64 4294967296 to ptr addrspace(270), followed by ptrtoint to i64 under p270:32:32, returns 0/code 0. Compare the actual generated dispatch/map against an independent executor."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The draft preserves the north-star tiers, whole-program LLVM route, runtime/library scope and demo ladder. Named ISA blockers remain capability dependencies rather than new source-language exclusions. The round-4 fixes preserve scope and use ordinary LLVM/ISA arithmetic and dispatch mechanisms.",
+   "change": "No additional scope change required. Correct the two wrong-result rules without adding a rejection for byte-reinterpreting loads or nonzero address spaces; retain sections 1.3 and 25.1\u2019s capability-preserving blocker policy."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The staged pipeline, rule names, examples and defaults let implementers start independently. Apart from the two concrete semantic defects, section 13.5 would benefit from spelling out the conversion between its internal rounding enum and LLVM\u2019s external enum; the existing LLVM semantics supplies the intended behavior.",
+   "change": "In section 13.5 add: \"The runtime rounding enum is internal; get.rounding and set.rounding convert to and from LLVM\u2019s encoding.\" Include the explicit mapping and dynamic-rounding witness given in the suggestion below."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R5-CODEX-01",
+   "section": "\u00a75.1\u2013\u00a75.3, especially PT6/PT7/PT8; \u00a73.4 finite dispatch domains",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "PT6 defines a load as \"the union of AV(X, o\u2032) over the slots o\u2032 that overlap [o, o + size(T))\" and also adds whole initializer INT atoms. Union is not byte reconstruction. Witness under datalayout \"e-p:64:64\": @width = internal constant [2 x i8] [i8 1, i8 1]; in @top, %w = load i16, ptr @width, align 1; %n = zext i16 %w to i64; %h = call ptr @__bennett_qalloc(i64 0, i64 %n); apply gate X twice at index 256 and qfree %h. The concrete load is 257, and the register has 257 wires, so both gates and the clean free succeed. PT6 instead unions the two INT(1) atoms, yielding VS(%w)=VS(%n)={1}; section 3.4 therefore compiles only the width-1 alternative. A compare-tree dispatch cannot handle the actual width 257, or an unconditional width-1 allocation makes the first gate trap T-INDEX. Neither implements the reference execution. I reproduced accept with atoms {INT(1)} and value set {1} in the repository recognizer. LLVM 18 and 23 verify the source, preserve its load through default<O0>, and independently fold it to qalloc(0,257) under instcombine. This contradicts section 5\u2019s explicit claim that the runtime value is always a member of the reference set.",
+   "fix": "In \u00a75.1\u2013\u00a75.2 state: \"Memory atoms carry their storage interval and representation width. A load may copy a whole-value atom only when the load covers that same interval with a compatible representation. A load from a known immutable byte image instead decodes exactly its accessed bytes using DataLayout and the loaded type. For a partial, spanning or overlapping access whose resulting bits are not represented exactly, set the non-handle value to top; do not union component INT values as possible whole loaded values. Any partial store or copy that may affect the loaded interval must participate in this rule. ROOT provenance remains explicit, and \u00a76.2\u2019s partial-handle restrictions remain in force.\" Make this the fixed reference rule, not an optional precision improvement. For the witness, immutable-image decoding must produce INT(257), finite dispatch {257}, a 257-wire register, two successful X gates at wire 256 and a clean free, with no fault. Add a checked recognition/dispatch execution case and a second case that loads a subrange of a larger stored integer. A fully specified byte-level abstract domain is another valid repair and can retain more finite results for mutable memory; I recommend exact immutable-image decoding plus the stated conservative fallback as the smaller correction."
+  },
+  {
+   "id": "R5-CODEX-02",
+   "section": "\u00a71.5 pw; \u00a716.3 value widths; \u00a716.4 ptrtoint/inttoptr and pointer rows; \u00a717.4; \u00a718.1",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Section 1.5 defines pw as the width of address space 0. Section 16.3 maps pointer values to pw, and section 16.4 says ptrtoint/inttoptr with M=pw is lift.mov. LLVM pointer representation widths can differ by address space, including the x86-64 layout already printed in \u00a718.8. Concrete witness: datalayout \"e-p:64:64-p270:32:32-p271:32:32-p272:64:64\", triple \"x86_64-unknown-linux-gnu\"; define i64 @f(i64 %x) { %p = inttoptr i64 %x to ptr addrspace(270); %r = ptrtoint ptr addrspace(270) %p to i64; ret i64 %r }. At x=4294967296, the first cast truncates to 32 bits and the second zero-extends, so f returns 0. The prescribed pw=64 map performs two moves and returns 4294967296. There is no memory access, poison or fault. LLVM 18 and 23 both verify this function, simplify it to x & 4294967295, and fold its constant-input instance to 0. The round-4 GEP index-width correction is sound for its witness, but does not correct this separate pointer-representation-width error.",
+   "fix": "In \u00a71.5 introduce P(a), the DataLayout representation width of pointers in address space a, and retain pw=P(0) only for uses that actually concern address space 0. In \u00a716.3\u2013\u00a716.4 state: \"A ptr addrspace(a) value has carrier width P(a). inttoptr first truncates or zero-extends its integer operand to P(a); ptrtoint truncates or zero-extends the P(a)-bit representation to its destination integer width. Pointer constants, flattened pointer fields and pointer memory values use P(a), including the corresponding storage size. GEP uses that pointer\u2019s P(a) together with its independently specified index width I(a), preserving only the higher bits of that representation. addrspacecast uses the target\u2019s conversion between the two representations; lift.mov is valid only for a bit-preserving conversion of equal-width representations.\" Apply the same rules to CC/R and constant expressions. Add the witness with x=4294967296 -> 0 and x=4294967297 -> 1, both code 0; its canonical cast rows are trunc.i32 followed by zext.i64. An alternative is a common wider internal carrier with explicit masking/conversion at every pointer boundary and source-width memory accesses; I recommend per-address-space value widths because they directly follow LLVM types. Do not introduce a nonzero-address-space rejection."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R4-01",
+   "status": "resolved",
+   "note": "\u00a712.7 now uses beta=(a<b) OR (t<incoming), handles an i1 top limb and discards final borrow; [0,1,1]-[1,1,0] yields [all-ones,all-ones,0]. The checked normalization pair matches."
+  },
+  {
+   "id": "SOL-R4-02",
+   "status": "resolved",
+   "note": "\u00a716.4 now uses the separate GEP index width, preserves higher pointer bits and covers constant expressions and CC/R. The truncation and low-bit-wrap witnesses both require 4294967296; the new address-space cast finding is a distinct pre-existing rule defect."
+  },
+  {
+   "id": "R4-CODEX-01",
+   "status": "resolved",
+   "note": "\u00a712.6 uses vector bit spacing rather than padded scalar allocation stride: i24 lane 1 begins at byte 3 and reads 394500. The new load/store normalization pair matches and preserves the specified six-byte store range."
+  },
+  {
+   "id": "R4-CODEX-02",
+   "status": "resolved",
+   "note": "N15/N21 widen to W=max(K,ceil(log2(L+1))) for bounds and lane comparisons. The i1 extraction/insertion normalization pair matches, and the existing out-of-range dynamic-lane pair remains unchanged."
+  },
+  {
+   "id": "BD3-R4-1",
+   "status": "resolved",
+   "note": "\u00a76.5 checks persistent entry-boundary liveness before finite per-entry counting, with \u00a77.5(b) inheriting the reversible case. The recognizer now reports handle-cross-entry as blocked:BD-B-ISA4 with no finite instance bound."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1, \u00a713.5: spell out the adapter between the internal R enum and LLVM\u2019s rounding enum. Add: \"set.rounding maps LLVM values 0,1,2,3,4 to internal R values 3,0,2,1,4 respectively; get.rounding applies the inverse mapping. Runtime/C-library adapters preserve the semantic rounding direction rather than copying target-specific numeric encodings.\" Check that set.rounding(0), followed by constrained rint(1.5, round.dynamic), returns 1.0 and get.rounding returns 0. This clarifies the existing obligation to implement LLVM semantics; it need not change the internal enum. The external encoding is specified in the [LLVM Language Reference](https://llvm.org/docs/LangRef.html#llvm-get-rounding-intrinsic)."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Repair PT6\u2019s treatment of differently sized/overlapping memory representations, including its PT7/PT8 inputs, and execute the byte-composition dispatch witness with VS={257}. 2. Use address-space-specific pointer representation widths in the map and CC/R lowering, and execute the addrspace(270) cast witnesses with outputs 0 and 1. 3. Add both families to the checked examples, bump affected semantic versions and rerun the existing freeze gate without weakening expectations. These two corrections would remove my blockers; the rounding-enum clarification is optional.",
+ "summary": "All five round-4 blockers are resolved: SOL-R4-01, SOL-R4-02, R4-CODEX-01, R4-CODEX-02 and BD3-R4-1. I found no regression in those fixes. Two new core S0 issues remain: whole-slot integer unions can exclude the actual loaded value from a finite dispatch set, and casts through a narrower nonzero-address-space pointer incorrectly preserve high bits. Both have defined LLVM witnesses checked on LLVM 18 and 23; the first also reproduces in the repository recognizer. The review read the complete prompt and made no repository edits other than this requested JSON output. The published full-gate receipt was reviewed; only the described targeted read-only checks were rerun."
+}
