@@ -36,3 +36,19 @@ layouts with its host layout. Wrap and negative cases execute through Rust;
 LLVM 18 constant-folding itself mishandles the wrap case, so it cannot serve as
 that case's oracle. No expectation changes to existing examples. ISA 0.8 integer
 trunc/zext/and/or/add rows suffice; no decline, partial or ISA edit.
+
+## R4-CODEX-01 — resolved
+
+Sections: §12.6 vector-memory bullet, §12.9 boundaries, Appendix B.
+Hand derivation: 24-bit lanes occupy offsets 0 and 3; scalar i24 stride is 4
+under i24:32. Thus lane 1 is 04+05*256+06*65536=394500; offset 4 gives
+the incorrect 460293. The corrected rule permits scalar GEP T only when its
+allocation stride equals vector lane spacing, uses byte offsets otherwise,
+limits accesses to the original vector storage and derives alignment from the
+actual offset. Packed/masked inactive-bit requirements remain. LangRef vector
+layout and load semantics are linked at the rule.
+Witness n-vector-i24 has exact load/store normalisation pairs, align 1 at offsets
+0 and 3, and native source/output execution on clang 18/23. The store writes
+[1,2,3,4,5,6] contiguously and preserves both following 0xaa sentinels. The unit
+regression first showed scalar GEP i24 versus required i8 and an unexpanded store;
+then passed. No decline, partial, rejection or ISA capability change.
