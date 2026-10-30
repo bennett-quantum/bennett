@@ -1,0 +1,128 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The tier/state model in \u00a7\u00a74 and 18 is explicit, and \u00a7\u00a71.5, 16.4 and 17.4 now correctly distinguish pointer representation P(a) from index width I(a). However, PT2 still computes a different abstract address for an index that wraps to zero, contradicting the reference-set containment claim in \u00a75 (R6-CODEX-01).",
+   "change": "Replace \u00a75.2 PT2 with the finite-width transfer specified in R6-CODEX-01; require the wrapped-table witness to retain FN(body) and dispatch successfully."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The round-5 wide integer/FP ABI, repeated N22 legalisation, and four newly covered atomic operations close their reported holes. N9 still prescribes a nonexistent LLVM nand instruction for atomicrmw nand, while V6 forbids retaining the original instruction (R6-CODEX-03).",
+   "change": "Add the exact load/and/xor/store expansion in R6-CODEX-03 to N9, with returned old=240 and stored new=63 for the supplied i8 witness."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The complete reread found no new S0 in the oracle XOR interface, common wide-output fault computation, generation cancellation, retained measurement/fault outputs, or clean control-workspace rules. TDL-5/7/8/10 and \u00a718.2 distinguish reversible workspace from genuine channel records and require the actual saved trajectory or a bounded inverse for loop adjoints.",
+   "change": "No change required to these coherent-semantics rules."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "\u00a7\u00a73.4, 6.5 and 9 specify class selection, widths, instance bounds and budget units; \u00a7\u00a724\u201325 supply defaults and distinguish bounded ISA-0.8 realisations from named capability dependencies. The parameter/result-root repair now covers accumulation across entries without restricting direct QREG transport.",
+   "change": "No change required to the resource defaults or the named ISA dependency contracts."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Object identity, comparison layout, launch placement, versioning and build-record/certificate bindings are decided in \u00a7\u00a77.3, 16 and 19. The fixed GEP canonical rows and their executable objects resolve the previous cost/identity ambiguity. Appendix B still calls several interpreter commands requested even though its later execution-status paragraph and the freeze receipt supersede that statement.",
+   "change": "Replace Appendix B\u2019s introductory command-availability parenthesis with: \"Interpreter capabilities and executed families are those of the frozen independent-interpreter snapshot named by the current pre-flight receipt; the historical requested-command notes are superseded by that receipt. BLK-5 checks establish the ISA-0.8 dependency verdict, not execution of the ISA-0.9 typed-fault contract.\""
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The conformance relation in \u00a718.7 and the source/object/state vectors are substantial. Nevertheless, \u00a75\u2019s assertion that every runtime value belongs to the reference set is false for both the wrapped GEP and the materialised range witness. I reproduced empty candidates for the former and width domain {1} versus materialised {1,3} for the latter. These are semantic counterexamples, not requests for proof machinery.",
+   "change": "Make the \u00a75 reference analysis sound for the finite-width and materialised semantics by applying R6-CODEX-01 and R6-CODEX-02; add the two witnesses as independent recognition-plus-execution checks."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The explicit ISA-0.8 blockers preserve the promised capability contracts, and all eight requested round-5 fixes preserve scope. The remaining dispatch mismatches violate NS \u00a73.2\u2019s requirement that an artefact never fault where the materialised reference does not; missing nand lowering also prevents a promised sequentialised atomic construct from reaching the liftable form.",
+   "change": "Apply the three blocking fixes without introducing a rejection for mixed index widths, removed range annotations, or atomicrmw nand."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The document supplies detailed processing order, canonical rows, examples and a current 2598/2598 freeze receipt. I read the entire prompt, including diff, responses, north star, ISA and progress history; historical unavailable families were not treated as current failures. Five focused round-5 checker tests and all five published pointer/GEP run outcomes were independently rechecked successfully. The three new boundary cases need normative corrections before independent implementations can agree.",
+   "change": "After the three text fixes, add tagged wrapped-GEP, removed-range and nand examples with the expected results stated below, and include their execution in the next freeze receipt."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R6-CODEX-01",
+   "section": "\u00a75.2 PT2/PT6; \u00a77.2; consistency with \u00a716.4 and \u00a718.1",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "PT2 says \"constant indices add their datalayout byte offsets\" and represents the result as an offset in the original object, without the modular index computation that \u00a716.4 now requires. This produces a false candidate set, not merely a different analysis precision. Witness:\n target datalayout = \"e-p:64:64:64:32\"\n @tab = internal constant [1 x ptr] [ptr @body]\n declare void @__bennett_adj(ptr, ptr, ptr)\n define internal void @body(ptr %e) {\n   ret void\n }\n define void @top() {\n   %p = getelementptr i8, ptr @tab, i64 4294967296\n   %f = load ptr, ptr %p, align 8\n   call void @__bennett_adj(ptr %f, ptr null, ptr null)\n   ret void\n }\nThe index truncates to zero at I=32, so %p equals @tab, %f is @body and the adjoint invocation succeeds. There is no out-of-bounds access or source poison. LLVM 18 and 23 both verify this source, preserve it through default<O0>, and fold the marker operand to @body with instcombine. The repository recogniser instead returns accept with AV(%p)={(tab,4294967296)}, AV(%f)=empty and an empty candidate set. Under \u00a77.2\u2019s \"No match is the run-time trap T-REGION (fault code 4)\", that implementation traps on the defined invocation, whereas the finite-width reference executes @body. The correct \u00a716.4 GEP map does not repair the earlier S2 candidate analysis.",
+   "fix": "Replace the offset-computation portion of \u00a75.2 PT2 with:\n\"PT2 uses the pointer address space\u2019s P(a) and I(a), and the complete finite-width GEP semantics of \u00a716.4, also for constant expressions. Sequential indices are sign-extended or truncated to I(a), scaling and offset accumulation are modulo 2^I(a), and addition preserves the pointer bits above I(a). A statically zero accumulated offset copies AV(p) unchanged. Unbounded mathematical addition of object offsets must not substitute for this computation. For every represented (X,o), the abstract result includes the image of all represented addresses and index values under that finite-width computation; unknown base bits range over the patterns consistent with DataLayout and the object\u2019s alignment. Represent the resulting offset union using the existing integer/residue-class/* domain. If an address may leave X, include (EXT,*) and the non-handle top flag instead of dropping that address. PT6 propagates that unknown-address alternative; ROOT provenance and \u00a76.2\u2019s restrictions remain explicit. Array dimensions determine stride, never an index bound.\"\nKeep \u00a7\u00a716.4 and 17.4\u2019s corrected concrete GEP rows. Add a recognition/execution witness using the module above: AV(%p)={(tab,0)}, AV(%f)={FN(body)}, candidates={body}, verdict=accept and no T-REGION/fault. Check both the supported O0 form and the instcombine form. The abstract-offset rule must agree with the concrete map before dispatch domains are frozen."
+  },
+  {
+   "id": "R6-CODEX-02",
+   "section": "\u00a75.2 PT5; \u00a73.4 dispatch domains; \u00a712.2 N3/N4; \u00a718.1/\u00a718.7",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "PT5 says \"a range(lo, hi) attribute or !range metadata (read before N3 removes it) restricts \u22a4 to [lo, hi)\". N4 then removes range attributes, and \u00a7\u00a712.1/18.1 define execution on that materialised module. The old range is therefore not necessarily a bound on the program whose values dispatch must handle. Witness, verified and retained by LLVM 23 default<O0>:\n declare ptr @__bennett_qalloc(i64, i64)\n declare void @__bennett_gate(i32, ptr, i64)\n declare void @__bennett_qfree(ptr)\n define void @top(i64 range(i64 1, 2) %n) {\n   %m = and i64 %n, 3\n   %w = or i64 %m, 1\n   %h = call ptr @__bennett_qalloc(i64 0, i64 %w)\n   call void @__bennett_gate(i32 1, ptr %h, i64 2)\n   call void @__bennett_gate(i32 1, ptr %h, i64 2)\n   call void @__bennett_qfree(ptr %h)\n   ret void\n }\nPT5 gives VS(%w)={1}, reproduced by the recogniser with verdict accept. After N4, the entry has no range precondition: n=2 computes w=3, both X gates on wire 2 succeed and the register is freed cleanly. Re-analysing the actual materialised module gives {1,3}, also reproduced, and LLVM 18/23 fold its arithmetic probe at n=2 to 3. A plugin retaining the specified pre-N4 domain has only the width-1 alternative and faults or allocates the wrong width. This is not a claim about executing the original ranged function outside its precondition: the counterexample is to the explicitly defined, annotation-free materialised program and \u00a718.7\u2019s all-host-input conformance requirement. No optimiser erased this execution in the O0 witness.",
+   "fix": "Replace the final clause of PT5 with:\n\"A range attribute or !range metadata that N3 or N4 removes is not a reference bound on materialised execution. It must not restrict a value set used for a verdict, candidate set, descriptor shape or dispatch domain. A range independently established by the materialised instructions may restrict the set; otherwise retain top and apply the ordinary operation rules, including the finite mask/remainder rules.\"\nIn N3 delete \"after \u00a75 has read !range, PT5\" and state: \"N3/N4-removed range information is ignored when computing the \u00a75 reference domains.\" In \u00a73.4\u2019s finite-width examples replace \"range attributes and metadata\" with \"bounds established by materialised instructions\".\nFor the witness require VS(%w)={1,3}, verdict=accept and, at n=2, width=3, two successful X gates on wire 2, clean free and fault code 0. Add the parameter-attribute witness on LLVM 23 and an equivalent load-!range witness on LLVM 18/23. Two viable implementations are to ignore these annotations in S2 or to compute S2 on a virtual N3/N4-stripped view; I recommend the stripped view, preserving the single reference fixpoint. Keeping the annotations as new runtime preconditions would change the materialised semantics and is not the repair."
+  },
+  {
+   "id": "R6-CODEX-03",
+   "section": "\u00a712.2 N9; \u00a712.4 V6; \u00a716.1 completeness",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "N9 maps atomicrmw op to \"%nz.v.r = <op> T %nz.l.r, v\" and enumerates exceptions for xchg, min/max, FP and the round-5 wrap/subtract operations, but omits nand. LLVM has atomicrmw nand and no ordinary nand instruction, so the prescribed replacement is invalid IR. Retaining atomicrmw instead violates V6. Witness:\n @cell = internal global i8 -16, align 1\n define i8 @f() {\n   %old = atomicrmw nand ptr @cell, i8 -52 seq_cst, align 1\n   %new = load i8, ptr @cell, align 1\n   ret i8 %new\n }\nBoth LLVM 18 and 23 verify and retain this source under default<O0>. Independent lli executions on both versions confirm returned old=240 and stored new=63, since ~(0xf0 & 0xcc) & 255 = 0x3f. The repository normaliser raises \"N9 atomicrmw nand\". Thus the normative recipe cannot deliver the promised sequentialised, liftable device function; an implementation must invent an expansion or reject a supported construct. Different invented expansions also change \u00a716\u2019s charged reference rows. This is a separate remaining opcode omission; the four operations reported by BD3-R5-4 are now fixed.",
+   "fix": "Add this explicit exception to \u00a712.2 N9, before the common store and old-result substitution:\n\"For atomicrmw nand ptr p, iW v, after %nz.l.r = load iW, ptr p emit %nz.a.r = and iW %nz.l.r, v, then %nz.v.r = xor iW %nz.a.r, -1, with no overflow flags. Store %nz.v.r to p and replace every use of the atomicrmw result by %nz.l.r. These two logical instructions, in this order, are the canonical expansion.\"\nAdd a normalise/native witness with the source above and the output load/and/xor/store/load/ret sequence; require old=240, new=63 and code=0 on LLVM 18 and 23. A De Morgan expansion (xor each operand with all ones, then or) is also value-correct but has a different reference cost; select the two-operation and/xor expansion above and pin its mapped step count. No new rejection or ISA blocker is needed."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R5-01",
+   "status": "resolved",
+   "note": "P(a)/I(a), source-width carriers and target address bridges replace the implicit pw-wide conversions; pointer-as270 independently returns 0 and 1 in five steps."
+  },
+  {
+   "id": "R5-CODEX-01",
+   "status": "resolved",
+   "note": "PT6\u2013PT8 now distinguish storage intervals/representations, decode immutable bytes and widen partial overlaps; focused tests reproduce {257} and the mutable-subrange TOP/BLK-1 outcome."
+  },
+  {
+   "id": "R5-CODEX-02",
+   "status": "resolved",
+   "note": "Same repaired pointer-width defect as SOL-R5-01; the dynamic trunc.i32/zext.i64 object and both published input outcomes were independently executed."
+  },
+  {
+   "id": "BD3-R5-1",
+   "status": "resolved",
+   "note": "\u00a76.5 includes parameter/result roots and reusable unwind exits in boundary liveness; the focused test covers persistent parameter accumulation, QREG results, direct uses and the R dependency."
+  },
+  {
+   "id": "BD3-R5-2",
+   "status": "resolved",
+   "note": "\u00a713.1 supplies the M>128 limb-slot conversion ABI with exact integer input and full-width saturation; the focused wide FP normalisation test passes."
+  },
+  {
+   "id": "BD3-R5-3",
+   "status": "resolved",
+   "note": "\u00a712.1 repeats N22 after N27/N32, and \u00a712.8 supplies wide arithmetic/runtime forms; the focused wide-intrinsic normalisation test passes."
+  },
+  {
+   "id": "BD3-R5-4",
+   "status": "resolved",
+   "note": "N9 now explicitly defines uinc_wrap, udec_wrap, usub_cond and usub_sat with the reported semantics; the focused four-operation test passes. The separate nand omission is R6-CODEX-03."
+  },
+  {
+   "id": "BD3-R5-5",
+   "status": "resolved",
+   "note": "\u00a716.4 restores the exact dynamic-index/Delta and unconditional I<P recombination rows; independent runs reproduce 13, 13 and 9 steps for the three GEP vectors."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Appendix B: replace the historical requested-command availability parenthesis with the exact receipt-based wording in C5. Preserve the distinction between an executed successful ISA-0.8 path and a passing BLK-5 dependency-verdict check."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Make PT2 model the finite-width GEP operation before candidate sets are fixed, and demonstrate candidates={body} with no trap for the wrapped-table source. 2. Remove N3/N4-erased range information from reference-domain restrictions, and demonstrate finite width domain {1,3} and successful width-3 execution at n=2. 3. Add N9\u2019s canonical nand expansion and its old=240/new=63 differential vector, with a pinned reference cost. Execute these new source-derived cases alongside the existing round-5 witnesses and retain the eight resolved fixes. No further proof format, ISA redesign or corpus-wide feature expansion is required by this review.",
+ "summary": "Read the entire round-6 prompt, checking the diff before the full specification and all background sections. SOL-R5-01, R5-CODEX-01, R5-CODEX-02 and BD3-R5-1 through BD3-R5-5 are resolved; no regression of those fixes was found. Five focused round-5 checker tests pass, and all five published pointer/GEP runs match the independent interpreter, including their exact step counts. Three new core S0 issues remain: PT2 misses a real function target after modular GEP wrapping; PT5 retains range restrictions that N3/N4 remove from the executed program; and N9 lacks a valid canonical nand expansion. These findings were reproduced with the repository recogniser/normaliser and headless LLVM 18/23 probes. The recorded 2598/2598 freeze is useful evidence for its covered cases and does not cover these counterexamples.",
+ "verdict_core": "revise"
+}

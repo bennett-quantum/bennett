@@ -1,0 +1,118 @@
+exit 0 in 18s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "§4 fixes processing order and variants; §10 fixes Cl/M/Co state, speculative views and observation coverage; §17.3 fixes logical stack liveness; §18.1–§18.6 give the corresponding state and transitions. The round-5 parameter/result-root addition closes the identified cross-entry lifetime hole. No new machine-model S0 found.",
+      "change": "None required for this criterion (5/5)."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "§12–§16 now specify the formerly missing wide FP conversions, repeated width legalisation, atomic wrap/subtract forms and canonical GEP rows. The leading P(a) obligation in §16.4 is explicit, although its later function-constant example still spells the width pw.",
+      "change": "In §16.4 replace “Materialise a function `@F` by `c<j> = lift.const.i<pw> <A(F)>`” with “Materialise a function pointer `@F` of source type `ptr addrspace(a)` by `c<j> = lift.const.i<P(a)> <the P(a)-bit target representation of A(F)>`; any address-space or ISA-address conversion is emitted separately under the pointer-conversion rules above.” This makes the literal recipe agree with the already normative P(a) rule."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "TDL-5(b), TDL-7 and TDL-10 require total bounded inverses and clean control workspace; TDL-8 separates retained fault outputs from workspace and gates consumers on success. §18.2 specifies deterministic deferred-record placement and the complete Co-loop inverse. The inherited ISA permutation, prefix-reversal and borrow obligations remain intact. No new coherent-semantics S0 found.",
+      "change": "None required for this criterion (5/5)."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "§9 supplies four budget components, shadow-stack sizing, defaults and runtime token cases; ISA target/resource rules are incorporated rather than redefined. However, §9.2 permits identity-selected sstack values while §16.2 embeds sstack in the very object whose identity selects that value (SOL-R6-01).",
+      "change": "Add to §9.2: “Identity selectors are evaluated exactly once against the provisional interface hashes constructed from baseline region-key/symbol/default budgets under a frozen layout; they are never re-evaluated against final semantic identities.” Specify the baseline, overlay and regeneration order as in SOL-R6-01."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "The marker, descriptor, launch, comparison-link, version and dependency-blocker contracts are otherwise explicit. BLK-1/2/4/5 state exact ISA changes and preserve supported executions. The budget-selector/object-identity dependency lacks a normative resolution order, so the whole contract is not yet independently implementable for all admitted tables.",
+      "change": "In §9.2 and §19.9 state: “The resolved build record records both selection_identity (the provisional interface hash used for identity lookup) and identity (the final reference-object interface hash). An identity entry matches selection_identity only.” Retain §7.3’s final semantic identity and use the ordered construction in SOL-R6-01."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The reference construction, explicit validity hypotheses and executable map/hash/budget vectors support practical conformance without demanding mechanisation. I reran 325 selected checks: normalise 37, map 20, hash 8, run-oracle 21, blocker 19, native 29, recognise 134 and state 57; all passed. Those examples do not exercise an identity entry that changes its own wrapper input.",
+      "change": "Add a §21.3 DD/DM regression using SOL-R6-01’s f and table: baseline selection hash H16, identity override sstack=32, final object hash H32. Require one lookup against H16, final resolved sstack=32, and no rematching against H32; compare the generated wrapper and recorded identities independently."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The draft retains the north-star demo ladder, ordinary LLVM code under control, parameterised in-place updates, coherent memory, modeled effects and runtime budgets. Its stated departures widen capability or cite maintainer rulings. Named ISA-0.8 gaps remain explicit blocked dependencies, rather than concealed rejections. No new scope narrowing found.",
+      "change": "None required for this criterion (5/5)."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The complete prompt, diff, background and progress record were read. Mechanisms have executable examples and historical limitations are distinguished from the final freeze receipt. Some tool-availability prose remains historical: §1.5 and Appendix B still describe implemented interpreter commands as requested. The substantive implementation uncertainty is SOL-R6-01.",
+      "change": "In §1.5 and Appendix B replace the current requested-command status sentence with: “The reference interpreter supplies check, hash, run-oracle, step-check, run-cc, reverse, run-action and run-program. Passing a dependency-verdict check does not establish the missing ISA-0.8 capability.” The permitted interpreter binary’s --help lists all eight commands."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R6-01",
+      "section": "§9.2 budget-table identity matching; §7.3 oracle identity; §16.2 wrapper prologue; §19.9 resolved build record",
+      "scope": "contract",
+      "severity": "S0",
+      "problem": "§9.2 says “An entry matches a region by its identity (§7.3, the interface hash of @ref of one shape)” and “For each component a region takes, in order of precedence, the first entry matching by identity”. That includes sstack. §16.2 then emits the shadow-stack setup with “c = lift.const.i64 <sstack>”. This makes the selector depend on the value it selects, and no provisional identity, staging rule or other default breaks the cycle. Witness: use the supported O0 pipeline on `define i8 @f(i8 %x) { %p = alloca [24 x i8], align 8\n store i8 %x, ptr %p, align 1\n %v = load i8, ptr %p, align 1\n ret i8 %v\n }`, an IN(8,zext)/tgt=8 shape, a fixed runtime/link layout and adequate other budgets. LLVM 18 and 23 both verify it and retain the alloca/load under default<O0>. Let H16 and H32 be the interface hashes of its canonical reference objects using sstack=16 and 32 respectively, with all other inputs and raw-table maxima fixed. Use table `{\"version\":\"0.2\",\"defaults\":{\"steps\":\"1048576\",\"heap\":\"1048576\",\"stack\":\"65536\",\"depth\":\"256\",\"sstack\":\"16\"},\"entries\":[{\"identity\":\"H16\",\"sstack\":\"32\"}]}`, substituting the actual H16 digest. If the final object is H16, the entry matches and requires sstack=32, changing the object to H32. If it is H32, the entry does not match and requires the default 16. Thus the literal final-identity rule has no fixed point; a one-pass implementation and a rematching implementation cannot follow one common specified construction. This is semantic configuration, not a field-format omission: with initially unset stack state and helpers needing no additional shadow frames on this path, 16 cannot admit f’s 24-byte frame, whereas 32 can. Independently, hashing the existing entry-stack microvector through bennett-isa-ref hash /dev/stdin confirms the hash dependence: its original init-size constant 16 gives ref hash 50289e34598400f57c820d819d83993e14d12e08596ba55ce070109b5746ad1f; changing only that wrapper constant to 32 gives 100b604880ad883157e645eb234be2edfb5897d851f73321d554915b8d14509c. This microvector probe establishes hash sensitivity, not a claim that it is f’s canonical object.",
+      "fix": "Replace the identity-matching/precedence paragraph of §9.2 with this ordered rule, and cross-reference it from §7.3, §16.2 and §19.9: “Budget-table resolution is staged and does not seek a fixed point. First resolve baseline values for every region and component using the first matching region_key entry, then the first matching symbol entry, then the defaults, ignoring identity entries. Freeze the link’s layout capacities using the componentwise maxima of all defaults, table entries and statically supplied budget records, whether an entry matches or not; later lookup does not shrink or recompute those capacities. Construct each shape’s provisional reference object under that layout using its baseline sstack and other baseline wrapper inputs. Its interface hash is selection_identity. For each component, overlay the first identity entry naming that component whose identity equals selection_identity, or retain the baseline value if none matches. Apply this overlay once only. Generate the final reference object using the resolved values; its interface hash remains the semantic identity of §7.3. Do not re-evaluate identity selectors against that final hash. Record selection_identity, final semantic identity and resolved components in the build record and resolved budget table.” Existing explicit marker-record/table-sentinel precedence remains in force. Add the witness above to DD/DM: an entry keyed by H16 selects 32 exactly once, the final wrapper contains the size constant 32 and has H32, and its build record retains selection_identity=H16. Also test that changing only steps preserves the final object hash while changing the selected token. Another viable repair is a separately defined content hash of the pre-budget closure/shape with symbolic wrapper/layout inputs, used solely for budget lookup; specify its canonical construction and keep final ISA identity separate. I recommend the staged provisional-object rule because it reuses ISA hashing, preserves identity-based configuration and requires no new hash encoding. Removing identity selectors or silently ignoring identity-selected sstack would lose the advertised capability and is not the proposed repair."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R5-01",
+      "status": "resolved",
+      "note": "§1.5 and §16.2–§16.4 carry P(a), distinguish I(a), and propagate conversions to CC/R/native. pointer-as270 executes trunc.i32 then zext.i64 and returns 0/1; independent LLVM 18/23 folds agree."
+    },
+    {
+      "id": "R5-CODEX-01",
+      "status": "resolved",
+      "note": "PT6–PT8 now retain intervals/representation widths, decode immutable bytes, and use TOP for unrepresented overlapping non-handle bits. The 257-wire and mutable-subrange witnesses pass recognition, state and native checks."
+    },
+    {
+      "id": "R5-CODEX-02",
+      "status": "resolved",
+      "note": "Same representation-width defect as SOL-R5-01: per-address-space carriers and conversion rules replace the unconditional pw moves, with passing dynamic map/hash/run and native witnesses."
+    },
+    {
+      "id": "BD3-R5-1",
+      "status": "resolved",
+      "note": "§6.5 now covers parameter/result roots and reusable unwind/resume exits, preserves direct QREG transport, and classifies persistent accumulation under BLK-1/BLK-4. The cross-entry witness passes its blocker and two-register state checks."
+    },
+    {
+      "id": "BD3-R5-2",
+      "status": "resolved",
+      "note": "§13.1 restricts the i128 conversion ABI to M<=128 and specifies full-limb helpers, rounding/saturation and slot order for wider integer sides. n-fpconv-wide normalisation and native checks pass."
+    },
+    {
+      "id": "BD3-R5-3",
+      "status": "resolved",
+      "note": "§12.1 repeats N22 after N27/N32; §12.8 specifies wide arithmetic/aggregate transport and full-width runtime limb slots. Overflow/carry and ctpop.i192 normalisation/native witnesses pass."
+    },
+    {
+      "id": "BD3-R5-4",
+      "status": "resolved",
+      "note": "N9 now explicitly defines uinc_wrap, udec_wrap, usub_cond and usub_sat with unsigned tests, wrapping arithmetic and old-value returns; paired outputs and native checks pass with the LLVM-23 source restriction stated."
+    },
+    {
+      "id": "BD3-R5-5",
+      "status": "resolved",
+      "note": "§16.4 restores exact index-order/cast/stride/Delta/recombination rules. The dynamic and constant I<P objects, hashes, payloads and 13/9-step counts pass; the reported prior GEP-wording regression is fixed."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "§16.4, editorial carry-through of the resolved P(a) obligation: replace the later function-constant recipe with “Materialise a function pointer @F of source type ptr addrspace(a) at width P(a), using the target representation of A(F); perform any ISA-address conversion separately.” The section’s leading normative rule already requires this; the later pw spelling should agree with it. Add an addrspace(270) function-pointer constant/aggregate-field map vector, alongside the existing dynamic integer roundtrip.",
+    "§1.5 and Appendix B, tool-status maintenance: replace the stale requested labels for run-cc/reverse/run-action/run-program with “available in the interpreter snapshot identified by the execution receipt”; retain the sentence distinguishing dependency-verdict checks from implementing ISA-0.8 gaps. This is documentation maintenance, not an additional capability blocker."
+  ],
+  "verdict_core": "accept",
+  "verdict": "revise",
+  "path_to_accept": "1. Specify the nonrecursive budget-selection order in SOL-R6-01, preserving final ISA semantic identity separately from the identity used for budget lookup and freezing layout capacities before that lookup. 2. Add the H16 -> sstack32 -> H32 regression plus an ordinary steps-only identity override, checking the final wrapper, resolved record and token. No other S0 change is required for acceptance; the two editorial suggestions are nonblocking.",
+  "summary": "SOL-R5-01, R5-CODEX-01, R5-CODEX-02 and BD3-R5-1 through BD3-R5-5 are resolved; no regression identified. The entire supplied prompt, diff, document and background/progress sections were read in slices. All 325 selected pre-flight checks rerun here passed, and independent LLVM 18/23 pointer/O0 probes and Rust hash probes support the findings; this is not a claim to have rerun the full 2598-check gate. No new core S0 was found. One contract S0 remains: identity-selected sstack changes the reference-object identity used to select it, without a normative staging rule. Core accept; whole-document revise."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r6-sol.json
