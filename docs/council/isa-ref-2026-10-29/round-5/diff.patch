@@ -1,0 +1,3756 @@
+--- round-4/doc.md
++++ round-5/doc.md
+@@ -1,24 +1,26 @@
+-# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 4)
+-
+-Snapshot of `reference-interpreter/` at commit `8e11fe7`. 88 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 317 lines, sha256 392f2692a227
+-- `PROGRESS.md` 795 lines, sha256 4e4713979443
++# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 5)
++
++Snapshot of `reference-interpreter/` at commit `5d6d03e`. 90 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 331 lines, sha256 de3d981d13d3
++- `PROGRESS.md` 1003 lines, sha256 01a3a0e2ef24
+ - `SPEC-QUESTIONS.md` 223 lines, sha256 22bd03d701ee
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
++- `council/response-round-4.md` 340 lines, sha256 9528fe4def7d
+ - `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+-- `council/response-round-2.md` 260 lines, sha256 ec60481cde56
+-- `council/response-round-1.md` 398 lines, sha256 0aa2f796e5d7
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
++- `council/response-round-1.md` 398 lines, sha256 0aa2f796e5d7
++- `council/response-round-2.md` 260 lines, sha256 ec60481cde56
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+ - `src/action.rs` 966 lines, sha256 f529741e0c19
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 936 lines, sha256 70be65b17e48
+-- `src/call_discipline.rs` 390 lines, sha256 94426d5225f8
++- `src/borrow.rs` 1202 lines, sha256 6e4dc4645f50
++- `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+ - `src/certificate.rs` 557 lines, sha256 0bacdb2984d3
+-- `src/claims.rs` 734 lines, sha256 070416806b39
+-- `src/classical.rs` 1578 lines, sha256 4e381a121281
+-- `src/exact.rs` 697 lines, sha256 11ed74363454
++- `src/claims.rs` 759 lines, sha256 e7293205e64f
++- `src/classical.rs` 1621 lines, sha256 03116b542f5c
++- `src/exact/measurement.rs` 303 lines, sha256 40a7e87afcb3
++- `src/exact.rs` 700 lines, sha256 45263ea03d04
+ - `src/handle_validation.rs` 99 lines, sha256 6b1e868a7572
+ - `src/identity.rs` 434 lines, sha256 df6ff131275b
+@@ -27,18 +29,18 @@
+ - `src/linking.rs` 403 lines, sha256 b773eff53f8d
+ - `src/machine.rs` 1284 lines, sha256 905b12965800
+-- `src/main.rs` 1983 lines, sha256 8cefe91c70d5
+-- `src/metadata.rs` 396 lines, sha256 ddc1659d5084
++- `src/main.rs` 2001 lines, sha256 2d378567ac42
++- `src/metadata.rs` 401 lines, sha256 6fc964405210
+ - `src/object.rs` 1804 lines, sha256 0ee68d1e4c3f
+ - `src/oracle.rs` 860 lines, sha256 c852a0c5d82c
+-- `src/quantum.rs` 768 lines, sha256 08763d000b0d
+-- `src/registers.rs` 247 lines, sha256 7a28265dae15
++- `src/quantum.rs` 777 lines, sha256 c8a650a5c927
++- `src/registers.rs` 260 lines, sha256 3a4aae95c769
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+-- `src/validation.rs` 1916 lines, sha256 b67618af56ea
++- `src/validation.rs` 1918 lines, sha256 a4d5eb23025f
+ - `tests/bitvectors.rs` 117 lines, sha256 dcb60f20f4da
+ - `tests/borrow.rs` 195 lines, sha256 40d8a3a4b61e
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 1140 lines, sha256 29b8e13dce46
++- `tests/cli_xam.rs` 1270 lines, sha256 95792964397e
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -66,17 +68,17 @@
+ - `tests/fixtures/wide.bisa` 33 lines, sha256 0e7a614e989d
+ - `tests/fixtures/wide.comments` 12 lines, sha256 14b823a490e2
+-- `tests/identity.rs` 168 lines, sha256 872426ae71ec
++- `tests/identity.rs` 233 lines, sha256 08df57d302b1
+ - `tests/linking.rs` 133 lines, sha256 ca9f81880cc9
+ - `tests/metadata.rs` 264 lines, sha256 210e360205ec
+-- `tests/oracle.rs` 270 lines, sha256 c18d475e8db3
++- `tests/oracle.rs` 301 lines, sha256 a441482548ea
+ - `tests/parser.rs` 212 lines, sha256 d0e875703f78
+-- `tests/quantum.rs` 146 lines, sha256 60933c5bac2c
++- `tests/quantum.rs` 206 lines, sha256 7b46511016f1
+ - `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
+-- `tests/r1_borrow.rs` 397 lines, sha256 71af0c091d0a
+-- `tests/r1_certificates.rs` 244 lines, sha256 680db244f61e
++- `tests/r1_borrow.rs` 507 lines, sha256 96179097d19d
++- `tests/r1_certificates.rs` 501 lines, sha256 eda9ce802b38
+ - `tests/r1_discipline.rs` 385 lines, sha256 44c512ebe8c8
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+ - `tests/r1_fixtures.rs` 594 lines, sha256 ca26e8c771a2
+-- `tests/r1_fuzz_discipline.rs` 491 lines, sha256 ca7f02d287d0
++- `tests/r1_fuzz_discipline.rs` 696 lines, sha256 1ec3f29164ad
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+ - `tests/r1_linking.rs` 130 lines, sha256 1ae51c3da293
+@@ -86,13 +88,13 @@
+ - `tests/r1_widths.rs` 260 lines, sha256 5607035e9d75
+ - `tests/r2_validation.rs` 84 lines, sha256 7804bd497504
+-- `tests/registers.rs` 185 lines, sha256 65cf8101510f
+-- `tests/step_machine.rs` 164 lines, sha256 be73a49c6655
++- `tests/registers.rs` 345 lines, sha256 c1fb87e18c75
++- `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 130 lines, sha256 0c9117266ccc
++- `tests/support/mod.rs` 234 lines, sha256 9957d6b2c0bb
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 28563 lines.
+-
+-## `README.md` (317 lines)
++Total embedded: 30957 lines.
++
++## `README.md` (331 lines)
+ 
+ ````markdown
+@@ -163,5 +165,5 @@
+ - `--suite`: the §17 item 13 default, exhaustive at ≤ 16 bits and otherwise
+   2^16 xoshiro256** samples;
+-- `--samples N`: N samples (`--seed a,b,c,d` sets the four state words).
++- `--samples N`: N samples, N ≥ 1 (`--seed a,b,c,d` sets the four state words).
+ 
+ Output: `cases`, `input_and_memory_bits`, `mode` (`exhaustive` or `sampled`),
+@@ -214,5 +216,7 @@
+ `{"address","pre","post"}`, every changed byte). A hostcall record includes
+ its reply's deltas. A fault or trap is a `FAILED` result with no values,
+-not a diagnostic.
++not a diagnostic. This includes runtime region-interface and control/target
++aliases created through dynamic SSA: the call records fault 4 before changing
++quantum state or consuming a handle. Controls may share read-only inputs.
+ 
+ `reverse <object> <symbol> [options]` runs forward, then reverses, and
+@@ -373,5 +377,9 @@
+   superposition over any number of wires, each with an exact amplitude shadow
+   in Q(√2, i)[z, 1/z] (`src/exact.rs`). Cleanliness, basis reads and state
+-  equality are exact; binary64 amplitudes serve Born probabilities only.
++  equality are exact. Born selection compares exact-shadow norm ratios using
++  outward-rounded dyadic enclosures, refining without a precision cutoff.
++  Supported outcomes survive underflow; conditional binary64 amplitudes are
++  normalized with a shared extended exponent. Display probabilities remain
++  approximations (a positive value can display as zero).
+   `QuantumState::set_state_vector` installs a sparse superposition with each
+   binary64 amplitude held exactly as its dyadic value.
+@@ -380,5 +388,9 @@
+ - `Object::verify_certificate` and `verify_claim` re-execute exhaustive and
+   sampled claims (`ClaimVerdict::Proof` only for exhaustive claims over D),
+-  check translation-lemma and library structural claims, and report interval
++  check the complete named translation frame (canonical nested-line points,
++  actual borrowed wires, exact reverse V, repeated W and side conditions) and
++  library structural claims. Expected programs bind bundles and region cells
++  by ABI group and position, independently of local names; borrowed pools retain
++  domain order and omitted partial-domain inputs start at zero. Interval
+   claims and `expected: "oracle"` as `Unverified` with the reason.
+ - `Xoshiro256` is the §12.1 sampler.
+@@ -406,5 +418,9 @@
+ union and other provenance on all outputs, and their inverse histories cancel
+ jointly. Borrow proofs distinguish the complete classical argument and token
+-bindings through inlined calls. Matched lifted oracle calls preserve all tuple
++bindings through inlined calls. Borrow/return lifetime boundaries survive loop
++composition and adjoints: each return proves restoration and independence before
++repetitions compose. A borrow spanning a loop may be restored by the whole loop;
++a later borrowing cannot restore an earlier completed lifetime.
++Matched lifted oracle calls preserve all tuple
+ boundaries and account for every possible numeric `qjumpr` destination.
+ 
+@@ -416,5 +432,5 @@
+ ````
+ 
+-## `PROGRESS.md` (795 lines)
++## `PROGRESS.md` (1003 lines)
+ 
+ ````markdown
+@@ -426,4 +442,212 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Council round 4, muse third pass (2026-10-30)
++
++MUSE-R4-B01 **resolved by 40ef8ce**, independently pinned in this pass. The
++new exact CX witness was RED on archived round-4 source 8e11fe7, GREEN on the
++current source: each Return proves restoration and independence before Repeat
++composes only its carried-wire map. Added parser/hash/check negatives for
++both CX directions, trips 2/4, nesting and distinct-name unrolling, plus carried
++and local doubled-CX positives at 2 and 2^40 iterations. Every positive preserves
++all t,b basis inputs, superposition and an entangled external reference exactly
++in both directions. No loop cap or unrolling was added; the Repeat comment now
++states the local-lifetime invariant, including inlined children.
++
++Two separate deterministic families add **64 fresh-CX lifetime cases (32 accept /
++32 reject)** and **128 nested-call/mutable-region/borrow-pool cases (96 accept /
++32 reject)**. Expectations come from per-return freshness and an independent
++small Boolean map over the complete interface and memory. All accepted nested
++cases check 32 basis inputs, full superposition and an entangled borrowed
++reference against that map, then reverse exactly. Existing RNG/Python seeds
++and random-sweep distribution are unchanged.
++
++Non-blocking improvements: refuse vacuous --samples 0 (§17.13), cite §5.4 and
++§16.1 in all four reported malformed-option errors, remove seven handle-map
++expects and the SSA retry expect, add independent literal SCC/CC-service
++envelopes, five literal sum_db step/stack boundary tuples, and 132 normal-suite
++recursive prefixes for n=0..3. The CLI witnesses were RED before the fixes.
++Full suggestion-by-suggestion dispositions (including coverage/API/spec-edit
++declines and already-applied earlier suggestions) are in council/response-round-4.md.
++No blocker declines/partials and no new spec ambiguity; SPEC-QUESTIONS unchanged.
++
++Read-only conformance at **92c26af**: **445 pass, 0 fail, 46 unavailable / 491**,
++exit **2** for the existing staged deliverables. The extra unavailable target
++case is disclosed by the updated harness; it is not an interpreter regression.
++The exact command from conformance/PROGRESS.md used the absolute reference
++binary and redirected CARGO_TARGET_DIR into this crate's ignored `.tmp`.
++Conformance/include/spec/docs/worklog/HANDOFF/CLAUDE remained unedited.
++
++### Final muse-pass verification
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **242 passed, 0 failed, 5 ignored** (241 integration + 1 unit; 0 doctests; 12.05 s summed runner time) |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed, 0 failed**; 596.07 s summed runner time |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged Python seed `isa_check.py` | passes; seed diff against 8fa5d98 empty |
++| standalone conformance | **445 pass, 0 fail, 46 unavailable / 491**, exit 2 for explicit staging |
++| `git diff --check` | clean |
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 operations = 262,144 executions | 4.27 s |
++| 17-wire borrow execution | 2^17 basis entries | 21.55 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 119.32 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 432.24 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 18.69 s |
++
++All Rust commands used the absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
++All validation ran headlessly with DISPLAY, WAYLAND_DISPLAY,
++DBUS_SESSION_BUS_ADDRESS and BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs: `.tmp/r4-muse-{tests,ignored,clippy,conformance,python}.log`; archived RED
++logs: `.tmp/r4-muse-{borrow,options}-red.log`. Independent Python hashlib
++reproduced the literal SCC digest 05e79eab6ee962e7d1c2c9c4f4db5d27f07ef0e0231b6d394ab802d24bea7724
++and both ASCII-suffixed member hashes. No Rust changes followed these gates.
++No dependencies, spec edits, changed seeds or pushes. Bead b-isa-spec-zq2 stays
++open for the whole-ISA staged deliverables, including the proposed first
++F-link-conflict/F-frame-live-ranges promotions when their surfaces are ready.
++
++## Council round 4, sol second pass (2026-10-29)
++
++SOL-R4-B01 resolved: exact-shadow Born weights and refined outward-rounded
++CDF comparisons preserve nonzero branches under probability/amplitude
++underflow. Conditional display amplitudes normalize with a shared extended
++exponent; later measurements use exact norm ratios. Exact CLI and independent
++entangled-residual regressions were witnessed RED, then GREEN, including the
++smallest positive binary64 angle and an amplitude below binary64 range.
++Normal suite: **226 passed, 0 failed, 5 ignored**; initial strict Clippy clean.
++Details and named pins: council/response-round-4.md. No new ambiguity or cap.
++The response remains appendable for the pending muse seat.
++
++SOL-R4-B02 resolved after RED on the exact truncated frame and the nested-line
++positive. Canonical point resolution and an opt-in borrow compilation trace
++check the complete named V;W;reverse(V);W circuit, actual borrowed identities,
++inherited controls, syntactic side conditions and omitted adjacent touches.
++Three new tests exercise verify_claim and verify_certificate independently of
++borrow_frames admission, including full/nested positives and endpoint, changed-W,
++fake-B and omitted-gate negatives. Full suite: **229 passed, 0 failed, 5 ignored**;
++strict Clippy clean. No spec question.
++
++SOL-R4-B03 resolved: claim domains retain ABI group/slot and region cell index,
++so expected programs receive the corresponding inputs under any local renaming.
++Borrowed entries preserve domain order; genuinely omitted inputs stay zero.
++The exact four-element witness and renamed-region analogue were both RED.
++Three new regressions now prove these identities, reversed enumeration,
++crossed local names and multiple same-width slots, while single-X, wrong-slot
++and memory-only mismatches reject. Partial domains remain evidence.
++Normal suite: **232 passed, 0 failed, 5 ignored**. No new ambiguity; reading 21
++is unchanged. All SOL blockers resolved; muse response remains appendable.
++Blocker commits: **3ba7154** (SOL-B01), **21da2cc** (SOL-B02),
++**d7a14fd** (SOL-B03).
++
++### Final round-4 sol-pass verification
++
++Rebuilt offline, then ran the exact standalone conformance command documented
++in conformance/PROGRESS.md against the absolute reference binary. Harness
++result: **445 pass, 0 fail, 45 unavailable / 490**, exit **2** for the existing
++staged deliverables 8–11. No conformance/include source or header was edited;
++CARGO_TARGET_DIR redirected harness build artifacts into the interpreter's
++ignored `.tmp/conformance-target`.
++
++Then ran the required gates, with absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`:
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **232 passed**, 0 failed, 5 ignored (231 integration + 1 unit; 0 doctests; 5.55 s summed runner time) |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed**, 0 failed; 336.09 s summed runner time |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged Python seed `isa_check.py` | passes; diff against 2f167cc empty |
++| `git diff --check` | clean |
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 operations = 262,144 executions | 2.80 s |
++| 17-wire borrow execution | 2^17 basis entries | 15.28 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 76.68 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 220.24 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 21.09 s |
++
++Every validation command ran headlessly with DISPLAY, WAYLAND_DISPLAY,
++DBUS_SESSION_BUS_ADDRESS and BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs: `.tmp/r4-sol-{tests,ignored,clippy,conformance,python}.log`.
++No source changes followed these gates. No dependencies, changed seeds,
++spec edits, declines, partial SOL resolutions or pushes. All committed edits
++are under reference-interpreter; bd notes track this pass on b-isa-spec-zq2.
++The full-ISA bead remains open for staged work; muse's response may follow.
++
++## Council round 4, codex first pass (2026-10-29)
++
++R4-B01 resolved after RED on the exact loop-local borrow witness. Borrow/Return
++nodes preserve lifetime boundaries through loops and adjoints; every return
++proves identity and output independence before repetition can compose it.
++Spanning lifetimes retain whole-loop restoration. Exact, unrolled, nested and
++output-dependency negatives reject at parser/hash/check; positive controls
++preserve all t,b bases, superposition and an entangled reference forward/adjoint.
++The new deterministic 32-case family checks trip counts 1..4 against per-return
++parity: 16 accepted / 16 rejected. Existing RNG/Python seeds unchanged.
++Normal suite after B01: **217 passed, 0 failed, 5 ignored**. 11 active borrow
++and 5 active generator tests pass. Response: council/response-round-4.md;
++appendable for sol/muse.
++
++R4-B02 resolved: physical region slot disjointness is checked before handle
++deduplication; effective controls are bound to transitive actual targets.
++Only specified alias preconditions become terminal fault-4 frames; internal
++errors remain diagnostics. Exact CC/R select witnesses, oracle aliases,
++regions, block parameters, nested targets and directly aliased R bindings
++are pinned. Both quantum state and handles are unchanged on fault and complete
++prefix reversal restores entry. CLI run-cc/run-program give FAILED/fault=4/
++steps=2/results=[]; reverse equals_entry=true. Disjoint c=0 remains three-step
++completion and control/read-only-input overlap remains legal. Both main
++witnesses were RED; replaying the five library pins against pre-fix source
++found oracle aliases had silently completed as well. GREEN: 11 register +
++29 CLI tests; full normal suite **223 passed, 0 failed, 5 ignored**.
++Blocker commits: **40ef8ce** (B01), **09fe805** (B02).
++
++### Final round-4 first-pass verification
++
++All cargo commands used the absolute manifest path
++`/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
++All verification ran with DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS,
++and BROWSER unset and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs are retained in ignored `.tmp/r4-{tests,ignored,clippy,conformance}.log`.
++
++After rebuilding the binary offline, ran the exact standalone harness command
++from conformance/PROGRESS.md, with absolute conformance manifest and `--bin`
++paths. `CARGO_TARGET_DIR` kept build artifacts under the interpreter's ignored
++`.tmp/conformance-target`; conformance/include sources remained read-only.
++Result: **445 pass, 0 fail, 45 unavailable / 490**, exit **2** for existing
++staged capabilities, unchanged from the reviewed baseline.
++
++Then `cargo test --offline` passed **223 tests, 0 failed, 5 ignored**
++(222 integration + 1 unit; 0 doctests; 2.53 s summed runner time).
++`cargo clippy --offline --all-targets -- -D warnings` and
++`cargo fmt -- --check` pass. Unchanged Python seed check passes and its diff
++against 8e11fe7 is empty. README documents lifetime boundaries and dynamic
++alias fault reporting. No dependencies added; no pushes.
++
++`cargo test --offline -- --ignored --nocapture`: **5 passed, 0 failed**.
++All original random seeds are unchanged; the loop-lifetime family is separate.
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 operations = 262,144 oracle executions | 2.22 s |
++| 17-wire borrow execution | 2^17 basis entries | 15.45 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 64.53 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all clean**, 135,283 rejected | 200.70 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 10.29 s |
++
++Both received codex blockers are resolved with individual commits. The editor
++response stays appendable for the pending sol/muse second pass. Only
++reference-interpreter paths were committed, with bd comments for tracking.
++
++No new ambiguity, decline, spec edit or narrowed capability. Bead b-isa-spec-zq2.
+ 
+ ## Council round 3, codex second pass (2026-10-29)
+@@ -1509,4 +1733,349 @@
+ ````
+ 
++## `council/response-round-4.md` (340 lines)
++
++````markdown
++# Editor response: council round 4
++
++Inputs: codex out-codex.json and sol out-sol.json, snapshot 8e11fe7. This
++response is appendable for the pending muse pass. Owned paths are exclusively
++reference-interpreter; ISA 0.8, the Python seed and random seeds are unchanged.
++
++## R4-B01 — resolved
++
++RED: `r1_borrow::r4_loop_local_returns_cannot_be_restored_by_later_borrowings`
++accepted the exact loop-local borrow/X/return witness before the fix.
++`src/borrow.rs::Node` now retains Borrow/Return lifetime boundaries;
++Compiler emits them and reverses them under adjoints. Evaluation checks
++restoration of every returned wire and independence of every other live
++output at Return, then removes the returned system. Repeat proves these
++boundaries on the generic body BEFORE composing its surviving-wire map by
++squaring. Borrowing starts a fresh independent symbolic entry. Lifetimes
++spanning a loop remain in its map and are checked only at their actual return.
++Zero-trip loops apply no lifetime; no unrolling threshold or new cap is added.
++The exact evaluator includes surrounding allocation/cleanup so a clean
++allocation preceding Borrow is known clean if freed before Return.
++
++Pins: the exact witness, straight-line unrolling (reused name), single lifetime,
++nested even loops, and a restored-but-dependent CX output all reject at parse
++and CLI hash/check with §5.6, exit 1 and empty stdout. The positive pin
++`r4_borrow_lifetimes_inside_and_across_loops_preserve_full_state` covers spanning
++and iteration-local lifetimes, nesting, and surrounding clean allocation.
++Every positive runs forward/adjoint over all t,b basis pairs, superposition,
++and a borrowed wire entangled with an untouched reference, with exact equality.
++`r1_fuzz_discipline::generated_loop_local_borrow_returns_match_alpha_renamed_unrollings`
++adds 32 deterministic cases (trip counts 1..4, one/two X gates, loop/unrolling,
++with/without outer even loop). Independent per-return parity gives precisely
++16 rejects / 16 accepts; every accept passes the same full-state checks.
++GREEN: 11 active borrow + 5 active generator tests; whole normal suite
++217 passed, 0 failed, 5 ignored. No SPEC-QUESTIONS entry: §§4.3, 4.6, 5.1
++and 5.6 explicitly require return AFTER its frame and factorisation on B.
++
++## R4-B02 — resolved
++
++RED: exact select-created interface alias in the library and CLI produced an
++internal §3.3 error instead of fault JSON. Replaying all five new library
++regressions against pre-fix classical.rs also witnessed the control-target
++internal error, region-interface internal error, and an oracle alias silently
++completing. The combined CLI pin initially failed at the exact action witness.
++
++`src/classical.rs::ClassicalMachine::region_record` validates physical wire
++uniqueness in every interface bundle and passed region BEFORE handle-id
++deduplication. Effective controls are checked against oracle target/fault
++wires, transitive action interface targets and mutable-region cells, before
++execution or lifecycle changes. `call_discipline.rs::interface_targets` is
++shared with the static checker. Only the specified runtime alias preconditions
++are marked `trap`; simulator/internal failures still propagate as diagnostics.
++The existing step path pushes the ordinary terminal fault-4 history frame.
++Control/read-only-input overlap remains valid and bookkeeping still deduplicates
++its handle. No gate runs and no handle is consumed when validation fails.
++
++Pins in `tests/registers.rs`: `r4_dynamic_interface_alias_is_an_atomic_reversible_cc_and_r_fault`,
++`r4_dynamic_control_target_alias_is_an_atomic_reversible_cc_and_r_fault`,
++`r4_dynamic_oracle_input_output_alias_is_an_atomic_reversible_cc_and_r_fault`,
++`r4_dynamic_control_can_overlap_a_readonly_input`, and
++`r4_dynamic_alias_checks_cover_regions_block_parameters_and_child_targets`.
++Exact select witnesses run in both CC and R: c=1 records fault 4 at two steps,
++no results, unchanged quantum state AND handles; c=0 completes at three steps,
++target 1, read-only source 1. Both restore the complete entry snapshot under
++reversal. Extra pins cover passed-region aliases, block parameters, nested
++child targets and directly aliased R entry bindings.
++
++`cli_xam::r4_dynamic_region_aliases_report_failed_json_and_reverse_the_prefix`
++pins all four families for run-cc/reverse (CC and R), plus run-program (CC).
++The invalid branch exits 0 with FAILED/fault=4/steps=2/results=[], one named
++FAULT_UB_TRAP record; reverse exits 0 with equals_entry=true after the faulted
++prefix. Disjoint branches remain COMPLETED at three steps with exact reversal.
++GREEN: 11 register tests + 29 CLI tests, and the full normal suite: **223
++passed, 0 failed, 5 ignored**. No SPEC-QUESTIONS entry: §§3.3, 4.7 and 7.4
++explicitly prescribe physical disjointness, the trap and prefix reversal.
++
++Both received blockers are resolved; no declines or partials. This response
++remains appendable for sol/muse.
++
++## Final verification of this received pass
++
++Blocker commits: **40ef8ce** (R4-B01), **09fe805** (R4-B02). Rebuilt offline,
++then ran the exact standalone conformance harness from conformance/PROGRESS.md
++against the absolute reference binary: **445 pass, 0 fail, 45 unavailable /
++490**, exit **2** for the previously disclosed deliverables 8–11. Conformance
++and headers were read-only; build artifacts went into the interpreter's `.tmp`.
++
++Final normal suite: **223 passed, 0 failed, 5 ignored**. All ignored tests:
++**5 passed, 0 failed** (u8 division/remainder, 2^17 borrow basis entries,
++2^18 certificate elements, 200,000 generated discipline programs, all prefixes
++for 256 recursive inputs). The discipline sweep reports **64,717 accepted,
++all exactly clean / 135,283 rejected**; the new 32-case lifetime family runs
++separately in the normal suite. PROGRESS.md records runner timings.
++
++Strict all-target Clippy, formatting check, unchanged Python seed check and
++diff check pass. Every verification command used absolute manifest paths,
++DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++No dependencies, spec edits, seed changes, declines or pushes. README retains
++the failed-result promise and documents lifetime and dynamic-alias semantics.
++
++## SOL-R4-B01 — resolved
++
++RED: `cli_xam::sol_r4_b01_tiny_born_branch_is_selectable` selected 1 instead
++of 0 at theta=1e-162, draw=0. Independently,
++`quantum::sol_r4_b01_tiny_projection_preserves_entangled_residual_and_second_born_weights`
++failed on nonfinite conditional amplitudes.
++
++`quantum.rs::measurement_branches` now derives exact Laurent-polynomial
++weights from the exact amplitude shadows. `registers.rs::measure` compares
++cumulative weights against draw times the total weight, preserving ascending
++outcome order and strict CDF boundaries. `exact/measurement.rs` decides exact
++zero first, then refines outward-rounded dyadic enclosures until the sign is
++proved. Phase enclosures use a Taylor tail bound on |x| <= 1/2 and repeated
++squaring; sqrt(2) uses bounding binary digits. There is no precision cutoff,
++probability floor or guessed clamp. Projection display amplitudes use refined
++shadows and a shared binary exponent before normalization; subsequent Born
++weights use norm ratios of the unnormalised shadows. Binary64 probability
++fields remain diagnostic approximations and may display zero for a positive
++weight. README documents this distinction.
++
++Pins: the exact memoryless ptr_width=32 CLI witness at 1e-100, 1e-161,
++1e-162, 1e-200 and the smallest positive binary64 angle: draw=0 selects 0,
++draw=0.5 selects 1; angle=0 selects 1. Each completes in three rows, without
++fault; every measured reversal is refused. The residual entangled-pair pin
++checks finite normalized amplitudes and a second measurement's independent
++1/2,1/2 probabilities and correlations. A third pin,
++`quantum::sol_r4_b01_projection_recovers_amplitudes_below_binary64_range`,
++uses two tiny rotations (amplitude ~2.5e-401), projects a residual |+>, then
++cleans it with H and releases it exactly.
++
++GREEN: full normal suite **226 passed, 0 failed, 5 ignored**. No new spec
++question: §§3.3, 4.4 and 14.2 specify this behavior directly. No seed changes.
++
++## SOL-R4-B02 — resolved
++
++RED: `r1_certificates::sol_r4_b02_translation_claim_must_prove_its_complete_named_frame`
++returned Proof for the exact two-gate truncated frame. The separately run
++nested-line positive failed with `unknown instruction ordinal` before the fix.
++
++`claims.rs::check_translation_witness` now resolves every V/W point AND both
++frame endpoints through the shared canonical §9.2 resolver in `metadata.rs`.
++`borrow.rs::check_translation_frame` uses an opt-in trace of the existing
++borrow compiler, retaining physical wires, live borrow identities, inherited
++controls, loop structure and complete instruction expansion. It requires the
++actual contiguous named frame to equal V;W;reverse(V);W, with the listed V/W
++points naming its leading instructions in order. It checks X/B side conditions
++on the compiled flips, requires B to name live borrowed wires and cover every
++borrowed touch, and rejects omitted adjacent touches in the permutation run.
++Lifetime changes/non-permutation operations bound that run. No source line,
++intervening operation, swap, phase or control can silently disappear. Tracing
++is disabled in ordinary borrow validation; no exhaustive limit is added.
++
++Pins exercise both `verify_claim` and `verify_certificate`, leaving
++`verification.borrow_frames` empty: truncated [1,2] rejects, full [1,4] proves;
++nonexistent/reversed endpoints, nonexistent or misplaced V/W, fake B and changed
++second W reject. `sol_r4_b02_translation_claim_uses_nested_line_ordinals`
++proves gates 2..5 inside a qloop and rejects its truncated frame.
++`sol_r4_b02_translation_frame_rejects_omissions_and_checks_reverse_order`
++proves a two-gate V in exact reverse order, rejects a skipped intervening gate,
++and rejects a four-gate slice omitting adjacent borrowed touches. The negative
++objects themselves remain valid full circuits, so the claim checker is tested
++independently of parse-time factorisation. README documents the complete check.
++
++GREEN: all 3 new structural regressions pass; whole normal suite: **229 passed,
++0 failed, 5 ignored**; strict Clippy clean.
++No SPEC-QUESTIONS entry: §§5.6, 9.2 and 12.1 specify the checks directly.
++
++## SOL-R4-B03 — resolved
++
++RED: `r1_certificates::sol_r4_b03_expected_program_uses_signature_positions_for_renamed_bundles`
++failed on element 1 of the exact four-element identity-vs-renamed-identity
++witness (subject closure e153e677…, expected program 44e334e5…). The region
++analogue independently failed on element 1 before the fix.
++
++`claims.rs::Component` now identifies interface bundles by (ABI group, slot)
++and region cells by (ABI group, slot, cell index). `domain` resolves these
++positions once against the subject; `execute_element` binds those same
++positions to either function, independently of local names. Borrowed pool
++components retain their domain order. Deliberately omitted partial-domain
++inputs still initialize to zero, and output tuples retain signature order.
++Both exhaustive and sampled comparisons use this common representation.
++
++Pins: the exact four tuples now return Proof through both verify_claim and
++verify_certificate, as do reversed domain enumeration order and two extra
++borrowed pool components in deliberate z,b order. Omitting p still yields
++Evidence(2). A single-X reference still fails with a §12.1 full-tuple mismatch.
++`sol_r4_b03_expected_program_maps_renamed_region_cells_positionally` proves
++all 16 interface/memory tuples for m→n and checks a partial cell-1 domain
++(Evidence(8)); a reference changing only memory rejects.
++`sol_r4_b03_positions_distinguish_same_width_slots_and_crossed_names` uses
++two mutable bundles and reuses t/u/p in different groups in the reference:
++all eight tuples agree positionally; writing the wrong mutable slot rejects.
++README documents positional input binding and retained partial-domain rules.
++
++GREEN: full normal suite **232 passed, 0 failed, 5 ignored**. No new ambiguity:
++§§5.1, 9.4 and 12.1, consistently with SPEC-QUESTIONS 21, determine the ABI
++and tuple correspondence. All three SOL blockers are resolved; no declines,
++partials, dependencies, Python/random seed changes or spec edits.
++
++
++## Final verification of the SOL second pass
++
++Separate blocker commits: **3ba7154** (SOL-R4-B01), **21da2cc**
++(SOL-R4-B02), **d7a14fd** (SOL-R4-B03). All three resolved, no declines or
++partials. The response remains appendable for muse's pending review.
++
++Rebuilt the binary offline, then ran the exact standalone conformance command
++from conformance/PROGRESS.md, keeping conformance/include read-only and build
++artifacts in the interpreter's ignored `.tmp/conformance-target`:
++**445 passed, 0 failed, 45 unavailable / 490**, exit **2** for existing staging.
++
++Final normal suite: **232 passed, 0 failed, 5 ignored**, 5.55 s summed runner
++time. Ignored suite: **5 passed, 0 failed**, 336.09 s summed runner time,
++including 2^18 checked certificate elements and the 200,000-program discipline
++sweep (**64,717 accepted, all exactly clean / 135,283 rejected**). Strict
++all-target Clippy, formatting, unchanged Python seed and diff checks pass.
++PROGRESS.md records individual sweep counts/times and retained log names.
++
++All validation used absolute manifest/binary paths, the specified local
++TMPDIR, and DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset.
++No dependencies, spec/conformance/header edits, seed changes or pushes.
++
++## MUSE-R4-B01 — resolved (by 40ef8ce; exact muse pins in this pass)
++
++Input: `out-muse.json` and the complete round-4 report; implementation starts
++from 8fa5d98 with the read-only conformance update at 92c26af. This blocker
++shares the lifetime/factorisation cause fixed in pass 1, rather than requiring
++a second, different loop model. No blocker is declined or partial.
++
++RED: copied the committed 8e11fe7 crate into the interpreter's ignored `.tmp`
++and added the new regression/support files. Running
++`r1_borrow::muse_r4_b01_each_iteration_has_an_independent_borrowed_entry`
++there failed on the EXACT `qloop 2 { d = qborrow any 1; cx d t; qreturn d }`
++object: Object::parse accepted it. The same new test passes on the current
++implementation. Log: `.tmp/r4-muse-borrow-red.log`. This replay did not replace
++or edit live source, spec, conformance or the Python seed.
++
++The existing `Compiler::compile` emits Borrow/Return nodes, including inside
++inlined permutation children. `Evaluation::apply(Return)` proves both identity
++on the returned wires AND absence of their entry variables in every other live
++output, before removing the returned system. Repeat checks that generic body
++before squaring its surviving-wire map. Thus each iteration-local beta is
++universally quantified independently, while a lifetime spanning the loop stays
++carried and can be restored by the whole loop. This pass clarifies this invariant
++on Node::Repeat; no new cap, unrolling strategy or semantic special case is added.
++
++Named pins in `tests/r1_borrow.rs`:
++
++- `muse_r4_b01_each_iteration_has_an_independent_borrowed_entry`: both CX
++  directions, single lifetime, trips 2 and 4, nested 2x2 and independently named
++  unrolling. Every negative requires Object::parse Err plus CLI hash/check exit
++  1, empty stdout and §5.6. For d→t, t'=t XOR beta at each return; for t→d,
++  d'=beta XOR t. Even iteration counts cannot remove either per-return failure.
++- `muse_r4_b01_carried_and_local_borrow_cx_identities_have_no_trip_cap`:
++  borrowing outside the two-iteration loop, and doubled-CX local lifetimes at
++  trips 2 and **1,099,511,627,776**, for both CX directions. Every positive checks
++  hashes and exact forward/adjoint state equality over all t,b basis entries,
++  superposition, and b entangled with an untouched reference.
++
++New independent generated families in `tests/r1_fuzz_discipline.rs`:
++
++- `generated_fresh_borrow_cx_loops_match_per_lifetime_maps`: 64 cases, **32
++  accept / 32 reject**; both CX directions, trips 1..4, one/two gates per
++  lifetime, nested loops, alpha-renamed unrollings. The oracle is each lifetime's
++  map, never whole-loop parity or simulator agreement. Every accept gets the
++  full basis/superposition/entangled-reference identity check.
++- `generated_nested_calls_with_regions_and_local_borrows_match_boolean_maps`:
++  128 cases, **96 accept / 32 reject**, direct and doubly nested calls, renamed
++  interfaces, passed mutable-region cells, iteration-local borrowed pools,
++  loop bounds 1..4 and nested loops. From V=(b ^= p), W=(t ^= b; r[p] ^= b),
++  the independent map for V;W;V;W is t ^= p, r[1] ^= p, with r[0],p,b unchanged.
++  Omitting the second W with odd multiplicity must reject irrespective of loop
++  parity. All accepts compare the complete state against that map on 32 basis
++  inputs, a full superposition and an entangled borrowed reference, then reverse
++  exactly. No RNG, Python seed or existing sweep expectation changed.
++
++No SPEC-QUESTIONS entry is needed: §4.6 explicitly says "body n times", §5.1
++requires each qreturn after its frame, and §5.6 requires identity on EVERY
++borrowed bundle and its external reference. Readings 20 and 28 are unchanged.
++
++## Non-blocking round-4 suggestions — dispositions
++
++All three JSON `suggestions` arrays and criterion-level `change` proposals
++were read. The table includes proposals already completed by passes 1–2;
++non-blocking coverage declines below are not blocker declines.
++
++| Source / suggestion | Disposition and reason |
++|---|---|
++| codex suggestions / C7: lifetime loops versus unrollings and dynamic aliases | Applied in pass 1; this pass adds the fresh-CX 64-case family and exact muse pins. Existing select/block-parameter CC/R alias tests still pass with FAILED/fault=4 and reversible prefixes. |
++| muse suggestions 1 / C8: refuse --samples 0 | Applied in main.rs, README and `cli_xam::muse_r4_step_check_requires_a_nonempty_sample`; zero exits 1 with §17.13 and empty stdout; one sample still runs. Witnessed RED: the old CLI returned cases=0/status=ok. |
++| muse suggestions 2 / C8: cite rules on malformed CLI numbers/HEX | Applied: shared budget parsing cites §5.4, including host-counter overflow; memory/HEX diagnostics cite §16.1. `cli_xam::muse_r4_malformed_options_cite_the_isa_without_partial_output` pins all four exact reported options. Archived old CLI reproduces each bare error independently in `.tmp/r4-muse-options-red.log`; the new test was also witnessed RED live. |
++| muse suggestions 3: handle-map and SSA error expects | Applied: all seven register transition expects use a fallible §3.3 status helper; the SSA retry invariant now returns a §3.3 error if its recorded diagnostic is unexpectedly absent. Existing ownership/alias/reversal tests verify normal behavior. |
++| muse suggestions 3: signature Json::Array expects | Declined: these arrays are constructed as Json::Array immediately before reading them, and header validation checks singleton arity; making the infallible public signature API return Result for this unreachable invariant is not a pure correctness gain for validated objects. |
++| muse suggestions 4 / C7: broaden generated structured borrowing | Applied with the 64-case local-borrow family and the 128-case nested mutable-region/call/pool family; existing seeds and the 200,000-case random distribution are unchanged. |
++| muse suggestions 4 / C7: also add qinplace, ctl/adj oracle calls, while selectors and indexed multi-bit random families | Declined in this pass: these are separate coverage projects with different semantic oracles; changing the old random distribution would obscure the retained sweep baseline. Existing instruction support and dedicated tests remain in scope and unchanged. |
++| sol suggestions: nested calls with mutable regions and borrowed pools | Applied: the 128-case Boolean-map family checks the full interface/memory/borrow/reference state and its exact adjoint, independently of interpreter-to-interpreter agreement. |
++| muse suggestions 5: adopt readings into spec 0.9 | Declined here: spec/ is explicitly read-only for this task; all proposed wordings remain recorded in SPEC-QUESTIONS.md. |
++| muse suggestions 6: complete staged deliverables 8–11, first F probes | Retained as whole-ISA work, not falsely marked complete; the current pass verifies the updated harness and keeps every unavailable outcome explicit. F-link-conflict/F-frame-live-ranges remain the proposed first F promotions when those surfaces land. |
++| codex C2 / muse C2: independent two-member SCC envelope | Applied in `identity::council_r4_mutual_scc_has_independent_literal_envelopes`: literal LF bytes, f/g name order, @$0/@$1 references, no intra-SCC dependency lines, concatenation and ASCII member suffixes; FIPS-tested SHA-256 only builds the expectation. |
++| sol C2: independent CC envelope with service and model | Adapted in `identity::council_r4_cc_envelope_includes_service_but_not_unused_model`: literal service/layout/LF bytes and exclusion of a declared unused model. A single function cannot directly use both: §4.8 makes effect R-only and hostcall CC-only. Existing R model envelope/hash pins remain. |
++| codex C3 / sol C3: literal recursive step/stack boundaries | Applied in `oracle::council_r4_sum_db_literal_step_and_stack_cutoffs`: n=2 at B=38/37 and stack=47 gives (3,0,38)/(0,1,37)/(0,3,29); n=0 at B=9/10 gives (0,1,9)/(0,0,10). |
++| muse C4: small recursive every-prefix sweep in normal tests | Applied for n=0..3, 132 prefixes through the first idle-HALT step, in `step_machine::council_r4_small_recursive_inputs_gate_every_prefix_in_normal_suite`; the full ignored 256-input sweep is retained. |
++| codex C4 / sol C4: inspect private call-record fields | Declined: no incorrect record was identified; inspecting private slots/stack requires a new inspection API, while complete pre/post snapshot inversion, every-prefix checks and literal outcomes already gate this path. |
++| muse C3: add a fault-to-fixture index to all fixture comments | Declined: no incorrect fixture derivation was identified; a second index duplicates the existing fixture/test inventory rather than correcting it. |
++| muse C5: one new registers.rs test name for each trap cause | Declined: reorganizing every trap witness into registers.rs is a separate test-organization expansion; this pass retains the current named fault/reversal pins and makes no trap-code semantic change. |
++| sol C1/C5/C6/C7/C8 and codex C1/C5/C6/C8 | Applied by the five prior blocker fixes and their independent regressions; all retained tests pass in this pass. |
++
++
++## Final verification of the MUSE third pass
++
++MUSE-R4-B01 is resolved-by **40ef8ce**, now pinned by its exact independent
++muse witnesses, huge-bound positives and two new generated families. No new
++borrow semantic fix was necessary or claimed. All six round-4 blocker IDs
++(codex 2, SOL 3, MUSE 1) are resolved; none is declined or partial. The
++non-blocking dispositions above deliberately distinguish coverage suggestions
++from correctness requirements. SPEC-QUESTIONS.md and the accepted ISA 0.8
++are unchanged.
++
++After rebuilding the binary offline, the exact standalone harness command
++from conformance/PROGRESS.md against the updated **92c26af** conformance crate
++reported **445 passed, 0 failed, 46 unavailable / 491**, exit **2**. The extra
++unavailable target case is the documented harness addition; no unavailable
++outcome is silently skipped or counted as a pass. Conformance/include stayed
++read-only; CARGO_TARGET_DIR kept build artifacts in the interpreter's `.tmp`.
++
++Normal suite: **242 passed, 0 failed, 5 ignored**, 12.05 s summed runner time.
++Ignored suite: **5 passed, 0 failed**, 596.07 s summed runner time, including
++2^17 borrow entries, 2^18 certificate elements, every recursive prefix for all
++256 inputs, and the 200,000-program discipline sweep (**64,717 accepted, all
++exactly clean / 135,283 rejected**). The two new deterministic families run
++separately in the normal suite; existing seeds/distribution are unchanged.
++Strict all-target Clippy, formatting, unchanged Python seed and diff checks
++pass. PROGRESS.md records per-sweep times and log paths.
++
++All validation used the required absolute manifests/binary, with DISPLAY,
++WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Only reference-interpreter paths changed; no dependencies, spec/docs/header/
++conformance/worklog/HANDOFF/CLAUDE edits, seed changes or pushes. The full-ISA
++bead remains in progress for staged deliverables 8–11.
++````
++
+ ## `council/response-round-3.md` (189 lines)
+ 
+@@ -1703,267 +2272,20 @@
+ ````
+ 
+-## `council/response-round-2.md` (260 lines)
+-
+-````markdown
+-# Editor response: council round 2
+-
+-Inputs: `out-sol.json` (8 blockers), `out-codex.json` (7 blockers), reviewed
+-snapshot dc46d07. Member prefixes disambiguate IDs. This response is appendable
+-for the pending muse second pass. No specification or Python seed edits.
+-
+-## Per-blocker status
+-
+-| Member ID(s) | Status |
+-|---|---|
+-| SOL-R2-B01 | resolved |
+-| SOL-R2-B02; codex R2-B01 | resolved |
+-| SOL-R2-B03 | resolved |
+-| SOL-R2-B04 | resolved |
+-| SOL-R2-B05; codex R2-B07 | resolved |
+-| SOL-R2-B06; codex R2-B04 | resolved |
+-| SOL-R2-B07; codex R2-B05 | resolved |
+-| SOL-R2-B08; codex R2-B06 | resolved |
+-| codex R2-B02 | resolved |
+-| codex R2-B03 | resolved |
+-
+-All 15 blocker IDs are resolved. No decline or partial resolution in this
+-round. Pending muse feedback is a subsequent pass, not an omitted input.
+-
+-## SOL-R2-B05 — resolved
+-
+-Coincides with codex R2-B07 below. `src/validation.rs::validate_action_sequence`
+-checks the exact predicate stack immediately after each qif arm, before any
+-selector replacement. Malformed bodies return §3.5, never an `expect` panic.
+-Pin: `r2_validation::qif_arms_cannot_pop_or_leave_predicates` (consumed selector,
+-extra push, nested balanced positive; parser and hash/check subprocesses).
+-RED: the exact consumed-selector witness panicked before the fix. GREEN passes.
+-No new specification question.
+-
+-## codex R2-B07 — resolved
+-
+-Same change and test as SOL-R2-B05; both arm boundaries checked.
+-
+-## SOL-R2-B07 — resolved
+-
+-Coincides with codex R2-B05. `validation.rs::classical_instruction` requires
+-Int or Ptr operands for icmp, in addition to equal types. Pin:
+-`r2_validation::icmp_requires_integer_or_pointer_operands` (token, f64,
+-qreg[1], parser and hash/check) and
+-`integer_and_pointer_comparisons_execute_and_reverse` (equal/unequal i8/ptr,
+-exact i1 result, full history reversal). RED: token comparison was accepted.
+-No new specification question.
+-
+-## codex R2-B05 — resolved
+-
+-Same change and tests as SOL-R2-B07, including the two-token CC witness.
+-
+-## codex R2-B02 — resolved
+-
+-`object.rs::validate_row` uses `host_count` for lifted load/store suffixes,
+-matching both engines. Pin: `r2_validation::lifted_memory_widths_are_canonical_at_load`
+-mutates sum_db load.i8 → i08 and heap store.i16 → i016 (the actual heap fixture
+-uses i16, not i8); parser and hash/check reject with §16.1. RED: load.i08 was
+-accepted. Canonical fixture execution remains covered by the existing suite.
+-No new specification question.
+-
+-## SOL-R2-B02 — resolved
+-
+-Coincides with codex R2-B01. `call_discipline.rs::Invocation` stores callee,
+-token, parsed ins/mem/args, target and fault. `validate_matched_oracle_calls`
+-never serializes/splits keys, nor discards list parse errors. Pins:
+-`r1_rules::r2_multi_input_invocation_keys_preserve_tuple_boundaries` (sum2
+-witness, changes to either input; unchanged pair returns (0,0,5) and reverses),
+-`r2_codex_changed_second_input_and_two_memory_regions` (codex exact witness,
+-positive (0,0,4), writes into either supplied region). RED: both reviewers'
+-changed-input class was accepted before the fix. No new question.
+-
+-## codex R2-B01 — resolved
+-
+-Same change and tests as SOL-R2-B02. Existing multiplicity and disjoint-global
+-store tests still pass.
+-
+-## SOL-R2-B03 — resolved
+-
+-`call_discipline.rs::validate_matched_oracle_calls` conservatively includes
+-every containing-function row as a qjumpr successor, matching §4.2's range,
+-including rows inside a block. Pin:
+-`r1_rules::r2_qjumpr_can_enter_an_uncall_at_a_non_label_row`: label+1 bypasses
+-the call and rejects §5.5 (RED: accepted); computing call at entry dominating
+-all numeric destinations accepts and runs/reverses to (0,0,5). No target-value
+-analysis or new spec question.
+-
+-## SOL-R2-B06 — resolved
+-
+-Coincides with codex R2-B04. `validation.rs::region_declarations` recursively
+-gathers lexical declarations; `validate_structured`/`declare_region` register
+-and validate each once at entry. Sequence occurrences are no-ops; duplicate
+-lexical declarations still reject. `borrow.rs::Compiler::declare_regions`
+-hoists allocations in root and inlined child functions too. Pin:
+-`r1_discipline::r2_regions_are_lexical_function_entry_declarations` (loop 2,
+-loop 0, use before text, qif, duplicate, borrow-compiler positive; all t,p basis
+-values, clean forward and adjoint, exact restoration). RED: loop 2 rejected
+-"region name already defined". No new question: §4.6 states function entry.
+-
+-## codex R2-B04 — resolved
+-
+-Same change and tests as SOL-R2-B06.
+-
+-## codex R2-B03 — resolved
+-
+-`validation.rs::operation_inverse` exchanges the two qinplace oracle names,
+-preserving token/target and the entire captured effective-control suffix.
+-`validate_action_sequence` already captures that suffix in `Discipline::change`.
+-Pin: `r1_qinplace::r2_qinplace_explicit_adjoint_cleans_workspace`: identity and
+-NOT/NOT (B=1/3), distinct callee names to verify the exchange, both workspace
+-basis values via copying t, forward/adjoint; changed predicate rejects §6.2.
+-RED: the identity-pair explicit cleanup rejected at load. No new question.
+-
+-## SOL-R2-B04 — resolved
+-
+-`borrow.rs::Compiler` now carries immutable classical bindings. Oracle opaque
+-identities contain the callee, resolved token and complete resolved classical
+-argument tuple; inlined permutation calls substitute the caller's bindings
+-for child formals. qinplace token identities use the same environment. Pin:
+-`r1_borrow::r2_opaque_borrow_calls_bind_classical_args_and_tokens_through_inlining`
+-rejects x/y in both direct and inlined witnesses (§5.6), accepts x/x and checks
+-all x,f,d basis states forward/adjoint. RED: direct x/y parsed successfully.
+-No new specification question.
+-
+-## SOL-R2-B01 — resolved
+-
+-`validation.rs::Discipline::exchange` snapshots old dependency unions and
+-other provenance, records them on every output, and updates exchange logs
+-jointly; external transitive readers prevent cleanup of an other value.
+-`validate_action_sequence` routes swap, qexch and qexchm through it, including
+-region cell versions. Pin:
+-`r1_discipline::r2_exchanges_preserve_transitive_entangling_read_dependencies`
+-(all three negatives §6.2, doubled middle-CX positives, all small basis inputs
+-plus superposition, forward/adjoint and exact restoration). RED: swap witness
+-accepted before the fix. The differential generator now includes all three
+-exchange operations in compute and middle sequences. It exposed another
+-unsound accept: a joint exchange could cancel only one output's log while the
+-partner had an intervening write. Both outputs must now cancel together;
+-`r2_exchange_inverse_must_cancel_both_outputs_together` pins that witness.
+-No new spec question: these are the dependency unions printed in §6.1.
+-
+-## SOL-R2-B08 — resolved
+-
+-Coincides with codex R2-B06. `exact.rs::Amplitude::approximate` evaluates the
+-phase as a product of bounded limb phases, with complex squaring for exponent
+-bits beyond binary64's finite angle range; it never converts the combined
+-exponent to an f64 angle. The exact Laurent shadow still decides support,
+-cleanliness and equality, with no tolerance. Subnormal limb phases are scaled
+-before rounding. `QuantumState::exact_support` and the CLI use the corrected
+-display conversion without further changes. Pin:
+-`cli_xam::r2_finite_rotations_render_when_the_combined_angle_exceeds_binary64`
+-(four literal rz and four argument rz, both basis states, finite unit-modulus
+-amplitude 0.588863244801576 ± 0.8082326886001081i; reverse exactly [1,0]).
+-RED: run-action exited 1 with non-finite JSON diagnostic. No new question.
+-
+-## codex R2-B06 — resolved
+-
+-Same change and tests as SOL-R2-B08; finite f64 1e308 is not rejected.
+-
+-## Nonblocking suggestions and additional controls
+-
+-- codex S1 (qif cross-arm lifetimes): SPEC-QUESTIONS **28** records the
+-  §5.3 shorthand / §4.6 expansion conflict and the full-expansion reading.
+-  `action.rs::action_sequence` reverses else before then under adjoint, so
+-  unconditional lifetime operations reverse in the right order.
+-  `r1_discipline::r2_qif_cross_arm_unconditional_lifetimes_reverse_the_expansion`
+-  was red with "unknown live bundle d", now checks both p,t values and full
+-  restoration. No lifetime restriction was added.
+-- codex S1 (staging diagnostics): SPEC-QUESTIONS 21 now names 9–11 for
+-  target/schedule/interval work; `claims.rs::verify_claim_guarded` names
+-  deliverable **11** for interval claims. Numerical/channel claims remain
+-  Unverified. `r1_certificates::r2_interval_claim_diagnostics_name_deliverable_eleven`
+-  was red naming 10 and now passes for both claim kinds.
+-- `cli_xam::r2_qinplace_identity_workspace_cleanup_runs_and_reverses` pins
+-  the exact codex @g/@g workspace witness through forward, adjoint and reverse
+-  CLI forms for both t values, plus canonical sum_db(0), stack 16, B=10.
+-- `r1_fuzz_discipline::generated_borrow_frames_keep_differing_classical_bindings_distinct`
+-  generates 80 borrowed frames with differing x/y argument lists; an independent
+-  parity formula determines acceptance, and every accepted frame executes and
+-  reverses for all x/y and sampled borrowed/fault entries.
+-
+-### Follow-up pinning from the extended sweep
+-
+-The first extended ignored run found an additional unsound accept in the
+-exchange class (SOL-R2-B01): identical exchange text was reused after a partner
+-operand changed, so a later control snapshot could alias an earlier value.
+-`Discipline::exchanges` now binds each joint computation to its entry versions;
+-only an inverse whose **every** output still has that same joint computation
+-on top can reuse that identity. Pin:
+-`r1_discipline::r2_exchange_computations_pin_their_entry_versions` (red accepted,
+-now §6.2 rejection). The earlier joint-cancellation pin remains green.
+-
+-For SOL-R2-B05 / codex R2-B07, a stack floor also prevents a body from consuming
+-an expansion-owned selector and pushing it back later. Pin:
+-`r1_discipline::r2_qif_body_cannot_temporarily_consume_its_implicit_selector`
+-(red accepted, now §3.5 rejection). Balanced user-owned predicate pairs remain
+-legal. No new specification question.
+-
+-The next extended sweep exposed missing predicate **polarity** in memory
+-operation identities: complementary qif arms had equal address/control version
+-snapshots. Memory keys, generic change contexts, joint exchange contexts, and
+-outstanding diagonal phase keys now also retain predicate signs. Red-green pins:
+-`r1_discipline::r2_memory_exchange_and_target_writes_do_not_cancel_independently`
+-(the generated witness), `r2_memory_operations_pin_predicate_polarity`,
+-`r2_complementary_diagonal_phases_do_not_cancel`, and
+-`r1_qinplace::r2_qinplace_complementary_arms_do_not_cancel`. These extend the
+-SOL-R2-B01 / codex R2-B03 effective-control fixes, without a new reading.
+-
+-### Frozen-snapshot RED audit
+-
+-In addition to the development-time red runs above, the final regressions were
+-compiled against an archived dc46d07 crate in the ignored project-local `.tmp`.
+-The audit observed each exchange witness separately (swap, qexch, qexchm), both
+-literal and argument large-angle cases, both members' multi-input witnesses,
+-qjumpr, qinplace, borrow bindings, and the region loop/forward-reference/zero-loop
+-witnesses fail against dc46d07. Token, f64, qreg[1], load.i08, and store.i016
+-were also audited separately and all failed their rejection assertions. The
+-unchanged integer/ptr comparison positive passed on dc46d07. This archive is
+-verification-only, not a checkout or deliverable; no source outside the owned
+-crate was changed.
+-
+-A subsequent full sweep was SIGKILLed by the OS. A deterministic small
+-regression reproduced geometric identity-text growth: 24 alternating
+-exchange/write events expanded to **715,850,424 bytes** of version keys.
+-`Discipline::value_ids` now interns collision-free snapshot references;
+-`update_log` and `record_change` register each complete key, while `snapshot`
+-references that key without recursively serializing its history. Every complete
+-identity and inverse comparison is retained; no threshold or rejection was
+-added. `validation::tests::exchange_entry_histories_have_compact_references`
+-was red on the expanded representation and now passes immediately. The full
+-normal and ignored suites are rerun after this change.
+-
+-### Final round-2 verification
+-
+-All commands ran headlessly with `DISPLAY`, `WAYLAND_DISPLAY`,
+-`DBUS_SESSION_BUS_ADDRESS`, and `BROWSER` unset,
+-`TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp`,
+-and the absolute `--manifest-path
+-/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
+-
+-| Command | Result |
+-|---|---|
+-| `cargo test --offline` | **202 passed**, 0 failed, 5 ignored (201 integration + 1 unit; 0 doctests) |
+-| `cargo test --offline -- --ignored` | **5 passed**, 0 failed; `--nocapture` retained the sweep counts |
+-| `cargo clippy --offline --all-targets -- -D warnings` | clean |
+-| `cargo fmt -- --check` | clean |
+-| `python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py` | unchanged seed passes |
+-
+-| Ignored sweep | Cases | Reported time |
+-|---|---|---|
+-| u8 division/remainder | 262,144 (a,b) pairs × 4 operations | 2.39 s |
+-| 17-wire borrow-frame execution | 2^17 basis entries | 11.83 s |
+-| checked borrow-frame certificate | 2^18 claim elements, both programs | 82.92 s |
+-| extended §6 differential generator | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 259.39 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 12.90 s |
+-
+-The accepted differential programs run on all eight interface basis inputs and
+-one superposed input, forward and adjoint. The sweep includes the new exchange
+-operations. No runtime width, iteration, precision, or program-size cap was added.
+-Specification and Python seed diffs against dc46d07 are empty. No push.
++## `.gitignore` (1 lines)
++
++````
++.tmp/
++````
++
++## `Cargo.toml` (7 lines)
++
++````toml
++[package]
++name = "bennett-isa-ref"
++version = "0.0.0"
++edition = "2021"
++license = "AGPL-3.0-only"
++
++[dependencies]
+ ````
+ 
+@@ -2371,20 +2693,267 @@
+ ````
+ 
+-## `.gitignore` (1 lines)
+-
+-````
+-.tmp/
+-````
+-
+-## `Cargo.toml` (7 lines)
+-
+-````toml
+-[package]
+-name = "bennett-isa-ref"
+-version = "0.0.0"
+-edition = "2021"
+-license = "AGPL-3.0-only"
+-
+-[dependencies]
++## `council/response-round-2.md` (260 lines)
++
++````markdown
++# Editor response: council round 2
++
++Inputs: `out-sol.json` (8 blockers), `out-codex.json` (7 blockers), reviewed
++snapshot dc46d07. Member prefixes disambiguate IDs. This response is appendable
++for the pending muse second pass. No specification or Python seed edits.
++
++## Per-blocker status
++
++| Member ID(s) | Status |
++|---|---|
++| SOL-R2-B01 | resolved |
++| SOL-R2-B02; codex R2-B01 | resolved |
++| SOL-R2-B03 | resolved |
++| SOL-R2-B04 | resolved |
++| SOL-R2-B05; codex R2-B07 | resolved |
++| SOL-R2-B06; codex R2-B04 | resolved |
++| SOL-R2-B07; codex R2-B05 | resolved |
++| SOL-R2-B08; codex R2-B06 | resolved |
++| codex R2-B02 | resolved |
++| codex R2-B03 | resolved |
++
++All 15 blocker IDs are resolved. No decline or partial resolution in this
++round. Pending muse feedback is a subsequent pass, not an omitted input.
++
++## SOL-R2-B05 — resolved
++
++Coincides with codex R2-B07 below. `src/validation.rs::validate_action_sequence`
++checks the exact predicate stack immediately after each qif arm, before any
++selector replacement. Malformed bodies return §3.5, never an `expect` panic.
++Pin: `r2_validation::qif_arms_cannot_pop_or_leave_predicates` (consumed selector,
++extra push, nested balanced positive; parser and hash/check subprocesses).
++RED: the exact consumed-selector witness panicked before the fix. GREEN passes.
++No new specification question.
++
++## codex R2-B07 — resolved
++
++Same change and test as SOL-R2-B05; both arm boundaries checked.
++
++## SOL-R2-B07 — resolved
++
++Coincides with codex R2-B05. `validation.rs::classical_instruction` requires
++Int or Ptr operands for icmp, in addition to equal types. Pin:
++`r2_validation::icmp_requires_integer_or_pointer_operands` (token, f64,
++qreg[1], parser and hash/check) and
++`integer_and_pointer_comparisons_execute_and_reverse` (equal/unequal i8/ptr,
++exact i1 result, full history reversal). RED: token comparison was accepted.
++No new specification question.
++
++## codex R2-B05 — resolved
++
++Same change and tests as SOL-R2-B07, including the two-token CC witness.
++
++## codex R2-B02 — resolved
++
++`object.rs::validate_row` uses `host_count` for lifted load/store suffixes,
++matching both engines. Pin: `r2_validation::lifted_memory_widths_are_canonical_at_load`
++mutates sum_db load.i8 → i08 and heap store.i16 → i016 (the actual heap fixture
++uses i16, not i8); parser and hash/check reject with §16.1. RED: load.i08 was
++accepted. Canonical fixture execution remains covered by the existing suite.
++No new specification question.
++
++## SOL-R2-B02 — resolved
++
++Coincides with codex R2-B01. `call_discipline.rs::Invocation` stores callee,
++token, parsed ins/mem/args, target and fault. `validate_matched_oracle_calls`
++never serializes/splits keys, nor discards list parse errors. Pins:
++`r1_rules::r2_multi_input_invocation_keys_preserve_tuple_boundaries` (sum2
++witness, changes to either input; unchanged pair returns (0,0,5) and reverses),
++`r2_codex_changed_second_input_and_two_memory_regions` (codex exact witness,
++positive (0,0,4), writes into either supplied region). RED: both reviewers'
++changed-input class was accepted before the fix. No new question.
++
++## codex R2-B01 — resolved
++
++Same change and tests as SOL-R2-B02. Existing multiplicity and disjoint-global
++store tests still pass.
++
++## SOL-R2-B03 — resolved
++
++`call_discipline.rs::validate_matched_oracle_calls` conservatively includes
++every containing-function row as a qjumpr successor, matching §4.2's range,
++including rows inside a block. Pin:
++`r1_rules::r2_qjumpr_can_enter_an_uncall_at_a_non_label_row`: label+1 bypasses
++the call and rejects §5.5 (RED: accepted); computing call at entry dominating
++all numeric destinations accepts and runs/reverses to (0,0,5). No target-value
++analysis or new spec question.
++
++## SOL-R2-B06 — resolved
++
++Coincides with codex R2-B04. `validation.rs::region_declarations` recursively
++gathers lexical declarations; `validate_structured`/`declare_region` register
++and validate each once at entry. Sequence occurrences are no-ops; duplicate
++lexical declarations still reject. `borrow.rs::Compiler::declare_regions`
++hoists allocations in root and inlined child functions too. Pin:
++`r1_discipline::r2_regions_are_lexical_function_entry_declarations` (loop 2,
++loop 0, use before text, qif, duplicate, borrow-compiler positive; all t,p basis
++values, clean forward and adjoint, exact restoration). RED: loop 2 rejected
++"region name already defined". No new question: §4.6 states function entry.
++
++## codex R2-B04 — resolved
++
++Same change and tests as SOL-R2-B06.
++
++## codex R2-B03 — resolved
++
++`validation.rs::operation_inverse` exchanges the two qinplace oracle names,
++preserving token/target and the entire captured effective-control suffix.
++`validate_action_sequence` already captures that suffix in `Discipline::change`.
++Pin: `r1_qinplace::r2_qinplace_explicit_adjoint_cleans_workspace`: identity and
++NOT/NOT (B=1/3), distinct callee names to verify the exchange, both workspace
++basis values via copying t, forward/adjoint; changed predicate rejects §6.2.
++RED: the identity-pair explicit cleanup rejected at load. No new question.
++
++## SOL-R2-B04 — resolved
++
++`borrow.rs::Compiler` now carries immutable classical bindings. Oracle opaque
++identities contain the callee, resolved token and complete resolved classical
++argument tuple; inlined permutation calls substitute the caller's bindings
++for child formals. qinplace token identities use the same environment. Pin:
++`r1_borrow::r2_opaque_borrow_calls_bind_classical_args_and_tokens_through_inlining`
++rejects x/y in both direct and inlined witnesses (§5.6), accepts x/x and checks
++all x,f,d basis states forward/adjoint. RED: direct x/y parsed successfully.
++No new specification question.
++
++## SOL-R2-B01 — resolved
++
++`validation.rs::Discipline::exchange` snapshots old dependency unions and
++other provenance, records them on every output, and updates exchange logs
++jointly; external transitive readers prevent cleanup of an other value.
++`validate_action_sequence` routes swap, qexch and qexchm through it, including
++region cell versions. Pin:
++`r1_discipline::r2_exchanges_preserve_transitive_entangling_read_dependencies`
++(all three negatives §6.2, doubled middle-CX positives, all small basis inputs
++plus superposition, forward/adjoint and exact restoration). RED: swap witness
++accepted before the fix. The differential generator now includes all three
++exchange operations in compute and middle sequences. It exposed another
++unsound accept: a joint exchange could cancel only one output's log while the
++partner had an intervening write. Both outputs must now cancel together;
++`r2_exchange_inverse_must_cancel_both_outputs_together` pins that witness.
++No new spec question: these are the dependency unions printed in §6.1.
++
++## SOL-R2-B08 — resolved
++
++Coincides with codex R2-B06. `exact.rs::Amplitude::approximate` evaluates the
++phase as a product of bounded limb phases, with complex squaring for exponent
++bits beyond binary64's finite angle range; it never converts the combined
++exponent to an f64 angle. The exact Laurent shadow still decides support,
++cleanliness and equality, with no tolerance. Subnormal limb phases are scaled
++before rounding. `QuantumState::exact_support` and the CLI use the corrected
++display conversion without further changes. Pin:
++`cli_xam::r2_finite_rotations_render_when_the_combined_angle_exceeds_binary64`
++(four literal rz and four argument rz, both basis states, finite unit-modulus
++amplitude 0.588863244801576 ± 0.8082326886001081i; reverse exactly [1,0]).
++RED: run-action exited 1 with non-finite JSON diagnostic. No new question.
++
++## codex R2-B06 — resolved
++
++Same change and tests as SOL-R2-B08; finite f64 1e308 is not rejected.
++
++## Nonblocking suggestions and additional controls
++
++- codex S1 (qif cross-arm lifetimes): SPEC-QUESTIONS **28** records the
++  §5.3 shorthand / §4.6 expansion conflict and the full-expansion reading.
++  `action.rs::action_sequence` reverses else before then under adjoint, so
++  unconditional lifetime operations reverse in the right order.
++  `r1_discipline::r2_qif_cross_arm_unconditional_lifetimes_reverse_the_expansion`
++  was red with "unknown live bundle d", now checks both p,t values and full
++  restoration. No lifetime restriction was added.
++- codex S1 (staging diagnostics): SPEC-QUESTIONS 21 now names 9–11 for
++  target/schedule/interval work; `claims.rs::verify_claim_guarded` names
++  deliverable **11** for interval claims. Numerical/channel claims remain
++  Unverified. `r1_certificates::r2_interval_claim_diagnostics_name_deliverable_eleven`
++  was red naming 10 and now passes for both claim kinds.
++- `cli_xam::r2_qinplace_identity_workspace_cleanup_runs_and_reverses` pins
++  the exact codex @g/@g workspace witness through forward, adjoint and reverse
++  CLI forms for both t values, plus canonical sum_db(0), stack 16, B=10.
++- `r1_fuzz_discipline::generated_borrow_frames_keep_differing_classical_bindings_distinct`
++  generates 80 borrowed frames with differing x/y argument lists; an independent
++  parity formula determines acceptance, and every accepted frame executes and
++  reverses for all x/y and sampled borrowed/fault entries.
++
++### Follow-up pinning from the extended sweep
++
++The first extended ignored run found an additional unsound accept in the
++exchange class (SOL-R2-B01): identical exchange text was reused after a partner
++operand changed, so a later control snapshot could alias an earlier value.
++`Discipline::exchanges` now binds each joint computation to its entry versions;
++only an inverse whose **every** output still has that same joint computation
++on top can reuse that identity. Pin:
++`r1_discipline::r2_exchange_computations_pin_their_entry_versions` (red accepted,
++now §6.2 rejection). The earlier joint-cancellation pin remains green.
++
++For SOL-R2-B05 / codex R2-B07, a stack floor also prevents a body from consuming
++an expansion-owned selector and pushing it back later. Pin:
++`r1_discipline::r2_qif_body_cannot_temporarily_consume_its_implicit_selector`
++(red accepted, now §3.5 rejection). Balanced user-owned predicate pairs remain
++legal. No new specification question.
++
++The next extended sweep exposed missing predicate **polarity** in memory
++operation identities: complementary qif arms had equal address/control version
++snapshots. Memory keys, generic change contexts, joint exchange contexts, and
++outstanding diagonal phase keys now also retain predicate signs. Red-green pins:
++`r1_discipline::r2_memory_exchange_and_target_writes_do_not_cancel_independently`
++(the generated witness), `r2_memory_operations_pin_predicate_polarity`,
++`r2_complementary_diagonal_phases_do_not_cancel`, and
++`r1_qinplace::r2_qinplace_complementary_arms_do_not_cancel`. These extend the
++SOL-R2-B01 / codex R2-B03 effective-control fixes, without a new reading.
++
++### Frozen-snapshot RED audit
++
++In addition to the development-time red runs above, the final regressions were
++compiled against an archived dc46d07 crate in the ignored project-local `.tmp`.
++The audit observed each exchange witness separately (swap, qexch, qexchm), both
++literal and argument large-angle cases, both members' multi-input witnesses,
++qjumpr, qinplace, borrow bindings, and the region loop/forward-reference/zero-loop
++witnesses fail against dc46d07. Token, f64, qreg[1], load.i08, and store.i016
++were also audited separately and all failed their rejection assertions. The
++unchanged integer/ptr comparison positive passed on dc46d07. This archive is
++verification-only, not a checkout or deliverable; no source outside the owned
++crate was changed.
++
++A subsequent full sweep was SIGKILLed by the OS. A deterministic small
++regression reproduced geometric identity-text growth: 24 alternating
++exchange/write events expanded to **715,850,424 bytes** of version keys.
++`Discipline::value_ids` now interns collision-free snapshot references;
++`update_log` and `record_change` register each complete key, while `snapshot`
++references that key without recursively serializing its history. Every complete
++identity and inverse comparison is retained; no threshold or rejection was
++added. `validation::tests::exchange_entry_histories_have_compact_references`
++was red on the expanded representation and now passes immediately. The full
++normal and ignored suites are rerun after this change.
++
++### Final round-2 verification
++
++All commands ran headlessly with `DISPLAY`, `WAYLAND_DISPLAY`,
++`DBUS_SESSION_BUS_ADDRESS`, and `BROWSER` unset,
++`TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp`,
++and the absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`.
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **202 passed**, 0 failed, 5 ignored (201 integration + 1 unit; 0 doctests) |
++| `cargo test --offline -- --ignored` | **5 passed**, 0 failed; `--nocapture` retained the sweep counts |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| `python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py` | unchanged seed passes |
++
++| Ignored sweep | Cases | Reported time |
++|---|---|---|
++| u8 division/remainder | 262,144 (a,b) pairs × 4 operations | 2.39 s |
++| 17-wire borrow-frame execution | 2^17 basis entries | 11.83 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 82.92 s |
++| extended §6 differential generator | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 259.39 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 12.90 s |
++
++The accepted differential programs run on all eight interface basis inputs and
++one superposed input, forward and adjoint. The sweep includes the new exchange
++operations. No runtime width, iteration, precision, or program-size cap was added.
++Specification and Python seed diffs against dc46d07 are empty. No push.
+ ````
+ 
+@@ -4303,5 +4872,5 @@
+ ````
+ 
+-## `src/borrow.rs` (936 lines)
++## `src/borrow.rs` (1202 lines)
+ 
+ ````rust
+@@ -4409,5 +4978,5 @@
+ 
+ /// A compiled operation on named wires.
+-#[derive(Clone, Debug)]
++#[derive(Clone, Debug, PartialEq, Eq)]
+ enum Node {
+     /// Target ^= AND of controls (with polarity).
+@@ -4415,5 +4984,7 @@
+     /// Controlled exchange of two wires.
+     Swap(Vec<(String, bool)>, String, String),
+-    /// `n` repetitions of a permutation-only body.
++    /// `n` repetitions of a permutation-only body. Internal Borrow/Return
++    /// lifetimes must factor on their own entries before its carried-wire map
++    /// may be composed. This includes borrowing inside inlined child calls.
+     Repeat(u64, Vec<Node>),
+     /// A black-box function of `inputs` XORed (or, for qinplace, assigned)
+@@ -4432,4 +5003,7 @@
+     Alloc(Vec<String>),
+     Free(Vec<String>),
++    /// Unconditional lifetime boundaries, retained inside Repeat and adjoints.
++    Borrow(Vec<String>),
++    Return(Vec<String>),
+ }
+ impl Node {
+@@ -4456,5 +5030,7 @@
+                 out.extend(outputs.iter().cloned());
+             }
+-            Self::Other(w) | Self::Alloc(w) | Self::Free(w) => out.extend(w.iter().cloned()),
++            Self::Other(w) | Self::Alloc(w) | Self::Free(w) | Self::Borrow(w) | Self::Return(w) => {
++                out.extend(w.iter().cloned());
++            }
+         }
+     }
+@@ -4482,4 +5058,6 @@
+             Self::Alloc(w) => Self::Free(w.clone()),
+             Self::Free(w) => Self::Alloc(w.clone()),
++            Self::Borrow(w) => Self::Return(w.clone()),
++            Self::Return(w) => Self::Borrow(w.clone()),
+             other => other.clone(),
+         }
+@@ -4487,5 +5065,13 @@
+ }
+ 
++#[derive(Clone)]
++struct Trace {
++    bundles: BTreeMap<String, Vec<String>>,
++    borrowed: BTreeSet<String>,
++    nodes: Vec<Node>,
++}
+ struct Compiler<'a> {
++    trace: Option<BTreeMap<usize, Vec<Trace>>>,
++    live_borrowed: BTreeSet<String>,
+     object: &'a Object,
+     bundles: BTreeMap<String, Vec<String>>,
+@@ -4605,4 +5191,10 @@
+         let mut predicate = context.to_vec();
+         for i in seq {
++            let start = out.len();
++            let snapshot = self.trace.as_ref().map(|_| Trace {
++                bundles: self.bundles.clone(),
++                borrowed: self.live_borrowed.clone(),
++                nodes: Vec::new(),
++            });
+             let a = &i.operands;
+             let op = i.op.as_str();
+@@ -4621,5 +5213,7 @@
+                     let wires = self.produce(&i.lhs[0], n);
+                     if op == "qborrow" {
+-                        self.borrowed.extend(wires);
++                        self.borrowed.extend(wires.iter().cloned());
++                        self.live_borrowed.extend(wires.iter().cloned());
++                        out.push(Node::Borrow(wires));
+                     } else {
+                         out.push(Node::Alloc(wires.clone()));
+@@ -4627,5 +5221,11 @@
+                 }
+                 "qfree" => out.push(Node::Free(self.bundle(&a[0])?)),
+-                "qreturn" => {}
++                "qreturn" => {
++                    let wires = self.bundle(&a[0])?;
++                    for w in &wires {
++                        self.live_borrowed.remove(w);
++                    }
++                    out.push(Node::Return(wires));
++                }
+                 "qpred" => predicate.push((self.scalar(&a[0])?, true)),
+                 "qunpred" => {
+@@ -4770,4 +5370,6 @@
+                         let f = &self.object.functions[&callee.name];
+                         let mut child = Compiler {
++                            trace: None,
++                            live_borrowed: BTreeSet::new(),
+                             object: self.object,
+                             bundles: BTreeMap::new(),
+@@ -4853,4 +5455,8 @@
+                 }
+             }
++            if let (Some(mut snapshot), Some(trace)) = (snapshot, &mut self.trace) {
++                snapshot.nodes = out[start..].to_vec();
++                trace.entry(i.line).or_default().push(snapshot);
++            }
+         }
+         Ok(())
+@@ -4953,4 +5559,35 @@
+                 self.state.insert(b.clone(), y.xor(&d));
+             }
++            Node::Borrow(wires) => {
++                // Every borrowing starts an independent unknown system. A loop
++                // summary may reuse its symbolic name only AFTER its return has
++                // proved identity and independence on the full entry domain.
++                for w in wires {
++                    let p = Poly::var(self.vars[w]);
++                    self.state.insert(w.clone(), p);
++                }
++            }
++            Node::Return(wires) => {
++                let returned: BTreeSet<_> = wires.iter().map(|w| self.vars[w]).collect();
++                for w in wires {
++                    if self.var(w) != Poly::var(self.vars[w]) {
++                        return err(
++                            "§5.6",
++                            format!("qreturn does not restore borrowed wire {w}"),
++                        );
++                    }
++                }
++                for (w, p) in &self.state {
++                    if !wires.contains(w) && p.mentions(&returned) {
++                        return err(
++                            "§5.6",
++                            format!("qreturn output {w} depends on borrowed entry values"),
++                        );
++                    }
++                }
++                for w in wires {
++                    self.state.remove(w);
++                }
++            }
+             Node::Alloc(wires) => {
+                 for w in wires {
+@@ -5000,4 +5637,11 @@
+             }
+             Node::Repeat(n, body) => {
++                if *n == 0 {
++                    return Ok(());
++                }
++                // Prove all internal return boundaries on the generic body
++                // BEFORE squaring its surviving-wire map. Borrowed systems
++                // whose lifetimes span the loop remain in that map and may be
++                // restored by its full power, rather than by each iteration.
+                 // The body as a map from its wires' entry values; M^n by squaring.
+                 let mut wires = BTreeSet::new();
+@@ -5159,13 +5803,8 @@
+ }
+ impl Object {
+-    pub(crate) fn validate_borrow_frames(&self, f: &Function) -> Result<()> {
+-        fn has_borrow(seq: &[Instruction]) -> bool {
+-            seq.iter()
+-                .any(|i| i.op == "qborrow" || i.bodies.iter().any(|b| has_borrow(b)))
+-        }
+-        if !f.blocks.iter().any(|b| has_borrow(&b.instructions)) {
+-            return Ok(());
+-        }
++    fn borrow_compiler<'a>(&'a self, f: &Function) -> Result<Compiler<'a>> {
+         let mut compiler = Compiler {
++            trace: None,
++            live_borrowed: BTreeSet::new(),
+             object: self,
+             bundles: BTreeMap::new(),
+@@ -5198,4 +5837,197 @@
+             }
+         }
++        Ok(compiler)
++    }
++    /// Check a named source frame against the complete compiled circuit,
++    /// including inherited predicates, loop structure and physical wire names.
++    pub(crate) fn check_translation_frame(
++        &self,
++        f: &Function,
++        endpoints: [&Instruction; 2],
++        v: &[&Instruction],
++        w: &[&Instruction],
++        x: &BTreeSet<String>,
++        b: &BTreeSet<String>,
++    ) -> Result<()> {
++        fn locate<'a>(
++            seq: &[&'a Instruction],
++            first: &Instruction,
++            last: &Instruction,
++        ) -> Option<(Vec<&'a Instruction>, usize, usize)> {
++            if let (Some(a), Some(b)) = (
++                seq.iter().position(|i| std::ptr::eq(*i, first)),
++                seq.iter().position(|i| std::ptr::eq(*i, last)),
++            ) {
++                return Some((seq.to_vec(), a, b));
++            }
++            seq.iter()
++                .flat_map(|i| &i.bodies)
++                .find_map(|body| locate(&body.iter().collect::<Vec<_>>(), first, last))
++        }
++        let root: Vec<_> = f.blocks.iter().flat_map(|b| &b.instructions).collect();
++        let (seq, start, end) = locate(&root, endpoints[0], endpoints[1]).ok_or_else(|| {
++            Error("§5.6/§12.1: frame endpoints do not delimit one contiguous source circuit".into())
++        })?;
++        if start > end {
++            return err("§5.6/§12.1", "reversed frame endpoints");
++        }
++        let leading: Vec<_> = v.iter().chain(w).copied().collect();
++        if leading.len() > end - start + 1
++            || leading
++                .iter()
++                .zip(&seq[start..])
++                .any(|(a, b)| !std::ptr::eq(*a, *b))
++        {
++            return err(
++                "§5.6/§12.1",
++                "V and W must name every leading instruction of the frame in order",
++            );
++        }
++        let mut compiler = self.borrow_compiler(f)?;
++        compiler.trace = Some(BTreeMap::new());
++        compiler.compile_function(f, &[], &mut Vec::new())?;
++        let trace = compiler
++            .trace
++            .ok_or_else(|| Error("§5.6: missing structural trace".into()))?;
++        let entries = trace
++            .get(&endpoints[0].line)
++            .ok_or_else(|| Error("§5.6: frame has no compiled context".into()))?;
++        for (context, entry) in entries.iter().enumerate() {
++            let resolve = |names: &BTreeSet<String>| -> Result<BTreeSet<String>> {
++                let mut out = BTreeSet::new();
++                for name in names {
++                    let (base, index) = match name.split_once('[') {
++                        Some((base, index)) => (
++                            base,
++                            Some(crate::object::host_count(
++                                index.trim_end_matches(']'),
++                                "wire index",
++                            )? as usize),
++                        ),
++                        None => (name.as_str(), None),
++                    };
++                    let wires = entry
++                        .bundles
++                        .get(base)
++                        .ok_or_else(|| Error(format!("§5.6: unknown witness wire {name}")))?;
++                    if let Some(i) = index {
++                        out.insert(
++                            wires
++                                .get(i)
++                                .ok_or_else(|| {
++                                    Error("§5.6: witness wire index out of range".into())
++                                })?
++                                .clone(),
++                        );
++                    } else {
++                        out.extend(wires.iter().cloned());
++                    }
++                }
++                Ok(out)
++            };
++            let (x, b) = (resolve(x)?, resolve(b)?);
++            if !b.is_subset(&entry.borrowed) || b.is_empty() {
++                return err("§5.6/§12.1", "B must identify actual live borrowed wires");
++            }
++            let get = |i: &Instruction| -> Result<&[Node]> {
++                trace
++                    .get(&i.line)
++                    .and_then(|t| t.get(context))
++                    .map(|t| t.nodes.as_slice())
++                    .ok_or_else(|| {
++                        Error("§5.6: inconsistent structural invocation contexts".into())
++                    })
++            };
++            let collect = |points: &[&Instruction]| -> Result<Vec<Node>> {
++                let mut nodes = Vec::new();
++                for i in points {
++                    nodes.extend_from_slice(get(i)?);
++                }
++                Ok(nodes)
++            };
++            let vn = collect(v)?;
++            let wn = collect(w)?;
++            let frame_points = &seq[start..=end];
++            let frame = collect(frame_points)?;
++            let expected: Vec<_> = vn
++                .iter()
++                .cloned()
++                .chain(wn.iter().cloned())
++                .chain(vn.iter().rev().map(Node::adjoint))
++                .chain(wn.iter().cloned())
++                .collect();
++            if frame != expected {
++                return err("§5.6/§12.1", "named frame is not V; W; exact reverse V; W");
++            }
++            fn flips(nodes: &[Node], out: &mut Vec<Instruction>) -> Result<()> {
++                for node in nodes {
++                    match node {
++                        Node::Flip(c, t) => out.push(instruction(
++                            &c.iter().map(|(w, _)| w.clone()).collect::<Vec<_>>(),
++                            t,
++                        )),
++                        Node::Repeat(_, body) => flips(body, out)?,
++                        _ => {
++                            return err(
++                                "§5.6/§12.1",
++                                "translation frame contains a non-X-family operation",
++                            )
++                        }
++                    }
++                }
++                Ok(())
++            }
++            let (mut vf, mut wf) = (Vec::new(), Vec::new());
++            flips(&vn, &mut vf)?;
++            flips(&wn, &mut wf)?;
++            validate_translation_lemma(&vf, &wf, &x, &b)?;
++            let mut touched = BTreeSet::new();
++            for node in &frame {
++                node.wires(&mut touched);
++            }
++            if !touched.intersection(&entry.borrowed).all(|w| b.contains(w)) {
++                return err(
++                    "§5.6/§12.1",
++                    "witness omits borrowed wires touched by the frame",
++                );
++            }
++            // First/last borrowed touches delimit the maximal permutation run;
++            // lifetime changes and non-permutation operations are boundaries.
++            let boundary = |nodes: &[Node]| {
++                nodes
++                    .iter()
++                    .any(|n| !n.permutation() || matches!(n, Node::Borrow(_) | Node::Return(_)))
++            };
++            if !frame.first().is_some_and(|n| touches(n, &b))
++                || !frame.last().is_some_and(|n| touches(n, &b))
++            {
++                return err("§5.6/§12.1", "frame endpoints must touch B");
++            }
++            for adjacent in [
++                seq[..start].iter().rev().collect::<Vec<_>>(),
++                seq[end + 1..].iter().collect(),
++            ] {
++                for i in adjacent {
++                    let nodes = get(i)?;
++                    if boundary(nodes) {
++                        break;
++                    }
++                    if nodes.iter().any(|n| touches(n, &b)) {
++                        return err("§5.6/§12.1", "named frame omits an adjacent borrowed touch");
++                    }
++                }
++            }
++        }
++        Ok(())
++    }
++    pub(crate) fn validate_borrow_frames(&self, f: &Function) -> Result<()> {
++        fn has_borrow(seq: &[Instruction]) -> bool {
++            seq.iter()
++                .any(|i| i.op == "qborrow" || i.bodies.iter().any(|b| has_borrow(b)))
++        }
++        if !f.blocks.iter().any(|b| has_borrow(&b.instructions)) {
++            return Ok(());
++        }
++        let mut compiler = self.borrow_compiler(f)?;
+         let mut nodes = Vec::new();
+         compiler.compile_function(f, &[], &mut nodes)?;
+@@ -5234,5 +6066,8 @@
+                 let frame = &nodes[first..=last];
+                 if !translation_lemma(frame, borrowed) {
+-                    factorises(frame, borrowed)?;
++                    // Keep surrounding allocation/cleanup when evaluating
++                    // lifetime boundaries; the cropped gate frame alone may
++                    // omit a clean allocation consumed before a qreturn.
++                    factorises(&nodes[start..end], borrowed)?;
+                 }
+             }
+@@ -5280,5 +6115,5 @@
+ }
+ impl Object {
+-    fn interface_targets(
++    pub(crate) fn interface_targets(
+         &self,
+         name: &str,
+@@ -6201,5 +7036,5 @@
+ ````
+ 
+-## `src/claims.rs` (734 lines)
++## `src/claims.rs` (759 lines)
+ 
+ ````rust
+@@ -6241,11 +7076,25 @@
+ #[derive(Clone, Debug)]
+ enum Component {
+-    Bundle(String),
++    Bundle(usize, usize),
+     Borrowed(String),
+-    Cell(String, usize),
++    Cell(usize, usize, usize),
+ }
+ struct Domain {
+     components: Vec<(Component, usize, BitVector, BitVector)>,
+     covers_d: bool,
++}
++/// ABI slot identity, independent of a function's local spelling. The domain
++/// is resolved once against its subject; the same positions bind the reference.
++fn interface_slot(f: &Function, name: &str) -> Result<(usize, usize)> {
++    f.params
++        .iter()
++        .enumerate()
++        .find_map(|(group, params)| {
++            params
++                .iter()
++                .position(|p| p.name == name)
++                .map(|index| (group, index))
++        })
++        .ok_or_else(|| Error(format!("§12.2: unknown interface component {name}")))
+ }
+ fn json_bits(value: &Json, width: usize) -> Result<BitVector> {
+@@ -6369,5 +7218,6 @@
+                         Component::Borrowed(name)
+                     } else {
+-                        Component::Bundle(name)
++                        let (group, index) = interface_slot(f, &name)?;
++                        Component::Bundle(group, index)
+                     },
+                     width,
+@@ -6379,4 +7229,5 @@
+         for r in d.get("regions")?.array()? {
+             let name = r.get("name")?.string()?.to_string();
++            let (group, slot) = interface_slot(f, &name)?;
+             let (a, w) = f
+                 .params
+@@ -6396,5 +7247,5 @@
+                     for i in 0..cells {
+                         components.push((
+-                            Component::Cell(name.clone(), i),
++                            Component::Cell(group, slot, i),
+                             w,
+                             BitVector::zero(w)?,
+@@ -6410,5 +7261,5 @@
+                         let lo = json_bits(c.get("lo")?, w)?;
+                         let hi = json_bits(c.get("hi")?, w)?;
+-                        components.push((Component::Cell(name.clone(), i), w, lo, hi));
++                        components.push((Component::Cell(group, slot, i), w, lo, hi));
+                     }
+                 }
+@@ -6443,8 +7294,9 @@
+     ) -> Result<Vec<BitVector>> {
+         let value = |name: &str, width: usize| -> Result<BitVector> {
++            let (group, index) = interface_slot(f, name)?;
+             Ok(element
+                 .iter()
+                 .find_map(|(c, v)| match c {
+-                    Component::Bundle(n) if n == name => Some(v.clone()),
++                    Component::Bundle(g, j) if (*g, *j) == (group, index) => Some(v.clone()),
+                     _ => None,
+                 })
+@@ -6452,8 +7304,9 @@
+         };
+         let cell = |region: &str, i: usize, width: usize| -> Result<BitVector> {
++            let (group, slot) = interface_slot(f, region)?;
+             Ok(element
+                 .iter()
+                 .find_map(|(c, v)| match c {
+-                    Component::Cell(n, j) if n == region && *j == i => Some(v.clone()),
++                    Component::Cell(g, s, j) if (*g, *s, *j) == (group, slot, i) => Some(v.clone()),
+                     _ => None,
+                 })
+@@ -6766,7 +7619,6 @@
+     }
+     fn check_translation_witness(&self, f: &Function, w: &Json) -> Result<()> {
+-        let identity = self.identity()?;
+-        let hash = &identity.interface_hashes[&f.name];
+-        let points = |key: &str| -> Result<Vec<crate::Instruction>> {
++        let hash = &self.identity()?.interface_hashes[&f.name];
++        let points = |key: &str| -> Result<Vec<&crate::Instruction>> {
+             w.get(key)?
+                 .array()?
+@@ -6774,17 +7626,14 @@
+                 .map(|p| {
+                     let p = p.array()?;
+-                    if p[0].string()? != hash {
+-                        return err("§12", "translation-lemma point outside the region");
++                    if p.len() != 3 || p[0].string()? != hash {
++                        return err("§5.6/§12.1", "translation-lemma point outside the region");
+                     }
+-                    let block = f
+-                        .blocks
+-                        .iter()
+-                        .find(|b| b.name == p[1].string().unwrap_or(""))
+-                        .ok_or_else(|| Error("§12: unknown block".into()))?;
+-                    block
+-                        .instructions
+-                        .get(p[2].uint()? as usize)
+-                        .cloned()
+-                        .ok_or_else(|| Error("§12: unknown instruction ordinal".into()))
++                    let point = self
++                        .point(hash, p[1].string()?, p[2].uint()?)
++                        .map_err(|e| Error(format!("§5.6/§12.1: {e}")))?;
++                    if !std::ptr::eq(point.function, f) {
++                        return err("§5.6/§12.1", "point outside subject");
++                    }
++                    Ok(point.instruction)
+                 })
+                 .collect()
+@@ -6797,5 +7646,16 @@
+                 .collect()
+         };
+-        crate::validate_translation_lemma(&points("V")?, &points("W")?, &names("X")?, &names("B")?)
++        let frame = points("frame")?;
++        if frame.len() != 2 {
++            return err("§5.6/§12.1", "frame needs two endpoints");
++        }
++        self.check_translation_frame(
++            f,
++            [frame[0], frame[1]],
++            &points("V")?,
++            &points("W")?,
++            &names("X")?,
++            &names("B")?,
++        )
+     }
+     /// Checks every claim of the certificate: false claims are errors, and
+@@ -6940,5 +7800,5 @@
+ ````
+ 
+-## `src/classical.rs` (1578 lines)
++## `src/classical.rs` (1621 lines)
+ 
+ ````rust
+@@ -7751,8 +8611,24 @@
+             )
+         };
++        // Check the physical interface BEFORE deduplicating lifecycle handles.
++        // Distinct SSA names (e.g. select results or block parameters) can bind
++        // the very same register. Controls may share read-only inputs, so they
++        // are checked separately against actual targets below.
++        let mut interface_wires = std::collections::BTreeSet::new();
++        let mut bind_wires = |wires: &[crate::quantum::Wire]| -> Result<()> {
++            for w in wires {
++                if !interface_wires.insert(*w) {
++                    return Err(trap(Error(
++                        "§3.3: region interface bundles and regions overlap".into(),
++                    )));
++                }
++            }
++            Ok(())
++        };
+         for (group, names) in groups {
+             for (p, n) in callee.params[group].iter().zip(names) {
+                 let id = self.qreg(&n)?;
+                 let wires = self.state.quantum.bundle(id)?.to_vec();
++                bind_wires(&wires)?;
+                 bindings.bundles.insert(p.name.clone(), wires);
+                 if !ids.contains(&id) {
+@@ -7772,4 +8648,5 @@
+                 return err("§3.3", "qreg does not fill region dimensions");
+             }
++            bind_wires(wires)?;
+             bindings.regions.insert(
+                 p.name.clone(),
+@@ -7783,4 +8660,30 @@
+                 ids.push(id);
+             }
++        }
++        let mut targets = std::collections::BTreeSet::new();
++        if oracle {
++            for p in callee.params[1].iter().chain(&callee.params[2]) {
++                targets.extend(bindings.bundles[&p.name].iter().copied());
++            }
++        } else if !controls.is_empty() {
++            // The same transitive bit-level target analysis used at load,
++            // now bound to physical wire ids. This includes diagonal targets
++            // and targets reached through nested action calls.
++            for (param, index) in self
++                .object
++                .interface_targets(name, &mut Default::default())?
++            {
++                targets.insert(bindings.bundles[&param][index as usize]);
++            }
++            for p in &callee.params[memory.0] {
++                if p.role.as_deref() == Some("mut") {
++                    targets.extend(bindings.regions[&p.name].cells.iter().flatten().copied());
++                }
++            }
++        }
++        if controls.iter().any(|w| targets.contains(w)) {
++            return Err(trap(Error(
++                "§3.3: effective control aliases region target".into(),
++            )));
+         }
+         for (p, n) in callee.params[args.0].iter().zip(args.1) {
+@@ -8523,5 +9426,313 @@
+ ````
+ 
+-## `src/exact.rs` (697 lines)
++## `src/exact/measurement.rs` (303 lines)
++
++````rust
++//! Outward-rounded dyadic enclosures for Born comparisons. Precision refines
++//! without a cutoff; exact Laurent-polynomial zero is decided before refinement.
++use super::*;
++
++fn cmp(a: &Dyadic, b: &Dyadic) -> Ordering {
++    let k = a.k.max(b.k);
++    a.n.shl(k - a.k).cmp(&b.n.shl(k - b.k))
++}
++fn rounded(x: &Dyadic, p: u64, up: bool) -> Dyadic {
++    if x.k <= p {
++        return x.clone();
++    }
++    let shift = x.k - p;
++    let lost = !x.is_zero() && x.n.trailing_zeros() < shift;
++    let mut n = x.n.shr(shift);
++    if lost && (up != x.n.negative) {
++        n = n.add(&BigInt::from_i128(if up { 1 } else { -1 }));
++    }
++    Dyadic { n, k: p }.normalize()
++}
++#[derive(Clone)]
++struct Interval {
++    lo: Dyadic,
++    hi: Dyadic,
++}
++impl Interval {
++    fn point(x: Dyadic) -> Self {
++        Self {
++            lo: x.clone(),
++            hi: x,
++        }
++    }
++    fn int(x: i128) -> Self {
++        Self::point(Dyadic::int(x))
++    }
++    fn bounds(lo: Dyadic, hi: Dyadic, p: u64) -> Self {
++        Self {
++            lo: rounded(&lo, p, false),
++            hi: rounded(&hi, p, true),
++        }
++    }
++    fn add(&self, b: &Self, p: u64) -> Self {
++        Self::bounds(self.lo.add(&b.lo), self.hi.add(&b.hi), p)
++    }
++    fn neg(&self) -> Self {
++        Self {
++            lo: self.hi.neg(),
++            hi: self.lo.neg(),
++        }
++    }
++    fn mul(&self, b: &Self, p: u64) -> Self {
++        let mut v = [
++            self.lo.mul(&b.lo),
++            self.lo.mul(&b.hi),
++            self.hi.mul(&b.lo),
++            self.hi.mul(&b.hi),
++        ];
++        v.sort_by(cmp);
++        Self::bounds(v[0].clone(), v[3].clone(), p)
++    }
++    fn div_small(&self, d: u32, p: u64) -> Self {
++        let bound = |x: &Dyadic, up| {
++            // Round x/d to the p-bit grid, with a guard against signed
++            // truncation. Multiplication by 2^p is exact before division.
++            let x = rounded(x, p, up);
++            let (mut n, rem) = x.n.shl(p - x.k).divmod_small(d);
++            if rem != 0 && (up != x.n.negative) {
++                n = n.add(&BigInt::from_i128(if up { 1 } else { -1 }));
++            }
++            Dyadic { n, k: p }.normalize()
++        };
++        Self {
++            lo: bound(&self.lo, false),
++            hi: bound(&self.hi, true),
++        }
++    }
++    fn midpoint(&self) -> Dyadic {
++        self.lo.add(&self.hi).mul(&Dyadic::scaled(1, 1))
++    }
++}
++fn sqrt2(p: u64) -> Interval {
++    // Binary digit construction: r^2 <= 2, (r + 2^-p)^2 > 2.
++    let mut lo = Dyadic::int(1);
++    for bit in 1..=p {
++        let next = lo.add(&Dyadic::scaled(1, bit));
++        if cmp(&next.mul(&next), &Dyadic::int(2)) != Ordering::Greater {
++            lo = next;
++        }
++    }
++    Interval {
++        hi: lo.add(&Dyadic::scaled(1, p)),
++        lo,
++    }
++}
++fn phase(e: &BigInt, p: u64) -> (Interval, Interval) {
++    let bits = e.limbs.last().map_or(0, |n| {
++        32 * (e.limbs.len() as u64 - 1) + u64::from(32 - n.leading_zeros())
++    });
++    let squares = bits.saturating_sub(1074);
++    let x = Interval::point(
++        Dyadic {
++            n: e.clone(),
++            k: 1075 + squares,
++        }
++        .normalize(),
++    );
++    // exp(ix) with |x| <= 1/2. After N terms the tail is at most
++    // 2*(1/2)^(N+1)/(N+1)!; the integer bound below is conservative.
++    let work = p + 16;
++    let (mut re, mut im) = (Interval::int(1), Interval::int(0));
++    let (mut tr, mut ti) = (Interval::int(1), Interval::int(0));
++    let (mut n, mut bound_bits) = (0u32, 0u64);
++    while bound_bits < p + 8 {
++        n += 1;
++        bound_bits += 1 + u64::from(31 - n.leading_zeros());
++        (tr, ti) = (
++            ti.mul(&x, work).neg().div_small(n, work),
++            tr.mul(&x, work).div_small(n, work),
++        );
++        re = re.add(&tr, work);
++        im = im.add(&ti, work);
++    }
++    let error = Interval {
++        lo: Dyadic::scaled(-1, p + 4),
++        hi: Dyadic::scaled(1, p + 4),
++    };
++    re = re.add(&error, work);
++    im = im.add(&error, work);
++    for _ in 0..squares {
++        (re, im) = (
++            re.mul(&re, work).add(&im.mul(&im, work).neg(), work),
++            re.mul(&im, work).mul(&Interval::int(2), work),
++        );
++    }
++    (re, im)
++}
++fn evaluate(a: &Amplitude, p: u64) -> (Interval, Interval) {
++    let root = if a
++        .terms
++        .values()
++        .any(|c| !c.re.b.is_zero() || !c.im.b.is_zero())
++    {
++        sqrt2(p + 16)
++    } else {
++        Interval::int(0)
++    };
++    let coeff = |r: &Root2| {
++        Interval::point(r.a.clone()).add(&Interval::point(r.b.clone()).mul(&root, p), p)
++    };
++    let (mut re, mut im) = (Interval::int(0), Interval::int(0));
++    for (e, c) in &a.terms {
++        let (co, si) = phase(e, p);
++        let (x, y) = (coeff(&c.re), coeff(&c.im));
++        re = re.add(&x.mul(&co, p).add(&y.mul(&si, p).neg(), p), p);
++        im = im.add(&x.mul(&si, p).add(&y.mul(&co, p), p), p);
++    }
++    (re, im)
++}
++/// Mantissa and binary exponent, never collapsing a tiny nonzero value.
++fn scaled(x: &Dyadic) -> (f64, i64) {
++    if x.is_zero() {
++        return (0.0, 0);
++    }
++    let len = x.n.limbs.len();
++    let bits = 32 * (len as u64 - 1) + u64::from(32 - x.n.limbs[len - 1].leading_zeros());
++    let shift = bits.saturating_sub(53);
++    let top = x.n.shr(shift);
++    let mut m = 0.0;
++    for l in top.limbs.iter().rev() {
++        m = m * 4294967296.0 + f64::from(*l);
++    }
++    if x.n.negative {
++        m = -m;
++    }
++    (
++        m * 2f64.powi(-((bits - shift) as i32)),
++        bits as i64 - x.k as i64,
++    )
++}
++fn at_scale(x: &Dyadic, exponent: i64) -> f64 {
++    let (m, e) = scaled(x);
++    if m == 0.0 || e - exponent < -1074 {
++        0.0
++    } else {
++        m * 2f64.powi((e - exponent) as i32)
++    }
++}
++impl Amplitude {
++    pub(crate) fn norm_squared(&self) -> Self {
++        let conjugate = Self {
++            terms: self
++                .terms
++                .iter()
++                .map(|(e, c)| {
++                    (
++                        e.neg(),
++                        Coefficient {
++                            re: c.re.clone(),
++                            im: c.im.neg(),
++                        },
++                    )
++                })
++                .collect(),
++        };
++        self.mul(&conjugate)
++    }
++    pub(crate) fn times_f64(&self, x: f64) -> crate::Result<Self> {
++        let d = dyadic_from_f64(x)
++            .ok_or_else(|| crate::Error("§14.2: nonfinite measurement scale".into()))?;
++        Ok(self.mul(&Self::constant(Coefficient::new(
++            d,
++            Dyadic::default(),
++            Dyadic::default(),
++            Dyadic::default(),
++        ))))
++    }
++    /// Sign of a real polynomial. Exact zero terminates even at CDF ties;
++    /// otherwise converging enclosures eventually exclude zero.
++    pub(crate) fn real_sign(&self) -> Ordering {
++        if self.is_zero() {
++            return Ordering::Equal;
++        }
++        let mut p = 64;
++        loop {
++            let (v, _) = evaluate(self, p);
++            if cmp(&v.lo, &Dyadic::int(0)) == Ordering::Greater {
++                return Ordering::Greater;
++            }
++            if cmp(&v.hi, &Dyadic::int(0)) == Ordering::Less {
++                return Ordering::Less;
++            }
++            p *= 2;
++        }
++    }
++}
++/// Binary64 diagnostics of a projection, normalized with a shared extended
++/// exponent. Refine until every supported amplitude has relative accuracy;
++/// exact shadows stay unnormalised so future probabilities use norm ratios.
++pub(crate) fn normalized(amplitudes: &[Amplitude]) -> Vec<(f64, f64)> {
++    let mut p = 64;
++    loop {
++        let mut values = Vec::new();
++        let mut ready = true;
++        for a in amplitudes {
++            let (r, i) = evaluate(a, p);
++            let (re, im) = (r.midpoint(), i.midpoint());
++            let exponent = [scaled(&re), scaled(&im)]
++                .into_iter()
++                .filter(|(m, _)| *m != 0.0)
++                .map(|(_, e)| e)
++                .max();
++            let Some(e) = exponent else {
++                ready = false;
++                break;
++            };
++            let width = r.hi.add(&r.lo.neg()).add(&i.hi.add(&i.lo.neg()));
++            let tolerance = Dyadic {
++                n: BigInt::from_i128(1),
++                k: if e < 50 { (50 - e) as u64 } else { 0 },
++            };
++            if cmp(&width, &tolerance) == Ordering::Greater {
++                ready = false;
++                break;
++            }
++            values.push((re, im, e));
++        }
++        if ready {
++            let exponent = values.iter().map(|(_, _, e)| *e).max().unwrap_or(0);
++            let values: Vec<_> = values
++                .iter()
++                .map(|(r, i, _)| (at_scale(r, exponent), at_scale(i, exponent)))
++                .collect();
++            let norm = values
++                .iter()
++                .fold(0.0f64, |s, (r, i)| s.hypot(*r).hypot(*i));
++            return values
++                .into_iter()
++                .map(|(r, i)| (r / norm, i / norm))
++                .collect();
++        }
++        p *= 2;
++    }
++}
++/// Approximate positive weight ratio for display only; sampling uses real_sign.
++pub(crate) fn probability(weight: &Amplitude, total: &Amplitude) -> f64 {
++    let mut p = 64;
++    loop {
++        let (w, _) = evaluate(weight, p);
++        let (t, _) = evaluate(total, p);
++        if cmp(&w.lo, &Dyadic::int(0)) == Ordering::Greater
++            && cmp(&t.lo, &Dyadic::int(0)) == Ordering::Greater
++        {
++            let (wm, we) = scaled(&w.midpoint());
++            let (tm, te) = scaled(&t.midpoint());
++            return if we - te < -1074 {
++                0.0
++            } else {
++                (wm / tm) * 2f64.powi((we - te) as i32)
++            };
++        }
++        p *= 2;
++    }
++}
++````
++
++## `src/exact.rs` (700 lines)
+ 
+ ````rust
+@@ -8695,6 +9906,6 @@
+         n
+     }
+-    /// Exact right shift of a value divisible by 2^bits.
+-    fn shr_exact(&self, bits: u64) -> Self {
++    /// Right shift of the magnitude, truncating toward zero.
++    fn shr(&self, bits: u64) -> Self {
+         let words = (bits / 32) as usize;
+         let shift = (bits % 32) as u32;
+@@ -8760,5 +9971,5 @@
+         let t = self.n.trailing_zeros().min(self.k);
+         if t > 0 {
+-            self.n = self.n.shr_exact(t);
++            self.n = self.n.shr(t);
+             self.k -= t;
+         }
+@@ -9223,4 +10434,7 @@
+     }
+ }
++
++mod measurement;
++pub(crate) use measurement::{normalized, probability};
+ ````
+ 
+@@ -11944,5 +13158,5 @@
+ ````
+ 
+-## `src/main.rs` (1983 lines)
++## `src/main.rs` (2001 lines)
+ 
+ ````rust
+@@ -12007,9 +13221,16 @@
+ }
+ fn budget(raw: &str, default: Budget) -> Result<Budget> {
+-    let v = raw.split(',').map(uint).collect::<Result<Vec<_>>>()?;
++    let v = raw
++        .split(',')
++        .map(|s| uint(s).map_err(|e| fail(format!("§5.4: invalid budget component {s:?}: {e}"))))
++        .collect::<Result<Vec<_>>>()?;
+     if v.len() != 1 && v.len() != 4 {
+         return Err(fail("budget requires B or B,heap,stack,depth (§5.4)"));
+     }
+-    let steps = u64::try_from(v[0]).map_err(fail)?;
++    let steps = u64::try_from(v[0]).map_err(|e| {
++        fail(format!(
++            "§5.4: host limit: step budget exceeds the u64 counter: {e}"
++        ))
++    })?;
+     Ok(if v.len() == 1 {
+         Budget { steps, ..default }
+@@ -12028,5 +13249,7 @@
+ fn parse_hex(s: &str) -> Result<Vec<u8>> {
+     if !s.len().is_multiple_of(2) || !s.bytes().all(|c| c.is_ascii_hexdigit()) {
+-        return Err(fail("invalid HEX (even-length hexadecimal expected)"));
++        return Err(fail(
++            "§16.1: invalid HEX (even-length hexadecimal expected)",
++        ));
+     }
+     (0..s.len())
+@@ -13728,5 +14951,12 @@
+             "--budget" => limits = budget(value, limits)?,
+             "--max-bits" => max_bits = uint(value)?,
+-            "--samples" => samples = Some(uint(value)?),
++            "--samples" => {
++                let count =
++                    uint(value).map_err(|e| fail(format!("§17.13: invalid sample count: {e}")))?;
++                if count == 0 {
++                    return Err(fail("§17.13: --samples requires at least one case"));
++                }
++                samples = Some(count);
++            }
+             "--seed" => {
+                 let words = value
+@@ -13744,5 +14974,7 @@
+                     .ok_or_else(|| fail("--mem requires name=hex"))?;
+                 if hex.len() % 2 != 0 || !hex.bytes().all(|c| c.is_ascii_hexdigit()) {
+-                    return Err(fail("invalid memory HEX"));
++                    return Err(fail(
++                        "§16.1: invalid memory HEX (even-length hexadecimal expected)",
++                    ));
+                 }
+                 let bytes = (0..hex.len())
+@@ -13932,5 +15164,5 @@
+ ````
+ 
+-## `src/metadata.rs` (396 lines)
++## `src/metadata.rs` (401 lines)
+ 
+ ````rust
+@@ -14006,11 +15238,16 @@
+     f().map_err(|e| Error(format!("{rule}: {e}")))
+ }
+-struct Point<'a> {
+-    function: &'a Function,
+-    instruction: &'a Instruction,
++pub(crate) struct Point<'a> {
++    pub(crate) function: &'a Function,
++    pub(crate) instruction: &'a Instruction,
+     loops: Vec<u64>,
+ }
+ impl Object {
+-    fn point<'a>(&'a self, symbol: &str, block: &str, ordinal: u128) -> Result<Point<'a>> {
++    pub(crate) fn point<'a>(
++        &'a self,
++        symbol: &str,
++        block: &str,
++        ordinal: u128,
++    ) -> Result<Point<'a>> {
+         hash(&Json::String(symbol.into()))?;
+         let candidates = self
+@@ -17007,10 +18244,10 @@
+ ````
+ 
+-## `src/quantum.rs` (768 lines)
++## `src/quantum.rs` (777 lines)
+ 
+ ````rust
+ //! §14.2 state semantics: a sparse basis-permutation fast path and a state
+ //! vector, each carrying an exact shadow (src/exact.rs) beside the binary64
+-//! amplitudes. The binary64 amplitudes serve Born probabilities; every
++//! amplitudes. Born selection uses refined exact-shadow enclosures; every
+ //! cleanliness and basis-value decision uses the exact amplitudes, so a
+ //! component is zero iff it is exactly zero (no tolerance, council B15).
+@@ -17038,7 +18275,4 @@
+     fn phase(a: f64) -> Self {
+         Self::new(a.cos(), a.sin())
+-    }
+-    fn norm2(self) -> f64 {
+-        self.re * self.re + self.im * self.im
+     }
+     fn scale(self, s: f64) -> Self {
+@@ -17159,4 +18393,5 @@
+     pub bits: Vec<bool>,
+     pub state: QuantumState,
++    pub(crate) weight: Amplitude,
+ }
+ #[derive(Clone, Debug, Default)]
+@@ -17704,4 +18939,5 @@
+             return Ok(vec![MeasurementBranch {
+                 probability: 1.0,
++                weight: Amplitude::one(),
+                 bits: result,
+                 state,
+@@ -17726,9 +18962,18 @@
+                 .insert(compress(k, &remove), a.clone());
+         }
++        let weights: Vec<_> = groups
++            .values()
++            .map(|g| {
++                g.values()
++                    .fold(Amplitude::zero(), |s, (_, e)| s.add(&e.norm_squared()))
++            })
++            .collect();
++        let total = weights.iter().fold(Amplitude::zero(), |s, w| s.add(w));
+         let mut branches = Vec::new();
+-        for (bits, mut group) in groups {
+-            let probability: f64 = group.values().map(|(f, _)| f.norm2()).sum();
+-            for (f, _) in group.values_mut() {
+-                *f = f.scale(1.0 / probability.sqrt());
++        for ((bits, mut group), weight) in groups.into_iter().zip(weights) {
++            let probability = exact::probability(&weight, &total);
++            let projected: Vec<_> = group.values().map(|(_, e)| e.clone()).collect();
++            for ((f, _), (re, im)) in group.values_mut().zip(exact::normalized(&projected)) {
++                *f = Complex::new(re, im);
+             }
+             let mut state = self.clone();
+@@ -17737,4 +18982,5 @@
+             branches.push(MeasurementBranch {
+                 probability,
++                weight,
+                 bits,
+                 state,
+@@ -17780,5 +19026,5 @@
+ ````
+ 
+-## `src/registers.rs` (247 lines)
++## `src/registers.rs` (260 lines)
+ 
+ ````rust
+@@ -17870,4 +19116,15 @@
+     pub(crate) fn idle_bundle(&self, id: u64) -> Result<&[Wire]> {
+         Ok(&self.ordinary(id)?.wires)
++    }
++    fn set_status(&mut self, id: u64, status: Status) -> Result<()> {
++        self.handles
++            .get_mut(&id)
++            .ok_or_else(|| {
++                Error(format!(
++                    "§3.3: missing qreg handle {id} during ownership transition"
++                ))
++            })?
++            .status = status;
++        Ok(())
+     }
+     fn record(&self, ids: &[u64]) -> RegisterUndo {
+@@ -17919,5 +19176,5 @@
+             .collect::<Result<Vec<_>>>()?;
+         self.state.release(&wires)?;
+-        self.handles.get_mut(&id).expect("live handle").status = Status::Consumed;
++        self.set_status(id, Status::Consumed)?;
+         undo.kernel = KernelUndo::Release(positions);
+         Ok(undo)
+@@ -17939,5 +19196,5 @@
+         let wires = h.wires[lo..end].to_vec();
+         let undo = self.record(&[id, self.next]);
+-        self.handles.get_mut(&id).expect("live parent").status = Status::Viewed;
++        self.set_status(id, Status::Viewed)?;
+         let view = self.create(wires, Some(id))?;
+         Ok((view, undo))
+@@ -17956,6 +19213,6 @@
+         }
+         let undo = self.record(&[a, b, self.next]);
+-        self.handles.get_mut(&a).expect("handle").status = Status::Consumed;
+-        self.handles.get_mut(&b).expect("handle").status = Status::Consumed;
++        self.set_status(a, Status::Consumed)?;
++        self.set_status(b, Status::Consumed)?;
+         let id = self.create(wires, None)?;
+         Ok((id, undo))
+@@ -17981,6 +19238,6 @@
+         for id in ids {
+             if let Some(parent) = self.handles[id].parent {
+-                self.handles.get_mut(id).expect("view").status = Status::Consumed;
+-                self.handles.get_mut(&parent).expect("parent").status = Status::Live;
++                self.set_status(*id, Status::Consumed)?;
++                self.set_status(parent, Status::Live)?;
+             }
+         }
+@@ -17993,15 +19250,17 @@
+         let wires = self.ordinary(id)?.wires.clone();
+         let branches = self.state.measurement_branches(&wires)?;
+-        let mut cursor = draw;
++        let total = branches
++            .iter()
++            .fold(crate::exact::Amplitude::zero(), |s, b| s.add(&b.weight));
++        let threshold = total.times_f64(draw)?;
++        let mut cumulative = crate::exact::Amplitude::zero();
+         let mut selected = None;
+         for branch in branches {
+-            cursor -= branch.probability;
+-            let last = branch.probability > 0.0;
+-            if cursor < 0.0 {
++            cumulative = cumulative.add(&branch.weight);
++            if cumulative.add(&threshold.times_f64(-1.0)?).real_sign()
++                == std::cmp::Ordering::Greater
++            {
+                 selected = Some(branch);
+                 break;
+-            }
+-            if last {
+-                selected = Some(branch);
+             }
+         }
+@@ -18009,5 +19268,5 @@
+             selected.ok_or_else(|| Error("§14.2: measurement has no nonzero outcome".into()))?;
+         self.state = branch.state;
+-        self.handles.get_mut(&id).expect("handle").status = Status::Consumed;
++        self.set_status(id, Status::Consumed)?;
+         Ok(branch.bits)
+     }
+@@ -18366,5 +19625,5 @@
+ ````
+ 
+-## `src/validation.rs` (1916 lines)
++## `src/validation.rs` (1918 lines)
+ 
+ ````rust
+@@ -19187,5 +20446,7 @@
+             }
+             if retry.len() == before {
+-                return Err(first_error.expect("retry records its error"));
++                return Err(first_error.unwrap_or_else(|| {
++                    Error("§3.3: unresolved SSA definitions without a recorded diagnostic".into())
++                }));
+             }
+             pending = retry;
+@@ -20907,5 +22168,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (1140 lines)
++## `tests/cli_xam.rs` (1270 lines)
+ 
+ ````rust
+@@ -22049,4 +23310,134 @@
+         (0, 0, 10)
+     );
++}
++
++#[test]
++fn r4_dynamic_region_aliases_report_failed_json_and_reverse_the_prefix() {
++    for tier in ["cc", "r"] {
++        for kind in ["interface", "control", "readonly-control", "oracle"] {
++            let o = support::dynamic_region_alias_object(kind, tier);
++            let path = tmp_file(&format!("r4-alias-{tier}-{kind}.bisa"), &o.text);
++            for c in ["0", "1"] {
++                for command in ["run-cc", "reverse", "run-program"] {
++                    if command == "run-program" && tier == "r" {
++                        continue;
++                    }
++                    let mut args = vec![
++                        command, &path, "p", "--arg", c, "--arg", "qreg:0", "--arg", "qreg:1",
++                    ];
++                    if kind == "oracle" {
++                        args.extend(["--arg", "qreg:0000", "--arg", "token:1"]);
++                    }
++                    let v = ok(&args);
++                    // The faulting call is the second executed row. No ret or
++                    // output delivery executes. §7.4 reversal undoes both frames.
++                    assert_eq!(
++                        text(&v, "status"),
++                        if command == "reverse" {
++                            "REVERSED"
++                        } else if c == "1" {
++                            "FAILED"
++                        } else {
++                            "COMPLETED"
++                        }
++                    );
++                    assert_eq!(uint(&v, "steps"), if c == "1" { 2 } else { 3 });
++                    assert_eq!(
++                        field(&v, "fault"),
++                        &if c == "1" {
++                            Json::Number("4".into())
++                        } else {
++                            Json::Null
++                        }
++                    );
++                    assert!(array(&v, "results").is_empty());
++                    if c == "1" {
++                        let faults = array(&v, "faults");
++                        assert_eq!(faults.len(), 1);
++                        assert_eq!(uint(&faults[0], "code"), 4);
++                        assert_eq!(text(&faults[0], "name"), "FAULT_UB_TRAP");
++                    }
++                    if command == "reverse" {
++                        assert_eq!(field(&v, "equals_entry"), &Json::Bool(true));
++                        assert_eq!(field(&v, "first_difference"), &Json::Null);
++                    }
++                }
++            }
++        }
++    }
++}
++
++#[test]
++fn sol_r4_b01_tiny_born_branch_is_selectable() {
++    // Rx(theta)|1> = -i sin(theta/2)|0> + cos(theta/2)|1>.
++    // For nonzero theta, draw=0 selects the first supported outcome, even
++    // when sin^2(theta/2) is below binary64's least positive number.
++    let a = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let p = r#"{"abi":"0.8","kind":"cc","params":["qreg[1]"],"results":["i1"],"tier":"cc"}"#;
++    for angle in ["1e-100", "1e-161", "1e-162", "1e-200", "5e-324", "0.0"] {
++        let action = format!("action @a (t:wire mut) () () () ()\n^entry():\nrx {angle} t");
++        let parent = "fn cc @p (q:qreg[1]) (r:i1) () () ()\n^entry():\naction_call @a (q) () () ()\nr = measure q\nret r";
++        let o = support::rehash(&support::object(
++            &[("a", a, &action), ("p", p, parent)],
++            "{}",
++            "",
++        ));
++        let path = tmp_file(&format!("sol-r4-b01-{angle}.bisa"), &o.text);
++        ok(&["check", &path]);
++        for draw in ["0", "0.5"] {
++            let v = ok(&["run-cc", &path, "p", "--arg", "qreg:1", "--draws", draw]);
++            let expected = if draw == "0" && angle != "0.0" {
++                "0"
++            } else {
++                "1"
++            };
++            assert_eq!(text(&v, "status"), "COMPLETED");
++            assert_eq!(uint(&v, "steps"), 3);
++            assert_eq!(field(&v, "fault"), &Json::Null);
++            assert_eq!(
++                result(&array(&v, "results")[0]).1,
++                expected,
++                "angle={angle}, draw={draw}"
++            );
++            assert_eq!(text(&array(&v, "measurements")[0], "bits"), expected);
++        }
++        fails(
++            &["reverse", &path, "p", "--arg", "qreg:1", "--draws", "0"],
++            "measure",
++        );
++    }
++}
++
++#[test]
++fn muse_r4_step_check_requires_a_nonempty_sample() {
++    fails(
++        &["step-check", &fixture("inc8"), "inc8", "--samples", "0"],
++        "§17.13",
++    );
++    let sampled = ok(&["step-check", &fixture("inc8"), "inc8", "--samples", "1"]);
++    assert_eq!(uint(&sampled, "cases"), 1);
++}
++
++#[test]
++fn muse_r4_malformed_options_cite_the_isa_without_partial_output() {
++    for (flag, value, cite) in [
++        ("--budget", "-1", "§5.4"),
++        ("--budget", "18446744073709551616", "§5.4"),
++        ("--arg", "token:", "§5.4"),
++        ("--mem", "db=zz/0", "§16.1"),
++    ] {
++        fails(
++            &[
++                "run-oracle",
++                &fixture("inc8"),
++                "inc8",
++                "--input",
++                "0",
++                flag,
++                value,
++            ],
++            cite,
++        );
++    }
+ }
+ ````
+@@ -23138,7 +24529,8 @@
+ ````
+ 
+-## `tests/identity.rs` (168 lines)
++## `tests/identity.rs` (233 lines)
+ 
+ ````rust
++mod support;
+ use bennett_isa_ref::{sha256_hex, Object};
+ 
+@@ -23309,4 +24701,68 @@
+     );
+ }
++
++#[test]
++fn council_r4_mutual_scc_has_independent_literal_envelopes() {
++    // §9.2: f < g bytewise; headers are definitions, calls are references;
++    // lprocs without lift.addr globals have NO layout leaves or part-(6) lines.
++    let f = concat!(
++        "isa=0.8\nptr_width=16\n",
++        "{\"abi\":\"0.8\",\"kind\":\"lproc\",\"params\":[],\"result\":16,\"tier\":\"q\"}\n",
++        "lproc @f () (r:reg[16]) () () ()\n^entry():\nr = lift.call @$1 ()\nlift.ret r\n"
++    );
++    let g = concat!(
++        "isa=0.8\nptr_width=16\n",
++        "{\"abi\":\"0.8\",\"kind\":\"lproc\",\"params\":[],\"result\":16,\"tier\":\"q\"}\n",
++        "lproc @g () (r:reg[16]) () () ()\nregs { p:reg[1] }\n^entry():\n",
++        "p = lift.const.i1 1\nqbranch p ^done ^recurse\n^done():\nr = lift.label ^entry\nlift.ret r\n",
++        "^recurse():\nr = lift.call @$0 ()\nlift.ret r\n"
++    );
++    let digest = sha256_hex(format!("{f}{g}").as_bytes());
++    let id = Object::parse(include_str!("fixtures/mutual.bisa"))
++        .unwrap()
++        .identity()
++        .unwrap();
++    assert_eq!(id.envelopes["f"], f);
++    assert_eq!(id.envelopes["g"], g);
++    assert_eq!(id.scc_members["f"], ["f", "g"]);
++    assert_eq!(id.scc_hashes["f"], digest);
++    assert_eq!(
++        sha256_hex(format!("{digest}:0").as_bytes()),
++        "e4028cf7347c2779e19c8193ef1039837944acebd4784e9c3a42fbe236e737ec"
++    );
++    assert_eq!(
++        sha256_hex(format!("{digest}:1").as_bytes()),
++        "7dc9c25aff5230a46ae697edf187d34ba72a03f7a3c1a520c6fc6bf5462c6374"
++    );
++    assert_eq!(
++        id.interface_hashes["f"],
++        sha256_hex(format!("{digest}:0").as_bytes())
++    );
++    assert_eq!(
++        id.interface_hashes["g"],
++        sha256_hex(format!("{digest}:1").as_bytes())
++    );
++}
++
++#[test]
++fn council_r4_cc_envelope_includes_service_but_not_unused_model() {
++    // §4.8: effect is R-only, hostcall CC-only. A CC envelope includes its
++    // service but not an unused declared model; both cannot be used directly.
++    let raw = support::object(
++        &[("mix", r#"{"abi":"0.8","kind":"cc","params":["ptr","i32"],"results":[],"tier":"cc"}"#,
++        "fn cc @mix (p:ptr, n:i32) () () () ()\n^entry():\nr = hostcall a.service p n\nret")], "{}",
++        "\nsection devices\n{\"models\":{\"clock\":{\"version\":\"0.8\"}},\"services\":{\"a.service\":{\"version\":\"1\"}}}\n\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n"
++    );
++    let expected = concat!(
++        "isa=0.8\nptr_width=32\n",
++        "{\"abi\":\"0.8\",\"kind\":\"cc\",\"params\":[\"ptr\",\"i32\"],\"results\":[],\"tier\":\"cc\"}\n",
++        "fn cc @mix (p:ptr, n:i32) () () () ()\n^entry():\nr = hostcall a.service p n\nret\n",
++        "layout A_tab 0\nlayout H 0\nlayout S_cells 0\nlayout heap_base 1\nlayout heap_limit_max 0\nlayout null_size 1\nlayout ptr_width 32\n",
++        "device a.service {\"version\":\"1\"}\n"
++    );
++    let id = Object::parse(&raw).unwrap().identity().unwrap();
++    assert_eq!(id.envelopes["mix"], expected);
++    assert_eq!(id.interface_hashes["mix"], sha256_hex(expected.as_bytes()));
++}
+ ````
+ 
+@@ -23718,5 +25174,5 @@
+ ````
+ 
+-## `tests/oracle.rs` (270 lines)
++## `tests/oracle.rs` (301 lines)
+ 
+ ````rust
+@@ -23991,4 +25447,35 @@
+     }
+ }
++
++#[test]
++fn council_r4_sum_db_literal_step_and_stack_cutoffs() {
++    let o = Object::parse(include_str!("fixtures/sum_db.bisa")).unwrap();
++    // n=0: entry addr/const/call, five base-case rows, ret, retval = 10.
++    // n=2: two recursive levels add 14 each -> 38; db[1]+db[0]=2+1=3.
++    // The third 16-cell activation cannot fit stack=47; call row 29 faults.
++    for (n, steps, stack, depth, expected) in [
++        (0, 9, 16, 1, (0, 1, 9)),
++        (0, 10, 16, 1, (0, 0, 10)),
++        (2, 38, 48, 3, (3, 0, 38)),
++        (2, 37, 48, 3, (0, 1, 37)),
++        (2, 38, 47, 3, (0, 3, 29)),
++    ] {
++        let mut input = OracleInput::bits(&[n]);
++        input.regions.insert("db".into(), (1..=16).collect());
++        let r = o
++            .run_oracle(
++                "sum_db",
++                &input,
++                Budget {
++                    steps,
++                    heap: 4080,
++                    stack,
++                    depth,
++                },
++            )
++            .unwrap();
++        assert_eq!((r.payload, r.code, r.steps), expected);
++    }
++}
+ ````
+ 
+@@ -24210,5 +25697,5 @@
+ ````
+ 
+-## `tests/quantum.rs` (146 lines)
++## `tests/quantum.rs` (206 lines)
+ 
+ ````rust
+@@ -24358,4 +25845,64 @@
+         .unwrap();
+     assert_eq!(q.read_basis(&[t[255]]).unwrap(), 0);
++}
++
++#[test]
++fn sol_r4_b01_tiny_projection_preserves_entangled_residual_and_second_born_weights() {
++    // The rare branch of Rx(theta)|1> is correlated with a residual Bell pair.
++    // Its conditional state has two equal finite amplitudes, and measuring
++    // one Bell wire subsequently has probabilities 1/2,1/2, despite the
++    // unnormalised exact shadow having a norm below binary64 range.
++    for angle in [1e-162, 1e-200, f64::from_bits(1)] {
++        let mut q = QuantumState::new();
++        let w = q.allocate(3).unwrap();
++        q.gate("x", &[w[0]], None, &[]).unwrap();
++        q.gate("rx", &[w[0]], Some(angle), &[]).unwrap();
++        q.gate("h", &[w[1]], None, &[]).unwrap();
++        q.gate("cx", &[w[1], w[2]], None, &[]).unwrap();
++        // Entangle the measured system with the residual pair (odd parity on
++        // the common branch, even parity on the rare branch).
++        q.gate("cx", &[w[0], w[1]], None, &[]).unwrap();
++        let first = q.measurement_branches(&[w[0]]).unwrap();
++        assert_eq!(first.len(), 2);
++        assert_eq!(first[0].bits, [false]);
++        let residual = &first[0].state;
++        let amps = residual.amplitudes().unwrap();
++        assert!(amps.iter().all(|a| a.re.is_finite() && a.im.is_finite()));
++        assert!((amps.iter().map(|a| a.re * a.re + a.im * a.im).sum::<f64>() - 1.0).abs() < 1e-12);
++        let second = residual.measurement_branches(&[w[1]]).unwrap();
++        assert_eq!(second.len(), 2);
++        for branch in second {
++            assert!((branch.probability - 0.5).abs() < 1e-12);
++            assert_eq!(
++                branch.state.read_basis(&[w[2]]).unwrap(),
++                u128::from(branch.bits[0])
++            );
++            let a = branch.state.amplitudes().unwrap();
++            assert!((a.iter().map(|z| z.re * z.re + z.im * z.im).sum::<f64>() - 1.0).abs() < 1e-12);
++        }
++    }
++}
++
++#[test]
++fn sol_r4_b01_projection_recovers_amplitudes_below_binary64_range() {
++    // Two rare independent rotations give amplitude about 2.5e-401 on 00.
++    // It still projects to a normalized residual |+>, and applying H cleans it.
++    let mut q = QuantumState::new();
++    let w = q.allocate(3).unwrap();
++    for wire in &w[..2] {
++        q.gate("x", &[*wire], None, &[]).unwrap();
++        q.gate("rx", &[*wire], Some(1e-200), &[]).unwrap();
++    }
++    q.gate("h", &[w[2]], None, &[]).unwrap();
++    let branches = q.measurement_branches(&w[..2]).unwrap();
++    assert_eq!(branches.len(), 4);
++    let mut rare = branches[0].state.clone();
++    for a in rare.amplitudes().unwrap() {
++        assert!((a.re.abs() - std::f64::consts::FRAC_1_SQRT_2).abs() < 1e-12);
++        assert!(a.im.abs() < 1e-12);
++    }
++    rare.gate("h", &[w[2]], None, &[]).unwrap();
++    assert_eq!(rare.read_basis(&[w[2]]).unwrap(), 0);
++    rare.release(&[w[2]]).unwrap();
+ }
+ ````
+@@ -24526,5 +26073,5 @@
+ ````
+ 
+-## `tests/r1_borrow.rs` (397 lines)
++## `tests/r1_borrow.rs` (507 lines)
+ 
+ ````rust
+@@ -24926,7 +26473,117 @@
+     check_local_region_lifetime("z = qalloc any 1\nv = qload r z\nqunload r z v\nqfree z\nqloop 0 {\nqregion r 1 4 @image\n}", &[0], true);
+ }
++
++#[test]
++fn r4_loop_local_returns_cannot_be_restored_by_later_borrowings() {
++    // At EACH return b_out = beta XOR 1. A second borrowing cannot complete
++    // the first frame, even if the executor happens to reuse the same pool bit.
++    for (tag, body, bounds) in [
++        (
++            "loop",
++            "qloop 2 {\nb = qborrow any 1\nx b\nqreturn b\n}",
++            vec![2],
++        ),
++        (
++            "unrolled",
++            "b = qborrow any 1\nx b\nqreturn b\nb = qborrow any 1\nx b\nqreturn b",
++            vec![],
++        ),
++        (
++            "nested",
++            "qloop 2 {\nqloop 2 {\nb = qborrow any 1\nx b\nqreturn b\n}\n}",
++            vec![2, 2],
++        ),
++        ("single", "b = qborrow any 1\nx b\nqreturn b", vec![]),
++        // b is restored but the output depends on beta at each return.
++        (
++            "dependent",
++            "qloop 2 {\nb = qborrow any 1\ncx b t\nqreturn b\n}",
++            vec![2],
++        ),
++    ] {
++        support::reject_cli(
++            &support::borrow_lifetime_object(body, &bounds),
++            "§5.6",
++            &format!("r4-borrow-{tag}"),
++        );
++    }
++}
++
++#[test]
++fn r4_borrow_lifetimes_inside_and_across_loops_preserve_full_state() {
++    for (body, bounds) in [
++        (
++            "d = qalloc any 1\nb = qborrow any 1\nx b\nx b\nqfree d\nqreturn b",
++            vec![],
++        ),
++        ("b = qborrow any 1\nqloop 2 {\nx b\n}\nqreturn b", vec![2]),
++        (
++            "qloop 2 {\nb = qborrow any 1\nx b\nx b\nqreturn b\n}",
++            vec![2],
++        ),
++        (
++            "qloop 2 {\nqloop 2 {\nb = qborrow any 1\nx b\nx b\nqreturn b\n}\n}",
++            vec![2, 2],
++        ),
++        (
++            "qloop 2 {\nb = qborrow any 1\nqloop 2 {\nx b\n}\nqreturn b\n}",
++            vec![2, 2],
++        ),
++    ] {
++        let o = support::rehash(&support::borrow_lifetime_object(body, &bounds));
++        o.check_hashes().unwrap();
++        support::borrow_identity(&o);
++    }
++}
++
++#[test]
++fn muse_r4_b01_each_iteration_has_an_independent_borrowed_entry() {
++    // Each return must factor on its OWN arbitrary beta_i. For d->t,
++    // t' = t XOR beta_i; for t->d, d' = beta_i XOR t. Both fail for
++    // one iteration regardless of the parity of the surrounding loop count.
++    for gate in ["cx d t", "cx t d"] {
++        let lifetime = format!("d = qborrow any 1\n{gate}\nqreturn d");
++        for (tag, body, bounds) in [
++            ("single", lifetime.clone(), vec![]),
++            ("two", format!("qloop 2 {{\n{lifetime}\n}}"), vec![2]),
++            ("four", format!("qloop 4 {{\n{lifetime}\n}}"), vec![4]),
++            (
++                "nested",
++                format!("qloop 2 {{\nqloop 2 {{\n{lifetime}\n}}\n}}"),
++                vec![2, 2],
++            ),
++            (
++                "unrolled",
++                format!("{lifetime}\n{}", lifetime.replace('d', "e")),
++                vec![],
++            ),
++        ] {
++            support::reject_cli(
++                &support::borrow_lifetime_object(&body, &bounds),
++                "§5.6",
++                &format!("muse-r4-{tag}-{}", gate.replace(' ', "-")),
++            );
++        }
++    }
++}
++
++#[test]
++fn muse_r4_b01_carried_and_local_borrow_cx_identities_have_no_trip_cap() {
++    for gate in ["cx d t", "cx t d"] {
++        let spanning = format!("d = qborrow any 1\nqloop 2 {{\n{gate}\n}}\nqreturn d");
++        let o = support::rehash(&support::borrow_lifetime_object(&spanning, &[2]));
++        support::borrow_identity(&o);
++        for trips in [2, 1_099_511_627_776u64] {
++            let body =
++                format!("qloop {trips} {{\nd = qborrow any 1\n{gate}\n{gate}\nqreturn d\n}}");
++            let o = support::rehash(&support::borrow_lifetime_object(&body, &[trips]));
++            o.check_hashes().unwrap();
++            support::borrow_identity(&o);
++        }
++    }
++}
+ ````
+ 
+-## `tests/r1_certificates.rs` (244 lines)
++## `tests/r1_certificates.rs` (501 lines)
+ 
+ ````rust
+@@ -24974,6 +26631,7 @@
+     let signature = o.functions["a"].signature().canonical();
+     let claims = claims.replace("ID", &id);
++    let bounds = format!("{:?}", o.functions["a"].bounds);
+     let cert = json(&format!(
+-        r#"{{"versions":{{"isa":"0.8","object":"0.8","launch":"0.8","sched":"0.8","cert":"0.8","coverage":"0.8","target":"0.8"}},"bindings":{{"object_hash":"{}","interface_hash":"{}","closure_hash":"{a}","reference_program_hash":"{}","dialect_mapping_version":"test.1","target_hash":"{}"}},"producer":{{"name":"tests","version":"1","materialisation":{{"llvm_version":"none","pipeline":"none","normaliser_version":"1"}}}},"regions":{{"{a}":{{"kind":"perm_action","signature":{signature},"bounds":[],"frame":{{"interface":[{{"role":"mut","width":{n},"class":"any"}},{{"role":"in","width":1,"class":"any"}}],"scratch":{{}},"retained_history":0,"borrow":{{"any":1}},"scheme_ancillae":{{}}}},"resources":{{}},"gates_used":{{}},"claims":[{claims}],"verification":{{"oracle":null,"borrow_frames":[{borrow_frames}],"inverse_pairs":[],"unitary":[],"channel":[],"fault_rate":{{"domain":{{"bundles":[],"borrowed":[],"regions":[]}},"faults_by_code":{{}},"undefined_excluded":0,"layout_dependent_excluded":0}}}},"cleanup":{{}},"error":{{}},"definedness_assumptions":[]}}}},"composition":{{"multiplicities":{{}},"epsilon_total":{{"diamond":0}},"method":"sum_over_multiplicities"}}}}"#,
++        r#"{{"versions":{{"isa":"0.8","object":"0.8","launch":"0.8","sched":"0.8","cert":"0.8","coverage":"0.8","target":"0.8"}},"bindings":{{"object_hash":"{}","interface_hash":"{}","closure_hash":"{a}","reference_program_hash":"{}","dialect_mapping_version":"test.1","target_hash":"{}"}},"producer":{{"name":"tests","version":"1","materialisation":{{"llvm_version":"none","pipeline":"none","normaliser_version":"1"}}}},"regions":{{"{a}":{{"kind":"perm_action","signature":{signature},"bounds":{bounds},"frame":{{"interface":[{{"role":"mut","width":{n},"class":"any"}},{{"role":"in","width":1,"class":"any"}}],"scratch":{{}},"retained_history":0,"borrow":{{"any":1}},"scheme_ancillae":{{}}}},"resources":{{}},"gates_used":{{}},"claims":[{claims}],"verification":{{"oracle":null,"borrow_frames":[{borrow_frames}],"inverse_pairs":[],"unitary":[],"channel":[],"fault_rate":{{"domain":{{"bundles":[],"borrowed":[],"regions":[]}},"faults_by_code":{{}},"undefined_excluded":0,"layout_dependent_excluded":0}}}},"cleanup":{{}},"error":{{}},"definedness_assumptions":[]}}}},"composition":{{"multiplicities":{{}},"epsilon_total":{{"diamond":0}},"method":"sum_over_multiplicities"}}}}"#,
+         identity.object_hash,
+         identity.interface_hashes["a"],
+@@ -25174,4 +26832,260 @@
+         }
+     }
++}
++
++fn sol_translation_object(gates: &str, nested: bool) -> String {
++    let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}"#;
++    let asig = if nested {
++        sig.replace("\"bounds\":[]", "\"bounds\":[2]")
++    } else {
++        sig.into()
++    };
++    let regs = if nested { "regs {  } bounds {2}\n" } else { "" };
++    let body = format!("perm_action @a (t:wire mut) (p:wire in) () () ()\n{regs}^entry():\nb = qborrow any 1\n{}\nqreturn b", if nested { format!("qloop 2 {{\n{gates}\n}}") } else { gates.into() });
++    support::rehash(&support::object(
++        &[
++            ("a", &asig, &body),
++            (
++                "id",
++                sig,
++                "perm_action @id (u:wire mut) (v:wire in) () () ()\n^entry():\nx u\nx u",
++            ),
++        ],
++        "{}",
++        "",
++    ))
++    .text
++}
++fn sol_translation_claim(text: &str, start: u32, end: u32, v: u32, w: u32, b: &str) -> String {
++    let o = Object::parse(text).unwrap();
++    let h = &o.identity().unwrap().interface_hashes["a"];
++    format!(
++        r#"{{"kind":"structural","rule":"translation_lemma","subclaims":[],"witness":{{"V":[["{h}","entry",{v}]],"W":[["{h}","entry",{w}]],"X":["p"],"B":["{b}"],"frame":[["{h}","entry",{start}],["{h}","entry",{end}]]}}}}"#
++    )
++}
++fn sol_assert_translation(text: &str, claim: &str, valid: bool) {
++    let o = Object::parse(&certificate(text, 1, claim, "")).unwrap();
++    let h = o.identity().unwrap().closure_hashes["a"].clone().unwrap();
++    for verdict in [
++        o.verify_claim(&h, 0),
++        o.verify_certificate().map(|r| r[0].verdict.clone()),
++    ] {
++        if valid {
++            assert_eq!(verdict.unwrap(), ClaimVerdict::Proof);
++        } else {
++            let e = verdict
++                .expect_err("false structural frame proved")
++                .to_string();
++            assert!(e.contains("§5.6") || e.contains("§12.1"), "{e}");
++        }
++    }
++}
++#[test]
++fn sol_r4_b02_translation_claim_must_prove_its_complete_named_frame() {
++    // Full frame: b ^= p; t ^= b; b ^= p; t ^= b => (t ^= p, b unchanged).
++    // Truncated frame: b ^= p; t ^= b => b dirty and t dependent on entry b.
++    let text = sol_translation_object("cx p b\ncx b t\ncx p b\ncx b t", false);
++    for (start, end, v, w, valid) in [
++        (1, 2, 1, 2, false),
++        (1, 4, 1, 2, true),
++        (99, 100, 1, 2, false),
++        (4, 1, 1, 2, false),
++        (1, 4, 99, 2, false),
++        (1, 4, 1, 3, false),
++    ] {
++        sol_assert_translation(
++            &text,
++            &sol_translation_claim(&text, start, end, v, w, "b"),
++            valid,
++        );
++    }
++    sol_assert_translation(&text, &sol_translation_claim(&text, 1, 4, 1, 2, "p"), false);
++    // The object itself is still valid, but its first four gates have a
++    // changed second W; later gates complete the actual independent circuit.
++    let changed = sol_translation_object("cx p b\ncx b t\ncx p b\nx t\ncx b t\nx t", false);
++    sol_assert_translation(
++        &changed,
++        &sol_translation_claim(&changed, 1, 4, 1, 2, "b"),
++        false,
++    );
++}
++#[test]
++fn sol_r4_b02_translation_claim_uses_nested_line_ordinals() {
++    // qborrow=0, qloop=1, nested gates=2..5, qreturn=6. Prove the
++    // complete body frame, uniformly for both loop iterations.
++    let text = sol_translation_object("cx p b\ncx b t\ncx p b\ncx b t", true);
++    sol_assert_translation(&text, &sol_translation_claim(&text, 2, 5, 2, 3, "b"), true);
++    sol_assert_translation(&text, &sol_translation_claim(&text, 2, 3, 2, 3, "b"), false);
++}
++
++#[test]
++fn sol_r4_b02_translation_frame_rejects_omissions_and_checks_reverse_order() {
++    let gates = "x b\ncx p b\ncx b t\ncx p b\nx b\ncx b t";
++    let text = sol_translation_object(gates, false);
++    let mut claim = json(&sol_translation_claim(&text, 1, 6, 1, 3, "b"));
++    let h = Object::parse(&text)
++        .unwrap()
++        .identity()
++        .unwrap()
++        .interface_hashes["a"]
++        .clone();
++    let Json::Object(c) = &mut claim else {
++        panic!()
++    };
++    let Json::Object(w) = c.get_mut("witness").unwrap() else {
++        panic!()
++    };
++    w.insert(
++        "V".into(),
++        json(&format!(r#"[["{h}","entry",1],["{h}","entry",2]]"#)),
++    );
++    sol_assert_translation(&text, &claim.canonical(), true);
++    // Skip x b between the named V and W; the remaining four gates happen
++    // to form a valid independent circuit, but the named frame contains six.
++    sol_assert_translation(&text, &sol_translation_claim(&text, 1, 6, 2, 3, "b"), false);
++    let twice = sol_translation_object(
++        "cx p b\ncx b t\ncx p b\ncx b t\ncx p b\ncx b t\ncx p b\ncx b t",
++        false,
++    );
++    sol_assert_translation(
++        &twice,
++        &sol_translation_claim(&twice, 1, 4, 1, 2, "b"),
++        false,
++    );
++}
++
++fn sol_positional_object(region: bool, reference: &str) -> String {
++    let mem = if region {
++        r#"[{"A":1,"W":1,"role":"mut"}]"#
++    } else {
++        "[]"
++    };
++    let sig = format!(
++        r#"{{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":{mem},"mut":[1],"tier":"q"}}"#
++    );
++    let a = format!(
++        "perm_action @a (t:wire mut) (p:wire in) ({}) () ()\n^entry():\nx t\nx t",
++        if region { "m:region[1,1] mut" } else { "" }
++    );
++    let id = format!(
++        "perm_action @id (u:wire mut) (v:wire in) ({}) () ()\n^entry():\n{reference}",
++        if region { "n:region[1,1] mut" } else { "" }
++    );
++    support::rehash(&support::object(&[("a",&sig,&a),("id",&sig,&id)],"{}",if region { "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n" } else {""})).text
++}
++fn sol_positional_claim(regions: &str, borrowed: &str, bundles: &str) -> String {
++    format!(
++        r#"{{"kind":"exhaustive","label":"proof","domain":{{"bundles":[{bundles}],"borrowed":[{borrowed}],"regions":[{regions}]}},"expected":{{"program":"ID"}}}}"#
++    )
++}
++const SOL_BUNDLES: &str =
++    r#"{"name":"t","width":1,"lo":0,"hi":1},{"name":"p","width":1,"lo":0,"hi":1}"#;
++fn sol_positional_verdict(text: &str, claim: &str) -> Result<ClaimVerdict, bennett_isa_ref::Error> {
++    let o = Object::parse(&certificate(text, 1, claim, "")).unwrap();
++    let h = o.identity().unwrap().closure_hashes["a"].clone().unwrap();
++    let v = o.verify_claim(&h, 0)?;
++    assert_eq!(o.verify_certificate().unwrap()[0].verdict, v);
++    Ok(v)
++}
++#[test]
++fn sol_r4_b03_expected_program_uses_signature_positions_for_renamed_bundles() {
++    // Independently: both bodies are identity on 00,01,10,11. Local names
++    // t,p versus u,v have no ABI significance (§9.4).
++    let text = sol_positional_object(false, "x u\nx u");
++    let claim = sol_positional_claim("", "", SOL_BUNDLES);
++    assert_eq!(
++        sol_positional_verdict(&text, &claim).unwrap(),
++        ClaimVerdict::Proof
++    );
++    // Permuting domain enumeration order must not permute interface slots.
++    let reverse = sol_positional_claim(
++        "",
++        "",
++        r#"{"name":"p","width":1,"lo":0,"hi":1},{"name":"t","width":1,"lo":0,"hi":1}"#,
++    );
++    assert_eq!(
++        sol_positional_verdict(&text, &reverse).unwrap(),
++        ClaimVerdict::Proof
++    );
++    // Borrowed pool entries follow their domain order, independently of the
++    // expected program's local names. A truly omitted input stays zero.
++    let borrowed = r#"{"name":"z","width":1,"lo":0,"hi":1},{"name":"b","width":2,"lo":0,"hi":3}"#;
++    assert_eq!(
++        sol_positional_verdict(&text, &sol_positional_claim("", borrowed, SOL_BUNDLES)).unwrap(),
++        ClaimVerdict::Proof
++    );
++    let partial = sol_positional_claim("", "", r#"{"name":"t","width":1,"lo":0,"hi":1}"#);
++    assert_eq!(
++        sol_positional_verdict(&text, &partial).unwrap(),
++        ClaimVerdict::Evidence { elements: 2 }
++    );
++    let wrong = sol_positional_object(false, "x u");
++    let e = sol_positional_verdict(&wrong, &claim)
++        .unwrap_err()
++        .to_string();
++    assert!(
++        e.contains("§12.1") && e.contains("differs from the expected program"),
++        "{e}"
++    );
++}
++#[test]
++fn sol_r4_b03_expected_program_maps_renamed_region_cells_positionally() {
++    // 2 interface bits and 2 independent region cells => 16 identical final
++    // tuples. Changing only reference memory must still be detected.
++    let text = sol_positional_object(true, "x u\nx u");
++    let claim = sol_positional_claim(r#"{"name":"m","cells":"all"}"#, "", SOL_BUNDLES);
++    assert_eq!(
++        sol_positional_verdict(&text, &claim).unwrap(),
++        ClaimVerdict::Proof
++    );
++    let partial = sol_positional_claim(
++        r#"{"name":"m","cells":[{"index":1,"lo":0,"hi":1}]}"#,
++        "",
++        SOL_BUNDLES,
++    );
++    assert_eq!(
++        sol_positional_verdict(&text, &partial).unwrap(),
++        ClaimVerdict::Evidence { elements: 8 }
++    );
++    let wrong = sol_positional_object(true, "qstore n v u");
++    assert!(sol_positional_verdict(&wrong, &claim)
++        .unwrap_err()
++        .to_string()
++        .contains("§12.1"));
++}
++
++#[test]
++fn sol_r4_b03_positions_distinguish_same_width_slots_and_crossed_names() {
++    let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[],"mut":[1,1],"tier":"q"}"#;
++    // Rename by crossing existing local names. Both maps are (t,u,p) ->
++    // (t XOR p,u,p); a name-based correspondence would exchange mut and in.
++    let a = "perm_action @a (t:wire mut, u:wire mut) (p:wire in) () () ()\n^entry():\ncx p t";
++    let id = "perm_action @id (p:wire mut, t:wire mut) (u:wire in) () () ()\n^entry():\ncx u p";
++    let text = support::rehash(&support::object(
++        &[("a", sig, a), ("id", sig, id)],
++        "{}",
++        "",
++    ))
++    .text;
++    let claim = sol_positional_claim(
++        "",
++        "",
++        r#"{"name":"u","width":1,"lo":0,"hi":1},{"name":"p","width":1,"lo":0,"hi":1},{"name":"t","width":1,"lo":0,"hi":1}"#,
++    );
++    assert_eq!(
++        sol_positional_verdict(&text, &claim).unwrap(),
++        ClaimVerdict::Proof
++    );
++    // Writing the second mutable slot instead must fail the full-tuple check.
++    let wrong = support::rehash(&support::object(
++        &[("a", sig, a), ("id", sig, &id.replace("cx u p", "cx u t"))],
++        "{}",
++        "",
++    ))
++    .text;
++    assert!(sol_positional_verdict(&wrong, &claim)
++        .unwrap_err()
++        .to_string()
++        .contains("§12.1"));
+ }
+ ````
+@@ -26294,5 +28208,5 @@
+ ````
+ 
+-## `tests/r1_fuzz_discipline.rs` (491 lines)
++## `tests/r1_fuzz_discipline.rs` (696 lines)
+ 
+ ````rust
+@@ -26787,4 +28701,209 @@
+         }
+     }
++}
++
++#[test]
++fn generated_loop_local_borrow_returns_match_alpha_renamed_unrollings() {
++    // Independent expectation: each lifetime's X parity must be even, not
++    // merely the product of trip count and parity. No existing RNG is changed.
++    let mut counts = (0, 0);
++    for trips in 1..=4u64 {
++        for flips in 1..=2usize {
++            for nested in [false, true] {
++                for unrolled in [false, true] {
++                    let lifetime = |name: &str| {
++                        format!(
++                            "{name} = qborrow any 1\n{}qreturn {name}\n",
++                            format!("x {name}\n").repeat(flips)
++                        )
++                    };
++                    let (mut body, mut bounds) = if unrolled {
++                        (
++                            (0..trips)
++                                .map(|j| lifetime(&format!("b{j}")))
++                                .collect::<String>(),
++                            vec![],
++                        )
++                    } else {
++                        (
++                            format!("qloop {trips} {{\n{}}}", lifetime("b")),
++                            vec![trips],
++                        )
++                    };
++                    if nested {
++                        body = format!("qloop 2 {{\n{}\n}}", body.trim_end());
++                        bounds.insert(0, 2);
++                    }
++                    let text = support::borrow_lifetime_object(&body, &bounds);
++                    if flips == 1 {
++                        let e = Object::parse(&text).expect_err("one-X lifetime accepted");
++                        assert!(e.to_string().contains("§5.6"), "{e}");
++                        counts.1 += 1;
++                    } else {
++                        let o = Object::parse(&text).unwrap();
++                        support::borrow_identity(&o);
++                        counts.0 += 1;
++                    }
++                }
++            }
++        }
++    }
++    assert_eq!(counts, (16, 16));
++}
++
++#[test]
++fn generated_fresh_borrow_cx_loops_match_per_lifetime_maps() {
++    // Fresh beta_i is universally quantified for EVERY return: neither an
++    // even number of iterations nor alpha-renaming can cancel its influence.
++    let mut counts = (0, 0);
++    for trips in 1..=4u64 {
++        for gate in ["cx d t", "cx t d"] {
++            for copies in 1..=2 {
++                for nested in [false, true] {
++                    for unrolled in [false, true] {
++                        let lifetime = |name: &str| {
++                            format!(
++                                "{name} = qborrow any 1\n{}qreturn {name}\n",
++                                format!("{gate}\n").replace('d', name).repeat(copies)
++                            )
++                        };
++                        let (mut body, mut bounds) = if unrolled {
++                            (
++                                (0..trips)
++                                    .map(|i| lifetime(&format!("b{i}")))
++                                    .collect::<String>(),
++                                vec![],
++                            )
++                        } else {
++                            (
++                                format!("qloop {trips} {{\n{}}}", lifetime("d")),
++                                vec![trips],
++                            )
++                        };
++                        if nested {
++                            body = format!("qloop 2 {{\n{}\n}}", body.trim_end());
++                            bounds.insert(0, 2);
++                        }
++                        let text = support::borrow_lifetime_object(&body, &bounds);
++                        if copies == 1 {
++                            assert!(
++                                Object::parse(&text)
++                                    .unwrap_err()
++                                    .to_string()
++                                    .contains("§5.6"),
++                                "{body}"
++                            );
++                            counts.1 += 1;
++                        } else {
++                            support::borrow_identity(&Object::parse(&text).unwrap());
++                            counts.0 += 1;
++                        }
++                    }
++                }
++            }
++        }
++    }
++    assert_eq!(counts, (32, 32));
++}
++
++#[test]
++fn generated_nested_calls_with_regions_and_local_borrows_match_boolean_maps() {
++    // V: b ^= p; W: t ^= b, r[p] ^= b. V;W;V;W is exactly
++    // (t,r[0],r[1],p,b) -> (t XOR p,r[0],r[1] XOR p,p,b).
++    // Dropping the second W leaves beta in both outputs iff W's count is odd.
++    // Expected states are built from this independent map, not another execution.
++    let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[{"A":1,"W":1,"role":"mut"}],"mut":[1],"tier":"q"}"#;
++    let mut counts = (0, 0);
++    for trips in 1..=4u64 {
++        for copies in 0..=3 {
++            for complete in [false, true] {
++                for wrapped in [false, true] {
++                    for nested in [false, true] {
++                        let w = "cx b t\nqstore r p b\n".repeat(copies);
++                        let leaf = format!("perm_action @leaf (t:wire mut) (p:wire in) (r:region[1,1] mut) () ()\n^entry():\nb = qborrow any 1\ncx p b\n{w}cx p b\n{}qreturn b", if complete { &w } else { "" });
++                        let middle = "perm_action @middle (u:wire mut) (v:wire in) (s:region[1,1] mut) () ()\n^entry():\naction_call @leaf (u) (v) (s) ()";
++                        let call = format!(
++                            "action_call @{} (t) (p) (r) ()",
++                            if wrapped { "middle" } else { "leaf" }
++                        );
++                        let (body, bounds) = if nested {
++                            (
++                                format!("qloop 2 {{\nqloop {trips} {{\n{call}\n}}\n}}"),
++                                vec![2, trips],
++                            )
++                        } else {
++                            (format!("qloop {trips} {{\n{call}\n}}"), vec![trips])
++                        };
++                        let ps = sig.replace("\"bounds\":[]", &format!("\"bounds\":{bounds:?}"));
++                        let regs = bounds
++                            .iter()
++                            .map(u64::to_string)
++                            .collect::<Vec<_>>()
++                            .join(", ");
++                        let parent = format!("perm_action @a (t:wire mut) (p:wire in) (r:region[1,1] mut) () ()\nregs {{  }} bounds {{{regs}}}\n^entry():\n{body}");
++                        let text = support::object(&[("leaf", sig, &leaf), ("middle", sig, middle), ("a", &ps, &parent)], "{}", "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n");
++                        if !complete && copies % 2 == 1 {
++                            assert!(
++                                Object::parse(&text)
++                                    .unwrap_err()
++                                    .to_string()
++                                    .contains("§5.6"),
++                                "{leaf}\n{body}"
++                            );
++                            counts.1 += 1;
++                            continue;
++                        }
++                        let o = Object::parse(&text).unwrap();
++                        counts.0 += 1;
++                        for input in 0..34u32 {
++                            let mut q = QuantumState::new();
++                            let wires = q.allocate(6).unwrap();
++                            for (bit, wire) in wires[..5].iter().enumerate() {
++                                if input == 32 {
++                                    q.gate("h", &[*wire], None, &[]).unwrap();
++                                } else if input == 33 {
++                                    if bit == 0 || bit == 1 || bit == 4 {
++                                        q.gate("h", &[*wire], None, &[]).unwrap();
++                                    }
++                                } else if input >> bit & 1 == 1 {
++                                    q.gate("x", &[*wire], None, &[]).unwrap();
++                                }
++                            }
++                            if input == 33 {
++                                q.gate("cx", &[wires[4], wires[5]], None, &[]).unwrap();
++                            }
++                            let entry = q.clone();
++                            let mut expected = entry.clone();
++                            if complete && copies % 2 == 1 && trips % 2 == 1 && !nested {
++                                expected
++                                    .gate("cx", &[wires[1], wires[0]], None, &[])
++                                    .unwrap();
++                                expected
++                                    .gate("cx", &[wires[1], wires[3]], None, &[])
++                                    .unwrap();
++                            }
++                            let mut b = QuantumBindings::default();
++                            b.bundles.insert("t".into(), vec![wires[0]]);
++                            b.bundles.insert("p".into(), vec![wires[1]]);
++                            b.regions.insert(
++                                "r".into(),
++                                bennett_isa_ref::QuantumRegion {
++                                    address_width: 1,
++                                    cell_width: 1,
++                                    cells: vec![vec![wires[2]], vec![wires[3]]],
++                                },
++                            );
++                            b.borrowed.push(vec![wires[4]]);
++                            o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++                            assert_eq!(q, expected, "input={input}, {leaf}\n{body}");
++                            o.execute_action("a", &mut q, &b, true, &[]).unwrap();
++                            assert_eq!(q, entry, "adjoint, input={input}, {leaf}\n{body}");
++                        }
++                    }
++                }
++            }
++        }
++    }
++    assert_eq!(counts, (96, 32));
+ }
+ ````
+@@ -28266,5 +30385,5 @@
+ ````
+ 
+-## `tests/registers.rs` (185 lines)
++## `tests/registers.rs` (345 lines)
+ 
+ ````rust
+@@ -28454,7 +30573,167 @@
+     }
+ }
++
++fn dynamic_region_alias_case(kind: &str) {
++    use bennett_isa_ref::Budget;
++    for tier in ["cc", "r"] {
++        let o = support::dynamic_region_alias_object(kind, tier);
++        for c in 0..2 {
++            let mut regs = QuantumRegisters::new();
++            let q = regs.allocate(1).unwrap();
++            let r = regs.allocate(1).unwrap();
++            regs.prepare(r, &[true]).unwrap();
++            let mut args = vec![
++                ClassicalValue::int(1, c).unwrap(),
++                ClassicalValue::Qreg(q),
++                ClassicalValue::Qreg(r),
++            ];
++            if kind == "oracle" {
++                let f = regs.allocate(4).unwrap();
++                args.extend([
++                    ClassicalValue::Qreg(f),
++                    ClassicalValue::Token(Budget::steps(1)),
++                ]);
++            }
++            let before_regs = regs.clone();
++            let mut m =
++                ClassicalMachine::with_quantum_registers(&o, "p", &args, &[], regs).unwrap();
++            let entry = m.snapshot();
++            let result = m.run(10).unwrap();
++            // select is row 1; the failed call is terminal row 2. The
++            // disjoint branch executes CX/X/XOR(1) then ret: 3 rows, q=1.
++            assert_eq!(
++                (result.fault, result.steps),
++                if c == 1 { (Some(4), 2) } else { (None, 3) },
++                "{tier}/{kind}"
++            );
++            assert!(result.values.is_empty());
++            let regs = m.quantum_registers();
++            if c == 1 {
++                assert_eq!(
++                    regs, &before_regs,
++                    "a failed call must not mutate state or handles"
++                );
++            } else {
++                assert_eq!(
++                    regs.quantum_state()
++                        .read_basis(regs.bundle(q).unwrap())
++                        .unwrap(),
++                    1
++                );
++                assert_eq!(
++                    regs.quantum_state()
++                        .read_basis(regs.bundle(r).unwrap())
++                        .unwrap(),
++                    1
++                );
++            }
++            m.reverse().unwrap();
++            assert_eq!(m.snapshot(), entry, "{tier}/{kind}/{c}");
++        }
++    }
++}
++
++#[test]
++fn r4_dynamic_interface_alias_is_an_atomic_reversible_cc_and_r_fault() {
++    dynamic_region_alias_case("interface");
++}
++#[test]
++fn r4_dynamic_control_target_alias_is_an_atomic_reversible_cc_and_r_fault() {
++    dynamic_region_alias_case("control");
++}
++#[test]
++fn r4_dynamic_control_can_overlap_a_readonly_input() {
++    dynamic_region_alias_case("readonly-control");
++}
++#[test]
++fn r4_dynamic_oracle_input_output_alias_is_an_atomic_reversible_cc_and_r_fault() {
++    dynamic_region_alias_case("oracle");
++}
++
++#[test]
++fn r4_dynamic_alias_checks_cover_regions_block_parameters_and_child_targets() {
++    // Mut bundle q[2] and region m[1,1] must be disjoint even if the child
++    // is an identity. c=1 aliases both slots; c=0 binds two distinct handles.
++    let ac = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"mut"}],"mut":[2],"tier":"q"}"#;
++    let ps =
++        r#"{"abi":"0.8","kind":"cc","params":["i1","qreg[2]","qreg[2]"],"results":[],"tier":"cc"}"#;
++    let o = rehash(&object(&[("a",ac,"action @a (t:wire[2] mut) () (m:region[1,1] mut) () ()\n^entry():\nx t[0]\nx t[0]"),("p",ps,"fn cc @p (c:i1, q:qreg[2], r:qreg[2]) () () () ()\n^entry():\ns = select c q r\naction_call @a (q) () (s) ()\nret")],"{}", "\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n"));
++    for c in 0..2 {
++        let mut regs = QuantumRegisters::new();
++        let q = regs.allocate(2).unwrap();
++        let r = regs.allocate(2).unwrap();
++        let before = regs.clone();
++        let mut m = ClassicalMachine::with_quantum_registers(
++            &o,
++            "p",
++            &[
++                ClassicalValue::int(1, c).unwrap(),
++                ClassicalValue::Qreg(q),
++                ClassicalValue::Qreg(r),
++            ],
++            &[],
++            regs,
++        )
++        .unwrap();
++        let entry = m.snapshot();
++        let outcome = m.run(10).unwrap();
++        assert_eq!(
++            (outcome.fault, outcome.steps),
++            if c == 1 { (Some(4), 2) } else { (None, 3) }
++        );
++        assert_eq!(m.quantum_registers(), &before);
++        m.reverse().unwrap();
++        assert_eq!(m.snapshot(), entry);
++    }
++    // A block parameter is another dynamic alias, and inherited controls
++    // must be checked against targets reached through the child action.
++    let base = support::dynamic_region_alias_object("control", "r");
++    let ac = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let ps =
++        r#"{"abi":"0.8","kind":"r","params":["i1","qreg[1]","qreg[1]"],"results":[],"tier":"r"}"#;
++    let o = rehash(&object(&[("leaf",ac,"action @leaf (t:wire mut) () () () ()\n^entry():\nx t"),("a",ac,"action @a (t:wire mut) () () () ()\n^entry():\naction_call @leaf (t) () () ()"),("p",ps,"fn r @p (c:i1, q:qreg[1], r:qreg[1]) () () () ()\n^entry():\ns = select c q r\nbr ^invoke(s)\n^invoke(v:qreg[1]):\nctl v action_call @a (q) () () ()\nret")],"{}",""));
++    // Also bind q and r directly to the SAME register at the R entry.
++    for entry_alias in [false, true] {
++        for o in [&base, &o] {
++            let mut regs = QuantumRegisters::new();
++            let q = regs.allocate(1).unwrap();
++            let r = if entry_alias {
++                q
++            } else {
++                regs.allocate(1).unwrap()
++            };
++            let before = regs.clone();
++            let mut m = ClassicalMachine::with_quantum_registers(
++                o,
++                "p",
++                &[
++                    ClassicalValue::int(1, 1).unwrap(),
++                    ClassicalValue::Qreg(q),
++                    ClassicalValue::Qreg(r),
++                ],
++                &[],
++                regs,
++            )
++            .unwrap();
++            let entry = m.snapshot();
++            let outcome = m.run(10).unwrap();
++            assert_eq!(outcome.fault, Some(4));
++            assert_eq!(
++                outcome.steps,
++                if o.functions.contains_key("leaf") {
++                    3
++                } else {
++                    2
++                }
++            );
++            assert_eq!(m.quantum_registers(), &before);
++            m.reverse().unwrap();
++            assert_eq!(m.snapshot(), entry);
++        }
++    }
++}
+ ````
+ 
+-## `tests/step_machine.rs` (164 lines)
++## `tests/step_machine.rs` (187 lines)
+ 
+ ````rust
+@@ -28623,4 +30902,27 @@
+     assert_eq!(covered, 10 * (1 << 14));
+ }
++
++#[test]
++fn council_r4_small_recursive_inputs_gate_every_prefix_in_normal_suite() {
++    let o = Object::parse(include_str!("fixtures/sum_db.bisa")).unwrap();
++    for n in 0..4 {
++        let mut input = OracleInput::bits(&[n]);
++        input.regions.insert("db".into(), (1..=16).collect());
++        // 14*n+10 real rows, then one HALT idle row: cover every cutoff.
++        for steps in 0..=14 * n as u64 + 11 {
++            compare(
++                &o,
++                "sum_db",
++                &input,
++                Budget {
++                    steps,
++                    heap: 4080,
++                    stack: 512,
++                    depth: 64,
++                },
++            );
++        }
++    }
++}
+ ````
+ 
+@@ -28707,5 +31009,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (130 lines)
++## `tests/support/mod.rs` (234 lines)
+ 
+ ````rust
+@@ -28839,4 +31141,108 @@
+         assert!(String::from_utf8_lossy(&out.stderr).contains(rule));
+     }
++}
++
++/// Memoryless round-4 borrow fixtures, with exactly the advertised loop bounds.
++pub fn borrow_lifetime_object(body: &str, bounds: &[u64]) -> String {
++    let sig = format!(
++        r#"{{"abi":"0.8","args":[],"bounds":{bounds:?},"in":[],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}}"#
++    );
++    let regs = if bounds.is_empty() {
++        String::new()
++    } else {
++        format!(
++            "regs {{  }} bounds {{{}}}\n",
++            bounds
++                .iter()
++                .map(u64::to_string)
++                .collect::<Vec<_>>()
++                .join(", ")
++        )
++    };
++    object(
++        &[(
++            "a",
++            &sig,
++            &format!("perm_action @a (t:wire mut) () () () ()\n{regs}^entry():\n{body}"),
++        )],
++        "{}",
++        "",
++    )
++}
++
++/// Identity on all t,b basis entries, a superposition, and b entangled with an
++/// untouched reference proves the controls do not merely hide a pool mutation.
++pub fn borrow_identity(o: &Object) {
++    use bennett_isa_ref::{QuantumBindings, QuantumState};
++    for input in 0..6u32 {
++        let mut q = QuantumState::new();
++        let w = q.allocate(3).unwrap();
++        if input == 5 {
++            q.gate("h", &[w[1]], None, &[]).unwrap();
++            q.gate("cx", &[w[1], w[2]], None, &[]).unwrap();
++            q.gate("h", &[w[0]], None, &[]).unwrap();
++        } else {
++            for (bit, wire) in w[..2].iter().enumerate() {
++                if input == 4 {
++                    q.gate("h", &[*wire], None, &[]).unwrap();
++                } else if input >> bit & 1 == 1 {
++                    q.gate("x", &[*wire], None, &[]).unwrap();
++                }
++            }
++        }
++        let entry = q.clone();
++        let mut b = QuantumBindings::default();
++        b.bundles.insert("t".into(), vec![w[0]]);
++        b.borrowed.push(vec![w[1]]);
++        for adjoint in [false, true] {
++            o.execute_action("a", &mut q, &b, adjoint, &[]).unwrap();
++            assert_eq!(q, entry, "input={input}, adjoint={adjoint}");
++        }
++    }
++}
++
++/// R4-B02: select dynamically chooses q itself (c=1) or distinct r (c=0).
++/// Both handles have the same static type; the precondition is physical.
++pub fn dynamic_region_alias_object(kind: &str, tier: &str) -> Object {
++    let ac = r#"{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let xc = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let os =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    let (sig, child, call, extra_types, extra_params) = match kind {
++        "interface" => (
++            ac,
++            "action @a (t:wire mut) (s:wire in) () () ()\n^entry():\ncx s t",
++            "action_call @a (q) (s) () ()",
++            "",
++            "",
++        ),
++        "control" => (
++            xc,
++            "action @a (t:wire mut) () () () ()\n^entry():\nx t",
++            "ctl s action_call @a (q) () () ()",
++            "",
++            "",
++        ),
++        "readonly-control" => (
++            ac,
++            "action @a (t:wire mut) (s:wire in) () () ()\n^entry():\ncx s t",
++            "ctl s action_call @a (q) (s) () ()",
++            "",
++            "",
++        ),
++        "oracle" => (
++            os,
++            "oracle @a (s:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval s",
++            "oracle_call @a tk (s) q f () ()",
++            ",\"qreg[4]\",\"token\"",
++            ", f:qreg[4], tk:token",
++        ),
++        _ => panic!("unknown fixture family {kind}"),
++    };
++    let ps = format!(
++        r#"{{"abi":"0.8","kind":"{tier}","params":["i1","qreg[1]","qreg[1]"{extra_types}],"results":[],"tier":"{tier}"}}"#
++    );
++    let parent = format!("fn {tier} @p (c:i1, q:qreg[1], r:qreg[1]{extra_params}) () () () ()\n^entry():\ns = select c q r\n{call}\nret");
++    rehash(&object(&[("a", sig, child), ("p", &ps, &parent)], "{}", ""))
+ }
+ ````
