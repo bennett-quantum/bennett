@@ -1,0 +1,123 @@
+exit 0 in 18s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "Object parsing incorrectly rejects both independently constructed, well-formed identity actions R9-B01/B02 with §5.6. The zero-trip H/S rejection regressions now pass. schema.rs::validate_call_graph checks all Q region edges through SCCs, including lifted calls, before callee transfer compilation. This is a focused assessment, not a completed whole-parser audit.",
+      "change": "Change src/borrow.rs::Compiler::compile and Facts::sequence as specified in R9-B01/B02; add literal parse/hash/check success assertions in tests/r1_borrow.rs and tests/cli_xam.rs for both supplied objects, while retaining the zero-trip H/S rejection tests."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "The diff replaces the signed cast with BigInt::from_u128; the boundary unit test and Object::link composition regression pass. Independently constructed §9.2 envelopes give the hashes recorded in both blockers, and the independently hashed unrolled B02 control passes check. No identity defect established in the inspected paths; this score is provisional pending the complete audit.",
+      "change": "In tests/r1_linking.rs extend r8_unsigned_multiplicity_composition to multiplicity 2^127 with root/callee local diamond=1; require the exact string 170141183460469231731687303715884105729 and check_hashes(), following §12.3 local plus multiplicity times callee error."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "Hand-derived inc8(255): B=3 gives (payload=0,code=0,steps=3), B=2 gives (0,1,2). Both CLI executions agree. The B=3 exhaustive step-check reports 256 cases. No C3 defect established in these checks; this is not certification of every row.",
+      "change": "In tests/oracle.rs retain explicit, literal tight-budget tuples for inc8 at x=255 and B=2/3, separate from comparisons against OracleMachine: (0,1,2) and (0,0,3), determined by §§4.2/5.2/14.1."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Traced machine.rs::inverse_step/inverse_call/inverse_ret against the printed §3.6/3.7 order: restore pc, clear successor, restore counters before stack addressing, undo binding/record/location exchanges, then clear captured arguments. The inc8 exhaustive B=3 check passes all 256 inputs and reversals. Full-crate review is incomplete.",
+      "change": "Add a literal intermediate-state assertion to tests/step_machine.rs::recursive_call_and_ret_each_invert_the_complete_pre_step_tuple: for sum_db(2), first recursive sum call captures (1,2,4096), changes (fp,sp,depth) from (0,16,1) to (16,32,2), and its inverse restores those counters and clears all frame fields, per §3.7 C1–C5."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Traced classical.rs call/ret/uncall, undo_record and undo_frame for the nested clock fixture. Inner uncall reverses g once; outer uncall skips its reversed frames and marker. Hand result is clock=0, empty tape, retained pure load result=0; CLI reverse nested reports those values, 11 steps and equals_entry=true. Other CC/R paths have not all been re-audited.",
+      "change": "In tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once add intermediate assertions immediately after the inner and outer uncall, each requiring clock=0 and tape length=0, so §7.4 exactly-once reversal is checked before whole-run reversal as well."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "R8 nested primitive adjoints, zero trips and local call-control tests pass, but an exactly cancelled opaque oracle reader still destroys outer history (R9-B01), and mixed loops reuse first-iteration physical bindings (R9-B02). Both reject independently derived identity actions.",
+      "change": "Implement causal cancellation for matched opaque oracle events and an executed per-iteration binding transfer in src/borrow.rs; add the two blocker tests with independent forward/adjoint and entangled borrowed-reference identity expectations. Do not weaken unmatched-reader, per-return or non-permutation borrowed-touch checks."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Personally ran cargo test --offline with filter r8_: 18 passed, 0 failed. Generated families report 139 accepted / 26 rejected. The pinned regressions test the stated prior witnesses; the new positive domains expose coverage gaps. Did not rerun the full normal or ignored suites and do not count the packet’s historical runs as personally performed.",
+      "change": "Extend tests/r1_fuzz_discipline.rs with independent identity families for H;oracle;oracle;H and carried-name reallocation in mixed loops at counts 0/1/2/3, plus nested and alpha-renamed unrollings. Assert literal identity maps, not agreement between two implementations alone; record results in PROGRESS.md after fixing R9-B01/B02."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Read all 30 SPEC-QUESTIONS entries. The inspected SCC, unconditional-lifetime and reader rules are consistent with §§5.1, 3.5 and 6.2; reading 20 distinguishes unresolved function-specific proofs from exact symbolic identities. The new witnesses need implementation fixes, not a spec amendment. Whole-packet and exhaustive reporting audit remain incomplete.",
+      "change": "After fixing R9-B01/B02, update README.md’s round-8 Design paragraph and PROGRESS.md with the precise matched-opaque-event and loop-carried-binding rules and their named regressions. State that opaque unmatched readers block restoration while exact matched oracle pairs restore it; do not present blanket history erasure as complete matched-uncomputation support."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R9-B01",
+      "section": "§§4.7, 5.2, 5.3, 5.6, 6.2; reference-interpreter/src/borrow.rs::Facts::sequence, Facts::forget_inverses, Facts::reversible, Node::Opaque",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Matched opaque oracle pairs still destroy an outer clean fact. Use a memoryless ptr_width=32 object with symbols 0=o, 1=a, signatures o={\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[],\"tgt\":1,\"tier\":\"q\"} and a={\"abi\":\"0.8\",\"args\":[\"token\"],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Exact LF-terminated functions:\noracle @o (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\naction @a (t:wire mut) () () (tk:token) ()\n^entry():\nc = qalloc any 1\nd = qalloc any 1\nf = qalloc any 4\nh c\noracle_call @o tk (c) d f () ()\noracle_call @o tk (c) d f () ()\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree f\nqfree d\nqfree c\nIndependent §9.2 interface=closure pins: o=cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926; a=be1f0e087e06fecd99df7c3cbb5c3c8c186fde8f814be1f826487e858fa66296. Standard 0.8 header, canonical symbols line with these pins, blank section separator, functions above and final LF give object_hash=49ad3ba6c411ed73bebacdebe6728ebff5995dbf8bbc03c016d1cb0c5c3e8625. CLI hash and check both actually exit 1, empty stdout, “§5.6: a wire released inside a borrow frame is not clean”. Removing only the borrow/CX/return triplet makes parse/hash succeed. Hand: at token (1,0,0,0), each oracle XORs c into d and leaves f zero, so their pair is identity. At token (0,0,0,0), each XORs code 1 into f, which also cancels. Thus H;O;O;H is identity for every token, c=d=f=0 at the borrow, and CX(c,b) is identity on arbitrary b and any entangled reference. The opaque operation is not eligible for reversible(); sequence instead calls forget_inverses on all its operands, permanently deleting the initial H record. This requires no function-specific certificate: the oracle involution is normative.",
+      "fix": "In src/borrow.rs::Facts::sequence and the inverse-event representation, preserve a causal record for opaque XOR oracle applications and cancel a fully matched involution only when it tops all input/control/output histories. Include callee, token/classical specialization, effective controls and operand identities in matching; keep unmatched opaque readers as barriers to outer restoration. §5.2 explicitly says “The oracle is an involution on (ins, tgt, fr) and its own adjoint”; §5.3 says “oracle_call ↦ oracle_call” and “reverse order, instruction replaced, versions renumbered”; §6.2 says “other values are released only by the adjoint of the sequence that produced them”. These determine c=d=f=0 after the pair and final I_t ⊗ I_bR. Add r9_matched_opaque_oracle_restores_outer_fact to tests/r1_borrow.rs and a pinned tests/cli_xam.rs counterpart using the exact object above. Current Object::parse/check success assertions fail; after repair hash/check succeed with those pins, run-action a --arg token:1,0,0,0 --mut 0/1 preserves the corresponding basis state, and --state \"0=0.6,0;1=0,0.8\" is unchanged. Also test token:0,0,0,0, independently initialized --adjoint, wires=1, reverse equals_entry=true and a library-supplied borrowed wire Bell-paired with an untouched reference. Include a changed-input/unmatched-reader negative and a matched pair split across qloop 1 bodies; no new budget cap or certificate requirement."
+    },
+    {
+      "id": "R9-B02",
+      "section": "§§3.3, 4.3, 4.6, 5.3, 5.6; reference-interpreter/src/borrow.rs::Compiler::compile (qloop), Facts::repeat and Evaluation lifetime bindings",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "A nonzero mixed loop reuses physical names compiled for its first visit instead of threading reallocated bindings into subsequent visits. Memoryless ptr_width=32 sole symbol 0=a, signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[2],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Exact LF-terminated function:\naction @a (t:wire mut) () () () ()\nregs {  } bounds {2}\n^entry():\nc = qalloc any 1\nqloop 2 {\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nc = qalloc any 1\nh t\nh t\n}\nqfree c\nIndependent interface=closure H=bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89; standard header/canonical stored-H symbols/functions object_hash=80478acc73d52bbf64c395816470293b5b4b4a1ee36a5c550bf00436f06fc192. Actual hash/check and run-action (t=0, independently adjoint t=1, and complex superposition) exit 1 with empty stdout and “§5.6: a wire released inside a borrow frame is not clean”. Count 1 succeeds; count 3 also fails. Expanding the two visits into consecutive source bodies, deleting bounds, passes check and all three executions, preserving t with one surviving wire. Hand: c starts clean; every visit borrows b, applies disabled CX(0,b), returns b unchanged, frees clean c, creates a new clean c, and applies H²=I to t. Every return is individually valid, including for externally entangled b; all workspace is clean at exit. Compiler::compile compiles the loop body once: the read/free of c names the pre-loop wire while the allocation publishes a different wire. Facts::repeat replays those fixed nodes; the second visit reads/frees the dead pre-loop wire instead of the current clean allocation.",
+      "fix": "Change src/borrow.rs::Compiler::compile’s qloop lowering and the structured transfer representation so each executed visit resolves reads/releases against that visit’s entry binding map and publishes its successor bindings. Reuse an alpha-renamed or binding-parameterized transfer/cycle when environments recur, rather than unrolling huge counts or imposing a trip cap. Preserve zero-trip omission and lexical qregion hoisting. §4.6 defines qloop as “body n times”; §4.3 defines qalloc as “n clean wires” and qfree as “release a qallocated bundle clean on every basis configuration” (the spec spells qallocated as `qalloc`ed); §3.3 says “a name is not used after consume”; §5.3 requires adjoints with “versions renumbered”. Expected result is identity on t and each independently borrowed bR, with c=0 at every iteration entry and all releases. Add r9_mixed_loop_threads_reallocated_bindings to tests/r1_borrow.rs and tests/cli_xam.rs using the exact function/signature/hashes above. Current parse-success assertion fails; after repair parse/hash/check must succeed, run-action --mut 0/1 yields {\"0\":[1,0]}/{\"1\":[1,0]}, and --state \"0=0.6,0;1=0,0.8\" remains unchanged, independently forward and adjoint. Assert wires=1 and reverse equals_entry=true. Supply arbitrary/Bell-entangled borrowed entries in library tests. Include counts 0/1/2/3, nested loops, alpha-renamed straight-line expansion, and a dirty-control variant that still rejects at its first invalid return. No token or execution budget is needed."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R8-B01",
+      "status": "partially",
+      "note": "Literal H-X-X-H and nested primitive families pass; exact nested restoration still fails across an opaque oracle involution pair (R9-B01)."
+    },
+    {
+      "id": "SOL-R8-B02",
+      "status": "resolved",
+      "note": "Zero-trip wide/same binding positives and dead H/S borrowed-touch negatives pass; R9-B02 is a separate nonzero-iteration binding defect."
+    },
+    {
+      "id": "SOL-R8-B03",
+      "status": "resolved",
+      "note": "Unsigned construction uses all u128 limbs; boundary multiplication and exact 2^128 linked-certificate regression both pass."
+    },
+    {
+      "id": "R8-B01",
+      "status": "resolved",
+      "note": "Zero-trip compiler effects no longer relabel live borrowed wires; both H/S rejection pins and surviving-clean-binding positives pass."
+    },
+    {
+      "id": "R8-B02",
+      "status": "partially",
+      "note": "H-S-Sdg-H and primitive nested histories pass, but matched opaque reader pairs still erase ancestor history; see R9-B01."
+    },
+    {
+      "id": "R8-B03",
+      "status": "resolved",
+      "note": "Disabled local calls, readonly in-parameter controls and depth-1–3 call chains pass; full borrowed-touch negatives remain rejected."
+    },
+    {
+      "id": "SOL-R7-B01",
+      "status": "partially",
+      "note": "Primitive restored-zero and nested-pair cases are addressed, but the general clean-fact restoration obligation remains incomplete across matched opaque calls (R9-B01)."
+    },
+    {
+      "id": "R7-B02",
+      "status": "resolved",
+      "note": "The gate transfer preserves diagonal/read-only basis facts and R8 extends this to local calls; no regression of the reported witnesses established."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [],
+  "verdict_core": "revise",
+  "verdict": "revise",
+  "path_to_accept": "Fix R9-B01 with matched opaque involution history; fix R9-B02 with per-visit carried binding transfer; run both exact pinned regressions and independent identity/negative variants, then the normal and ignored suites and update the Design/evidence text. A complete follow-up review must also finish the whole-packet reading and exhaustive method-4/5 audits that this report does not claim to have completed. No new specification restriction or certificate requirement is needed for either witness.",
+  "summary": "INCOMPLETE REVIEW COVERAGE: this report supplies two independently reproduced S0 core defects, but I did not complete the requested uninterrupted 41,108-line packet reading or the whole-crate re-read. Several large tool reads were truncated. Do not treat these provisional criterion scores or the absence of other blockers as a complete council audit. Method 1 performed: before execution, derived inc8(255) at B=3 as (0,0,3) and B=2 budget fault as (0,1,2), and independently constructed LF-terminated semantic-envelope bytes and SHA-256 pins for both new witnesses using Python hashlib rather than interpreter hashes; observed results agree on inc8 and disagree on the two hand-derived identity admissions. Method 2 performed by source trace: recursive sum call at n=2 captures (1,2,4096), changes fp/sp/depth (0,16,1)->(16,32,2), and C5^-1 through C1^-1 restore counters, recursive locations, record and capture slots; generic inverse_step restores pc and clears successor/flag/frame. Traced ret delivery after restored callee fp as printed. For §7.4 nested clock call/ret segments, inner uncall restores clock/tape, outer uncall skips reversed inner frames and marker, preserving the pure copied zero; CLI reverse reports clock=0, empty tape, result 0, 11 steps and equals_entry=true. Method 3: read all 30 SPEC-QUESTIONS entries against the inspected specification sections; no new unjustified reading established, and neither blocker depends on changing a recorded reading. Method 4 partial: searched all src files for the required patterns; inspected production hits are guarded invariants, parser helpers, exact-to-display approximation or explicit unsupported-feature diagnostics, plus unit-test assertions. Did not complete classification of every crate-wide/test hit. Method 5 partial: checked schema.rs opcode arities and SCC edge classification, the relevant call/lifetime/gate dispatches, printed fault/row/frame tables and README CLI contract; did not finish exhaustive schema/dispatch inventory. Personally executed r8_ tests: 18 passed, 0 failed, generated families 139 accepted / 26 rejected; inc8 step-check B=3: 256 cases pass. Full normal/ignored suites were not rerun. Prior literal fixes are confirmed; SOL-R8-B01/R8-B02 and SOL-R7-B01 remain partial in the broader matched-history sense, while SOL-R8-B02/SOL-R8-B03/R8-B01/R8-B03/R7-B02 are resolved as noted. No regression against an independently executed previous snapshot was established. No tracked files or live-repository files were modified, and no other member review was read."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r9-codex.json
