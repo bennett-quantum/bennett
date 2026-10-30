@@ -13,6 +13,15 @@
    "seconds": 534,
    "errors": [],
    "updated": "2026-10-30T12:58:28+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-30T21:12:57+00:00",
+   "exit": 0,
+   "seconds": 14,
+   "errors": [],
+   "updated": "2026-10-30T21:13:11+00:00"
   }
  },
  "rubric": "docs/council/rubric-isa.md",

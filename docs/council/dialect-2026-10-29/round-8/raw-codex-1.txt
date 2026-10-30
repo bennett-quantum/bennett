@@ -1,0 +1,110 @@
+exit 0 in 14s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "Sections 4, 17 and 18 give explicit tiers, memory, faults and state. However, S2/PT1/PT6 omits the initial zero contents required by N24 and §§17.1/17.3. The accepted conditional-store witness consequently freezes a dispatch domain that excludes a reachable materialised value (R8-CODEX-01).",
+      "change": "In §5.2 seed zero initial images for the allocation extents that §§17.1/17.3 zero-fill, and make PT6 include their decoded zero value alongside later writes, using the replacement in R8-CODEX-01."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "N15 now totalises both constant and dynamic lane indices; N33 now uses valid own-format carrier calls for non-native extended formats. PT3 still specifies lane-wise copying for geometry-changing bitcasts, contradicting N21/§12.6: <i8 0,i8 1> becomes i16 256, not either source lane (R8-CODEX-02).",
+      "change": "Replace PT3's blanket bitcast copy with the virtual N21 packing/resegmentation transfer stated in R8-CODEX-02, before S2 domains freeze."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "TDL-5/7/8/9/11 and §18.2 distinguish reversible workspace, retained fault outputs and measurement channels; standalone adjoints specify record placement and inverse trajectories, while compute reuses its actual forward history. Sections 8.6/8.7 preserve wide-output and in-place capabilities. I found no new independent coherent-semantics S0 after reading the complete packet.",
+      "change": "Retain the current §18.2 complete-instrument, record-placement and exact control-workspace cleanup rules; no additional coherent-semantics change is requested."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Sections 3.4, 6.5 and 9 specify classes, finite dispatch, instance bounds, staged budget identities and defaults. Section 25 names the precise ISA dependencies instead of treating unavailable capabilities as implemented. The staged-budget selection/final identities and their executions passed an independent rerun using the supplied Rust binary.",
+      "change": "Retain §9.2's selection-identity/final-identity distinction and §25.1's explicit dependency verdicts; no resource-contract change beyond the two analysis repairs is requested."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "The addendum is resolved: §16.3/§23 consistently number globals from G1; all 22 supplied objects pass Rust check and all nine explicit hash blocks match. Atomic-nand still gives payload 63/code 0/16 steps. The unchanged sem2 ctrl/adj/compute corpus programs execute with ABI 0.2 on LLVM 18/23 at llc O0/O3 with equal canonical traces; budget-record/environment and ABI-selection units also pass.",
+      "change": "Retain the explicit 1-based numbering and signature-selected, separately cached v0/0.2 trace runtimes; no additional contract correction is requested."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "Section 18.7 states a useful all-input conformance obligation, and the packet correctly separates ISA dependency-verdict checks from executed capabilities. The previous round's targeted state/normalisation/trace checks pass, but the two new accepted modules demonstrate that the claimed reference-domain containment is false. The published 2732/2732 receipt is not an independent proof of that property; I reran targeted checks, not that entire gate.",
+      "change": "Add the two full marker witnesses to DB/DN/DS with exact domains and native materialised executions: zero-initialisation must dispatch widths {1,3}; bitcast packing must dispatch {256}. At each tested qalloc, check that the observed width belongs to the S2 domain, then verify clean free and code 0."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The full text retains the north star's whole-program, unmodified-library, reversible, kernel/platform and coherent-memory routes. Named ISA 0.8 gaps retain bounded realisations and state the required extensions. Neither new finding needs a source restriction, an ISA change, or loss of a demo-rung capability; both are incorrect analysis transfers.",
+      "change": "Keep both witnesses admissible under the existing envelope. Repair their reference transfers as specified below; do not replace them with a new rejection, host-input precondition or BLK-1 classification."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The processing order, normative examples and deferred-mechanics defaults make most implementation choices concrete. The remaining confusion is the relationship between pre-normalisation S2 and the values introduced by S7; PT10 now states that relationship explicitly, but allocation initialization and PT3 do not.",
+      "change": "After §5.2's introductory paragraph add: \"S2 models the value effects of the specified normalisation before verdicts and dispatch domains freeze; pre-normalisation syntax does not permit omitting a value produced by the materialised execution.\" Implement that requirement with the two concrete transfers below."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R8-CODEX-01",
+      "section": "§5.2 initial seeding, PT1/PT6/PT10; §4.1 S2/S7; §12.2 N24; §§17.1/17.3; §3.4",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The initial-seeding rule says \"Before the fixpoint, seed the initialiser atoms of every global, mutable or constant, into its slots.\" PT1 gives alloca only \"AV ∋ (X, 0)\"; no rule seeds its contents. In contrast, §17.1 says \"shadow-stack frames and heap allocations are zero-filled in both builds\", and §17.3 requires a zero-filled pushed frame. Because §5 mandates the least fixpoint and exact dispatch domains before N24, these rules omit an observable initial value. Witness:\n\ntarget datalayout = \"e-p:64:64-i64:64-n8:16:32:64\"\ndeclare ptr @__bennett_qalloc(i64, i64)\ndeclare void @__bennett_qfree(ptr)\ndefine void @top(i1 %set) {\nentry:\n  %p = alloca i64\n  br i1 %set, label %store, label %read\nstore:\n  store i64 1, ptr %p\n  br label %read\nread:\n  %raw = load i64, ptr %p\n  %idx = freeze i64 %raw\n  %width = extractelement <2 x i64> <i64 1, i64 3>, i64 %idx\n  %h = call ptr @__bennett_qalloc(i64 0, i64 %width)\n  call void @__bennett_qfree(ptr %h)\n  ret void\n}\n\nThe only explicitly seeded store is INT(1), so PT6 gives AV(%raw)={1}, freeze copies it and the repaired PT10 correctly derives VS(%width)={3}. Both supplied LLVM 18/23 O0 recogniser runs return accept with precisely those sets. On %set=false, N24 instead supplies zero in %p, N8 removes freeze and N15/N21 select lane 0, so qalloc receives width 1; on true it receives 3. I executed the normaliser output with the repository shadow-stack seed and a width-recording marker harness under clang 18 and 23 at O0 and O3: outputs are respectively width 1/live 0 and width 3/live 0, with exit 0. Both original sources verify and retain the witness through default<O0>. This is a contradiction between the mandatory width-3-only dispatch and the specified successful width-1 execution, not a request to define source LLVM uninitialised memory: conformance is to the zero-filled materialised program, and freeze is present in the source. The same missing initialization also affects zero-filled heap objects.",
+      "fix": "In §5.2 replace the initial-seeding paragraph, before the least-fixpoint sentence, with: \"Before the fixpoint, seed the initialiser atoms of every global, mutable or constant, into its slots. For each alloca and allocation-site object, also represent every extent whose initial contents are zero under §§17.1/17.3 as a zero-byte initial image; represent a nonconstant extent symbolically over its possible allocated bytes. Subsequent stores union additional possibilities and never erase these initial possibilities. This is an initial image, not a claim that the object remains immutable.\" Append to PT6: \"For a possibly valid load wholly contained in a zero-filled initial extent, include the all-zero value of the load's representation and width, unioned with values from every overlapping store or copy under the existing interval rules. PT8 propagates these initial byte possibilities when copying memory. Zero contributes no ROOT. Region inputs, replayed caller bytes and other nonzero-initialised contents retain their specified sources; this rule does not replace them with zeros.\" Add the witness to DB/DN/DS with AV(%raw)=AV(%idx)={INT(0),INT(1)}, VS(%width)={1,3}, verdict=accept, and inputs false/true producing widths 1/3 followed by clean free and code 0. A virtual initialization-store expansion during S2 is an equivalent implementation; I recommend the explicit initial-image rule because it also covers loads at different widths and dynamically sized extents. Do not move the problem to a new rejection, precondition or ISA blocker."
+    },
+    {
+      "id": "R8-CODEX-02",
+      "section": "§5.2 definition of Copies and PT3/PT4/PT5; §12.6 N21 bitcast packing; §3.4 width dispatch",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Section 5.2 defines \"Copies\" as \"AV(result) ⊇ AV(operand) lane by lane\" and PT3 includes bitcast in \"copies (union)\". This is false for a bitcast changing lane geometry: its result is assembled from bits of multiple lanes, not a lane-wise value copy. Section 12.6 already requires the actual packing and resegmentation, so the S2 transfer contradicts the specified execution. Witness:\n\ntarget datalayout = \"e-p:64:64-i64:64-n8:16:32:64\"\ndeclare ptr @__bennett_qalloc(i64, i64)\ndeclare void @__bennett_qfree(ptr)\ndefine void @top() {\n  %a = insertelement <2 x i8> zeroinitializer, i8 1, i32 1\n  %b = bitcast <2 x i8> %a to i16\n  %width = zext i16 %b to i64\n  %h = call ptr @__bennett_qalloc(i64 0, i64 %width)\n  call void @__bennett_qfree(ptr %h)\n  ret void\n}\n\nHere %a is <0,1>. Under the specified little-endian packing, %b=0|(1<<8)=256 and %width=256. Copying source lane values can supply only 0 and 1; it cannot supply 256. The supplied recogniser on both LLVM 18/23 O0 outputs returns accept, retains the two source lane maps on the scalar %b/%width, and reports VS(%width)={0,1}. This is not merely an internal representation detail: §3.4 specialises widths from that domain and omits the successful width-256 case. Independent instcombine on both majors folds qalloc's width to literal 256. The N21 output uses zext/shl/or, and native executions of that materialised output with clang 18/23 at O0/O3 all record one width-256 allocation, clean free and exit 0. PT5's generic instruction to evaluate integer casts elementwise does not resolve the explicit conflicting lane-copy rule or specify how source lanes combine.",
+      "fix": "In §5.2 remove bitcast from the unconditional-copy list in PT3 and add this rule to that row: \"A bitcast copies lane by lane only when source and destination have identical lane counts and lane bit widths, treating a scalar as one lane. Otherwise use the virtual N21 bitcast expansion of §12.6: pack the source lane bit patterns into its prescribed bit string, then split that string into destination lanes. Compute the output abstract values through the PT4/PT5 transfers of that expansion; finite INT lane sets denote their full Cartesian product, and the K cap applies to each resulting lane. Unknown bits propagate non-handle top through those transfers. Explicit object and ROOT provenance follows the same expansion and remains subject to §6.2; top never substitutes for ROOT. Apply this rule also to constant expressions and the fixed-vscale form, during S2 before verdicts, candidate sets and dispatch domains freeze.\" Retain N21's execution semantics. Add the full witness to DB/DN/DS with AV(%b)=AV(%width)={INT(256)}, VS(%width)={256}, verdict=accept, and exactly one width-256 allocation followed by clean free/code 0 on LLVM 18 and 23. Add the inverse scalar-to-vector packing probe as a companion. Direct finite bit-string evaluation is an equivalent implementation of this transfer; I recommend the virtual N21 expansion so analysis and execution share the already decided packing rule. Do not classify this finite, valid case as BLK-1 or reject geometry-changing bitcasts."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R7-01",
+      "status": "resolved",
+      "note": "PT5 now performs modular integer-width address arithmetic and PT6 propagates unknown-address top. Rerun pt5-int-wrap and pt6-unknown-address checks preserve candidates and successfully dispatch under LLVM 18/23 O0 and instcombine."
+    },
+    {
+      "id": "R7-CODEX-01",
+      "status": "resolved",
+      "note": "PT4/PT5 now distinguish integer and pointer widths and retain modular displacement alternatives; pt4-wide-wrap, pt5-int-wrap and the nonidentity unknown-address witness all pass the targeted LLVM 18/23 execution checks."
+    },
+    {
+      "id": "R7-CODEX-02",
+      "status": "resolved",
+      "note": "PT10 includes zero exactly when the represented unsigned index can be out of range. The existing lane-zero witness now has lane set {0,1,3}, width set {1,2,4}, and successful native widths 2,4,1,1 for indices 0,1,2,-1."
+    },
+    {
+      "id": "R7-CODEX-03",
+      "status": "resolved",
+      "note": "N15 now covers constant unsigned out-of-range indices, including negative spellings, and §12.6 restricts renaming to in-range constants. The checked normalisation pair has f/negative return 0 and g/gnegative return 5 and verifies on LLVM 18/23."
+    },
+    {
+      "id": "R7-CODEX-04",
+      "status": "resolved",
+      "note": "Section 13.4 selects own-format integer-carrier soft-float calls instead of the invalid cross-format fpext route. All six extended-format/target normalisation pairs verify on LLVM 18/23; the invalid-cast checks and four labelled host-carrier numerical fixtures pass. The latter are correctly not claimed as cross-target native or production-libm verification."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "Nonblocking checker/clarity improvement at PT12: N9 already decides each atomic operation's update, but the checker currently ignores the atomic transfer. With @g = internal global i64 1, atomicrmw xor ptr @g, i64 2 monotonic followed by load @g and qalloc(width), the recogniser returns accept/VS={1}; N9 explicitly stores old xor 2, so the first execution uses width 3. Replace the shorthand \"a load plus a store (PT6, PT7)\" with \"apply PT6 to the old value, PT5 to the N9 update expression, and PT7 to the value actually stored; atomicrmw returns the old value, and cmpxchg returns its N9 old-value/success aggregate and conditionally stores the replacement.\" Add the full marker case with least-fixpoint VS={1,3}, first invocation width 3 and clean free/code 0. This requests implementing the existing N9 semantics in the checker, not a new atomic semantic decision."
+  ],
+  "verdict_core": "revise",
+  "verdict": "revise",
+  "path_to_accept": "1. Add zero-filled allocation initial images and the PT6/PT8 handling in R8-CODEX-01. 2. Replace geometry-changing bitcast copies with the virtual N21 transfer in R8-CODEX-02. 3. Add the two full marker/domain/execution regressions with the stated expected sets and results, and rerun the existing previous-round and addendum checks. These repairs require no new ISA capability or source restriction. No other S0 change is requested.",
+  "summary": "Read the entire 16,282-line packet, confirming the round-7 diff before the full reread, plus the response addendum. SOL-R7-01 and R7-CODEX-01/02/03/04 are all resolved. Both addendum items are confirmed: G1 numbering/regenerated hashes (including staged-budget identities), and ABI 0.2 corpus runtime argument positions. Independent targeted checks used LLVM 18/23 and the supplied Rust interpreter; all 22 reference objects check and all nine explicit hash blocks match. Two new core S0 issues remain: S2 omits zero-filled allocation contents, and PT3 copies geometry-changing bitcasts instead of packing their bits. Both produce accepted finite dispatch domains that exclude successfully executed materialised widths. No regression of a previously correct rule was identified. The reviewed checkout stayed clean at HEAD 1a50835; no other member's review was read."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r8-codex.json
