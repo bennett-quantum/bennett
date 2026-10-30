@@ -16,3 +16,23 @@ council counterexample and final-borrow wrap. Checker normalise executes the N22
 expansion; native compiles both source/output on clang 18/23. The targeted unit
 regression failed on unsupported wide sub before implementation, then passed.
 No decline, partial or new ISA capability required (ISA 0.8 §§3.3/4.2).
+
+## SOL-R4-02 — resolved
+
+Sections: §16.4 GEP row, §17.4, §18.1, §12.7 witness, Appendix B.
+Hand derivation: I=32 truncates index 2^32 to zero, keeping base 2^32.
+For base 0x1ffffffff plus one, the low 32 bits wrap to zero while high bits
+remain 1; result 0x100000000. The rule now distinguishes pointer-index and
+pointer-carrier widths, computes scaled/constant offsets modulo 2^I and
+recombines the low result with unchanged high bits. It covers constant expressions
+and CC/R equally, citing LangRef GEP/data-layout. No layout rejection added.
+Witness n-gep-index: unchanged materialised normalisation pair, native LLVM-fold
+probes (clang 18/23), and state execution of independently source-mapped Rust
+objects for index truncation, negative offset, low-bit wrap and a constant-expression
+wrap. The regression first observed expected 4294967296 versus actual 8589934592;
+corrected mapping and wrong-result mutation now execute under run-oracle/code 0.
+Native source probes fold with opt before clang because clang replaces custom
+layouts with its host layout. Wrap and negative cases execute through Rust;
+LLVM 18 constant-folding itself mishandles the wrap case, so it cannot serve as
+that case's oracle. No expectation changes to existing examples. ISA 0.8 integer
+trunc/zext/and/or/add rows suffice; no decline, partial or ISA edit.
