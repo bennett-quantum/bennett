@@ -1,0 +1,120 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The schema-first passes, width/name checks and round-3 control typing pass the normal suite. The remaining suite-F hole is R4-B01: qborrow/qreturn lifetimes disappear when a loop is compiled for borrow analysis. The equivalent straight-line program rejects.",
+   "change": "In src/borrow.rs::Compiler::compile and Evaluation::apply, preserve borrow/return boundaries when composing Repeat. Under \u00a75.1, \"every qborrow by a qreturn after its frame\", the R4-B01 loop must reject at load just like its unrolling; add both forms to tests/r1_borrow.rs."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "src/identity.rs and linking.rs implement separate interface/closure passes, import fingerprints/pins, SCC replacement/order and metadata rebinding. Hand-built inc8 envelope hashes to the published 8ce5e64f...be93; hash on inc8.bisa and sum_db.bisa reproduces all four \u00a716.3 hashes. All seven identity tests and both linking test groups pass.",
+   "change": "No correctness fix identified. For stronger independent evidence, extend tests/identity.rs with a literal two-member SCC envelope and independently calculated digest, rather than deriving the expectation through Object::identity; \u00a79.2 requires \"concatenation of the members' envelopes in that order\". Verify name order, @$0/@$1 substitution and the ASCII member suffix separately."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "src/oracle.rs::run_oracle_vectors dispatches the \u00a74.2 families with independent activations and exact bit vectors. CLI reproductions give inc8(255)=(payload 0,code 0,steps 3) at B=3 and (0,1,2) at B=2. sum_db(2), db=01..10, stack=48/depth=3 succeeds with payload 3 at B=38; B=37 gives step fault; stack=47 gives code 3 at step 29. Arithmetic, memory, wide-value and exhaustive division tests pass.",
+   "change": "No corrective change identified. Add the independently derived sum_db n=2 boundary as literal assertions in tests/oracle.rs: \u00a714.1 says the counter \"counts executed rows\"; expect (3,0,38) at B=38, (0,1,37) at B=37, and (0,3,29) with stack=47 and B=38."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "src/machine.rs follows the assignment-slot exchange order and printed inverse_call/inverse_ret lists. Traced the recursive call at sum row 16 through C5^-1,C4^-1,C3^-1,C2^-1,C1^-1 and the pc exchanges. The existing per-step recursive test, all normal machine tests, and the ignored recursive-prefix sweep pass. CLI reverse at prefixes 15,16,29,34,35 restores entry and clean frames.",
+   "change": "No corrective change identified. Strengthen tests/step_machine.rs::recursive_call_and_ret_each_invert_the_complete_pre_step_tuple with hand-pinned intermediate call-record values: for n=2, db=01..10 at the second call, captures [1,2,4096], old (fp,sp,depth)=(0,16,1), new=(16,32,2), and stack[16]=17. \u00a73.7 requires \"C1 capture\" before moving locations and inverse record clearing at restored sp/fp."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Nested call/ret/uncall, dynamic SSA, device effects, quantum handles, and whole-run reversal pass. The nested fixture returns i64 zero after 11 instructions with clock/tape zero and reverses exactly. R4-B02 nevertheless shows a runtime region-interface alias escapes the required trap path as an internal diagnostic.",
+   "change": "In src/classical.rs::region_record/step, check physical interface disjointness before deduplicating handle ids and classify failed call preconditions as trap errors. \u00a73.3 says \"an instruction whose precondition fails is a CC trap\". Add the select-created alias from R4-B02 to tests/registers.rs and cli_xam.rs: fault 4, two steps, no quantum mutation, reversible faulted prefix."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Exact gate/cleanup, call-wrapped dependency, opaque substitution, local-region adjoint, qinplace and borrowed-entanglement regression tests pass. R4-B01 is a localized but unsound borrow proof: squaring an iteration containing an un-restored return proves identity only after the next borrowing.",
+   "change": "Represent scoped borrow lifetimes in src/borrow.rs rather than ignoring qreturn. \u00a74.3 calls qreturn the \"matched inverse of qborrow after its frame\". Require restoration and independence at that boundary; preserve the valid outside-borrow/two-X loop and the inside-borrow/two-X-per-iteration control described in R4-B01."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Re-ran cargo test --offline: 214 passed, 5 ignored; then -- --ignored --nocapture: all 5 passed. The long \u00a76 sweep reproduced 64,717 accepted/all clean and 135,283 rejected. Existing generators cover child-call wrapping and changing opaque inputs, but not repeated borrow lifetimes; the new loop/unrolled discrepancy passes the entire current suite.",
+   "change": "Extend tests/r1_fuzz_discipline.rs with qborrow/qreturn inside loops and equivalent alpha-renamed unrollings, using per-return identity as the independent expectation (\u00a74.3/\u00a75.6), not only final pool cleanliness. Generate trip counts 1..4 and one versus two X gates per lifetime: one-X lifetimes always reject; two-X lifetimes accept and reverse on both borrowed basis values and an entangled reference."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Read SPEC-QUESTIONS entries 1\u201328 against the associated sections; the round-3 additions accurately distinguish opaque symbolic proof from a complete Boolean decision and describe full local-region lifetimes. Staged deliverables 8\u201311 remain disclosed and are not penalized. The concrete reporting defect is R4-B02: run-cc/run-program emit no result for a required program trap.",
+   "change": "Keep README.md's failed-result promise and fix the underlying src/classical.rs boundary, with CLI assertions in tests/cli_xam.rs. Under \u00a77.4 a \"fault record\" carries cause and location and is reversed like any prefix: R4-B02 must produce FAILED/fault=4/steps=2, while reverse must restore entry. Do not broadly convert internal execution failures into traps."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R4-B01",
+   "scope": "core",
+   "severity": "S0",
+   "section": "\u00a74.3, \u00a74.6, \u00a75.1, \u00a75.6; src/borrow.rs::Compiler::compile, Evaluation::apply(Node::Repeat), Object::decide_frames",
+   "problem": "Borrow lifetimes inside a loop are identified across repetitions, so an invalid qreturn can be justified by a later iteration. Reproduced a memoryless ptr_width=32 object with a single signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[2],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"} and body:\nperm_action @a (t:wire mut) () () () ()\nregs {  } bounds {2}\n^entry():\nqloop 2 {\nb = qborrow any 1\nx b\nqreturn b\n}\nThe hash command accepts (interface hash 3bc76b4398502416eed66400092c8ec2e5e273d97283b5199065a88a3ed9f1d7); after replacing the stored hash, check returns status ok. run-action /dev/stdin a --mut 0 returns state {\"0\":[1,0]}, and reverse reports equals_entry=true. Hand derivation: at EACH qreturn the borrowed entry bit beta has become beta XOR 1, so its completed frame is X, not identity. The second borrowing cannot retroactively validate the first return. Compiler::compile emits no lifetime nodes for qborrow/qreturn and compiles this as Repeat(2,[Flip(b)]), whose square is identity on one incorrectly shared symbolic b. The equivalent two straight-line borrow/X/return sequences (reusing the name after consumption) reject with \u00a75.6, as does a single such sequence. This is a suite-F acceptance error even though this runtime reuses the same pool bit and hides it at final-state comparison.",
+   "fix": "Change src/borrow.rs::Compiler::compile and the Node/Evaluation Repeat representation to retain the start and end of every borrowed lifetime and prove its required factorisation before each return; iteration-local borrowed variables must not be treated as one continuously live borrowed system across iterations. \u00a74.3 defines qreturn as \"matched inverse of qborrow after its frame\"; \u00a75.1 requires \"every qborrow by a qreturn after its frame\"; \u00a75.6 requires \"P_F = P\u2032 \u2297 I_B\"; \u00a74.6 specifies \"body n times\". Expected: the exact object and its unrolled form both fail Object::parse and hash/check (exit 1, empty stdout, \u00a75.6). Add these negatives to tests/r1_borrow.rs and the differential generator. Positive controls: (a) move qborrow before the loop and qreturn after it, keeping one X per iteration; (b) keep borrowing inside but put two X gates before each return. Both must parse and run/reverse unchanged for t,b=0/1 and a borrowed wire entangled with an untouched reference. Include nested-loop forms so an outer even repetition cannot mask an invalid inner return. Do not reject all loop-local borrowing or require each iteration to restore a borrowed bundle whose lifetime actually spans the loop."
+  },
+  {
+   "id": "R4-B02",
+   "scope": "core",
+   "severity": "S0",
+   "section": "\u00a73.3, \u00a74.7, \u00a77.4; src/classical.rs::ClassicalMachine::{region_record,step,execute_region}",
+   "problem": "Dynamic aliases of region operands produce an internal error instead of the specified CC trap/fault record. Reproduced memoryless ptr_width=32 signatures a={\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[1],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}, p={\"abi\":\"0.8\",\"kind\":\"cc\",\"params\":[\"i1\",\"qreg[1]\",\"qreg[1]\"],\"results\":[],\"tier\":\"cc\"}, bodies:\naction @a (t:wire mut) (s:wire in) () () ()\n^entry():\ncx s t\nfn cc @p (c:i1, q:qreg[1], r:qreg[1]) () () () ()\n^entry():\ns = select c q r\naction_call @a (q) (s) () ()\nret\nRehashed check returns status ok. run-cc /dev/stdin p --arg 1 --arg qreg:0 --arg qreg:1 exits 1, empty stdout, stderr \"\u00a73.3: action interface bundles overlap\". run-program and reverse fail identically. Hand: select makes s the same handle as q; the second instruction fails the disjoint-interface precondition and must record FAULT_UB_TRAP without changing wires. region_record deduplicates the ids before complete_call can detect this overlap; action_internal later returns an unmarked Error, propagated by step. With c=0 the same program completes in 3 steps and reverse equals_entry=true. Also reproduced a control-target version: child a has only mutable t with x t; parent uses the same select followed by ctl s action_call @a (q) () () (). c=1 instead exits 1 with \"\u00a73.3: effective control aliases target\"; c=0 completes and reverses.",
+   "fix": "In src/classical.rs::region_record (or a dedicated runtime binding validator called by step), validate physical wire disjointness for all interface slots before handle-id deduplication, and validate effective-control/actual-target disjointness. Route failures of these runtime call preconditions through trap(...) so step pushes the ordinary terminal fault frame. Keep deduplication for lifecycle bookkeeping and allow legitimate overlap of a control with a read-only input where \u00a73.3 permits it; do not indiscriminately map simulator/internal errors to traps. \u00a73.3 states \"an instruction whose precondition fails is a CC trap\", \"A region\u2019s interface bundles and regions are pairwise disjoint\", and every effective control must be \"distinct from every target\"; \u00a74.7 binds CC slots bit for bit; \u00a77.4 makes a fault record terminal and \"reversed like any prefix\". Add the exact dynamic-select witnesses to tests/registers.rs and tests/cli_xam.rs: c=1 yields CLI exit 0, JSON status FAILED, fault 4, steps 2, results [], unchanged q/r; reverse returns equals_entry=true after the faulted prefix. c=0 stays COMPLETED at 3 steps with target 1 and full reversal. Also cover equivalent R entry bindings and an oracle input/output alias."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R3-B01",
+   "status": "resolved",
+   "note": "Resolved: implicit tgt/fr deliveries now invalidate outstanding input readers; r3_nested_oracle_deliveries_invalidate_outstanding_inputs passes target, fault and uncall negatives plus the no-middle positive."
+  },
+  {
+   "id": "SOL-R3-B02",
+   "status": "resolved",
+   "note": "Resolved: joint_change snapshots old mutable bundles/cells and checks complete inverse output groups; the call-wrapped swap/CX and mutable-region negatives reject, doubled-CX positives pass."
+  },
+  {
+   "id": "SOL-R3-B03",
+   "status": "resolved",
+   "note": "Resolved: Application retains symbolic inputs and Repeat substitutes recursively; changing-input loop/unrolled negatives and invariant-input basis/superposition positives pass."
+  },
+  {
+   "id": "SOL-R3-B04",
+   "status": "resolved",
+   "note": "Resolved: normalized CC ctl operands are resolved and checked as qreg[1], with static target disjointness; malformed-type/name/width/alias negatives and typed forward-reference positives pass. R4-B02 is a separate dynamic-value alias path."
+  },
+  {
+   "id": "SOL-R3-B05",
+   "status": "resolved",
+   "note": "Resolved: non-permutation Node::Other includes effective controls and passed regions; ctl-H/inherited-qpred/direct negatives reject and paired permutation controls pass."
+  },
+  {
+   "id": "R3-B01",
+   "status": "resolved",
+   "note": "Resolved: exact implicit-delivery witness and fault-output variant reject; codex_r3_b01_exact_implicit_delivery_witnesses passes, including (payload,code,steps)=(0,0,5) for the no-middle control."
+  },
+  {
+   "id": "R3-B02",
+   "status": "resolved",
+   "note": "Resolved: exact swap-child and CX-child witnesses reject under \u00a76.2; 36 generated direct/called cases have the expected 18 rejects/18 accepts, with exact positive reversal."
+  },
+  {
+   "id": "R3-B03",
+   "status": "resolved",
+   "note": "Resolved: compile_function emits complete local-region allocation/image/body/unprepare/release lifetimes before taking adjoints; exact, ff-image and zero-trip-declaration regressions all pass, including inherited predicates and entangled borrowed references."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In tests/r1_fuzz_discipline.rs add loop-versus-unrolled borrow-lifetime cases, and in tests/cli_xam.rs add runtime alias cases created through select or block parameters. \u00a74.6 requires \"body n times\" and \u00a73.3 requires a trap on failed runtime handle preconditions; the independent expectations should be per-return factorisation and FAILED/fault=4 respectively, not agreement between two implementations sharing the same lifetime or binding model. Preserve the existing random seeds and record these new families separately in PROGRESS.md."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Fix R4-B01 by retaining and proving each borrowed lifetime at its return before loop composition, with negative loop/unrolled and positive spanning-lifetime controls. 2. Fix R4-B02 by validating physical CC/R region bindings before execution and recording failed runtime preconditions as reversible fault-4 frames. 3. Run the added tests, all existing round-3 regressions, the normal suite and all five ignored sweeps; update PROGRESS.md with actual outcomes. No additional work on the explicitly staged deliverables 8\u201311 is required for acceptance in this round.",
+ "summary": "Snapshot 8e11fe7; all 88 packet-file digests match the checkout. Confirmed the round-3 diff first and all eight previous blockers are resolved; no demonstrated regression from those fixes. Normal cargo test --offline passed 214 tests (5 ignored), then all 5 ignored sweeps passed: u8 division/remainder, 2^17 borrow entries, 2^18 certificate elements, 200,000 generated \u00a76 programs (64,717 accepted/all clean; 135,283 rejected), and recursive prefixes for 256 inputs. All execution used the requested headless environment and project-local TMPDIR. Two newly reproduced core S0 issues require revision: borrowing lifetimes merged across loop iterations, and dynamic region aliases escaping the CC trap path. Method 1: hand-derived inc8(255) at B=3 -> (0,0,3), B=2 -> (0,1,2); reconstructed the LF-terminated envelope as isa=0.8, ptr_width=32, JCS signature and the six canonical function lines, with no closure additions, and independently SHA-256 hashed it to the published inc8 value; the CLI also reproduced all four published hashes. Additionally counted sum_db(2) with db bytes 01..10: 3 entry rows + 2*13 nonbase rows + 6 base-case rows + 2 caller returns + final retval = 38, payload 3; B=37 is a step fault; the third 16-cell call exceeds stack 47 at step 29, giving code 3. CLI agrees. Method 2: traced the recursive call at row 16: capture [1,2,4096], push old sum locations at stack[19..32), record return 17/old fp 0/destination, bind parameters, change (fp,sp,depth) from (0,16,1) to (16,32,2); inverse restores pc through the two exchanges and successor XOR, then C5^-1 restores counters before C4^-1 unbind, C3^-1 clears the record at restored sp, C2^-1 restores locations, C1^-1 clears captures, and flag/dispatch clear. The per-step inverse test passes and CLI prefixes around calls/returns restore every frame. Traced nested classical fixture: call f -> call g -> clock.read (0 written, clock 1) -> ret g -> uncall g (clock/tape back to 0) -> ret f -> pure load -> uncall f (skip already reversed g and marker) -> ret; CLI gives 11 steps, result 0, clock/tape 0, and exact whole-run reversal. Method 3: audited all 28 SPEC-QUESTIONS entries against their cited text; recorded readings, including SCC ordering, constants, dynamic SSA, opaque proofs and qif/local-region lifetimes, are defensible; no new ambiguity is needed for the two blockers. Method 4: searched the crate for every requested marker. No production todo!/unimplemented! stub or reachable panic witness found; expect/unreachable sites concern checked schema/collection invariants, ASCII conversion, derived widths or internal dispatch, and SHA length host limits. Test unwrap/panic/unreachable hits are assertions or fixture construction. Unsupported sampler/device/cleanup strings reject non-spec values; approximate hits concern documented rendering, not exact cleanliness; the Python seed's unsupported-row path belongs to the explicitly untrusted partial seed. Method 5: compared \u00a74.1/4.2/4.8 opcode families with schema.rs, object.rs, validation.rs, oracle.rs, machine.rs, classical.rs and action.rs; compared fault codes 0..10 with dispatch/reporting, assignment/capture/delivery and \u00a77.4 frame paths, object/schedule/certificate/coverage field validators, and all eight documented data subcommands with main.rs. No additional nonstaged missing opcode identified. Target, full launch, scheduled execution and interval checking remain the explicitly staged deliverables 8\u201311; their absence is not used as a blocker. The new witnesses were supplied through /dev/stdin, rehashed in memory, and tested with both negative and positive controls."
+}

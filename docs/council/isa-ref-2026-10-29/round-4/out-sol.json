@@ -1,0 +1,128 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Object::parse, schema.rs and validation.rs cover the canonical grammar, typed operands, call graph and static discipline. The round-3 bad CC controls now reject in parser/hash/check, including unknown, i8, token, qreg[2] and target-alias controls; the forward-reference positive runs and reverses. Normal parser/schema tests and the 33 available suite-F probes pass. Structural certificate program points/frame intervals still lack semantic resolution in the implemented checker (SOL-R4-B02).",
+   "change": "In certificate.rs::validate_claim and claims.rs::check_translation_witness, resolve structural witness points using the canonical nested-line ordinal resolver, and reject nonexistent, reversed or incomplete frame intervals; add the SOL-R4-B02 negative and complete-frame positive to tests/r1_certificates.rs."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "identity.rs::envelope/identity and linking.rs implement LF-terminated envelopes, SCC replacement/member order, import fingerprints/pins and rebinding. I independently assembled the inc8 envelope bytes and obtained 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. The four published hashes, printed envelopes, FIPS vectors, recursive SCC ordering, imports, conflicts and certificate-composition tests pass. No new identity divergence found.",
+   "change": "No semantic correction requested. Extend tests/identity.rs with an independently assembled CC envelope containing both a declared host service and a device model, asserting the exact sorted device lines and LF bytes, supplementing the existing normative Q envelopes."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "oracle.rs provides independent dynamic activations and bit-vector row evaluation; memory allocation, inherent bounds checks and all budget/fault dispatches are present. Hand results: inc8(8), B=2 gives (payload,code,steps)=(0,1,2), B=3 gives (9,0,3); sum_db(0) with stack=15 faults code 3 on row 3, whereas stack=16/depth=1 completes in 10 rows. Commands reproduce these values. Available suite-B probes and arbitrary-width oracle tests pass.",
+   "change": "No semantic correction requested. In tests/oracle.rs add a compact explicit sum_db(0) tight-boundary assertion for B=9 versus B=10, stack=16/depth=1, expecting (0,1,9) versus (0,0,10), to pin the hand-derived base-case row count independently of the recursive sweep cutoff."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "machine.rs implements assignment/capture/delivery slots and the printed C5/C4/C3/C2/C1 and R5/R4/R3/R2/R1 inverse orders. I traced the sum_db base-case call and return, including restored fp before delivery and restored sp before record erasure; the normal recursive single-step inversion test passes. CLI reversals at prefixes 3 and 10, inc8 idle-HALT reversal, exhaustive inc8 step-check and wide/all-row machine comparisons restore the complete tuple and clean frames.",
+   "change": "No semantic correction requested. In tests/step_machine.rs pin the hand-derived sum_db(0) call record (return index 3, R_sum=16) and return delivery alongside the existing complete-snapshot one-step inversion assertions, making the printed inverse-list correspondence directly inspectable."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "classical.rs and registers.rs cover dynamic instances, branching, calls, segment uncall, host replies, allocation, devices/tapes and qreg handles. Hand-traced nested executes 11 instructions, cancels the inner clock-read segment, then cancels f while skipping the already-reversed inner segment; run-cc yields result 0/clock 0 and reverse restores entry memory and state. All 21 suite-A probes pass. The measure path nevertheless loses a nonzero Born branch (SOL-R4-B01).",
+   "change": "Change QuantumRegisters::measure and QuantumState::measurement_branches as specified in SOL-R4-B01 so semantic selection preserves exact support through probability underflow; add the CC draw=0 and draw=0.5 regressions to tests/cli_xam.rs."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "All round-3 Q fixes are verified: joint old call-output dependencies reject swap/CX/region dirty-cleanup witnesses; opaque loop applications substitute their changing inputs; non-permutation calls include effective controls; complete local-region lifetimes survive child adjoints, ff images and zero-trip declarations. Basis, superposed and entangled-reference positives pass. The new tiny-rotation measurement reproduction violates the Born semantics despite an exact nonzero amplitude shadow (SOL-R4-B01).",
+   "change": "Implement the support-preserving measurement selection in SOL-R4-B01 and test both a tiny branch and an entangled residual register, including a second measurement, so the selected projection remains usable and correctly normalized."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Normal tests reproduce 214 passed/0 failed/5 ignored; all five ignored tests also pass. The 200,000-program sweep reproduces 64,717 accepted/all clean and 135,283 rejected (290.15 s). The frozen packet matches all 88 checkout files. Standalone conformance reproduces 445 passed/0 failed/45 unavailable out of 490, exit 2 for documented staged deliverables. The new witnesses expose missing tests for measurement underflow, complete structural frame matching, and alpha-renamed expected programs; passing existing claims tests do not establish these cases.",
+   "change": "Add the independently derived regressions from SOL-R4-B01..B03 to tests/cli_xam.rs, tests/quantum.rs and tests/r1_certificates.rs. Require explicit expected outcomes (tiny first branch selected at draw=0; truncated frame rejected; alpha-renamed identities proved), rather than only simulator-to-simulator agreement."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "SPEC-QUESTIONS 1..28 were checked against their cited spec text; the round-3 changes implement the stated readings and the staged 8-11 work remains explicitly disclosed. However verify_certificate reports Proof for a structurally unverified frame and rejects a true positional expected-program comparison (SOL-R4-B02/B03). README says binary64 amplitudes serve Born probabilities, but that implementation drops exact nonzero outcomes rather than implementing \u00a714.2. These are defects in implemented behavior, not objections to disclosed staging.",
+   "change": "Fix claims.rs::check_translation_witness and verify_claim_guarded/execute_element as in SOL-R4-B02/B03, then update README.md Library measurement/checker descriptions to describe the corrected sampling and complete structural checks; record the new independent regression results in PROGRESS.md."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R4-B01",
+   "section": "\u00a73.3 measure, \u00a74.4, \u00a714.2; src/quantum.rs::QuantumState::measurement_branches and src/registers.rs::QuantumRegisters::measure",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "A nonzero Born branch is silently assigned zero probability and cannot be selected. Reproduced a memoryless ptr_width=32 object with action a signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}, body:\naction @a (t:wire mut) () () () ()\n^entry():\nrx 1e-200 t\nand cc p signature {\"abi\":\"0.8\",\"kind\":\"cc\",\"params\":[\"qreg[1]\"],\"results\":[\"i1\"],\"tier\":\"cc\"}, body:\nfn cc @p (q:qreg[1]) (r:i1) () () ()\n^entry():\naction_call @a (q) () () ()\nr = measure q\nret r\nAfter hash substitution, check succeeds (object_hash 2b04b6368b47532aeb80fd1e4f8204b0d4f3a969e9cc6ddd30bb2318c72e60d6). run-action a --mut 1 prints exact support {\"0\":[0,-5e-201],\"1\":[1,0]}. Hand: Rx(theta)|1> = -i sin(theta/2)|0> + cos(theta/2)|1>; theta is a nonzero finite dyadic, so P(0)=sin\u00b2(theta/2)>0, approximately 2.5e-401. Under the existing ascending-outcome/CDF draw convention, draw=0 lies in the first nonempty outcome interval and must select 0. Actual run-cc p --arg qreg:1 --draws 0 completes in 3 steps with measurement/result 1. measurement_branches computes norm2 in f64, underflows to 0 and scales that branch by infinity; measure skips it. Boundary controls: 1e-100 and 1e-161 with draw=0 select 0; 1e-162 and 1e-200 select 1; zero angle selects 1; draw=0.5 selects 1 throughout. No execution budget is needed for this three-row CC trace.",
+   "fix": "Change src/quantum.rs::measurement_branches and src/registers.rs::measure (with exact.rs support if needed). \u00a714.2 requires \"projective computational-basis measurement with Born probabilities\" and \u00a74.4 defines rx(theta)=exp(-i theta X/2); neither permits deleting a nonzero outcome. Keep exact support authoritative and use probability magnitudes/CDF comparisons and projection normalization that cannot underflow a positive branch to semantic zero: extended-exponent or rigorously refined probabilities are possible; binary64 display probabilities may remain approximations. Do not merely clamp to a guessed probability. Add the exact fixture above to tests/cli_xam.rs: --arg qreg:1 --draws 0 must complete in 3 steps with r=0, measurement bits \"0\", no fault; draw=0.5 must give r=1; replacing angle with 0.0 must give r=1 at draw=0. Add tests/quantum.rs/registers.rs coverage for the same tiny branch with an unmeasured register and a subsequent measurement, asserting a finite, usable conditional state and the correct Born result. Reversal of a measured run must remain refused (\u00a710)."
+  },
+  {
+   "id": "SOL-R4-B02",
+   "section": "\u00a75.6 translation lemma, \u00a79.2 program points, \u00a712.1 structural claims; src/claims.rs::Object::check_translation_witness",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "The implemented structural checker never reads witness.frame and never checks that the named circuit is V;W;V^-1;W. Reproduced memoryless ptr_width=32 perm_action a, signature mut=[1], in=[1], mem=[], args=[], bounds=[], body:\nperm_action @a (t:wire mut) (p:wire in) () () ()\n^entry():\nb = qborrow any 1\ncx p b\ncx b t\ncx p b\ncx b t\nqreturn b\nIts interface/closure hash H is c59dfefb9f3d8e91d5a3ba0bd74e37dc0ff4fcf7b73069ad4d9bd4760224672a. In an otherwise valid bound certificate, put one claim {\"kind\":\"structural\",\"rule\":\"translation_lemma\",\"subclaims\":[],\"witness\":{\"V\":[[H,\"entry\",1]],\"W\":[[H,\"entry\",2]],\"X\":[\"p\"],\"B\":[\"b\"],\"frame\":[[H,\"entry\",1],[H,\"entry\",2]]}} and leave verification.borrow_frames empty to exercise the claim checker itself. check exits 0/status ok (object_hash c548c42057e64ea1fd635c14743ad0196457081057daa58efdb961bfefc72115). A temporary read-only-library harness calling Object::parse and verify_certificate returns Ok([ClaimReport {region:\"a\",index:0,kind:\"structural\",verdict:Proof}]). But the explicitly named two-gate frame maps (b,t,p) to (b XOR p,t XOR b XOR p,p): it neither restores b nor removes t's dependence on b. The full four-gate frame is valid and run-action a --mut 0 --in 1 returns t=1,p=1; that does not prove the different truncated frame. check_translation_witness only checks the separately listed V/W gates' side conditions. Independent re-execution in check_borrow_independence limits the effect on borrow_frames admission; it does not make this false ClaimVerdict::Proof correct.",
+   "fix": "Change src/claims.rs::check_translation_witness and the program-point resolution it uses, optionally rejecting bad endpoints earlier in certificate.rs::validate_claim. \u00a75.6 says \"the frame is V; W; V^-1; W\" and frames are \"maximal contiguous permutation-only subcircuits\"; \u00a712.1 requires \"check the rule's side conditions syntactically against the object and the subclaims' results\". Resolve both frame endpoints and all V/W points using \u00a79.2 ordinals \"counting nested lines in text order\"; verify actual borrowed wires, the complete named frame, exact reverse V and repeated W, with no omitted intervening gates or non-permutation boundary. Only then return Proof. Add a tests/r1_certificates.rs test constructing the bound certificate with the usual certificate helper/template: the exact truncated [entry:1,entry:2] claim must make verify_claim/verify_certificate return a \u00a75.6/\u00a712.1 error; the complete [entry:1,entry:4] witness must return Proof. Also reject nonexistent/reversed endpoints and a changed second W; include a nested-line ordinal positive so .instructions.get(ordinal) cannot substitute for the canonical resolver. No target, schedule, numerical or channel machinery is involved; this is the already-implemented structural path."
+  },
+  {
+   "id": "SOL-R4-B03",
+   "section": "\u00a75.1 signature order, \u00a79.4 region ABI, \u00a712.1 expected program; src/claims.rs::Object::verify_claim_guarded/execute_element",
+   "scope": "contract",
+   "severity": "S0",
+   "problem": "Expected-program comparison binds inputs by the subject's local names instead of the shared signature positions. Reproduced memoryless ptr_width=32 functions with identical perm_action signatures mut=[1], in=[1], mem=[], args=[], bounds=[]:\nperm_action @a (t:wire mut) (p:wire in) () () ()\n^entry():\nx t\nx t\nperm_action @id (u:wire mut) (v:wire in) () () ()\n^entry():\nx u\nx u\nBoth are the identity on their two-bit interfaces. Their closure hashes are a=e153e6770967051bba7f7f3fb4f3a1ebc24ac36acf625fb577316a72fefc3b89 and id=44e334e5b7c16cf020004825850687841b6f2aad00bfc0774452b0cb9a575d72. Add a valid certificate region record for a with claim {\"kind\":\"exhaustive\",\"label\":\"proof\",\"domain\":{\"bundles\":[{\"name\":\"t\",\"width\":1,\"lo\":0,\"hi\":1},{\"name\":\"p\",\"width\":1,\"lo\":0,\"hi\":1}],\"borrowed\":[],\"regions\":[]},\"expected\":{\"program\":\"44e334e5b7c16cf020004825850687841b6f2aad00bfc0774452b0cb9a575d72\"}}. check succeeds (object_hash 066383fd91d1388dc39bc6af32af8a2cbec3a2e95ba02c8d0ee71370016fce58); run-action a --mut 0 --in 1 and run-action id with the same options both produce state {\"01\":[1,0]}. Hand enumeration: 00,01,10,11 must compare equal. Actual verify_certificate, invoked through the frozen library, returns Err(\"\u00a712.1: claim 0 of e153...: element 1 differs from the expected program\"). verify_claim_guarded passes unchanged Component::Bundle(\"t\"/\"p\") elements to execute_element(id,...); its value(\"u\"/\"v\") lookup silently defaults both to zero, so it compares [0,1] to [0,0].",
+   "fix": "Change src/claims.rs::verify_claim_guarded and the input representation used by execute_element. \u00a712.1 requires \"re-execute every domain element on the reference interpreter / expected program; compare full tuples\"; \u00a79.4 says interface bundles/regions are \"passed in declared order\", and the recorded SPEC-QUESTIONS 21 reading specifies the final tuple \"in signature order\". Map subject interface components to the expected program by interface group and position (and region cell index), independently of local parameter names; retain borrowed pool components in their domain order. Preserve deliberate zero initialization for genuinely omitted partial-domain inputs, but never treat a renamed corresponding parameter as omitted. Add the exact four-element identity-vs-renamed-identity claim to tests/r1_certificates.rs; verify_claim and verify_certificate must return Proof. Add a region-name-renaming equivalent and a negative reference performing a single X, which must still fail on a full-tuple mismatch. This corrects the implemented exhaustive checker and needs none of staged deliverables 8-11."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R3-B01",
+   "status": "resolved",
+   "note": "Diff consumes the inverse before implicit-delivery invalidation and includes both output writes; exact target/fault/uncall negatives and the (0,0,4) prefix-reversing positive pass."
+  },
+  {
+   "id": "SOL-R3-B02",
+   "status": "resolved",
+   "note": "joint_change snapshots all old mutable bundles/cells and cancels complete inverse groups; swap/CX/region negatives reject \u00a76.2 and doubled-CX basis/superposition positives pass."
+  },
+  {
+   "id": "SOL-R3-B03",
+   "status": "resolved",
+   "note": "Application inputs are recursively substituted and re-interned during Repeat composition; loop/unrolled negatives reject \u00a75.6 and invariant-input positives plus the parity generator pass."
+  },
+  {
+   "id": "SOL-R3-B04",
+   "status": "resolved",
+   "note": "Normalized CC controls resolve through rd as qreg[1] and undergo target-disjointness checks; all negative forms reject and distinct-control/forward-reference execution reverses."
+  },
+  {
+   "id": "SOL-R3-B05",
+   "status": "resolved",
+   "note": "Node::Other now includes normalized/inherited controls, interface bundles and passed cells; direct/ctl/qpred H negatives reject and twice-controlled-X positives restore all tested states."
+  },
+  {
+   "id": "R3-B01",
+   "status": "resolved",
+   "note": "Codex exact implicit payload/fault-to-input witnesses reject \u00a75.5; its five-row no-middle positive returns (0,0,5) and reverses, preserving multiplicity positives."
+  },
+  {
+   "id": "R3-B02",
+   "status": "resolved",
+   "note": "Codex swap/CX-child and mutable-region witnesses reject; the extended 36-case direct/called parity family and exact doubled-CX positives pass."
+  },
+  {
+   "id": "R3-B03",
+   "status": "resolved",
+   "note": "compile_function now wraps complete local-region entry/body/exit lifetimes with unconditional explicit image flips; adjoint-only, ff-image and zero-trip cases pass with basis, superposition and entangled-reference inputs."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Extend tests/r1_fuzz_discipline.rs beyond the current fixed child-call/parity families with generated nested calls combining mutable regions and borrowed pools, using independently derived small Boolean maps as the expected full interface/borrow tuple. Require accepted cases to match that map on every small input and reverse exactly; keep the existing seeds unchanged. This is additional coverage, not a reason to block staged deliverables."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Fix core measurement selection/normalization so a nonzero Born branch is never discarded by binary64 underflow (SOL-R4-B01). 2. Make translation-lemma claims verify the complete actual frame and canonical program points before returning Proof (SOL-R4-B02). 3. Bind expected-program claim inputs by signature position, including region cells (SOL-R4-B03). Add the specified independent negative/positive regressions, rerun the normal and ignored suites, and preserve all eight resolved round-3 pins. No completion of truthfully staged deliverables 8-11 is required for these findings.",
+ "summary": "Review at frozen commit 8e11fe7; all 88 embedded source files match the checkout. Confirmed the diff fixes first: all five SOL-R3-B01..B05 and codex R3-B01..B03 are resolved, with their negative and positive regression tests passing; no new regression attributable to this diff was established. Three new reproduced S0s remain: a core Born-branch underflow and two defects in the implemented non-numerical certificate checker. Deliverables 8-11 remain explicitly staged and were not penalized. Method (1): hand-derived inc8(8) B=0/2/3 as (0,1,0)/(0,1,2)/(9,0,3); independently assembled the complete LF-terminated inc8 envelope (isa line, ptr_width line, JCS signature, six function lines) and reproduced its published digest; derived sum_db(0) stack=15 fault code 3 on the third row and stack=16/depth=1 success in 10 rows, then ran the commands. Method (2): traced sum_db call C1 captures [0,0,4096], C2 pushes 13 locations, C3 records return index 3/fp/destination id, C4 binds params, C5 changes sp=16/depth=1; its inverse restores counters before erasing the record and restores locations before clearing captures. Traced ret R5^-1 before R4 delivery at the restored fp, then R3^-1/R2^-1/R1^-1; normal one-step recursive inversion tests and CLI prefix reversals at 3/10 and idle-HALT inc8 reversal restore entry with clean frames. Hand-traced the 11-instruction classical nested fixture: g clock.read is cancelled once by its uncall, f returns, load keeps 0, outer uncall skips the already-reversed g and marker; run-cc and reverse reproduce result=0, clock=0, empty tape and entry memory. Method (3): audited SPEC-QUESTIONS 1-28 against the referenced text, including the defensible complete-lifetime qif reading 28 and extensional opaque-loop correction 20. B02/B03 violate the implemented structural/positional semantics, rather than requiring a new spec reading. Method (4): scanned the crate for all rubric patterns. src has no todo!, unimplemented! or panic! macros; its two unwraps are unit-test assertions, its one unreachable! is under an earlier closed subcommand match, and expect hits are validated parser/state/collection invariants, Rust-format/ASCII invariants, SHA host-length guards, or fallible parser helper calls. The three unsupported refusals concern invalid device versions/cleanup kinds/samplers; test panic/unwrap/unreachable hits are assertion scaffolding; the Python unsupported-row path is in the expressly untrusted seed. Approximation hits mostly concern rendering, but tracing semantic Born probabilities found B01. Method (5): compared \u00a74.1-4.8 row/opcode families with schema.rs, validation.rs, oracle.rs, machine.rs, action.rs/classical.rs dispatch; \u00a75.4 fault codes 0-10 with outcomes; \u00a73.6 assignment/capture/delivery and \u00a77.4 history frame kinds with their inverses; \u00a79/11-13 metadata fields and \u00a715 A-H obligations with validators/tests/staged diagnostics; and all eight README data commands with main.rs. Normal cargo test: 214 passed, 0 failed, 5 ignored. Standalone offline conformance: 445 passed, 0 failed, 45 unavailable/490, exit 2 for documented staging. New witnesses were CLI-hashed/checked and executed through the prebuilt binary; the two verify_certificate results additionally used a temporary harness linked to the frozen rlib, removed afterwards. All execution was headless with DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset and the requested project-local TMPDIR. All five ignored tests pass: full u8 division (2.19 s), 17-wire frame exhaustion (14.54 s), the 2^18-element certificate claim (113.80 s), the 200,000-program sweep (290.15 s: 64,717 accepted/all clean, 135,283 rejected), and recursive all-input prefix reversal (10.55 s). The checkout remains clean; no source, test or repository files were edited."
+}
