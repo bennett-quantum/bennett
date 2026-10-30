@@ -1,0 +1,98 @@
+exit 0 in 13s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "§§4, 10 and 18 specify tiers, state and events, including cancellation and observation. However, the §5 machine loses a defined callee in SOL-R7-01.",
+      "change": "Apply SOL-R7-01 and add to §5: \"Every concrete address of a materialised execution is represented by its reference abstract value, including after integer wrap and at a memory dereference.\""
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "§§12–16 cover scalarisation, wide integers, FP carriers, control transfer and canonical rows. The new NAND expansion and its mapped 16-row object pass. PT5 still disagrees with wrapping integer execution.",
+      "change": "Replace PT5 as specified in SOL-R7-01; add its module to DB in O0 and instcombine forms with candidates={body} and successful dispatch."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "§8.6 preserves common failure across wide projections and executes zero-output oracles once. TDL-7/8/10 and §18.2 distinguish control workspace, retained faults and measurement records. No new quantum-semantic blocker found.",
+      "change": "In suite DT add a controlled SOL-R7-01 witness with this expectation: \"With invocation control |+>, dispatch succeeds on the enabled branch; address arithmetic introduces no T-REGION fault or fault entanglement.\""
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "The ISA owns targets/resources/scheduling. §9.2 freezes capacity maxima before provisional hashing and overlays identity entries once; budget-stage driver/state checks pass.",
+      "change": "Add a two-shape DD case requiring: \"Each shape overlays entries against its own selection_identity exactly once; both use the same frozen link capacities, including maxima from unmatched entries.\""
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "§§7.3, 9.2, 16.2 and 19.9 consistently separate selection_identity from final semantic identity and bind tokens to the latter. No new contract S0 found.",
+      "change": "Add a §19.9 build-record example stating: \"selection_identity, identity, resolved components and frozen capacities are separate fields; a steps-only overlay changes the token tuple while preserving identity.\" Use budget-stage’s pinned values."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "§18.7 states all-input conformance; §1.5 separates expected artefacts from independent execution. Selected pre-flight families passed 314/314. The new witness nevertheless exposes a false abstract result.",
+      "change": "Add a DB/DS regression requiring both O0 and instcombine forms of SOL-R7-01 to dispatch body successfully; execute the original module with an independent native marker harness, rather than checking recogniser self-consistency alone."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "The demo ladder, general materialised LLVM lifting and parameterised in-place expansion remain specified. Named ISA dependencies are explicit. SOL-R7-01 faults a defined integral-pointer execution contrary to the general lifting contract.",
+      "change": "Repair SOL-R7-01 without rejecting ptrtoint arithmetic, requiring optimisation to erase it, or adding an ISA blocker; existing wrapping integer rows already express it."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Processing order, defaults, diagnostics and executable examples make implementation practical. The new defect is local to PT5/PT6. Historical executor-status wording in the example index lags the progress receipts.",
+      "change": "In §1.5 and Appendix B replace the historical executor-status parenthesis with: \"Executor availability is stated by the current freeze receipt; a command named here is an execution obligation, not a claim of availability.\" Keep historical progress receipts dated."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R7-01",
+      "section": "§5.2 PT5/PT6; §7.2 dispatch; consistency with §§16.4, 17.4 and 18.1",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "PT5 says add/sub of pointer atoms \"shifts each pointer atom's offset by each constant (classes and * stay)\". This still uses unbounded object-offset arithmetic rather than the integer operation's finite width. PT6 reads represented object intervals without explicitly propagating the address value's non-handle top alternative to the loaded value. Witness:\n\ntarget datalayout = \"e-p:64:64\"\n@tab = internal constant [1 x ptr] [ptr @body]\ndeclare void @__bennett_adj(ptr, ptr, ptr)\ndefine internal void @body(ptr %e) {\n  ret void\n}\ndefine void @top() {\n  %a = ptrtoint ptr @tab to i64\n  %b = add i64 %a, -9223372036854775808\n  %c = add i64 %b, -9223372036854775808\n  %p = inttoptr i64 %c to ptr\n  %f = load ptr, ptr %p, align 8\n  call void @__bennett_adj(ptr %f, ptr null, ptr null)\n  ret void\n}\n\nThe unflagged i64 additions have total displacement -2^64, hence zero modulo 2^64: %p equals @tab, %f equals @body, and adj succeeds. No intermediate address is dereferenced; no poison or out-of-bounds access occurs. LLVM 18 and 23 verify and retain this module through default<O0>; instcombine folds the marker operand to ptr nonnull @body on both. The repository recogniser instead returns accept with %b=(tab,9223372036854775808)+TOP, %c/%p=(tab,18446744073709551616)+TOP, %f=empty and candidates=empty. §7.2 then requires T-REGION/code 4, contradicting §18.1’s materialised integer execution. Signed mathematical offset accumulation gives -2^64, equally wrong. Independent lli marker harnesses under host-default layouts call body exactly once on both LLVM 18 and 23 (exit 0). LLVM 23 lli refuses the abbreviated explicit DataLayout, so that direct JIT form is not claimed executed; opt verifies/folds the explicit-layout source on both. This is a new integer-arithmetic/unknown-load hole adjacent to the resolved PT2 finding, not a PT2 regression.",
+      "fix": "In §5.2 replace PT5’s pointer-arithmetic clauses with: \"For add/sub on an iW value carrying pointer atoms, evaluate address bits modulo 2^W, never by unbounded mathematical displacement. When W equals the source pointer representation width, retain each original object provenance and accumulate relative offsets modulo 2^W; zero net displacement represents the original address. For residue classes and * take the image of all represented addresses and operand values under the same finite-width operation. If the image can leave its represented object, or cannot be represented precisely, additionally include (EXT,*) and the non-handle top flag. For other integer operations on pointer atoms, retain (X,*) for each original X and additionally include (EXT,*) and the non-handle top flag unless an explicitly specified transfer computes a sound image. Handle-derived uses remain governed by §6.2.\" In PT6 add: \"An address operand with the non-handle top flag denotes unknown possible addresses in addition to its explicit atoms. A load through this alternative contributes the non-handle top flag to its loaded value; never drop that alternative because explicit object offsets overlap no known slot. ROOT provenance remains explicit.\" Apply these rules also to constant expressions and before candidate/dispatch domains freeze. Retain the rest of PT5, including the removed-range rule. Add the witness to DB/DS with verdict accept, RR(%f)={body}, exactly one successful body invocation and no code 4 under adequate budgets, in both O0 and instcombine forms. AV(%f) may conservatively contain TOP but must represent FN(body). Include a non-identity transformation that can reach another allocation, to test unknown-address propagation. A uniformly conservative TOP transfer for pointer-bearing arithmetic is another sound repair if its fixed reference precision/verdict consequences are specified; I recommend the modular provenance-preserving transfer above. No new rejection or ISA change is needed."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R6-01",
+      "status": "resolved",
+      "note": "§9.2 baseline/frozen-capacity/provisional-hash/once-only overlay order removes the cycle; §§7.3, 16.2–16.3 and 19.9 agree; budget-stage checks pass."
+    },
+    {
+      "id": "R6-CODEX-01",
+      "status": "resolved",
+      "note": "PT2 shares the finite-width GEP semantics and propagates unknown-address alternatives; pt2-wrap O0/instcombine and execution checks pass. Separate PT5 defect: SOL-R7-01."
+    },
+    {
+      "id": "R6-CODEX-02",
+      "status": "resolved",
+      "note": "PT5/N3/N4 prevent erased ranges from restricting domains; parameter/load witnesses infer {1,3} and execute input 2 at width 3 without fault."
+    },
+    {
+      "id": "R6-CODEX-03",
+      "status": "resolved",
+      "note": "N9 explicitly selects load/and/xor/store and old-result substitution; normalisation/native and mapped 16-row payload-63 checks pass."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1, §1.5/Appendix B: replace the historical executor-status parenthesis with \"Executor availability is stated by the current freeze receipt; a command named here is an execution obligation, not a claim of availability.\" This reconciles the index with later receipts without changing semantics or deleting tests.",
+    "S1, suite DB: add \"For small finite layouts, enumerate concrete address images of PT2–PT5 and require every concrete loaded/call value to be represented by its resulting AV, including unknown-address alternatives.\" Start with identity/non-identity wrap, narrowing casts and bitwise pointer transformations; use independent LLVM execution for defined cases."
+  ],
+  "verdict_core": "revise",
+  "verdict": "revise",
+  "path_to_accept": "1. Repair PT5 finite-width address arithmetic and PT6 unknown-address propagation using SOL-R7-01. 2. Add its O0/instcombine candidate and independently executed dispatch witnesses while retaining all round-6 expectations. 3. Run relevant DB/DS tests and the freeze gate. With this one core defect repaired and no new S0 found, I would accept core and whole document. No ISA revision or proof-format work is required for this finding.",
+  "summary": "Read the entire 15,604-line prompt, including diff, rubric, progress record, north star, ISA 0.8 and full draft 0.2.7. SOL-R6-01, R6-CODEX-01, R6-CODEX-02 and R6-CODEX-03 are resolved. Selected pre-flight execution passed 314/314 (driver 2, normalise 39, recognise 138, map 21, check 22, hash 9, run-oracle 22, state 61); this is not a fresh full 2651-check run. One new core S0 remains: PT5/PT6 lose a callee after wrapping integer address arithmetic and prescribe a trap for a defined materialised execution. Independent LLVM 18/23 verification/folding and native dispatch corroborate the witness. No new contract blocker or regression found. Existing ISA dependency verdicts do not claim those capabilities execute on ISA 0.8."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r7-sol.json

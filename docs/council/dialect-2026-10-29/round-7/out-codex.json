@@ -1,0 +1,117 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The H/CC/R/L state model, explicit faults and materialised reference semantics are well specified. However, \u00a75 promises that every runtime value belongs to its reference set, while PT5 pointer-offset arithmetic and PT10 lane extraction violate that promise (R7-CODEX-01/02). Those sets determine executable dispatch.",
+   "change": "In \u00a75.2 state: \"Reference transfer functions include every result of the materialised operation, including finite-width pointer/integer arithmetic and the zero alternative introduced by N15.\" Implement this obligation with the exact PT4/PT5/PT6 and PT10 replacements in R7-CODEX-01/02."
+  },
+  {
+   "id": "C2",
+   "score": 3,
+   "evidence": "N9 now has a valid, cost-pinned NAND expansion and explicit FP atomic spellings. Two other canonical normalisation recipes remain incomplete or invalid: constant out-of-range vector indices have no applicable N15 replacement, and \u00a713.4 requests invalid floating-point extensions (R7-CODEX-03/04).",
+   "change": "Add to N15: \"For a constant unsigned index at least L, replace extraction by the zero element and insertion by the unchanged vector, and delete the instruction.\" Replace \u00a713.4's universal fpext/fptrunc fallback with the format-specific conversion table in R7-CODEX-04."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "\u00a7\u00a77.5, 8.6\u20138.7, 10 and 18 distinguish oracle XOR semantics from actions, keep fault/channel records as declared outputs, require clean control workspace, constrain mutable-domain inverses, and specify deferred-measurement placement. The stated hypotheses address interference and adjoint scheduling; I found no new S0 in these coherent semantics.",
+   "change": "No change requested. Retain the rule that a standalone action inverse is defined on its declared mutable domain, with control workspace restored and fault/channel records retained to their stated observation boundary."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Qubit classes, classical budgets, bounded allocation and explicit ISA dependencies preserve the north-star resource model. Finite width dispatch is nevertheless only sound if the value sets include normalisation-created values; the PT10 witness requires a one-qubit alternative absent from the current set.",
+   "change": "After \u00a73.4's width-domain rule add: \"The width domain includes values introduced by materialised totalisation; in particular, an extraction totalised to zero followed by add 1 includes width 1.\" Apply the PT10 repair rather than introducing a blocker or rejection for this bounded case."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "\u00a79.2 now separates baseline selection, frozen layout capacities, one-time identity overlay and final semantic identity. \u00a7\u00a77.3, 16.2\u201316.3 and 19.9 agree with that staging. The budget-stage witness checks both hashes, resolved components and execution. Named ISA dependencies and temporary certificate-field locations remain explicit.",
+   "change": "No change requested. Retain the normative prohibition on rematching identity selectors against the final semantic hash, and retain both selection_identity and final identity in the build record."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "I ran scripts/dialect_check_v02.py headlessly: 2651/2651 checks passed. The existing examples therefore support the four round-6 fixes. Independent LLVM 18/23 probes exposed the four additional cases below; the green receipt does not cover them. The conformance obligations and proof/evidence distinction are otherwise explicit.",
+   "change": "Add to \u00a721.3 DB/DN: \"For each tested value used in a verdict, candidate set or dispatch domain, compare the reference-analysis set with values observed in the materialised execution; every observed value must be represented.\" Add the four witnesses below, including their O0 forms."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The draft preserves the demo ladder and identifies exact ISA changes for genuinely unavailable mechanisms. No new intentional scope narrowing appeared in the round-6 changes. The constant-lane and cross-format libm holes would, however, force rejection or invented semantics for valid LLVM input despite the full materialisation obligation.",
+   "change": "State in \u00a713.4: \"All seven source formats remain covered on every supported target; a source format different from the target's long double uses the conversion rule below and is not rejected or trapped.\" Supply the concrete conversions in R7-CODEX-04 and close N15 as in R7-CODEX-03."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "The architecture, pipeline order, defaults, reference objects and named dependency reports are actionable. An independent implementer still needs four semantic repairs before the prescribed analysis and normalisation can be implemented consistently. These are local defects, not grounds for redesigning the coherent model.",
+   "change": "Use one normative source for lane semantics: state in PT10 and \u00a712.6, \"Extraction and insertion use N15's total index semantics for both constant and non-constant indices.\" Keep the explicit constant and dynamic cases of R7-CODEX-02/03 in N15/PT10 so the cross-reference is executable rather than aspirational."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R7-CODEX-01",
+   "section": "\u00a75.2 PT4/PT5/PT6; \u00a77.2; consistency with \u00a7\u00a716.4 and 18.1",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "PT5 says that add/sub with pointer atoms \"shifts each pointer atom's offset by each constant (classes and * stay)\"; PT4 says ptrtoint/inttoptr \"copies\". Unlike the repaired GEP rule, these rules still use an unbounded mathematical offset instead of the integer operation's finite-width result. Witness:\ntarget datalayout = \"e-p:64:64\"\n@tab = internal constant [1 x ptr] [ptr @body]\ndeclare void @__bennett_adj(ptr, ptr, ptr)\ndefine internal void @body(ptr %e) {\n  ret void\n}\ndefine void @top() {\n  %a = ptrtoint ptr @tab to i64\n  %b = add i64 %a, -9223372036854775808\n  %c = add i64 %b, -9223372036854775808\n  %p = inttoptr i64 %c to ptr\n  %f = load ptr, ptr %p, align 8\n  call void @__bennett_adj(ptr %f, ptr null, ptr null)\n  ret void\n}\nThe two additions sum to zero modulo 2^64, so %p is @tab and %f is @body; the invocation succeeds. No inbounds or overflow flags, invalid memory accesses, or undefined operands are involved. Both LLVM 18 and 23 verify and retain the source under default<O0>; instcombine on both reduces the marker operand to @body. Literal PT5 instead moves the object offset by a full address space (positive or negative according to the chosen integer spelling), so PT6 finds no table slot. The supplied recogniser reproduces offsets 2^63 and 2^64 and an empty loaded value/candidate set. Its intermediate non-handle top flag also fails to reach the load. Dispatch can consequently trap T-REGION on this defined call. This is a separate pre-existing PT4/PT5 defect; the round-6 PT2 GEP witness is fixed.",
+   "fix": "Replace the pointer-arithmetic clause of PT5 and qualify PT4 as follows:\n\"For a pointer-derived integer of width W, add/sub applies the LLVM bit-vector operation modulo 2^W to every represented bit pattern. It must not use unbounded addition of object offsets. Use PT2's represented-address image construction and DataLayout/alignment constraints, substituting the integer operation's width W and full-width modular arithmetic for GEP's I(a)-bit arithmetic. Preserve the originating object and ROOT provenance; retain every resulting address alternative. PT4 copies a pointer atom only for a bit-preserving conversion. Otherwise ptrtoint, inttoptr, zext, sext and trunc apply their actual source/destination-width conversion, with ptrtoint/inttoptr zero-extension or truncation as specified in \u00a716.4. If an address alternative cannot be represented as an address in the originating object, include (EXT,*) and the non-handle top flag rather than dropping it. This numerical uncertainty does not itself establish host escape; the PT2 provenance rule applies.\"\nAdd to PT6:\n\"A non-handle top flag on the address operand contributes the same unknown-address load alternative as (EXT,*), even when concrete object-offset atoms are also present.\"\nFor the witness, require the represented final address set to include @tab, the dispatch candidates to include body, verdict=accept and fault code 0. Test O0 and instcombine on LLVM 18/23, and add a wide-integer round trip (ptrtoint to i128, add 2^64, inttoptr to a 64-bit pointer) to cover PT4 truncation. A viable simpler conservative rule is to give all non-bit-preserving pointer-derived arithmetic an explicit EXT/top alternative while retaining provenance; that preserves successful dispatch but broadens domains and may affect finite-domain verdicts. I recommend the finite-width image rule, consistent with the repaired PT2. Do not treat this bounded, defined example as an ISA dependency."
+  },
+  {
+   "id": "R7-CODEX-02",
+   "section": "\u00a75.2 PT10; \u00a73.4 width dispatch; \u00a712.2 N15/N8; \u00a718.7",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "PT10 says \"a non-constant lane index moves the union of all lanes\". N15, however, gives an out-of-range extraction the zero element, which need not occur in any source lane. The reference domain therefore excludes a value of the specified materialised program. Witness:\ndeclare ptr @__bennett_qalloc(i64, i64)\ndeclare void @__bennett_qfree(ptr)\ndefine void @top(i32 %index) {\n  %v0 = insertelement <2 x i64> zeroinitializer, i64 1, i32 0\n  %v1 = insertelement <2 x i64> %v0, i64 3, i32 1\n  %lane = extractelement <2 x i64> %v1, i32 %index\n  %frozen = freeze i64 %lane\n  %width = add i64 %frozen, 1\n  %h = call ptr @__bennett_qalloc(i64 0, i64 %width)\n  call void @__bennett_qfree(ptr %h)\n  ret void\n}\nPT10 gives AV(%lane)={1,3}; PT3 copies it through freeze and PT5 gives VS(%width)={2,4}. N8/N15 instead make index=2 or -1 produce lane=0 and width=1, a valid clean allocation/free. \u00a73.4 compiles only the stated width alternatives, so the width-1 execution has no implementation in that dispatch. Both LLVM versions retain the arithmetic probe under O0; the supplied analysis returns lane atoms {1,3}, while the supplied normaliser's output executed with lli 18/23 returns width 1 at index=2. The source freeze also prevents an argument that a poison result must be consumed as immediate UB. More fundamentally, conformance is to the materialised program on all host inputs.",
+   "fix": "Replace PT10's vector-index clause with:\n\"Vector extraction and insertion use the total index semantics of N15. A constant in-range extraction copies the selected lane; a constant out-of-range extraction produces the element type's zero. For a non-constant extraction, retain the union of the source lanes and additionally include the zero element whenever the reference index set contains an unsigned value at least L, or is top and its integer width admits such a value. Do not add this alternative when the reference index set proves that all represented indices are in range. A constant in-range insertion replaces the selected lane; an out-of-range insertion preserves the input vector. For a non-constant insertion, each result lane includes its old value and the inserted value whenever that lane can be selected; the out-of-range alternative preserves every old lane. Zero introduces no ROOT provenance. Aggregate index paths and valid shuffle indices retain their existing movement rules.\"\nKeep N15's dynamic semantics. Add the full marker witness to DB/DN/DS: lane domain {0,1,3}, width domain {1,2,4}, verdict=accept; indices 0,1,2,-1 allocate widths 2,4,1,1 respectively and free cleanly with code 0. An equivalent implementation is to analyse a virtual N15 expansion during S2; I recommend sharing N15's transfer definition with PT10. Do not repair this by imposing a new input precondition, rejecting out-of-range host indices, or marking this finite case BLK-1."
+  },
+  {
+   "id": "R7-CODEX-03",
+   "section": "\u00a712.2 N7/N8/N15; \u00a712.6 constant-index scalarisation; \u00a712.4 V8/V13",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "N15 applies only to \"extractelement/insertelement with a non-constant index\". \u00a712.6 then prescribes \"with constant indices: lane renaming\", while claiming that \"LangRef out-of-range poison is totalised by N15\". A constant out-of-range index is valid LLVM IR but has no lane to rename and is outside N15's stated case. Witness:\ndefine i8 @f() {\n  %lane = extractelement <2 x i8> <i8 5, i8 9>, i32 2\n  %v = freeze i8 %lane\n  ret i8 %v\n}\nBoth LLVM 18 and 23 verify this and retain extractelement and freeze under default<O0>. N7 only replaces literal undef/poison constants; this result is produced by an instruction. N8 then deletes freeze. No other normalisation rule chooses its value, and V13 forbids leaving the vector instruction. The supplied normaliser raises IndexError: list index out of range. Constant out-of-range insertion has the same missing case. This is not merely a checker crash: the normative lane-renaming recipe has no result, and choosing zero, unchanged-vector insertion, a fault, or a residual rejection requires a semantic decision not made by the applicable rule.",
+   "fix": "Extend N15's source column to \"extractelement/insertelement with any integer index i on L lanes\" and prepend this replacement text:\n\"Interpret the iK index as an unsigned K-bit value, including negative integer spellings. For a constant i<L, leave the instruction for N21's in-range lane renaming. For a constant i>=L, replace every use of the result by the zero element for extraction or by the unchanged input vector for insertion, then delete the instruction. For a non-constant index, use the widened unsigned comparison and select expansion below.\"\nIn \u00a712.6 replace \"with constant indices: lane renaming\" by \"with constant in-range indices: lane renaming; N15 has already removed constant out-of-range extraction/insertion\". Align PT10 using R7-CODEX-02.\nAdd a normalise/native pair for the witness, whose canonical output is `define i8 @f() { ret i8 0 }`, and an insertion witness: insert i8 7 into <i8 5,i8 9> at i32 2, freeze, then extract lane 0; its output returns 5. Test index -1 as well as index L on LLVM 18/23. The zero/unchanged-vector choice is recommended because it is already the dynamic-index policy. A separate poison-materialisation choice for constant indices is possible but must be explicitly specified; an implicit fold or residual rejection is not sufficient."
+  },
+  {
+   "id": "R7-CODEX-04",
+   "section": "\u00a713.4 N33 cross-format libm calls; \u00a7\u00a713.1/13.3; \u00a712.1 normalisation order",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "\u00a713.4 sends the non-native fp128/ppc_fp128 cases to the target's long-double function \"on the fpexted value followed by fptrunc\". On x86-64, long double is x86_fp80: this requests fpext fp128 to x86_fp80, an invalid narrowing extension. On AArch64/RISC-V64, the ppc_fp128 case requests fpext ppc_fp128 to fp128, also an invalid cast between equal-size formats. Witness:\ntarget triple = \"x86_64-unknown-linux-gnu\"\ndeclare fp128 @llvm.sin.f128(fp128)\ndefine fp128 @f(fp128 %x) {\n  %r = call fp128 @llvm.sin.f128(fp128 %x)\n  ret fp128 %r\n}\nLLVM 18 and 23 both accept the intrinsic source. Both reject the prescribed `%r = fpext fp128 %x to x86_fp80` with \"invalid cast opcode\"; both also reject the ppc_fp128-to-fp128 extension. N32 does not make this an exact extension: \u00a713.1 explicitly says fpext is exact, but binary128 values generally cannot be represented exactly in x87 precision. Thus this is both an invalid canonical IR recipe and a missing precision/conversion decision. \u00a713.3 nevertheless promises all seven formats and N17 says no floating-point construct faults. Non-native x86_fp80 on a target whose long double is fp128 also needs an explicit row in the same fallback table.",
+   "fix": "Replace \u00a713.4's sentence beginning with the runtimes-libm mapping, through its fpext/fptrunc fallback, with:\n\"For double and float, call @<name> and @<name>f respectively. For the target's long-double format, call @<name>l directly. For half and bfloat, fpext each floating operand to float, call @<name>f, and fptrunc each floating result back. For fp128 on an x86_fp80-long-double target, fptrunc each floating operand to x86_fp80, call @<name>l, and fpext each floating result to fp128. For x86_fp80 on an fp128-long-double target, fpext each floating operand to fp128, call @<name>l, and fptrunc each floating result to x86_fp80. These conversion instructions have the \u00a713.1 semantics and are rewritten by N32. For ppc_fp128, convert numerically to the target's long-double format D and back using the carrier entry points D_carrier @__bennett_sf_convert_ppcf128_D(i128) and i128 @__bennett_sf_convert_D_ppcf128(D_carrier), with bitcasts only between a floating format and its own carrier. These linked bennett-arith entry points convert the represented numeric value, round to nearest ties to even using the destination format's \u00a713.1/APFloat semantics, preserve representable signed zeros, and canonicalise NaN results; they are not reinterpretations of the source bits. Emit input conversions in operand order, the libm call, and output conversions in result-field order. Name carrier input, converted input and floating input values %nz.inbits<k>.<r>, %nz.inconv<k>.<r>, %nz.infp<k>.<r>; name the libm result %nz.libm.<r>, and corresponding output stages %nz.outbits<j>.<r>, %nz.outconv<j>.<r>, %nz.outfp<j>.<r>, using the original result name for the final scalar result. This table covers all seven formats on every supported target.\"\nRetain the existing powi, sincos, sincospi and modf special cases, applying the conversion table to their floating operands/results. Add verification and materialised-native cases for fp128 sin on x86-64 and ppc_fp128 sin on an fp128-long-double target; include +0 (result +0) and a non-exact conversion value. Pin the x86 fp128 lowering as fptrunc-to-f80 / sinl / fpext-to-f128, with N32's corresponding soft-float calls, and check both LLVM majors. A viable alternative is a separate libm implementation for each source format, avoiding these round trips; I recommend the explicit conversion table as the smaller repair preserving the draft's chosen libm fallback. Merely swapping the words fpext/fptrunc globally fails the half/bfloat and equal-size ppc cases."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R6-01",
+   "status": "resolved",
+   "note": "\u00a79.2 now freezes raw-table capacities, computes a baseline selection_identity, overlays identity entries once and never rematches the final hash; \u00a7\u00a77.3/16.2/19.9 agree. The budget-stage examples pass in the 2651-check run: baseline sstack 16 faults 2, selected 32 succeeds with payload 7, and a steps-only change keeps the final identity."
+  },
+  {
+   "id": "R6-CODEX-01",
+   "status": "resolved",
+   "note": "PT2 now uses P(a)/I(a), modular GEP scaling/accumulation, preserved high pointer bits and an explicit unknown-address alternative. The zero-delta 2^32-index witness resolves body and passes. R7-CODEX-01 concerns distinct PT4/PT5 integer arithmetic left unchanged by this repair."
+  },
+  {
+   "id": "R6-CODEX-02",
+   "status": "resolved",
+   "note": "PT5 and N3 explicitly forbid N3/N4-erased range information from restricting materialised reference domains; \u00a73.4 agrees. Parameter and load-range witnesses pass with width domain {1,3} and the n=2 width-3 execution."
+  },
+  {
+   "id": "R6-CODEX-03",
+   "status": "resolved",
+   "note": "N9 specifies load/and/xor-all-ones/store and old-result substitution for NAND; the ordinary opcode template is restricted and FP exceptions are named. Native and mapped NAND examples pass, including old=240, new=63 and the pinned 16-row execution."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "\u00a721.3 DB/DN: add the sentence \"Cross-phase tests assert that every concrete operand observed after materialisation belongs to its S2 reference domain, and that dispatch contains the observed alternative.\" Use the pointer-integer and lane witnesses in this review as the first cases, preserving both O0 and optimised source forms. This is test hardening beyond the individual required repairs; it does not require a new proof format.",
+  "\u00a75.2 PT12: replace the shorthand \"a load plus a store (PT6, PT7)\" with \"the virtual N9 expansion, including its arithmetic/select and aggregate-result construction, interpreted by PT3/PT5/PT6/PT7/PT10 at the same least fixpoint\". N9 already supplies the operation semantics, so this is a clarifying cross-reference rather than a separate blocker; for NAND the stored-value set must include ~(old & operand), not merely the operand."
+ ],
+ "verdict_core": "revise",
+ "verdict": "revise",
+ "path_to_accept": "1. Complete N15 for constant out-of-range indices and make PT10 include the materialised zero/unchanged-vector alternatives. 2. Make PT4/PT5 finite-width pointer-integer transfers and PT6 unknown-address loads agree with the concrete map. 3. Replace N33's invalid cross-format extensions with an explicit, total conversion policy for all seven formats. 4. Add and execute the four witnesses above, preserving the existing 2651-check gate and round-6 witnesses. These four local semantic repairs, with no new rejection or scope restriction, would remove my blocking list; no new proof machinery is required.",
+ "summary": "Read the complete 15,604-line prompt, including the diff, prior blockers/response, north star, ISA background, progress record and full draft. All four round-6 blockers are resolved and no regression introduced by those changes was found. The supplied pre-flight checker passes 2651/2651. Independent LLVM 18/23 verification, optimisation, lli execution and focused analysis/normaliser probes establish four additional core S0 issues: wrapping pointer-integer analysis, missing zero in dynamic lane domains, unhandled constant out-of-range lanes, and invalid cross-format libm casts. The coherent architecture and staged identity repair remain sound on the reviewed evidence; verdicts are revise pending these local repairs."
+}
