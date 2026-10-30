@@ -1,0 +1,152 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "src/object.rs parser + src/schema.rs::validate_local_schemas + src/validation.rs reject ill-formed objects with rule cites; conformance suite F 33 pass / 0 fail / 2 unavailable (staged probes); my line-deletion/truncation mutation fuzz over all 12 fixtures (1346 check runs) produced no panic and no exit 101. One suite-F acceptance remains: the section 5.6 borrow-frame rule accepts the qborrow-in-qloop witness in MUSE-R4-B01 (borrow check itself graded under C6).",
+   "change": "In src/borrow.rs (see MUSE-R4-B01 fix) make the qborrow-in-qloop witness a load rejection citing section 5.6 in Object::parse and CLI hash/check (exit 1, empty stdout); add it to tests/r1_borrow.rs so suite F has a named pin."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "src/identity.rs envelopes/SCC + src/sha256.rs reproduce all four section 16.3 hashes; I independently recomputed the printed inc8 envelope and the sum envelope with python hashlib (inc8 8ce5e64f..., sum scc c6d549be... then sha256('<scc>:0')=74f110bb...) and the crate hash command agrees; isa_check.py passes unchanged. src/linking.rs certificate composition pinned by tests/r1_linking.rs. Reservation: multi-member SCC ordering (SPEC-QUESTIONS 7) is pinned only by the crate's own fixture hashes, and conformance F-link-conflict is unavailable on staged deliverable 8.",
+   "change": "Add one hand-computed multi-member SCC envelope (bytes written out in the test, digested with the FIPS-tested sha256 only) to tests/r1_linking.rs so the SPEC-QUESTIONS 7 ordering has an oracle outside identity.rs's own output."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Hand derivations from section 16.3/4.2 before running: inc8 x=255 B=3 -> (payload 0, code 0, steps 3) and B=2 -> (0,1,2); sum_db n=3 with db=01..10 at B=52,heap 0,stack 64,depth 4 -> (6,0,52) (row count 4 + 3*14 + 6 derived from the printed bodies), B=51 -> (0,1,51), depth 3 -> code 3, stack 63 -> code 3, n=17 -> code 7 at step 13; the binary reproduced every value. tests/wide_oracle.rs (vector vs narrow all rows), tests/r1_widths.rs and the 262144-case u8 division sweep (ignored suite, run by me: pass) back this.",
+   "change": "No defect found in this criterion; the score is held back from a stronger claim only by sampling. Keep it at 5 by extending the hand-derived fixture comments in tests/fixtures/*.comments to name, per section 4.2 row, the one fixture+budget that pins its fault variant (lift.free multi-match of SPEC-QUESTIONS 16 is the least obviously pinned)."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "src/machine.rs OracleVectorMachine with DerivedWidths; traced one inverse step by hand for inc8 row 0 (lift.const, A row: slot exchange back then uncompute, pc'/old_pc exchanges per section 3.6 inverse list) and observed `reverse inc8 --steps 1` and full B=3 reversal restore pc=0, locations x=255, frames_clean=true, equals_entry=true. step-check --exhaustive inc8 (256 cases) and sum_db over all 256 n at budget 300,0,512,20 both ok; tests/step_machine.rs and the recursive-prefix ignored sweep pass.",
+   "change": "No defect found; keep at 5 by moving a reduced form of the ignored exhaustive_recursive_prefixes sweep (e.g. n in 0..16, every prefix) into the normal suite in tests/step_machine.rs so T2 on the call/ret inverse lists is gated on every run, not only on recorded ignored runs."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "src/classical.rs history/tapes + src/registers.rs handles: run-cc sum --args 3 -> 6 in 21 steps (hand-checked trace), reverse sum -> REVERSED equals_entry; run-cc nested exercises call @f / call @g / uncall @g / uncall @f segments (11 steps) and reverse nested -> REVERSED, memory_equals_entry=true, one section 7.4 segment reversal traced frame by frame. Measurement irreversibility is a dynamic history flag (classical.rs:1504), so transitive measure through calls is caught. Reservation: CC trap-code mapping is the invented reading of SPEC-QUESTIONS 19 and run-program is the one-shot form of section 10 (full library ABI staged as deliverable 8).",
+   "change": "Pin the SPEC-QUESTIONS 19 trap-code table with one named test per trap condition in tests/registers.rs (trap, illegal uncall, qreg precondition, dead instance -> 4; division -> 5/6; memory/hostcall -> 7; alloc -> 2) so the reading is at least total and stable until the spec adopts it."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The section 6 discipline (src/validation.rs::validate_action_sequence/Discipline) now follows the section 6.1 transfer table incl. joint call groups, and the 200000-program differential sweep passes (64717 accepted, all clean, rerun by me). But src/borrow.rs borrow-frame decision is still unsound for qborrow inside a plain qloop: MUSE-R4-B01 is accepted by check (exit 0) while its unrolled equivalent and its qloop-while form are correctly rejected with section 5.6. Validation results must not depend on loop wrapping; until fixed the crate cannot be the section 5.6/14.2 oracle.",
+   "change": "Apply the MUSE-R4-B01 fix in src/borrow.rs: never compose a Node::Repeat body over one entry variable for a wire borrowed inside that body; decide per-iteration factorisation for body-local borrows (or materialise iterations with fresh generation wires as the while arm does), with the named regression tests."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "214 normal tests pass, 0 failed, 5 ignored; I ran the ignored suite too: 5 passed (u8 division 262144 executions, 2^17 borrow execution, 2^18 borrow-frame certificate, 200000-program section 6 differential in 413s, recursive prefixes). PROGRESS.md records match what I observed, incl. conformance 445 pass / 0 fail / 45 unavailable of 490. Gap: the random generator in tests/r1_fuzz_discipline.rs never generates qborrow/qreturn inside qloop bodies, qinplace, ctl/adj oracle_call or qloop-while in its main repertoire, which is exactly where MUSE-R4-B01 survived four rounds.",
+   "change": "Extend tests/r1_fuzz_discipline.rs's generator repertoire with qborrow/qreturn inside loop bodies, qinplace, ctl/adj calls and multi-bit bundles, and add the dedicated borrowed-inside-loop family from the MUSE-R4-B01 fix (independent parity/freshness oracle, accepted programs executed on every borrowed basis entry)."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "SPEC-QUESTIONS.md entries 1-28 each record question, reading and proposed 0.9 wording; I audited them against sections 3.6, 5.1-5.6, 6.1, 7.2, 9.2, 16.3 and 17 and found none contradicting the spec text (the strong ones - 20 exact borrow decision, 25 section 6 readers, 7 SCC order, 19 tiers/traps, 23 qstore - are defensible and recorded). Diagnostics overwhelmingly cite sections. Reservations observed by CLI probing: bare Rust parse errors without a cite ('invalid digit found in string', 'number too large to fit in target type', 'cannot parse integer from empty string', 'invalid memory HEX'), and `step-check --samples 0` reporting status ok with cases 0.",
+   "change": "In src/main.rs wrap numeric/hex option parsing so every failure cites its rule (section 16.1 INT, section 3.3 width, section 5.4 budget) and reject --samples 0 citing section 17 item 13; add the observed invocations to tests/cli_xam.rs."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "MUSE-R4-B01",
+   "section": "section 5.6, section 4.6, section 14.2; src/borrow.rs::Compiler::compile (qloop arm, lines 363-390) and src/borrow.rs::Evaluation::apply Node::Repeat (lines 694-735)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Borrowed wires produced inside a plain qloop body are composed as ONE carried wire instead of as fresh borrowed bundles per iteration, so an even trip count falsely proves factorisation. Witness (memoryless, signature kind=perm_action, mut=[1], in=[], mem=[], args=[], bounds=[2]): perm_action @a (t:wire mut) () () () () / regs {  } bounds {2} / ^entry(): / qloop 2 { d = qborrow any 1; cx d t; qreturn d }. After rehashing with the hash command, check exits 0 with status ok (object f349e389...), and run-action --mut 0/1 returns t unchanged only because the executor's default borrow pool is |0>. Hand derivation: iteration i borrows a fresh bundle d_i in an unknown state and applies t ^= d_i, so the operation is t ^= d_0 XOR d_1 with d_0,d_1 independent (choose d_0=1,d_1=0: t flips; with d_i entangled with external references, t becomes correlated with both) - not U_t tensor I on any borrowed bundle. The identical circuit unrolled (two distinct qborrow/cx/qreturn groups) is correctly rejected at hash with 'section 5.6: borrow frame output v0_0 depends on borrowed entry values', as is the single group and the qloop-while form of the same body (which materialises iterations and freshens wires); qloop 4 and nested qloop 2x2 with the same body are also wrongly accepted, and so is 'cx t d' once per iteration over qloop 2 (borrowed bit restored only by cross-iteration aliasing in the proof). Cause: the qborrow arm emits no Node (borrow.rs:312-320), the qloop arm wraps the once-compiled body in Node::Repeat(2,[Flip(d,t)]), and Evaluation::apply for Repeat interns one entry variable for d and squares that body map (borrow.rs:700-730), modelling d as persistent state; a qalloc in the same position is sound only because Node::Alloc resets the wire. Validation therefore depends on loop wrapping, the same soundness class as SOL-R3-B03 but for borrow lifetimes.",
+   "fix": "(a) Change src/borrow.rs::Compiler::compile qloop arm and Evaluation::apply/Node::Repeat handling (and Compiler::produce bookkeeping as needed): track the borrowed wires produced while compiling the loop body (including through inlined perm_action children); a body that produces borrowed wires must not be composed by repeated squaring over those wires' single entry variables. (b) Spec: section 5.6 'A region's completed operation equals its declared operation tensor identity on EVERY borrowed bundle' and 'Borrowed wires (set B) are touched ... only inside borrow frames' whose 'realised permutation P_F ... MUST factor as P_F = P' tensor I_B'; section 4.6 'qloop n { body } = body n times'; each execution of the body performs a new qborrow matched by its qreturn (section 5.1 explicit cleanup), so each iteration's frame must factor for its own fresh bundle. (c) Exact expected behaviour: the witness above (and the qloop 4, nested 2x2, and 'cx t d' variants) is rejected at load citing section 5.6 - Object::parse Err and CLI hash/check exit 1 with empty stdout - with no borrow_frames claim in the object; sound implementations either materialise iterations with fresh generation wires like the existing while arm (borrow.rs:365-375) or prove per-iteration factorisation once for body-local borrows (fresh universally-quantified borrowed inputs, outputs equal to those inputs and no influence on carried wires) and then compose only the carried-wire map by squaring; an iteration cap is not acceptable. (d) Test to add in tests/r1_borrow.rs (fails now because check exits 0, passes after): the exact witness plus its unrolled equivalent, both requiring section 5.6 rejection through parser and CLI hash/check; positives that must remain accepted and execute with exact forward/adjoint restoration on every t and every borrowed entry state: (i) borrow outside the loop (d=qborrow; qloop 2 { cx d t }; qreturn d) - one bundle, CX twice; (ii) per-iteration identity body at qloop 2 and at qloop 1099511627776 (d=qborrow; cx d t; cx d t; qreturn d) proving no unrolling/cap was introduced; (iii) extend the generated families in tests/r1_fuzz_discipline.rs with borrows born and returned inside qloop bodies, decided by an independent per-iteration freshness oracle."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R3-B01",
+   "status": "resolved",
+   "note": "call_discipline.rs transfer now records tgt/fr deliveries of calls and uncalls as writes invalidating outstanding input readers; pin r1_rules::r3_nested_oracle_deliveries_invalidate_outstanding_inputs passes in the 214-test run I executed."
+  },
+  {
+   "id": "SOL-R3-B02",
+   "status": "resolved",
+   "note": "Joint OLD-union transfer for action calls in validation.rs (joint_change) snapshots mut bundles and mut-region cells; pin r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies and the 36-case call-wrapping generator pass."
+  },
+  {
+   "id": "SOL-R3-B03",
+   "status": "resolved",
+   "note": "borrow.rs Application now substitutes recursively inside opaque applications during Repeat composition; exact loop/unrolled pair both reject (r1_borrow::r3_opaque_loop_composition_substitutes_inside_applications) and the 32-case parity generator passes."
+  },
+  {
+   "id": "SOL-R3-B04",
+   "status": "resolved",
+   "note": "Normalized CC ctl operands are resolved through rd and required qreg[1] with effective-target disjointness at load; parser::r3_normalized_cc_controls_are_typed_and_disjoint_at_load and the typed execution positive pass."
+  },
+  {
+   "id": "SOL-R3-B05",
+   "status": "resolved",
+   "note": "Non-permutation action-call Node::Other now includes effective controls and passed cells; ctl/qpred/direct borrowed-H forms all reject (r1_borrow::r3_nonpermutation_calls_touch_all_effective_controls) and the paired perm X positive passes."
+  },
+  {
+   "id": "R3-B01 (codex)",
+   "status": "resolved",
+   "note": "Same implicit-delivery hole as SOL-R3-B01, resolved by that fix and pinned for the exact codex witness in r1_rules::codex_r3_b01_exact_implicit_delivery_witnesses (17 r1_rules tests pass)."
+  },
+  {
+   "id": "R3-B02 (codex)",
+   "status": "resolved",
+   "note": "Call-boundary exchange bypass resolved by the SOL-R3-B02 joint transfer; swap-child, CX-child and mutable-region witnesses reject with section 6.2, doubled-CX positives execute exactly, generator is 18 accept / 18 reject as independently derived."
+  },
+  {
+   "id": "R3-B03 (codex)",
+   "status": "resolved",
+   "note": "borrow.rs now compiles complete local-region entry/body/exit lifetimes for inlined children (clean Alloc + explicit image Flips), so an adjoint call no longer reverses a lone Alloc into an unmatched Free; three codex_r3_b03 pins incl. ff image and zero-trip declaration pass."
+  },
+  {
+   "id": "muse B1",
+   "status": "resolved",
+   "note": "Single bit-vector engine pair with derived widths (machine.rs DerivedWidths); r1_widths pins incl. muse_b1_mov_of_2_255, 129/256-bit and suffix cases pass; no u128 narrowing remains on the semantic path."
+  },
+  {
+   "id": "muse B2",
+   "status": "resolved",
+   "note": "One canonical-INT reader, const-range rejection, suffix schema and 2^53-1 JSON integer spelling; all 9 r1_literals tests pass; further CLI probes (256 into i8, negative budgets) fail loudly, though two parse errors still lack section cites (C8 suggestion)."
+  },
+  {
+   "id": "muse B3",
+   "status": "resolved",
+   "note": "validation.rs::validate_effect checks the section 7.3 device table at load; r1_rules::muse_b3_effect_operations_are_validated_at_load passes; unmodelled devices remain a run-time fault 8 per section 17 item 3."
+  },
+  {
+   "id": "muse B4",
+   "status": "resolved",
+   "note": "Declined by the editor and I accept the decline on re-reading: section 4.6 defines qstore's value as a qxor source ('under a == i, qxor v cell_i'), which section 5.1 admits for in wires; the reading is recorded in SPEC-QUESTIONS 23 with proposed wording and qexchm's exchanged value is still rejected (muse_b4 pin passes). Recorded defensible reading, not S0; spec should adopt the proposed wording."
+  },
+  {
+   "id": "muse B5",
+   "status": "resolved",
+   "note": "Loop bodies are validated per iteration in the qloop arm of validate_action_sequence (with period skipping only on full Discipline-state repetition); r1_discipline::muse_b5_loop_bodies_are_validated_per_iteration passes."
+  },
+  {
+   "id": "muse B6",
+   "status": "resolved",
+   "note": "Exact ANF borrow decision with no 16-wire or loop caps plus the verified borrow_frames claim route; 17/18-wire pins and the ignored 2^17/2^18 sweeps pass. (The new MUSE-R4-B01 is a different mechanism - borrow freshness inside Repeat - not the resolved cap/route issue.)"
+  },
+  {
+   "id": "muse B7",
+   "status": "resolved",
+   "note": "Typed recursive metadata schemas and checked (not merely parsed) claims via claims.rs; b16_muse_b7 pins pass. The variant-name sub-point was declined in part and I accept that: the spec enumerates no variant names, so rejecting 'banana' would invent an enum; recorded in SPEC-QUESTIONS 11 with proposed 0.9 wording."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "src/main.rs step-check: reject --samples 0 (currently exits 0 with {\"cases\":0,\"status\":\"ok\"}) citing section 17 item 13, and add the invocation to tests/cli_xam.rs; a vacuous ok from the suite tool should be impossible.",
+  "src/main.rs option parsing: give the observed bare parse failures section cites - '--budget -1' -> 'invalid digit found in string', '--budget 18446744073709551616' -> 'number too large to fit in target type', '--arg token:' -> 'cannot parse integer from empty string', '--mem db=zz/0' -> 'invalid memory HEX' - by routing them through object.rs host_count/BitVector parsing or wrapping with err() cites (section 16.1, 3.3, 5.4); pin each in tests/cli_xam.rs.",
+  "Method-4 leftovers: convert the invariant expect() calls on validated paths in src/registers.rs (7 handle-map expects), src/validation.rs:819 (first_error.expect) and src/object.rs signature array expects into section-citing Errors (section 3.3/9.1) as was done elsewhere in round 1; I found no input that reaches them (1346-run mutation fuzz, 42-case CLI fuzz, zero panics), so this is hardening, not a blocker.",
+  "tests/r1_fuzz_discipline.rs: widen the random generator beyond single-bit gate/memory programs (qborrow inside structured bodies, qinplace, ctl/adj oracle_call, qloop-while selectors, indexed bundle bits) so future transfer holes are caught by the differential sweep rather than by council witnesses.",
+  "Adopt into spec 0.9 at the next revision the already-drafted SPEC-QUESTIONS wordings that this crate now depends on for its readings - items 7 (SCC order), 11 (variant names), 19 (call-tier matrix and trap codes), 20 (any exact decision procedure for section 5.6), 23 (qstore values in section 5.1), 25 (other-value cleanup with outstanding readers) - so the readings stop being crate-local.",
+  "Deliverables 8-11 (section 10 launch library, section 8 targets, section 11 schedule consumer, section 12.1 interval checker; conformance suites D/E/G/H unavailable cases) remain staged exactly as PROGRESS.md records with explicit Unverified/unavailable reporting; under convergence rule 2 they are not core-blocking this round, but whole-ISA completion still requires them in the staged order, and F-link-conflict/F-frame-live-ranges should be the first conformance probes to light up."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "Minimal ordered path for this seat: (1) fix MUSE-R4-B01 in src/borrow.rs as specified (no Repeat composition over body-local borrowed wires; per-iteration freshness or while-style fresh materialisation, no trip-count cap) with the named parser/CLI rejection tests, the borrow-outside-loop and 2^40 positives, and the new generator family; (2) rerun and record the full gates (cargo test --offline, ignored sweeps, clippy -D warnings, fmt, unchanged isa_check.py, conformance 445/0/45 or better). With (1)-(2) done I would return accept for both verdict_core and verdict at this milestone (deliverables 8-11 remaining staged contract work per PROGRESS.md, not core blockers). Raising the lowest criterion further (C6) by another point additionally requires the generator repertoire extension in suggestion 4 to have run clean at sweep scale.",
+ "summary": "Graded snapshot 8e11fe7 fresh (muse seat absent rounds 2-3). Verdict: revise / revise-core on one new core S0, MUSE-R4-B01 (section 5.6 borrow freshness inside plain qloop Repeat composition); all 8 round-3 blockers and all 7 of my round-1 blockers are resolved (B4 and the B7 variant sub-point as accepted, recorded declines), and I found no regressions (the new hole already exists in the round-3 snapshot's Repeat design). Rubric methods performed: (1) three hand reproductions derived before running - inc8/sum_db oracle results with tight budgets, three fault paths (steps/depth/stack/memory), and independent hashlib recomputation of two section 16.3 envelope hashes - all matched exactly (values in C3/C2 evidence); (2) traced the section 3.6 inverse step for an A row against the printed inverse list and verified prefix reversal via the reverse command, and traced a section 7.4 call/ret/uncall segment (classical nested, 11 steps) through run-cc/reverse with exact entry restoration; (3) audited all 28 SPEC-QUESTIONS entries against the spec text - all defensible and recorded, none contradicting other spec text; (4) grepped for todo!/unimplemented!/unwrap/expect/panic/unreachable/not supported/TODO/simplif/assume/for now/approximat and classified every hit: no todo/unimplemented/panic on semantic paths; remaining expects are post-validation invariants unreachable in 1346 mutation-fuzz and 42 CLI-fuzz runs (zero panics), 'unsupported device model/realisation/sampler' are section-citing load errors, exact.rs::approximate serves only Born probabilities beside the exact shadow; (5) compared spec lists with dispatch: section 4.2 rows all present in both oracle.rs and machine.rs (generic binop/div/cast prefixes), fault codes 0-10 named identically (main.rs:139-150), gates/section 4.8 schema in schema.rs/validation.rs, 9 CLI commands match README and usage. Test evidence: cargo test --offline 214 passed / 0 failed / 5 ignored, ignored suite 5 passed (including the 200000-program differential), conformance harness 445 pass / 0 fail / 45 unavailable of 490, isa_check.py passes; the prebuilt binary at target/debug agrees with the rebuilt crate on every witness. Witness objects were built read-only via hash-then-substitute under reference-interpreter/.tmp; no repository file was edited."
+}
