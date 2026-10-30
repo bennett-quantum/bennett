@@ -7,6 +7,34 @@ clean). Bennett.jl v1 at `~/Projects/Bennett.jl` is the deprecated
 reference implementation and differential oracle; its worklog chunks
 121–123 hold the reboot's history up to this point.
 
+**Orchestrator session block (2026-10-30 05:50Z, written for a successor session).** Operating rules: Claude usage minimal; all
+implementation on codex `gpt-6.1-sol` xhigh via T3 Code `delegate_task`; muse `muse-wonder-full-1.0` reviews specs only
+(dialect rounds, ISA 0.9 council) until its usage reset; interpreter rounds run with sol + codex (`gpt-6-astra`); keep
+Codex weekly PACE (the `quota` CLI) within +3% of linear; commit after every verified milestone and push (the ISA repo's
+pre-push gate tests the working tree, so push only when reference-interpreter/ is clean); `BEADS_HOOK_TIMEOUT=20` for
+git commits; every job gets a brief with owned paths and a progress file, commits its own paths, never pushes; the
+orchestrator verifies test counts itself and writes the worklog entries. Council loop per stream: collect each seat's
+JSON with `tools/council.py collect`, `aggregate`, commit, push; no consensus → one sol editor (dialect: spec + checker
+together; interpreter: the crate) with a response file → next round prepared with the precheck gate (dialect) or a
+fresh detached worktree + `tools/review_packet.py` (interpreter; `--no-diff` when the diff is large; tell muse to read
+the prompt in bounded slices). Streams and their state: **interpreter** round 5 aggregated (muse accept; sol/codex
+revise, 7 blockers; mean 4.08), first fix pass pushed (71c1d6e, 253 tests), second pass (codex's 3) running; then freeze
+round 6 and launch sol + codex. **dialect** round 4 aggregated (all revise, 5 blockers, mean 4.08), round-4 editor
+running (spec + checker); then gate, push, round 5 with sol + codex + muse. **VM** at the 0.8 frontier (849f7f7, 101
+tests, conformance parity); nothing to do until 0.9 or a sibling repo. **circuits** M2 closed by disposition (design
+note), M3 placement running. **targets** M1 running (brief docs/briefs/2026-10-30-targets-milestone-1.md). **ISA repo**
+0.9-draft mirror of VM beads hsd/clw running. Hold: bennett-estimate (needs hsd contracts), bennett-sched (needs the §11
+library), plugin/driver (dialect acceptance). Running T3 child task IDs at 05:50Z (poll with `task_status` from a new
+session; completion notices go to the launching thread only): interpreter second pass
+`node:delegated-task:command%3Amcp%3Ac1e0be84-52fa-4cb7-9840-049cfe011045%3Adelegate-task%3Af1c0cc7d-935f-4a79-befc-469566b53f56`;
+dialect round-4 editor `...%3Adelegate-task%3Ac25f1868-87cf-4156-8ceb-c1e5b9d8b47f`; circuits M3
+`...%3Adelegate-task%3Ab097153b-9aa3-4627-9355-5a5833b76aff`; ISA 0.9 mirror
+`...%3Adelegate-task%3A3ffa2f10-a3de-4b2b-90ab-0579f2565e1a`; targets M1
+`...%3Adelegate-task%3Ad17390e5-095a-4846-96fa-1e628c4a2ef6` (prefix identical to the first id). Known failure modes:
+muse network drops / quota 429 / OOM on >1.4 MB prompts (retry once, then close the round without it); T3 "workspace
+routing discovery timed out" kills every child (relaunch from committed state + progress file); the beads pre-commit
+hook can stall 300 s.
+
 **Maintainer decisions pending (orchestrator, 2026-10-29 evening, unattended run):**
 - **ISA §11 reference library `ref` (bennett-vm-47t).** ISA 0.8 §11/§17 name the library the ISA repository "publishes" but define neither its serialization, hash rule, ordinals nor gate decompositions. Nothing was invented for 0.8: a sol agent is drafting the contract into `../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md` (item ISA-REF-LIB) with the decision points stated in the mirrored bead. VM scheduled execution and the suite-E/G schedule cases stay `unavailable` until 0.9 is accepted. Decide: the decomposition set and the hash rule.
 - **Circuits M2 proof contracts (bennett-circuits, 2026-10-30).** `docs/design/2026-10-30-m2-open-proofs.md` in that repo: two design choices (proof-IR / action-CFG representation, bead 7bu; opaque workspace proof summaries, z9r) and three ISA 0.9 publication items (certificate replay tuple encoding 4pf, frame schema JSON encoding 4fa, operation-identity publication for §6.4 recompute matching yz8, the last depending on the §11 library). Each states the alternatives and costs; the specialiser refuses those paths with the bead id until decided.
