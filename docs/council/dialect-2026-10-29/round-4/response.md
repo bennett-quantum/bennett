@@ -92,3 +92,5 @@ ISA 0.8 §§3.2–3.3/4.1 still lacks qreg memory conversion/dynamic register na
 and R allocation; BLK-1=ISA-4 and BLK-4=ISA-12 retain their existing exact
 ISA changes in §25.1. A passing named-blocker verdict does not claim those
 operations landed. No decline, partial or scope narrowing.
+
+Final review supplements R4-CODEX-01 with native source/materialised packed-i1 store execution and a following-byte sentinel (red, then green). Full/changed subversions are 0.2.5; unchanged oracle-abi/tdl/effects stay 0.2.4.
