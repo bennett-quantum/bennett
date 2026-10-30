@@ -1,0 +1,77 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise",
+  "muse": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise",
+  "muse": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R4-01",
+    "section": "12.7 Wide integers (N22), subtraction bullet",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The subtraction rule says only \u201cthe same with sub and borrows icmp ult a_k, b_k\u201d after the addition recurrence, which includes v_k = icmp ult m_k,t_k and c_k = u_k OR v_k. Replacing add by sub and changing the first comparison to a_k<b_k leaves the incoming-borrow test wrong: underflow in t_k-borrow makes m_k greater than t_k. Concrete i192 witness, low limb first: a=[0,1,1]=2^128+2^64, b=[1,1,0]=2^64+1. Limb 0 borrows; limb 1 has t_1=0 and incoming borrow 1, giving m_1=0xffffffffffffffff. Both a_1<b_1 and inherited m_1<t_1 are false, incorrectly clearing the borrow into limb 2. This expansion yields [0xffffffffffffffff,0xffffffffffffffff,1]=2^129-1 rather than [0xffffffffffffffff,0xffffffffffffffff,0]=2^128-1. If \u201cborrows\u201d is intended to replace more comparisons, those replacements are unstated and the two readings diverge. LLVM 18 and 23 instcombine independently fold the source to 340282366920938463463374607431768211455 and the inherited-comparison expansion to 680564733841876926926749214863536422911. This is a result error, not a proof-format gap.",
+    "fix": "Replace the section 12.7 subtraction bullet with: \u201cLet beta_-1=0. At limb k of width w_k compute t_k=a_k-b_k modulo 2^w_k; z_k is the zero-extended incoming beta_(k-1), using identity conversion when w_k=1; m_k=t_k-z_k modulo 2^w_k. When another limb follows, beta_k=(icmp ult a_k,b_k) OR (icmp ult t_k,z_k). Discard the final outgoing borrow for wrapping subtraction.\u201d Do not inherit addition\u2019s m_k<t_k comparison. Add a checked normalisation/native vector sub i192 (2^128+2^64),(2^64+1), expecting [0xffffffffffffffff,0xffffffffffffffff,0] and code 0. A single comparison at width w_k+1 against b_k+beta_(k-1) is also viable; I recommend the two-stage recurrence because it matches the current expansion and avoids wrapping that sum."
+   },
+   {
+    "id": "SOL-R4-02",
+    "section": "16.4 getelementptr row; 17.4 CC/R lowering; 18.1 C state",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Section 16.4 sign-extends/truncates every GEP index to pw, takes constant offsets modulo 2^pw, and performs full-width pointer addition. LLVM datalayout separately specifies pointer representation width and pointer index width; GEP uses the latter. No dialect verdict rule excludes their differing. Witness materialised function under datalayout \u201ce-p:64:64:64:32\u201d: define i64 @f(i64 %i) { %p = inttoptr i64 4294967296 to ptr; %q = getelementptr i8, ptr %p, i64 %i; %r = ptrtoint ptr %q to i64; ret i64 %r }. At i=4294967296 the 32-bit GEP offset is zero, so f returns 4294967296. The pw=64 map returns 8589934592. Neither path accesses memory or faults; non-inbounds pointer arithmetic is defined. Both LLVM 18 and 23 fold a constant instantiation of the source to 4294967296 and its mapped addition to 8589934592. The dynamic-index form can reach materialisation through the supported O0 envelope. Thus the LangRef state of section 18.1 and the section 16.4 reference object compute different functions.",
+    "fix": "Replace section 16.4\u2019s GEP rule with: \u201cLet I be the datalayout pointer-index width for the base pointer address space, defaulting to pointer width when omitted. Sign-extend or truncate each sequential index to I. Compute scaled indices, structure offsets and accumulated byte offsets modulo 2^I using datalayout allocation sizes. Add the offset to the low I bits of the base modulo 2^I, preserving base bits above I unchanged, and reassemble the pointer carrier. Apply this rule also to constant-expression GEPs and to CC/R lowering in section 17.4.\u201d I=pw reduces to the current arithmetic. Add the witness above with input/output 4294967296 and code 0, plus an offset-wrap vector. Normalising GEP into explicit integer operations before mapping is another viable implementation; I recommend specifying the map semantics and sharing it with CC/R, without introducing a layout rejection."
+   }
+  ],
+  "codex": [
+   {
+    "id": "R4-CODEX-01",
+    "section": "\u00a712.6 N21 vector load/store scalarization; \u00a712.9 normalization-boundaries",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The ordinary vector-memory rule says \"getelementptr T, ptr p, i64 k\" followed by load T, and exempts only integer lanes whose width is not a multiple of 8. Scalar allocation stride can exceed lane width even when that width is a multiple of 8. Witness: target datalayout=\"e-p:64:64-i64:64-i24:32-n8:16:32:64-S128\"; @bytes is an eight-byte constant containing 01 02 03 04 05 06 07 08; load <2 x i24>,ptr @bytes,align 1; extractelement lane 1. The vector lane starts at byte 3, so its value is 0x060504=394500. The prescribed getelementptr i24,@bytes,1 advances four bytes and returns 0x070605=460293. opt-18 and opt-23 both verify the original and explicit replacement and constant-fold them to these different results. Replacing that GEP with getelementptr i8,@bytes,3 gives 394500 on both. The same mistake affects stores and can turn an otherwise valid vector access into an out-of-allocation fault. This is a wrong defined computation, not an encoding choice; the existing packed-i1 exception does not cover it.",
+    "fix": "In \u00a712.6 replace the vector-memory bullet with: \"Lay out every vector load/store according to the vector type\u2019s datalayout bit string, without inserting scalar allocation padding between lanes. Lane k starts at bit k*bitwidth(T). Scalar GEP T is permitted only when its allocation stride equals that lane spacing; otherwise use byte offsets or packed-byte extraction/insertion. The replacement accesses only the original vector storage range, derives each scalar alignment from the original alignment and its actual byte offset, and preserves inactive bits for masked operations.\" A second viable implementation is a packed integer load/store plus lane extraction/insertion for every vector, followed by N22 legalization; I would retain the scalar fast path when the equality holds. Add a checked i24 pair using offsets 0 and 3 with align 1: the byte witness above must return 394500/code 0, and the matching vector store must write its two three-byte lane values contiguously."
+   },
+   {
+    "id": "R4-CODEX-02",
+    "section": "\u00a712.2 N15; \u00a712.6 dynamic extractelement/insertelement select chains",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "N15 specifies \"%nz.c.r = icmp uge iK i, L\" without ensuring that L fits in iK. LLVM permits an index narrower than the vector length. Witness: define i8 @f(i1 %i) { %r = extractelement <2 x i8> <i8 5,i8 9>, i1 %i; ret i8 %r }. Both possible indices are valid and return 5 and 9. N15 emits icmp uge i1 %i,2; LLVM parses the i1 constant as zero, so the guard is always true and the prescribed select returns zero for both inputs. opt-18 and opt-23 verify this rewrite and fold it to ret i8 0; direct constant-index probes return 5 and 9. A zext to i2 before the comparison removes the erroneous guard on both majors. Insertion similarly becomes an unintended no-op. N21 lane comparisons can also alias unreachable lane numbers if those constants are truncated back to the narrow index type.",
+    "fix": "In \u00a712.2 N15 state: \"Interpret the index as an unsigned integer. Perform the comparison with L in width W=max(K,ceil(log2(L+1))), zero-extending the index when W>K; the constant L must be represented exactly. Alternatively, when every iK value is below L, fold the out-of-range predicate to false.\" In \u00a712.6 state: \"Dynamic lane-selection comparisons use that same widened index and exact lane constants, or omit lanes unrepresentable by the original unsigned index; lane constants must never wrap.\" I would use the widened comparison uniformly. Add the i1 witness: zext i1 %i to i2; icmp uge i2 %wide,2; extract returns 5 for 0 and 9 for 1. An insertion of 7 must produce [7,9] for 0 and [5,7] for 1. Keep n-dynamic-lane\u2019s i32 indices 2 and -1 returning zero."
+   }
+  ],
+  "muse": [
+   {
+    "id": "BD3-R4-1",
+    "section": "SS6.5 (reference instance bound, rules 1-2); SS7.5(b) inherits it",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The bound counts the wrong quantity across device-entry boundaries. SS6.5 rule 2 defines N(s)=E(s) as 'the bound on executions of s per device-entry call', and the new E(c) recurrence keeps that unit ('entry multiplicity 1'). But SS18.1 runs every device entry over one persistent state, SS6.6 defers leak checking to program end, and SS6.4 permits handles in globals, so instances accumulate across entry calls, which the host (and the NS SS5 REPL) may repeat without bound. Witness (two device entries; @n/@slots internal globals): @put() loads %i=@n, %h=qalloc(0,1), stores %h into @slots[%i], stores %i+1 to @n, returns; @use() loops j<@n loading @slots[j], gates X twice, qfrees. The site reaches a global so it is a static register file and is not self-disjoint (no qfree before @put's ret); rule 2 gives TC=1 and E=1, hence N(s)=1. I executed the repository recogniser on this module: verdict accept, no blockers, instance_bounds {'put%h': 1}. Two host calls to @put then one to @use is two simultaneously live distinct registers in the reference semantics (SS18.3 qalloc has no per-entry limit); an N=1 plugin must run qreg.new into the slot variable still holding the first live instance (aliasing it, so @use's second handle gates/frees the first register and generation tags cannot save it) or trap where the reference has two clean handles. No rule gives a run-time outcome for exhausting a finite file (SS25.1's blocker trap covers only the N=infinity fallback), and the verdict should not be accept. The setjmp preamble added for BD3-R3-4 does not cover plain entry re-invocation, and SS7.5(b) has the same hole with 'the reversible entry in place of the device entry' (repeated reversible invocations accumulating instances in globals).",
+    "fix": "In SS6.5, immediately after the setjmp preamble and before rule 1, add: 'Entry-boundary liveness. If an instance of s may be live at the return of any device entry that may reach s -- some memory live at that return (a global, a heap object, or memory reachable from a result or env) may hold a ROOT(s) value, and not every path from s through the augmented CFGs and call edges to that return passes a qfree whose provenance is exactly {s} -- then s is not self-disjoint and E(s)=infinity. Such a site uses BLK-1 (SS7.5(b): BLK-4, with the reversible invocation in place of the device entry), with the bounded static-file fallback, never rejection. The host may call a device entry any number of times, so executions per entry call do not bound instances that survive entry return.' Add example=handle-cross-entry verdict=blocked:BD-B-ISA4 with the @put/@use module above, a blocker line 'BD-B-ISA4 @put qalloc: instance may outlive a device-entry return; BLK-1 (ISA-4)', and a state block {\"verdict\":\"blocked:BD-B-ISA4\",\"entry_calls\":2,\"instances\":2,\"distinct\":true,\"live_after\":0,\"trap\":0} executed under the 64-instance fallback across two entry calls. The alternative -- redefine E(s) as a whole-program bound on simultaneous live instances (a liveness recurrence over entry boundaries) -- is viable but larger; I would take the infinity rule above for symmetry with the setjmp preamble, since finite cross-entry accumulation is host-controlled and therefore genuinely unbounded."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.33,
+  "C2": 3.33,
+  "C3": 4.33,
+  "C4": 4.67,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}

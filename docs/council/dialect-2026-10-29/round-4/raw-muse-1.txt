@@ -1,0 +1,145 @@
+exit 0 in 37s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "The state model is one coherent picture: Sigma=(C,Q,H,G,K,T) in SS18.1, coherence states and views in TDL-2, one classical memory in SS17.1/SS4.3, and tiers/variants in SS4.2-SS4.3. The handle realisation in SS6.5 is the one place the model and its realisation diverge: its bound counts executions per device-entry call while SS18.1/SS6.6 let instances live in globals across entry calls (see BD3-R4-1, verified against the recogniser: accept with N=1 for an accumulating two-entry witness). I re-ran the pre-flight checker headless: 2466/2466 passed, and the snapshot hash equals the repo spec (2ba04095...).",
+      "change": "In SS6.5 add the entry-boundary liveness rule of BD3-R4-1 so the reference instance bound bounds simultaneously live instances over the whole program, not executions per entry call."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "Marker ABI (SS3, bennett_markers.h), operand/dispatch domains (SS3.4, SS14.2), the lifting map's per-instruction rows (SS16.4) and normalisation N0-N35 with Appendix C's full intrinsic accounting are closed and example-backed; the k=0 oracle terminal (SS8.6, SS16.2) now has executed map/check/run-oracle/state vectors (void=4 steps, budget 3 faults 1, explicit fault 4). Remaining gap is realisation, not form: SS8.6's caller-tier scratch allocations (hidden bit, copy-out t_j/f_j) have no stated hoisting story when the caller's tier is R (SS7.5(b)).",
+      "change": "In SS7.5(b) state that SS8.6's scratch allocations in an R caller (the k=0 hidden bit and the wide copy-out t_j/f_j registers) are hoisted sites like source qalloc sites, bounded by simultaneous invocations of the marker, and are BLK-4 when that is unbounded."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "The round-3 coherence defects are gone in the text and in executed vectors: TDL-7/TDL-10/SS18.2 make Co-loop flags, conditions and trajectory records clean control workspace (co-loop-identity: P(c=1)=0 for both council circuits), standalone adj is U-dagger on the TDL-5(b) bijective interface with compute keeping non-bijective bodies (co-loop-adj-overwritten), deferred-record placement is pinned latest-before-reversed-consumer (deferred-channel-adj-place distinguishes the two formerly legal schedules), and TDL-8 fault gating, prefix behaviour and exit synchronisation read consistently across SS10/SS18. One soft spot: TDL-10's overwritten-input branch says 'use that inverse' without a reference decision procedure for the TDL-5(b) complete-transition bijection check, and a state-only guard loop with a trip of at least 1 is never a total bijection (an intermediate state entered afresh follows the same suffix), so the branch's non-vacuous domain (e.g. guards also reading unrolled-iteration or preserved data) is never shown.",
+      "change": "In TDL-10 add a non-vacuous overwritten-guard bijection example and a reference decision default for the TDL-5(b) complete-transition check (for example SS8.7-style exhaustive verification over the declared mutable interface up to the configured width, with library-pattern discharges named)."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Budgets are end-to-end: records and table schema with precedence and defaults (SS9.1-SS9.2), the row budget unit tied to the ISA reference interpreter (SS9.4), run-time token tiers with BLK-2 for device-computed fields (SS9.5), and the layout/arena sizing in SS19.5. Targets and resource vectors are the ISA's and are consumed consistently (SS20 platform profile included). No underspecified cost hook found; the fresh-tag allocator and SS17.3 logical-table growth are uncosted CC state, which matches SS9.3's 'device CC outside regions: none'.",
+      "change": "State a capacity default for the SS17.3 logical frame table and the SS6.5 generation-tag allocator (for example in SS24: table capacity derived from sstack bytes, tag space 2^pw with exhaustion a CC trap), so a vendor/test can bound CC state growth."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Contracts are decided: region identity by interface hash and region key (SS7.3), descriptor shapes and dispatch (SS8.4), entry-state snapshot format byte-for-byte including the new SS17.3 metadata (SS8.5), driver outputs/identity/module flag (SS19.9), versioning (SS23), deferred items with defaults (SS24) and BLK-1..5 each with the exact ISA change (SS25.1). The one unstated contract is launch carriage: SS9.5 says the stub passes extra TOKEN arguments, but nothing states how static-file slot qregs, the generation-tag table and host-id-to-tag identity (SS6.1/SS6.6) cross bennett_run boundaries so that a tag stored in a global denotes the same register on the next launch.",
+      "change": "Add one paragraph to SS6.5/SS6.6 giving the default launch carriage: the generated CC entry wrapper takes and returns every live static-file slot as QREG arguments/results plus the generation-tag table as INT/memory state maintained by the launch stub (the SS9.5 token mechanism), or state the chosen alternative default."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "SS18 gives an implementer-checkable reference semantics (state, events with control sets, marker trap table, generation and leak rules), SS18.5/SS18.7 pin oracle meaning and conformance to the outcome table, and Appendix B maps every rule family to executed examples; I independently re-ran the gate to 2466/2466 with 0 blocked. Per the phase rule I do not require proofs; the remaining weakness is that two load-bearing properties are stated only as obligations without a derivable conformance vector: the TDL-5(b) complete-transition bijection for overwritten loop guards (no example and no decision default) and instance bounds for entry-crossing liveness (BD3-R4-1's witness is absent and currently mis-bounded).",
+      "change": "Add the BD3-R4-1 handle-cross-entry example (blocked verdict plus two-entry-call state vector) so the SS6.5 bound has a conformance vector a second implementer can check against."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "No north-star narrowing found in the revised text: declining my round-3 entry-guard adjoint was correct because NS SS4.2 and TDL-5(d) already refuse non-bijective in-place interfaces loudly while compute/out-of-place keep the computation; Co loops, deferred measurement, setjmp re-entry and zero-output oracles keep their capabilities with blocked verdicts only at named ISA gaps (BLK-1..5, SS25.1). The score is held at 4 by BD3-R4-1 because the SS6.5 per-entry-call bound silently breaks exactly the NS SS3.1 handle-table / SS5 REPL lexical-lifetime pattern (handles accumulated in device globals across entry calls) instead of giving it the BLK-1 blocked verdict.",
+      "change": "Apply BD3-R4-1 so cross-entry handle accumulation gets the BLK-1 fallback verdict rather than an unsound finite bound and an accept verdict."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "A plugin author can start tomorrow: processing order S1-S9 (SS4.1), one analysis fixpoint (SS5), materialisation and map given as rewrite tables with executed golden objects, and every deferred item in SS24 carries a capability-preserving default. The text is large but cross-referenced by a 1353-check xref gate. Implementability gaps are localised and named once each above: SS6.5 entry-crossing bound (blocking), launch carriage of the static file, R-tier scratch hoisting, and the fresh deferred record's control set (SS18.2 states placement and lifetime extension but never that the copy inherits the original qcopy's control set).",
+      "change": "In SS18.2 add 'each fresh record is the original qcopy event on a fresh retained wire, with its control set unchanged' to the latest-before-consumer rule, closing the last word-level ambiguity in the round-3 Theme B fix."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "BD3-R4-1",
+      "section": "SS6.5 (reference instance bound, rules 1-2); SS7.5(b) inherits it",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The bound counts the wrong quantity across device-entry boundaries. SS6.5 rule 2 defines N(s)=E(s) as 'the bound on executions of s per device-entry call', and the new E(c) recurrence keeps that unit ('entry multiplicity 1'). But SS18.1 runs every device entry over one persistent state, SS6.6 defers leak checking to program end, and SS6.4 permits handles in globals, so instances accumulate across entry calls, which the host (and the NS SS5 REPL) may repeat without bound. Witness (two device entries; @n/@slots internal globals): @put() loads %i=@n, %h=qalloc(0,1), stores %h into @slots[%i], stores %i+1 to @n, returns; @use() loops j<@n loading @slots[j], gates X twice, qfrees. The site reaches a global so it is a static register file and is not self-disjoint (no qfree before @put's ret); rule 2 gives TC=1 and E=1, hence N(s)=1. I executed the repository recogniser on this module: verdict accept, no blockers, instance_bounds {'put%h': 1}. Two host calls to @put then one to @use is two simultaneously live distinct registers in the reference semantics (SS18.3 qalloc has no per-entry limit); an N=1 plugin must run qreg.new into the slot variable still holding the first live instance (aliasing it, so @use's second handle gates/frees the first register and generation tags cannot save it) or trap where the reference has two clean handles. No rule gives a run-time outcome for exhausting a finite file (SS25.1's blocker trap covers only the N=infinity fallback), and the verdict should not be accept. The setjmp preamble added for BD3-R3-4 does not cover plain entry re-invocation, and SS7.5(b) has the same hole with 'the reversible entry in place of the device entry' (repeated reversible invocations accumulating instances in globals).",
+      "fix": "In SS6.5, immediately after the setjmp preamble and before rule 1, add: 'Entry-boundary liveness. If an instance of s may be live at the return of any device entry that may reach s -- some memory live at that return (a global, a heap object, or memory reachable from a result or env) may hold a ROOT(s) value, and not every path from s through the augmented CFGs and call edges to that return passes a qfree whose provenance is exactly {s} -- then s is not self-disjoint and E(s)=infinity. Such a site uses BLK-1 (SS7.5(b): BLK-4, with the reversible invocation in place of the device entry), with the bounded static-file fallback, never rejection. The host may call a device entry any number of times, so executions per entry call do not bound instances that survive entry return.' Add example=handle-cross-entry verdict=blocked:BD-B-ISA4 with the @put/@use module above, a blocker line 'BD-B-ISA4 @put qalloc: instance may outlive a device-entry return; BLK-1 (ISA-4)', and a state block {\"verdict\":\"blocked:BD-B-ISA4\",\"entry_calls\":2,\"instances\":2,\"distinct\":true,\"live_after\":0,\"trap\":0} executed under the 64-instance fallback across two entry calls. The alternative -- redefine E(s) as a whole-program bound on simultaneous live instances (a liveness recurrence over entry boundaries) -- is viable but larger; I would take the infinity rule above for symmetry with the setjmp preamble, since finite cross-entry accumulation is host-controlled and therefore genuinely unbounded."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R3-01",
+      "status": "resolved",
+      "note": "TDL-7/TDL-10/SS18.2/A11 now classify flags, conditions and trajectory records as clean control workspace; co-loop-identity (count 0/2) executes P(c=1)=0 with flags clean."
+    },
+    {
+      "id": "SOL-R3-02",
+      "status": "resolved",
+      "note": "SS17.3 adds logical frame liveness checked by the charged __bennett_rt_ss_check before every stack access (SS16.4), with SS8.5 replaying the table; shadow-stack-liveness gives popped load 0/code 7, live load 7/code 0."
+    },
+    {
+      "id": "SOL-R3-03",
+      "status": "resolved",
+      "note": "SS6.1/SS6.3/SS6.5 separate generation tags from physical slots with generation-and-liveness dispatch; handle-stale-generation keeps N(s)=1, old!=new, first stale gate traps 4 before mutation."
+    },
+    {
+      "id": "R3-CODEX-01",
+      "status": "resolved",
+      "note": "Same Theme A fix as SOL-R3-01; the count 0/1 X;X identity circuit executes P(c=1)=0, no program-end trip-count record remains."
+    },
+    {
+      "id": "R3-CODEX-02",
+      "status": "resolved",
+      "note": "SS18.2 pins latest-before-earliest-reversed-consumer with reversed-source position for unused records, source-order/producer tie-breaks and lifetime extension; deferred-channel-adj-place gives the plus-input joint-zero result."
+    },
+    {
+      "id": "R3-CODEX-03",
+      "status": "resolved",
+      "note": "SS8.2/SS8.6/SS16.2 add W_empty (T=1, exactly one call, unconditional hidden-bit alloc/free, charged const-0/retval); oracle-empty-output/fault/discard-return execute budgets 0/3/4 as specified."
+    },
+    {
+      "id": "BD3-R3-1",
+      "status": "resolved",
+      "note": "My proposed entry-guard adjoint was correctly declined: B2 has no data-only inverse, and pre-existing TDL-5(b)/(d) excludes its standalone in-place interface while compute/out-of-place keep it; SS18.2/TDL-10 now state one meaning (inverse of the clean-workspace transition) and 'bounded trace reconstruction' is deleted, with co-loop-adj-overwritten executed inside compute."
+    },
+    {
+      "id": "BD3-R3-2",
+      "status": "resolved",
+      "note": "The immediately-before-first-reversed-consumer pin I proposed is adopted verbatim in SS18.2 (plus unused/tie/dependency clauses); deferred-channel-adj-place zero-then-H gives [0.5,0.5], falsifying the entry-copy placement."
+    },
+    {
+      "id": "BD3-R3-3",
+      "status": "resolved",
+      "note": "TDL-2 carves the permitted TDL-11 CC covering store out of coverage invalidation, TDL-11 completes 'other than such a permitted CC covering store', SS18.2 says event-application writes invalidate; co-observe-write-observe gives load 9/code 0."
+    },
+    {
+      "id": "BD3-R3-4",
+      "status": "resolved",
+      "note": "SS6.5 now has interprocedural N29 augmented edges, may-ancestor continuation reachability and a defined E(c) on augmented CFGs; handle-setjmp-interproc is blocked:BD-B-ISA4 in the recogniser (was accept) with the 64-slot fallback state as specified."
+    },
+    {
+      "id": "REG-SOL-R3-TDL7",
+      "status": "resolved",
+      "note": "The TDL-7 'declared control outputs' exemption is deleted everywhere (TDL-7/10, SS18.4 leak rule, A11); only fault and genuine measurement records retain separate lifetimes."
+    },
+    {
+      "id": "REG-CODEX-R3-COUNT",
+      "status": "resolved",
+      "note": "Same deletion; 'No trip-count record is measured at program end' (TDL-10) and the count is no longer a hidden action output."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "SS6.5 rule 2, base cases: state 'E is 1 per invocation for a device entry, a region entry (SS7.6 candidate invoked by a marker) and an R entry; if F is both such an entry and the callee of device call sites, its execution multiplicity is the entry term plus the call-site sum (a safe over-count), never the sum alone when the sum is over an empty or host-only caller set.' As written, Sigma over an empty device-call-site set reads as 0 for a region function, while the reference recogniser uses 1 for any caller-less function.",
+    "SS6.5/SS6.6, launch carriage default: add 'The launch stub owns the static register file across runs: the synthesised CC entry wrapper receives each slot's qreg as a QREG argument (the SS9.5 extra-argument mechanism), returns the slots live at return as QREG results together with their generation tags as INT results, and the stub keeps the (slot, tag, bennett_qreg id) table between launches, so equality between a host-passed id and a tag stored in device memory (SS6.3) is the same identity on every launch.' Pick this or another default; SS18.7 requires the identity, only the mechanism is open.",
+    "SS18.2, fresh deferred records: after 'Insert each fresh retained record immediately before its earliest reversed consumer' add 'The record is the original qcopy event retargeted to a fresh retained wire, with its control set unchanged; a copy predicated on a Co condition or an invocation control stays predicated, and its conditioning wires are recomputed before it by the ordinary adjoint rules.' Without this clause an implementer can read the fresh copy as unconditional, which changes boundary measurement correlations for measures control-dependent on a Co branch (TDL-10).",
+    "SS6.5, direct-handle tags: replace 'A direct handle that is converted to an integer (ptrtoint, a store) gets a tag in the same way' with 'Every allocation, direct or in the static file, is assigned its generation tag once, by the fresh-tag allocator at its qalloc; a direct handle's tag is carried beside its qreg value through the register environment, and every ptrtoint of that allocation yields that one tag.' Assignment at conversion time would let two ptrtoints of one allocation disagree and would resurrect freed direct handles converted after their qfree.",
+    "SS7.5(b)/SS6.5, R-tier identities and scratch: add 'The generation-tag rule of SS6.5 applies to hoisted R registers (a hoisted register's tag is minted per R qalloc execution in R-writable table state recorded in the R history), and the compiler-introduced allocations of SS8.6 (k=0 hidden bit, wide t_j/f_j) and SS8.7 in an R caller are hoisted sites whose bound is the number of simultaneous invocations of their marker; unbounded simultaneity (recursion through the marker) is BLK-4.'",
+    "SS17.3/SS14.6, suspended fibers: add 'Frames of a suspended fiber stay logically live (their extents remain in the logical table of that fiber's shadow stack) until the fiber is rewound and returns or is destroyed; a switch-out early return does not pop them for liveness, and a rewind push restores the saved frame extent without zero-filling bytes the frame already held.' As written a plugin that pops/invalidates on switch-out faults cross-fiber accesses to suspended allocas that SS17.1's address model permits, and a zero-filling rewind push erases address-taken alloca contents that Asyncify spilling does not save.",
+    "TDL-10/TDL-5(b), decision default: add 'The reference decision for the complete-transition bijection is the SS8.7 verification discipline over the declared mutable interface (exhaustive to -bennett-inplace-exhaustive-bits, library-pattern discharges named per pattern); a guard that is a function of the mutable state alone and has a basis entry with trip at least 1 whose body step is not the identity is never a total bijection, and follows TDL-5(d).' Include one mixed guard example (preserved bound plus overwritten byte, or unrolled-iteration counter) that does satisfy (b), so the reconstruction construction is shown non-vacuous.",
+    "TDL-2, coverage bits: add 'Coverage is a per-byte bit, initially clear for every byte, set by observe of that byte, cleared by a write to that byte other than a permitted covering store; becoming Co does not set or clear bits.' This pins that bytes never written while Co still need one observe before completion, matching the checker's model.",
+    "TDL-5(c)/(d) context: add to MC (TDL-2) that the coherence signature includes whether the variant may execute inside the f part of a compute, so the static TDL-5(d) decision is per-variant ('a store that is case (c) in every variant that may reach it inside a generation is not BD-E-COHERENT-OVERWRITE'). A function shared between a compute-f body and a standalone adj body otherwise reads as both (c) and (d) for the same store."
+  ],
+  "verdict": "revise",
+  "path_to_accept": "One change suffices: (1) add the SS6.5 entry-boundary liveness rule of BD3-R4-1 (instance possibly live at a device-entry return, or a reversible invocation return under SS7.5(b), is not self-disjoint and has E(s)=infinity under BLK-1/BLK-4 with the bounded fallback), with the handle-cross-entry blocked example and two-entry-call state vector executed in the gate and the recogniser changed from accept/N=1 to blocked for that module. Nothing else is required from me: every round-3 blocker and regression is resolved, and all remaining items are S1 suggestions with workable defaults; adopting the SS18.2 control-set clause and the SS6.5 E base-case sentence at the same time would close the two cheapest residual ambiguities.",
+  "summary": "All ten round-3 blockers and both regressions are resolved in place and verified from the diff and the text: control workspace is clean with adj=U-dagger (SOL-R3-01, R3-CODEX-01, BD3-R3-1, both regressions), adjoint record placement is deterministic (R3-CODEX-02, BD3-R3-2), covering stores retain coverage (BD3-R3-3), setjmp bounds are interprocedural with E(c) defined (BD3-R3-4), shadow-stack accesses are logically validated (SOL-R3-02), stale generations trap (SOL-R3-03), and k=0 oracles execute exactly once (R3-CODEX-03). I re-ran the headless pre-flight gate myself (2466/2466) and confirmed the snapshot is byte-identical to the repo spec at the freeze hash. One new core S0 remains, BD3-R4-1: the SS6.5 reference bound counts executions per device-entry call, so a handle accumulated in a global across two entry calls gets accept with N=1 (executed against the recogniser) while the reference semantics has two live registers; it needs the BLK-1 infinity treatment for instances that outlive an entry return. Verdict revise, verdict_core revise, solely for that item.",
+  "verdict_core": "revise"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/dialect-r4-muse.json

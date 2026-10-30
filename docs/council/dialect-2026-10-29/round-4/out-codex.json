@@ -1,0 +1,131 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "\u00a7\u00a74, 17 and 18 distinguish H/CC/R/L execution, logical allocations, coherence state and recorders. The round-3 edits now distinguish physical shadow-stack backing from live program allocations and allocation identity from reusable register storage. The popped-frame and stale-generation witnesses agree with that state model.",
+   "change": "No semantic change requested. Preserve \u00a717.3: every program access must fit wholly in one live logical allocation, with fault 7 before mutation otherwise. Preserve shadow-stack-liveness: the live load returns 7/code 0 and the load after pop returns payload 0/code 7."
+  },
+  {
+   "id": "C2",
+   "score": 3,
+   "evidence": "The marker table, N0\u2013N35, residual validator and \u00a716 mapping cover the intended instruction families. Two executable counterexamples remain in normalization: \u00a712.6 uses scalar allocation stride for byte-sized but padded vector elements, and N15 represents the lane count in an index type too narrow to contain it. LLVM 18 and 23 reproduce both errors.",
+   "change": "Apply R4-CODEX-01 and R4-CODEX-02 in \u00a712.6 and \u00a712.2 N15: derive vector memory positions from vector bit layout, and compare indices in a width that represents L without truncation. Add the corrected i24 memory and i1-index normalization pairs with results 394500 and [5,9], respectively."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "TDL-7/10 and \u00a718.2 restore clean successful-return workspace and a genuine U-dagger interpretation. Nonbijective B2 is handled through the existing compute/out-of-place distinction. Deferred records now have a deterministic standalone-adjoint placement, while compute reuses its actual records. \u00a78.6 also specifies one ordinary W_empty invocation for a zero-length payload, preserving effects, budgets and faults.",
+   "change": "No semantic change requested. Preserve the explicit \u00a718.2 rule that successful loop-control workspace is cleaned before action return, separately from measurement records and actual fault outputs. Keep co-loop-identity at P(c=1)=0 and compute(B2,empty) restoring each of (0,0), (1,1) and (2,2)."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "\u00a73.4 pins class and operand dispatch, \u00a79 fixes resource-budget units and defaults, and the resource/target contracts are inherited from ISA 0.8. \u00a725 names exact dependencies for dynamic register capabilities, device-computed budgets and typed R faults rather than silently claiming those capabilities exist.",
+   "change": "No semantic change requested. Retain \u00a725.1\u2019s distinction between a blocked module and unaffected successful executions: an ISA-0.8 R entry remains blocked:BD-B-ISA7 even when a particular sufficiently budgeted run completes, and its generic trap must not be reported as implementing a typed R fault."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "\u00a7\u00a77.3, 16 and 19 specify content identity, ISA-owned interface hashes, comparison layout, launch synthesis and certificate/build-record linkage. \u00a725.2 provides usable temporary locations for metadata that ISA 0.8 lacks. Those obligations are implementable, although their example representation is spread across sections.",
+   "change": "In \u00a719.9 add one complete certificate/build-record example and state: \"The build.<hex> suffix of producer.version is SHA-256 of the accompanying JCS build record; deferred_measurement is recorded in definedness_assumptions when that mode is enabled.\" Show the same digest in the example and retain dialect_mapping_version=0.2.4 without adding dialect fields to the ISA-owned interface signature."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "\u00a718 defines observable conformance, P-1\u2013P-3 distinguish expected artifacts from independent execution, and Appendix B identifies executor obligations. The supplied freeze receipt reports 2466/2466; I have not rerun that full gate. I independently checked the two new source/rewrite witnesses using opt-18 and opt-23 with verify,instcombine over stdin, with the required headless environment. Those checks expose boundary cases absent from the supplied vectors.",
+   "change": "Extend \u00a721.4\u2019s normalization checks with the two boundary pairs from R4-CODEX-01/02. State: \"For these defined-input witnesses, both the original LLVM operation and its normalized replacement must produce the stated value.\" Require lane 1 of bytes 01 02 03 04 05 06 07 08 as <2 x i24> to be 0x060504, and dynamic i1 indices 0/1 into <5,9> to return 5/9."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The document retains the north-star ladder, explicitly models platform and runtime mechanisms, and treats genuine ISA-0.8 limitations as named dependencies. The two normalization errors nevertheless change defined LLVM vector computations; they are not choices about previously undefined inputs or merely deferred implementation mechanics.",
+   "change": "In \u00a712.6 replace the padded-element load/store construction as specified in R4-CODEX-01. State explicitly: \"Vector scalarization preserves the vector\u2019s datalayout memory bit string; scalar allocation padding is not inserted between vector lanes.\" The i24 witness must return 394500, not 460293."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The section structure, deterministic normalization names, mapping rows, diagnostics and defaulted mechanics let independent implementers start. Most round-3 revisions now state both the rule and its boundary witness. The remaining vector rules need the same treatment, because literal implementations currently yield incorrect values.",
+   "change": "Add normalise-in/normalise-out pairs beside n-dynamic-lane and n-bitcast-lanes for the two new witnesses. Show getelementptr i8,p,3 for the second i24 lane and a zext i1-to-i2 before comparing against 2; retain the existing i32-index expectations [5,9,0,0] for indices [0,1,2,-1]."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "R4-CODEX-01",
+   "section": "\u00a712.6 N21 vector load/store scalarization; \u00a712.9 normalization-boundaries",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The ordinary vector-memory rule says \"getelementptr T, ptr p, i64 k\" followed by load T, and exempts only integer lanes whose width is not a multiple of 8. Scalar allocation stride can exceed lane width even when that width is a multiple of 8. Witness: target datalayout=\"e-p:64:64-i64:64-i24:32-n8:16:32:64-S128\"; @bytes is an eight-byte constant containing 01 02 03 04 05 06 07 08; load <2 x i24>,ptr @bytes,align 1; extractelement lane 1. The vector lane starts at byte 3, so its value is 0x060504=394500. The prescribed getelementptr i24,@bytes,1 advances four bytes and returns 0x070605=460293. opt-18 and opt-23 both verify the original and explicit replacement and constant-fold them to these different results. Replacing that GEP with getelementptr i8,@bytes,3 gives 394500 on both. The same mistake affects stores and can turn an otherwise valid vector access into an out-of-allocation fault. This is a wrong defined computation, not an encoding choice; the existing packed-i1 exception does not cover it.",
+   "fix": "In \u00a712.6 replace the vector-memory bullet with: \"Lay out every vector load/store according to the vector type\u2019s datalayout bit string, without inserting scalar allocation padding between lanes. Lane k starts at bit k*bitwidth(T). Scalar GEP T is permitted only when its allocation stride equals that lane spacing; otherwise use byte offsets or packed-byte extraction/insertion. The replacement accesses only the original vector storage range, derives each scalar alignment from the original alignment and its actual byte offset, and preserves inactive bits for masked operations.\" A second viable implementation is a packed integer load/store plus lane extraction/insertion for every vector, followed by N22 legalization; I would retain the scalar fast path when the equality holds. Add a checked i24 pair using offsets 0 and 3 with align 1: the byte witness above must return 394500/code 0, and the matching vector store must write its two three-byte lane values contiguously."
+  },
+  {
+   "id": "R4-CODEX-02",
+   "section": "\u00a712.2 N15; \u00a712.6 dynamic extractelement/insertelement select chains",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "N15 specifies \"%nz.c.r = icmp uge iK i, L\" without ensuring that L fits in iK. LLVM permits an index narrower than the vector length. Witness: define i8 @f(i1 %i) { %r = extractelement <2 x i8> <i8 5,i8 9>, i1 %i; ret i8 %r }. Both possible indices are valid and return 5 and 9. N15 emits icmp uge i1 %i,2; LLVM parses the i1 constant as zero, so the guard is always true and the prescribed select returns zero for both inputs. opt-18 and opt-23 verify this rewrite and fold it to ret i8 0; direct constant-index probes return 5 and 9. A zext to i2 before the comparison removes the erroneous guard on both majors. Insertion similarly becomes an unintended no-op. N21 lane comparisons can also alias unreachable lane numbers if those constants are truncated back to the narrow index type.",
+   "fix": "In \u00a712.2 N15 state: \"Interpret the index as an unsigned integer. Perform the comparison with L in width W=max(K,ceil(log2(L+1))), zero-extending the index when W>K; the constant L must be represented exactly. Alternatively, when every iK value is below L, fold the out-of-range predicate to false.\" In \u00a712.6 state: \"Dynamic lane-selection comparisons use that same widened index and exact lane constants, or omit lanes unrepresentable by the original unsigned index; lane constants must never wrap.\" I would use the widened comparison uniformly. Add the i1 witness: zext i1 %i to i2; icmp uge i2 %wide,2; extract returns 5 for 0 and 9 for 1. An insertion of 7 must produce [7,9] for 0 and [5,7] for 1. Keep n-dynamic-lane\u2019s i32 indices 2 and -1 returning zero."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R3-01",
+   "status": "resolved",
+   "note": "TDL-7/10 and \u00a718.2 require successful-return cleanup of flags and trajectory workspace; the count-0/2 identity witness now requires P(c=1)=0."
+  },
+  {
+   "id": "SOL-R3-02",
+   "status": "resolved",
+   "note": "\u00a7\u00a717.3 and 16.4 now require logical allocation checks even for non-coh shadow-stack accesses, and \u00a78.5 replays that metadata; the popped-frame load faults 7 before access."
+  },
+  {
+   "id": "SOL-R3-03",
+   "status": "resolved",
+   "note": "\u00a7\u00a76.1/6.3/6.5 distinguish fresh allocation identities from reusable slots and validate generation plus liveness, so a stale handle traps T-DEAD despite N(s)=1."
+  },
+  {
+   "id": "R3-CODEX-01",
+   "status": "resolved",
+   "note": "Loop control records are no longer leak-exempt outputs; successful forward and standalone-adjoint returns must clean them, preserving the count-0/1 X;X interference witness."
+  },
+  {
+   "id": "R3-CODEX-02",
+   "status": "resolved",
+   "note": "\u00a718.2 fixes latest-before-first-reversed-consumer placement, unused-record placement, ties and producer lifetimes; H(a),record(a),CX(record,t) gives the specified plus-input result."
+  },
+  {
+   "id": "R3-CODEX-03",
+   "status": "resolved",
+   "note": "\u00a7\u00a78.2/8.6/16.2 define a single W_empty call with a hidden clean target and ordinary charging/fault behavior; discarded returns do not create payload or remove execution."
+  },
+  {
+   "id": "BD3-R3-1",
+   "status": "resolved",
+   "note": "TDL-10/\u00a718.2 require a bounded inverse for standalone overwritten-guard bijections; noninjective B2 uses the existing compute/out-of-place distinction, with compute(B2,empty) restoring all three entry states."
+  },
+  {
+   "id": "BD3-R3-2",
+   "status": "resolved",
+   "note": "The deterministic \u00a718.2 deferred-record scheduler removes the placement ambiguity; the zero-input/final-H probe now has probabilities 1/2 and 1/2."
+  },
+  {
+   "id": "BD3-R3-3",
+   "status": "resolved",
+   "note": "TDL-2/11 and \u00a718.2 consistently retain coverage for permitted CC stores to covered bytes while invalidating it for event writes; observe/store9/observe ends Cl and returns 9."
+  },
+  {
+   "id": "BD3-R3-4",
+   "status": "resolved",
+   "note": "\u00a76.5 now includes may-ancestor setjmp continuations and defines E(c) on the augmented recurrence; the interprocedural witness is BLK-1 with two distinct live fallback slots, also inherited by R hoisting."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In Appendix B replace the opening blanket statement that run-cc, reverse, run-action and run-program are merely requested with: \"Executor availability and executed families are identified by the frozen receipt; historical requested annotations below are superseded only for the commands and families that receipt records.\" Keep the explicit distinction between executed successful platform behavior and BLK-5 classification: platform-uart-write may execute its success path while its ISA-0.8 module verdict remains blocked:BD-B-ISA7.",
+  "In \u00a719.9 add a complete certificate/build-record example implementing the existing metadata defaults: \"producer.version carries +build.<SHA-256(JCS(build-record))>; definedness_assumptions records enabled deferred_measurement; bindings.dialect_mapping_version is 0.2.4.\" Show one enabled deferred-measurement case and keep the ISA-owned interface signature unchanged."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Correct \u00a712.6 vector memory layout for padded scalar element types and add the i24 load/store witness with lane-1 value 394500. 2. Correct N15 and N21 dynamic lane comparisons so L and lane numbers cannot truncate in narrow index types; add i1 extract/insert witnesses returning [5,9] and the stated inserted vectors. Execute these original/replacement pairs on the supported LLVM majors and keep the existing round-3 witnesses passing. These are the only acceptance-blocking changes; no ISA extension or new proof machinery is needed.",
+ "summary": "All ten previous blockers are resolved: SOL-R3-01, SOL-R3-02, SOL-R3-03, R3-CODEX-01, R3-CODEX-02, R3-CODEX-03, BD3-R3-1, BD3-R3-2, BD3-R3-3 and BD3-R3-4. Both previous loop-history regressions are also repaired, and I found no new regression introduced by the round-4 diff. I reviewed the complete embedded snapshot and confirmed the fixes before checking new cases. Two previously unreported core normalization errors remain: padded vector lane addressing and narrow vector-index bounds checks. Independent headless LLVM 18/23 probes reproduce both and their corrected results. The review therefore requests revision for these two S0 findings; the supplied full-checker receipt is not represented as a fresh run.",
+ "verdict_core": "revise"
+}

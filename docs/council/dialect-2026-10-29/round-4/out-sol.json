@@ -1,0 +1,142 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Sections 4, 10 and 18 specify tiers, generation views, coherence transitions, cancellation and observation boundaries. Round-3 changes reconcile control-workspace lifetime and observation coverage. However, the LangRef C-state and the prescribed GEP mapping still disagree for a smaller datalayout pointer-index width.",
+   "change": "In section 16.4, use the datalayout pointer-index width, with modulo arithmetic confined to those low pointer bits, for all GEPs and their constant-expression forms; apply the same semantics to CC/R lowering (SOL-R4-02)."
+  },
+  {
+   "id": "C2",
+   "score": 3,
+   "evidence": "Sections 12\u201316 provide a substantial instruction inventory, deterministic materialisation and canonical mapping. Section 12.7 leaves subtraction borrow propagation incorrect or ambiguous, and section 16.4 conflates pointer representation width with GEP index width. Both change ordinary integer results.",
+   "change": "Replace section 12.7\u2019s subtraction shorthand with the explicit two-stage borrow recurrence in SOL-R4-01 and add its three-limb vector."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "TDL-7/10 and section 18.2 now require clean conditions, continuation flags and trajectory workspace. A standalone overwritten-guard inverse must exist on the declared interface; compute may retain its actual history. Deferred measurement has deterministic record insertion. TDL-8 gates dependent effects on successful results. No new quantum-specific S0 was established.",
+   "change": "Add a section 18.8 positive witness for an overwritten-guard loop whose complete transition is bijective, stating its finite encoding and bounded inverse and requiring zero trajectory workspace after forward and standalone adjoint return; retain the non-bijective B2 compute witness."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Targets and resource formats remain ISA-owned. Sections 9/16 fix the reference-row budget unit, replay charges, heap and monotonic lifted-stack accounting. Sections 8.6/25.3 disclose wide-output costs and longer ISA-0.8 constructions without introducing a competing target or scheduler contract.",
+   "change": "No normative correction is required. For navigation, add to section 9.4: \u201cReference-row budgets determine F_B; target resource costs and scheduled timing are separately defined by ISA sections 8 and 11.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Sections 7.3, 16 and 19 bind identities, canonical reference objects, layouts, plugin versions, build records and coverage to ISA contracts. Named ISA dependencies have explicit changes and fallback verdicts. The zero-output interface now executes exactly one synthetic invocation with charged terminal rows and fault delivery.",
+   "change": "In section 8.6\u2019s k=1 branch write: \u201cInvoke W_0 on the sole output register o_0 and the descriptor fault register.\u201d This avoids confusing the ISA target operand with a null descriptor tgt when the sole output is OUT or CONSOLE."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Section 18.7 specifies probabilities, classical observations, faults and quantum states. Sections 1.5/21 distinguish expected artefacts from independent execution. The progress record\u2019s 2466/2466 final receipt supersedes historical unavailable families; BLK-5 tests remain dependency verdicts. That receipt does not establish the two uncovered arithmetic/layout cases. I checked the counterexamples independently with LLVM 18/23, without rerunning the full pre-flight checker.",
+   "change": "Extend suite DN/DM with independently executed subtraction borrow boundaries and GEP vectors with index width smaller than pointer width; compare materialised source and mapped results, expecting code 0 with sufficient budgets."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The round-3 fixes restore the north star\u2019s successful-action clean-workspace contract, preserve compute/out-of-place evaluation for B2, and retain the demo mechanisms through explicit ISA dependency reports. The new arithmetic and pointer witnesses violate the materialised-native equality contract of NS section 3.2 and dialect sections 17.7/18.7.",
+   "change": "Apply SOL-R4-01/02 without rejecting wide subtraction or smaller-index-width layouts; require their results to agree with materialised LLVM semantics."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Concrete runtime contracts, diagnostic precedence and capability-preserving defaults permit implementation to begin. Round-3 edits are local and actionable. Section 1.5 and Appendix B still describe interpreter commands as requested despite the final receipt reporting their execution.",
+   "change": "Replace historical command-status parentheticals in section 1.5 and Appendix B with: \u201cExecution availability is recorded by interpreter revision and family in the final freeze receipt; a missing capability remains a P-2 failure.\u201d"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R4-01",
+   "section": "12.7 Wide integers (N22), subtraction bullet",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The subtraction rule says only \u201cthe same with sub and borrows icmp ult a_k, b_k\u201d after the addition recurrence, which includes v_k = icmp ult m_k,t_k and c_k = u_k OR v_k. Replacing add by sub and changing the first comparison to a_k<b_k leaves the incoming-borrow test wrong: underflow in t_k-borrow makes m_k greater than t_k. Concrete i192 witness, low limb first: a=[0,1,1]=2^128+2^64, b=[1,1,0]=2^64+1. Limb 0 borrows; limb 1 has t_1=0 and incoming borrow 1, giving m_1=0xffffffffffffffff. Both a_1<b_1 and inherited m_1<t_1 are false, incorrectly clearing the borrow into limb 2. This expansion yields [0xffffffffffffffff,0xffffffffffffffff,1]=2^129-1 rather than [0xffffffffffffffff,0xffffffffffffffff,0]=2^128-1. If \u201cborrows\u201d is intended to replace more comparisons, those replacements are unstated and the two readings diverge. LLVM 18 and 23 instcombine independently fold the source to 340282366920938463463374607431768211455 and the inherited-comparison expansion to 680564733841876926926749214863536422911. This is a result error, not a proof-format gap.",
+   "fix": "Replace the section 12.7 subtraction bullet with: \u201cLet beta_-1=0. At limb k of width w_k compute t_k=a_k-b_k modulo 2^w_k; z_k is the zero-extended incoming beta_(k-1), using identity conversion when w_k=1; m_k=t_k-z_k modulo 2^w_k. When another limb follows, beta_k=(icmp ult a_k,b_k) OR (icmp ult t_k,z_k). Discard the final outgoing borrow for wrapping subtraction.\u201d Do not inherit addition\u2019s m_k<t_k comparison. Add a checked normalisation/native vector sub i192 (2^128+2^64),(2^64+1), expecting [0xffffffffffffffff,0xffffffffffffffff,0] and code 0. A single comparison at width w_k+1 against b_k+beta_(k-1) is also viable; I recommend the two-stage recurrence because it matches the current expansion and avoids wrapping that sum."
+  },
+  {
+   "id": "SOL-R4-02",
+   "section": "16.4 getelementptr row; 17.4 CC/R lowering; 18.1 C state",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Section 16.4 sign-extends/truncates every GEP index to pw, takes constant offsets modulo 2^pw, and performs full-width pointer addition. LLVM datalayout separately specifies pointer representation width and pointer index width; GEP uses the latter. No dialect verdict rule excludes their differing. Witness materialised function under datalayout \u201ce-p:64:64:64:32\u201d: define i64 @f(i64 %i) { %p = inttoptr i64 4294967296 to ptr; %q = getelementptr i8, ptr %p, i64 %i; %r = ptrtoint ptr %q to i64; ret i64 %r }. At i=4294967296 the 32-bit GEP offset is zero, so f returns 4294967296. The pw=64 map returns 8589934592. Neither path accesses memory or faults; non-inbounds pointer arithmetic is defined. Both LLVM 18 and 23 fold a constant instantiation of the source to 4294967296 and its mapped addition to 8589934592. The dynamic-index form can reach materialisation through the supported O0 envelope. Thus the LangRef state of section 18.1 and the section 16.4 reference object compute different functions.",
+   "fix": "Replace section 16.4\u2019s GEP rule with: \u201cLet I be the datalayout pointer-index width for the base pointer address space, defaulting to pointer width when omitted. Sign-extend or truncate each sequential index to I. Compute scaled indices, structure offsets and accumulated byte offsets modulo 2^I using datalayout allocation sizes. Add the offset to the low I bits of the base modulo 2^I, preserving base bits above I unchanged, and reassemble the pointer carrier. Apply this rule also to constant-expression GEPs and to CC/R lowering in section 17.4.\u201d I=pw reduces to the current arithmetic. Add the witness above with input/output 4294967296 and code 0, plus an offset-wrap vector. Normalising GEP into explicit integer operations before mapping is another viable implementation; I recommend specifying the map semantics and sharing it with CC/R, without introducing a layout rejection."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R3-01",
+   "status": "resolved",
+   "note": "TDL-7/10 and section 18.2 require successful forward and adjoint loop control/trajectory workspace to be clean; co-loop-identity pins restored interference."
+  },
+  {
+   "id": "SOL-R3-02",
+   "status": "resolved",
+   "note": "Sections 17.3/16.4 add charged logical-frame checks before accesses; section 8.5 replays liveness and restore metadata."
+  },
+  {
+   "id": "SOL-R3-03",
+   "status": "resolved",
+   "note": "Sections 6.1/6.3/6.5 separate reusable slots from generation-specific tags; stale dispatch traps before mutation and old/new equality is false."
+  },
+  {
+   "id": "R3-CODEX-01",
+   "status": "resolved",
+   "note": "Continuation conditions and flags are control workspace, not retained outcomes; successful identity loops restore interference."
+  },
+  {
+   "id": "R3-CODEX-02",
+   "status": "resolved",
+   "note": "Section 18.2 fixes latest-before-reversed-consumer placement, unused-record position, ties, producer order and source lifetime."
+  },
+  {
+   "id": "R3-CODEX-03",
+   "status": "resolved",
+   "note": "Sections 8.6/16.2 define one W_empty call, charged zero/retval delivery and unconditional hidden-target allocation/free."
+  },
+  {
+   "id": "BD3-R3-1",
+   "status": "resolved",
+   "note": "Section 18.2 requires an actual inverse on the declared interface; colliding B2 retains compute/out-of-place evaluation rather than an invented entry-guard inverse."
+  },
+  {
+   "id": "BD3-R3-2",
+   "status": "resolved",
+   "note": "Deterministic interleaving selects H(a); qcopy(a,w); CX(w,t), with the stated zero-input and plus-input probabilities."
+  },
+  {
+   "id": "BD3-R3-3",
+   "status": "resolved",
+   "note": "TDL-2/11 and section 18.2 agree that permitted CC covering stores retain coverage while event-application writes invalidate it."
+  },
+  {
+   "id": "BD3-R3-4",
+   "status": "resolved",
+   "note": "Section 6.5 includes may-ancestor N29 continuation edges and defines E(c) on the augmented recurrence; the witness receives BLK-1."
+  },
+  {
+   "id": "REG-SOL-R3-TDL7",
+   "status": "resolved",
+   "note": "The program-end loop-control-output exemption is removed from TDL-7/10 and Appendix A A11."
+  },
+  {
+   "id": "REG-CODEX-R3-COUNT",
+   "status": "resolved",
+   "note": "Successful count-dependent identity loops now restore flags before returning and preserve external-control interference."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1, sections 1.5/21 and Appendix B: synchronise historical \u201crequested\u201d interpreter-command descriptions with the final receipt. State: \u201cCommand availability and executed families are pinned by the frozen interpreter revision; unavailable execution still fails P-2.\u201d Retain historical failed receipts with their historical labels.",
+  "S1, section 8.6 k=1: use o_0 for the sole output operand and add: \u201cWhen descriptor tgt is null, a sole OUT or non-null CONSOLE register is still o_0.\u201d The output-order rule and binding examples already establish the intended capability; this is a naming clarification.",
+  "S1, section 18.8: supplement B2 with a positive bijective overwritten-guard loop, stating its finite domain, bounded inverse, restored data and zero trajectory workspace after forward and standalone adjoint return. This tests the new obligation without demanding a proof format or treating the absent extra vector as S0."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Replace section 12.7\u2019s subtraction shorthand with the explicit incoming-borrow recurrence and add its corrected three-limb vector. 2. Make sections 16.4/17.4 obey datalayout pointer-index width for all GEP forms, preserving upper pointer bits, and add the smaller-index-width witness. 3. Run affected normalisation/native/map checks and the required freeze gate, retaining round-3 lifecycle and interference witnesses and bumping semantic versions under section 23. These are the minimal substantive corrections; S1 suggestions need not block acceptance.",
+ "summary": "I confirmed the diff fixes before the full reread. SOL-R3-01, SOL-R3-02, SOL-R3-03, R3-CODEX-01, R3-CODEX-02, R3-CODEX-03, BD3-R3-1, BD3-R3-2, BD3-R3-3 and BD3-R3-4 are resolved; both round-3 regressions are resolved. The editor correctly retains clean-workspace/U-dagger semantics instead of inventing a data-only inverse for colliding B2 states. Two new core S0 issues remain in unchanged rules: subtraction borrow propagation and pointer-width GEP arithmetic where datalayout requires a smaller index width. Concrete differing-result probes were checked with LLVM 18 and 23. Neither is a regression introduced by the round-3 patch. The final progress receipt records 2466 passing checks; I do not claim to have rerun that gate or treat it as coverage of these new cases. The dialect checkout at 7a3a6c1190779d01ee5a80e23e24f9be84f4c896 was reviewed read-only."
+}
