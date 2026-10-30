@@ -52,3 +52,20 @@ Witness n-vector-i24 has exact load/store normalisation pairs, align 1 at offset
 [1,2,3,4,5,6] contiguously and preserves both following 0xaa sentinels. The unit
 regression first showed scalar GEP i24 versus required i8 and an unexpanded store;
 then passed. No decline, partial, rejection or ISA capability change.
+
+## R4-CODEX-02 — resolved
+
+Sections: §12.2 N15, §12.6 select chains, Appendix B.
+Hand derivation: an i1 index can only be 0 or 1; writing constant 2 in i1
+makes it zero, so the old uge guard incorrectly fires on every input. With
+W=max(K,ceil(log2(L+1)))=2, zero-extension keeps both indices below exact L=2.
+The rule and normaliser now use that width for both out-of-range and lane
+comparisons, and never truncate lane constants. Insertion fuses the unchanged
+out-of-range vector into per-lane equality selects. LangRef extractelement and
+insertelement links confirm unsigned indices of any integer width are legal.
+Witness n-narrow-lane executes extraction (5/9), insertion ([7,9]/[5,7],
+packed 2311/1797), and four-lane extraction with unreachable lane constants
+2/3. Exact normalisation and native source/output comparisons pass on clang
+18/23 after the regression showed the old i1 comparison. Added native execution
+of existing n-dynamic-lane output: indices 2 and -1 still return zero, preserving
+the dialect's totalisation of LLVM poison. No decline, partial or ISA gap.
