@@ -17,16 +17,14 @@ orchestrator verifies test counts itself and writes the worklog entries. Council
 JSON with `tools/council.py collect`, `aggregate`, commit, push; no consensus → one sol editor (dialect: spec + checker
 together; interpreter: the crate) with a response file → next round prepared with the precheck gate (dialect) or a
 fresh detached worktree + `tools/review_packet.py` (interpreter; `--no-diff` when the diff is large; tell muse to read
-the prompt in bounded slices). Streams and their state: **interpreter** round 5 aggregated (muse accept; sol/codex
-revise, 7 blockers; mean 4.08), first fix pass pushed (71c1d6e, 253 tests), second pass (codex's 3) running; then freeze
-round 6 and launch sol + codex. **dialect** round 4 aggregated (all revise, 5 blockers, mean 4.08), round-4 editor
+the prompt in bounded slices). Streams and their state: **interpreter** round 5 closed (muse accept; sol/codex revise, 7 blockers; mean 4.08), all 7 fixed and pushed
+(9e4984f, 262 tests); round 6 prepared on 9e4984f and in session with sol + codex (muse's seat held). **dialect** round 4 aggregated (all revise, 5 blockers, mean 4.08), round-4 editor
 running (spec + checker); then gate, push, round 5 with sol + codex + muse. **VM** at the 0.8 frontier (849f7f7, 101
 tests, conformance parity); nothing to do until 0.9 or a sibling repo. **circuits** M2 closed by disposition (design
 note), M3 placement running. **targets** M1 running (brief docs/briefs/2026-10-30-targets-milestone-1.md). **ISA repo**
 0.9-draft mirror of VM beads hsd/clw running. Hold: bennett-estimate (needs hsd contracts), bennett-sched (needs the §11
 library), plugin/driver (dialect acceptance). Running T3 child task IDs at 05:50Z (poll with `task_status` from a new
-session; completion notices go to the launching thread only): interpreter second pass
-`node:delegated-task:command%3Amcp%3Ac1e0be84-52fa-4cb7-9840-049cfe011045%3Adelegate-task%3Af1c0cc7d-935f-4a79-befc-469566b53f56`;
+session; completion notices go to the launching thread only): interpreter round-6 seats: see the T3 thread list (launched 05:52Z);
 dialect round-4 editor `...%3Adelegate-task%3Ac25f1868-87cf-4156-8ceb-c1e5b9d8b47f`; circuits M3
 `...%3Adelegate-task%3Ab097153b-9aa3-4627-9355-5a5833b76aff`; ISA 0.9 mirror
 `...%3Adelegate-task%3A3ffa2f10-a3de-4b2b-90ab-0579f2565e1a`; targets M1
