@@ -9,6 +9,7 @@ reference implementation and differential oracle; its worklog chunks
 
 **Maintainer decisions pending (orchestrator, 2026-10-29 evening, unattended run):**
 - **ISA §11 reference library `ref` (bennett-vm-47t).** ISA 0.8 §11/§17 name the library the ISA repository "publishes" but define neither its serialization, hash rule, ordinals nor gate decompositions. Nothing was invented for 0.8: a sol agent is drafting the contract into `../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md` (item ISA-REF-LIB) with the decision points stated in the mirrored bead. VM scheduled execution and the suite-E/G schedule cases stay `unavailable` until 0.9 is accepted. Decide: the decomposition set and the hash rule.
+- **Circuits M2 proof contracts (bennett-circuits, 2026-10-30).** `docs/design/2026-10-30-m2-open-proofs.md` in that repo: two design choices (proof-IR / action-CFG representation, bead 7bu; opaque workspace proof summaries, z9r) and three ISA 0.9 publication items (certificate replay tuple encoding 4pf, frame schema JSON encoding 4fa, operation-identity publication for §6.4 recompute matching yz8, the last depending on the §11 library). Each states the alternatives and costs; the specialiser refuses those paths with the bead id until decided.
 - **Q14 reading** (lproc token/classical params) applied to the 0.9 draft from the worklog wording; overrule if wrong.
 - **Council seats:** sol (gpt-6.1-sol) substitutes for opus/fable; muse is council-only; isa-ref rounds 2-3 closed with two seats after the muse provider outage, muse rejoined at round 4.
 
