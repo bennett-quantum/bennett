@@ -1,0 +1,134 @@
+exit 0 in 24s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "The schema-first passes in object.rs/schema.rs/validation.rs reject the tested malformed arities, suffixes, predicates and interfaces; the complete normal suite passed. However, validate_borrow_frames admits the invalid round-4 lifetimes when a whole-region certificate is supplied (B01), and Evaluation::apply(Repeat) rejects a valid loop using known-clean surrounding workspace (B02). These are suite-F errors in opposite directions.",
+      "change": "In borrow.rs::validate_borrow_frames and Evaluation::apply, implement B01/B02: a certificate must not waive a disproved qreturn, and loop return obligations must use reachable entry invariants. Add the two exact certified negatives and the clean-d control positive below to r1_borrow.rs/r1_certificates.rs; require rejection of the former and acceptance of the latter under §§5.1/5.6."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "Re-derived inc8's literal LF envelope from §9.2 and independently obtained SHA-256 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. identity.rs preserves the definition name, substitutes reference tokens, excludes exactly schedule/certificate/coverage from object_hash, and handles SCC member suffixes. All four published hashes, FIPS vectors, the new literal two-member SCC and service envelope tests, and linking/conflict tests passed. No new identity divergence found.",
+      "change": "Retain the independent literal-envelope tests. For additional protection, extend tests/identity.rs::council_r4_cc_envelope_includes_service_but_not_unused_model with a STRING service containing a literal @ token; under §9.2, reference replacement must leave the quoted token unchanged while including the decoded service entry, and the expected LF envelope should be a literal byte string."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "oracle.rs::run_oracle_vectors dispatches every §4.2 row with arbitrary-width BitVectors and inherent memory checks. Hand inc8(8) at B=3 gives (9,0,3), B=2 gives (0,1,2); sum_db(0) at B=10/9 gives (0,0,10)/(0,1,9), and stack_limit=15 faults with code 3 on row 3. All reproduced exactly. Wide arithmetic, nested-oracle, heap and recursive-boundary tests passed; no new F_B mismatch found.",
+      "change": "Add an independent literal oracle fixture/test in tests/oracle.rs for two sequential successful lift.call/lift.ret pairs, each callee having R_f=4: stack_limit=7 must fault at the second call, while 8 succeeds. §3.7 says the stack is monotonic; assert literal step counts and results rather than comparing only the two engines."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Traced the entire sum_db entry lift.call and inverse: argument capture precedes callee exchanges; inverse restores depth/sp/fp before record addresses, unbinds params, clears the record, restores locations, then clears captures. machine.rs::inverse_call/inverse_ret match the printed C5..C1/R5..R1 order. The call-prefix CLI reversal restored entry with clean frames. Normal recursive every-prefix, per-step inversion, allocation-order, wide-state and fault-path tests passed.",
+      "change": "Extend tests/step_machine.rs::recursive_call_and_ret_each_invert_the_complete_pre_step_tuple with literal expected post-call fields for n=0: pc=4, fp=0, sp=16, depth=1, capture values (0,0,4096), and record (return_pc=3, saved_fp=0, destination_id=2). Expose a test-only inspection helper in machine.rs if necessary. These §3.7 values should be checked before inversion, in addition to equality after it."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "The R4 dynamic-alias fix validates physical interface wires before handle deduplication and marks the specified failures as traps. Reproduced the select-created alias: c=1 now yields FAILED/fault 4/steps 2 and reverses; c=0 completes at 3 steps and reverses. The normal suite also covers oracle/control/region aliases in CC and R. Hand-traced nested call/ret/uncall clock effects: clock and tape return to zero exactly once; the 11-row nested fixture and its whole-run reversal agree.",
+      "change": "In tests/registers.rs add a dynamic select of a previously consumed ordinary handle versus a live handle, followed by a region call. Under §3.3, selecting the consumed handle must yield the terminal fault-4 history frame without mutation; selecting the live one must complete. Check complete snapshot restoration for both, as done for the R4 alias families."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "Tiny Born selection and entangled residual tests pass, including draw=0 at theta=1e-200 and subsequent measurements. The structural translation fix rejects a truncated frame and proves the complete frame. Nevertheless, the certificate route still waives failed borrow lifetimes (B01), the loop summary rejects a legal known-clean context (B02), and action allocation uses the last width for every reused name (B03). Quantum sparse amplitude output also exposes the unnormalised measurement shadow (B04).",
+      "change": "Implement B01–B03 in borrow.rs/claims.rs/action.rs, preserving per-lifetime borrowed identities and per-definition workspace widths. Gate r1_borrow.rs and quantum.rs with the exact witnesses below, all interface basis values, a superposition, and an entangled borrowed reference; forward/adjoint must restore the full state for each accepted positive."
+    },
+    {
+      "id": "C7",
+      "score": 3,
+      "evidence": "cargo test --offline --manifest-path reference-interpreter/Cargo.toml passed: 242 active tests, 0 failures, 5 ignored. The added 32/64/128-case deterministic families have independent Boolean/parity expectations, and PROGRESS records runs of all five ignored sweeps. The certified variants of the old borrow negatives are absent, so the claim that all round-4 borrowing blockers are resolved is too broad. Fixed-width/name-lifetime generation also misses B03. I did not rerun the long ignored sweeps or the conformance harness.",
+      "change": "Extend tests/r1_fuzz_discipline.rs so invalid loop-local X/CX lifetimes are tried both without metadata and with a correctly bound whole-region identity certificate; both must reject under §5.6. Add known-zero surrounding controls and alpha-renamed/reused workspace names of different widths as positive metamorphic pairs. Record the resulting counts in PROGRESS.md after the fixes."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Audited SPEC-QUESTIONS 1–28 against the referenced text; the documented choices are defensible, including the row/block reading, literal free row, SCC grouping, positional tuples and full qif expansion. Staged deliverables 8–11 are explicitly disclosed and were not penalized. The revised numeric diagnostics cite the spec. B04 is a concrete incorrect numerical diagnostic, and response-round-4.md overstates resolution of the certificate-admitted lifetime cases.",
+      "change": "Fix quantum.rs::exact_support as B04 specifies; then revise council/response-round-4.md and PROGRESS.md to distinguish uncertified and certified lifetime validation, naming the new regressions and their actual results. Keep the existing staged/unverified disclosures unchanged until those deliverables exist."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R5-B01",
+      "section": "§§4.3, 4.6, 5.1, 5.6, 12.1; src/borrow.rs::Object::validate_borrow_frames; src/claims.rs::borrow_frames_certified/check_borrow_independence",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The library-certificate fallback bypasses the new per-qreturn checks. Exact memoryless ptr_width=32 subject signature: {\"abi\":\"0.8\",\"args\":[],\"bounds\":[2],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}. Body:\nperm_action @a (t:wire mut) () () () ()\nregs {  } bounds {2}\n^entry():\nqloop 2 {\nb = qborrow any 1\nx b\nqreturn b\n}\nIts interface/closure H is 3bc76b4398502416eed66400092c8ec2e5e273d97283b5199065a88a3ed9f1d7; with that stored symbol hash its object_hash is 9b10654c083129047b847830d3582ff3dbf15cf7c8759f4586f836c02e5b6266. Without a certificate, check correctly exits 1 with §5.6: qreturn does not restore borrowed wire v1_0. Append a correctly bound certificate region for H with this single claim:\n{\"kind\":\"exhaustive\",\"label\":\"proof\",\"domain\":{\"bundles\":[{\"name\":\"t\",\"width\":1,\"lo\":0,\"hi\":1}],\"borrowed\":[{\"name\":\"b\",\"width\":1,\"lo\":0,\"hi\":1}],\"regions\":[]},\"expected\":{\"table\":[[0,0],[0,1],[1,0],[1,1]]}}\nand verification.borrow_frames=[0]. Use the usual valid empty resources/gates/cleanup/error/composition records, the subject signature/bounds, frame.interface=[{\"role\":\"mut\",\"width\":1,\"class\":\"any\"}], frame.borrow={\"any\":1}, and bindings object_hash as above, interface_hash=closure_hash=reference_program_hash=H, dialect_mapping_version=\"test.1\", target_hash=64 copies of \"3\". Reproduced: check now exits 0/status ok; run-action a --mut 0 returns identity, and reverse reports equals_entry=true. validate_borrow_frames suppresses the actual Return failure because the fallback re-executes only the complete region on one reused pool bit. Hand: at EACH return beta has become beta XOR 1, so the returned lifetime is invalid irrespective of a later borrowing. Also reproduced the muse variant replacing x b by cx b t: H=1e0d1484447af491bd512ef5cc3cbe4f1b9532863aa56ae2149f61247973f343, object_hash=4aaf72716633ad6037e3b542f000eb31372accd743ddb97aa97d2960447ac43b. The same identity claim makes it pass, although each lifetime makes t depend on its independent beta_i. These are the old round-4 failures reachable through an alternate admission path.",
+      "fix": "Change borrow.rs::validate_borrow_frames and claims.rs::borrow_frames_certified/check_borrow_independence. §4.3 says qreturn is the \"matched inverse of qborrow after its frame\"; §5.1 requires \"every qborrow by a qreturn after its frame\"; §5.6 requires the FRAME to satisfy \"P_F = P′ ⊗ I_B\". A proof of the final whole-region map on a physically reused pool is not a proof of every completed frame. Distinguish a definite violated lifetime/non-permutation rule from a symbolic identity the checker cannot decide: never let a certificate suppress the former. The library route for undecidable identities must establish the actual named frames/lifetimes, independently of future borrowing or whole-loop cancellation. Add the exact X and CX fixtures above to tests/r1_certificates.rs and r1_borrow.rs with both absent and present certificates; all must fail Object::parse and hash/check with §5.6, exit 1 and empty stdout. Construct these certificate bindings from the independently computed envelopes, rather than requiring the invalid uncertified object to parse. Keep valid carried borrowing across an even loop and doubled-X/doubled-CX per-lifetime positives accepted, including entangled borrowed references. No budget is involved."
+    },
+    {
+      "id": "SOL-R5-B02",
+      "section": "§§4.3, 4.6, 5.2 domain D, 5.6, 14.2; src/borrow.rs::Evaluation::apply(Node::Repeat)",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The new generic-body Return proof discards known-clean loop-entry workspace and rejects a valid identity. Use the same memoryless ptr_width=32 perm_action signature mut=[1], in=[], mem=[], args=[], bounds=[2], header/regs as B01, with body:\n^entry():\nd = qalloc any 1\nqloop 2 {\nb = qborrow any 1\ncx d b\nqreturn b\n}\nqfree d\nReproduced hash /dev/stdin: exit 1, empty stdout, \"§5.6: qreturn does not restore borrowed wire v2_0\". The equivalent unrolled two borrow/CX/return lifetimes are accepted (interface hash 8c8594f020bbb1986a0586e6774e8a889b06e71dd4e3136fb8e202a8a97f76f8). Hand: d is allocated as |0>, never written, and every CX is exactly identity, so EACH arbitrary, possibly entangled borrowed b is restored and no output depends on it. Repeat collects the entry substitution d=0 but replaces state with independent identity variables before checking Return; the necessary substitution is applied only after the erroneous rejection. The previous snapshot's boundary-free Repeat squares this two-CX map to identity and accepts this exact case, so this is also a regression introduced while fixing the unsafe loop-local lifetime cases.",
+      "fix": "Change borrow.rs::Evaluation::apply for Repeat and its lifetime-obligation representation. §4.3 specifies \"n clean wires\" for qalloc; §5.2's domain says \"qalloc'ed wires at 0\"; §14.2 says \"qalloc tensors |0⟩\"; §4.6 says \"body n times\". Prove every internal return on its reachable loop-entry state, retaining known-zero and other established invariants of surrounding live wires, while keeping each new borrowed entry independent. Do not require a return to hold for arbitrary values of wires already proven clean, and do not reinstate the old aggregate-parity acceptance. Add the exact positive above to tests/r1_borrow.rs with trip counts 1,2,3 and a large bound plus nesting; parser/hash/check must accept, run-action must preserve t=0/1 and superpositions, and forward/adjoint must preserve b entangled with an untouched reference. Its alpha-renamed unrolling must agree. Negative control: X d before the loop (and X d after for explicit d cleanup) must still reject each one-CX borrowed lifetime, even at an even bound. No certificate or execution budget is needed."
+    },
+    {
+      "id": "SOL-R5-B03",
+      "section": "§§3.3, 4.3, 5.1, 5.3 adjoint table; src/action.rs::infer_widths/Environment::widths/Object::action_sequence",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Runtime workspace widths are keyed by bare spelling across different consumed lifetimes. Exact memoryless ptr_width=32 signature {\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}; body:\nperm_action @a (t:wire mut) () () () ()\n^entry():\nd = qalloc any 1\ncx t d\ncx t d\nqfree d\nd = qalloc any 2\nqfree d\nhash gives interface/closure ba05b26390994f78dc6405906f8ecf555075f83b6f2c47da1ffbee78e7afd140. After substitution, check succeeds with object_hash 1004ce41faf18591bbfa75d3cff461a2c61c0df9f3a89bcac513b3553c223340. run-action /dev/stdin a --mut 1 and reverse both exit 1, empty stdout, \"§3.3: scalar wire required\". Hand: the first d is one clean wire, two CX gates cancel, it is freed; the second d is two different clean wires and is freed. This is identity on t. infer_widths scans the entire function and overwrites widths[\"d\"] with 2; the first qalloc then uses that final width rather than its own literal 1. Alpha-renaming only the second lifetime to e makes execution and reversal succeed (state {\"1\":[1,0]}, equals_entry=true).",
+      "fix": "Change action.rs::infer_widths, Environment::widths and action_sequence to track widths per producing/consuming lifetime or instruction identity, including reverse traversal; forward qalloc/qborrow must allocate their own declared width, and inverse release must recover the width of the matching producer. §4.3 defines qalloc as \"n clean wires\"; §5.1 requires each allocation's explicit matched cleanup; §5.3's adjoint table explicitly has \"versions renumbered\". A later definition cannot resize a previously consumed value. Add this exact fixture to tests/quantum.rs and tests/cli_xam.rs: check and forward/adjoint execution for mut=0 and 1 must succeed with unchanged t and no workspace; reverse must report equals_entry=true. Cover superposition and reused names from qcopy/qload/qborrow, including different widths in nested structured code and inverse traversal. Retain rejection of producing a name while its prior lifetime is still live. No budget is needed."
+    },
+    {
+      "id": "SOL-R5-B04",
+      "section": "§14.2 projective measurement; src/quantum.rs::QuantumState::measurement_branches/exact_support",
+      "scope": "contract",
+      "severity": "S0",
+      "problem": "The public sparse amplitude observer reports the unnormalised projection instead of the conditional state. Reproduced with a temporary read-only-library harness: let mut q=QuantumState::new(); let w=q.allocate(2).unwrap(); q.gate(\"h\", &[w[0]], None, &[]).unwrap(); let branches=q.measurement_branches(&[w[0]]).unwrap(); For BOTH outcomes, probability=0.5 and branch.state.amplitudes() is [Complex{re:1,im:0}, Complex{re:0,im:0}], but branch.state.exact_support() is [([false], (0.7071067811865476,0))]. Hand: H on the first wire gives (|00>+|10>)/sqrt(2) in wire-order spelling; either measurement leaves the untouched wire in |0> with amplitude 1. The reported sparse vector has squared norm 1/2, although the dense observer correctly gives norm 1. measurement_branches deliberately retains unnormalised exact shadows for later Born ratios; exact_support evaluates those raw shadows without compensating for their common normalization. This pre-existing issue remains visible after the new measurement work; it is not a claim that tiny-outcome selection is still wrong.",
+      "fix": "Change quantum.rs::exact_support and the normalization metadata of projected QuantumState values. §14.2 specifies \"projective computational-basis measurement with Born probabilities\": a MeasurementBranch.state must describe its conditional state, and both amplitude observers must report that same state. Retain unnormalised exact shadows for sound support/cleanliness and Born-ratio decisions, but retain their scale/projection marker and apply the appropriate normalization when emitting sparse amplitudes (using the refined extended-exponent evaluation where necessary). Do not silently normalize arbitrary set_state_vector input, whose API explicitly leaves normalization to its caller. Add the exact two-wire test above to tests/quantum.rs, checking sparse amplitude (1,0) and agreement with amplitudes() for each branch; after H on the surviving wire, both supported amplitudes must be 1/sqrt(2), with norm 1. Extend the existing tiny entangled-residual tests to check exact_support too, with finite normalized amplitudes and unchanged subsequent Born results. This is an output-contract fix, not a probability floor or change to measurement reversal eligibility."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R4-B01",
+      "status": "resolved",
+      "note": "Exact theta=1e-200 CC witness now selects 0 at draw=0 and 1 at draw=0.5; tiny and entangled residual regressions pass. B04 is a separate sparse-output defect."
+    },
+    {
+      "id": "SOL-R4-B02",
+      "status": "resolved",
+      "note": "Library reproduction rejects the two-gate frame and proves the complete four-gate frame; nested ordinals and omission/reverse-order tests pass."
+    },
+    {
+      "id": "SOL-R4-B03",
+      "status": "resolved",
+      "note": "Library reproduction returns Proof for renamed identities; full bundle/region positional, crossed-name and changed-reference tests pass."
+    },
+    {
+      "id": "R4-B01",
+      "status": "partially",
+      "note": "Uncertified invalid X/return loops now reject, but a validly bound whole-region identity certificate readmits the exact witness; see SOL-R5-B01."
+    },
+    {
+      "id": "R4-B02",
+      "status": "resolved",
+      "note": "Dynamic select-created interface alias now records fault 4 at step 2 and reverses; c=0 completes at step 3; oracle/control/region CC/R regression tests pass."
+    },
+    {
+      "id": "MUSE-R4-B01",
+      "status": "partially",
+      "note": "Uncertified fresh-CX loops now reject, but the same loop with a whole-region identity borrow_frames claim is still accepted; see SOL-R5-B01."
+    }
+  ],
+  "regressions": [
+    "SOL-R5-B02: the known-clean d=0 outer allocation with two loop-local borrow/CX/return lifetimes is now rejected. The round-4 diff adds Return checks on an unconstrained generic Repeat body before substituting the known entry state; the previous boundary-free Repeat accepts this exact two-iteration identity. No regression is claimed for B03 or B04."
+  ],
+  "suggestions": [
+    "Broaden tests/r1_fuzz_discipline.rs beyond fixed-width workspace and uncertified admission: generate alpha-renamed versus reused consumed names of different widths, known-clean surrounding workspace, and certificate-adorned invalid lifetimes. Compare against per-lifetime Boolean maps with each fresh beta independent; the positives and negatives in B01–B03 give literal expected outcomes. Keep the existing random seed/distribution as a separate baseline.",
+    "Retain SPEC-QUESTIONS 1–28 and the staged deliverable disclosures. For the next spec revision, adopt the explicit wording already proposed in entries 20, 21 and 28: exact borrow-frame decisions are permitted, certificate tuples bind by interface position, and adjoints reverse the entire qif expansion when lifetimes cross arms. Add the per-completed-lifetime qualification from §§4.3/5.1/5.6 to entry 20 so no library proof is read as permission to ignore a failed return."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Close the certificate bypass in B01 so the old X and CX invalid lifetimes remain rejected with metadata. 2. Correct Repeat return obligations to retain reachable entry invariants (B02), preserving the newly sound fresh-borrow negatives. 3. Bind action workspace widths to their individual lifetimes in both directions (B03). 4. Make post-measurement sparse amplitude output reflect the normalized conditional state (B04). Add the exact failing witnesses and their stated controls, run the required headless offline normal suite, and update the round-4 resolution/evidence notes with those results. These are the blocking changes for this review; finishing the explicitly staged deliverables 8–11 is not an additional acceptance requirement.",
+  "summary": "Reviewed frozen commit 5d6d03e with the round-4 diff/fixes first, then adversarial paths. All executions used the requested checkout, DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset and TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/.tmp. Witness objects were passed on stdin; temporary external harnesses linked the frozen library and were removed. No repository source was edited; git status remained clean. cargo test --offline --manifest-path reference-interpreter/Cargo.toml passed all 242 active tests, with 5 ignored. Long ignored sweeps/conformance were not rerun; their recorded runs and the disclosed 445/491 with 46 unavailable staging were not counted as fresh executions.\nRequired method 1: hand inc8(8): const=1, add=9, retval gives payload 9 at row 3; B=2 has not halted and gives payload 0/code 1/steps 2. Hand sum_db(0): three oracle entry rows, five lproc prefix rows, base ret, outer retval = 10; B=9 gives code 1; R_sum=3+(3 params+1 result+9 regs)=16, so stack=15 faults code 3 on entry call row 3. All CLI results matched. Independently reconstructed the inc8 envelope as LF-terminated isa=0.8, ptr_width=32, its JCS signature, then the six literal function lines with the header definition @inc8 unchanged; no layout/data/dependency lines. SHA-256 is exactly 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93, matching hash and the published value. The normal test also checks all four published hashes and literal SCC envelopes.\nRequired method 2: traced the complete §3.6 inverse of sum_db's first call (k=2, successor=4): inverse pc exchanges restore 2, successor XOR cleans pc', then C5 inverse restores depth/sp/fp before C4 unbinding, C3 record clearing at restored sp/fp, C2 location restoration and C1 capture clearing; finally flag and dispatch are clean. For n=0, captures are (0,0,4096), record (3,0,2), new (fp,sp,depth)=(0,16,1). The 3-step call-prefix CLI reversal restores the entry tuple and clean frames; normal per-step tests also cover recursive ret inversion. Traced §7.4 nested fixture: outer call f contains call g, clock.read, ret g, uncall g, ret f; the subsequent pure load precedes uncall f. The clock operation is reversed once by the inner uncall and skipped thereafter. CLI run/reverse matched result 0, clock 0, empty tape, 11 executed rows, and equals_entry=true.\nRequired method 3: audited all 28 SPEC-QUESTIONS entries against their cited ISA provisions. Recorded choices are defensible; deferred target/launch/schedule/interval work remains explicit and was not turned into new omission blockers.\nRequired method 4: searched the crate for every rubric marker. Counts excluding target/.tmp: 44 source hits, 879 test hits, 7 documentation hits, 1 untrusted-seed hit. Production expects are construction/positive-width/UTF-8/validated-arity/Tarjan/queue/length invariants; parser expect is a fallible method, not a panic. The two source unwraps are test-only. Unsupported cleanup/model/sampler paths explicitly reject specification-disallowed choices; approximation hits distinguish exact support from binary64 diagnostics, with the sparse normalization defect recorded in B04. Test hits are assertions, fixture construction and test-only invariant branches; docs describe staged/history work; no production todo!/unimplemented! placeholder was found.\nRequired method 5: compared §4.1/§4.2 row families and §4.3–4.8 operations with object/schema/validation and oracle/machine/classical/action dispatch, fault codes 0–10 with the fault paths/table, §7.4 frame kinds with Undo/history/segment reversal, and §§9/11/12/13 schema fields and the eight documented data commands with metadata/certificate/main. The target, full launch API, schedule execution and interval claims are the recorded deliverables 8–11 rather than silent implemented fallbacks. New demonstrated failures concern certified per-lifetime borrow admission, a valid loop entry invariant, per-lifetime allocation widths, and sparse conditional amplitudes. Tiny Born selection, structural frame resolution, positional expected-program comparison and dynamic alias traps reproduce the advertised fixes. Core and overall verdicts remain revise."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r5-sol.json
