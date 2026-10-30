@@ -1,0 +1,2138 @@
+--- round-9/doc.md
++++ round-10/doc.md
+@@ -1,11 +1,11 @@
+-# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 9)
+-
+-Snapshot of `reference-interpreter/` at commit `4796970`. 94 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 380 lines, sha256 aad6be7627dc
+-- `PROGRESS.md` 1515 lines, sha256 524a5c73cdc7
++# Bennett ISA reference interpreter, council round 10
++
++Snapshot of `reference-interpreter/` at commit `697c9a8`. 104 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 394 lines, sha256 39ff9b7604bc
++- `PROGRESS.md` 1606 lines, sha256 e8163b146777
+ - `SPEC-QUESTIONS.md` 252 lines, sha256 5f3eac093fd0
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-8.md` 318 lines, sha256 4c7814df8108
++- `council/response-round-9.md` 242 lines, sha256 cca9d01464b6
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+@@ -17,8 +17,9 @@
+ - `council/response-round-6.md` 216 lines, sha256 86e00e36bb18
+ - `council/response-round-7.md` 267 lines, sha256 637d64bb5d94
++- `council/response-round-8.md` 318 lines, sha256 4c7814df8108
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+ - `src/action.rs` 1059 lines, sha256 6179cce7d47f
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 1862 lines, sha256 9cef31f74473
++- `src/borrow.rs` 1986 lines, sha256 bcb587c1df98
+ - `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+ - `src/certificate.rs` 557 lines, sha256 0bacdb2984d3
+@@ -46,5 +47,5 @@
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 1593 lines, sha256 def774ac7008
++- `tests/cli_xam.rs` 1670 lines, sha256 1f051b218e5c
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -64,4 +65,12 @@
+ - `tests/fixtures/nested.bisa` 31 lines, sha256 8e6e852c4717
+ - `tests/fixtures/nested.comments` 1 lines, sha256 4d816294e8c6
++- `tests/fixtures/r9-codex-oracle.bisa` 24 lines, sha256 49ad3ba6c411
++- `tests/fixtures/r9-codex-oracle.comments` 1 lines, sha256 7d8924a4a92b
++- `tests/fixtures/r9-loop.bisa` 20 lines, sha256 80478acc73d5
++- `tests/fixtures/r9-loop.comments` 1 lines, sha256 51fd2c61909f
++- `tests/fixtures/r9-sol-oracle.bisa` 22 lines, sha256 ef010633dbc9
++- `tests/fixtures/r9-sol-oracle.comments` 1 lines, sha256 7d8924a4a92b
++- `tests/fixtures/r9-sol-qinplace.bisa` 20 lines, sha256 77664ac9392a
++- `tests/fixtures/r9-sol-qinplace.comments` 1 lines, sha256 7d8924a4a92b
+ - `tests/fixtures/registers.bisa` 50 lines, sha256 469feb77cf76
+ - `tests/fixtures/registers.comments` 1 lines, sha256 37444a124a46
+@@ -79,10 +88,10 @@
+ - `tests/quantum.rs` 439 lines, sha256 aa99e93ffd96
+ - `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
+-- `tests/r1_borrow.rs` 806 lines, sha256 7521a89c8615
++- `tests/r1_borrow.rs` 904 lines, sha256 d916c4eb9f14
+ - `tests/r1_certificates.rs` 845 lines, sha256 bea1d30abcc7
+ - `tests/r1_discipline.rs` 385 lines, sha256 44c512ebe8c8
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+-- `tests/r1_fixtures.rs` 594 lines, sha256 ca26e8c771a2
+-- `tests/r1_fuzz_discipline.rs` 1421 lines, sha256 ebf856cf0d2b
++- `tests/r1_fixtures.rs` 629 lines, sha256 a1390c502046
++- `tests/r1_fuzz_discipline.rs` 1613 lines, sha256 e54ff841a843
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+ - `tests/r1_linking.rs` 174 lines, sha256 03aa4b31c82f
+@@ -95,10 +104,11 @@
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 402 lines, sha256 93f0936dc244
++- `tests/support/mod.rs` 493 lines, sha256 a396c966781c
++- `tests/support/r9_pins.py` 42 lines, sha256 12e12921d9d2
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 35967 lines.
+-
+-## `README.md` (380 lines)
++Total embedded: 37063 lines.
++
++## `README.md` (394 lines)
+ 
+ ````markdown
+@@ -441,5 +451,5 @@
+ workspace invariants.
+ 
+-**Design (round 8).** Per-wire ANF basis facts follow every gate: diagonal
++**Design (round 9).** Per-wire ANF basis facts follow every gate: diagonal
+ operands and read-only controls retain their values, permutations transform
+ their ANFs, and non-diagonal targets become independent unknowns. Per-wire
+@@ -447,8 +457,21 @@
+ restores saved expressions only when the same event tops every operand stack,
+ so outstanding entangling readers block restoration. Basis-only permutations
+-need no history unless touching an existing stack. Source lowering publishes
++need no history unless touching an existing stack. Opaque oracle calls and
++qinplace join those same causal stacks: oracle_call is self-adjoint; qinplace
++swaps g/ginv. Keys retain callee(s), token/classical specialisation, actual
++input/memory/output wires and effective controls. Matched pairs restore saved
++facts only at the top of every operand history; unmatched opaque readers block
++outer restoration, and lifetime/import barriers invalidate connected history.
++Assigning qinplace starts a history even on basis entries; loops containing it
++use causal transfer rather than uninterpreted ANF assignment composition.
++Source lowering publishes
+ physical bindings, live borrows and fact nodes through one executed structured
+ traversal: zero-trip bodies publish none of them; static validation and lexical
+-qregion hoisting still apply. Local action calls reuse a memoised per-wire
++qregion hoisting still apply. Each loop visit resolves against its live entry
++binding map and publishes its successor map. Equal-width, equal-role successor
++lifetimes reuse entry slots only after the old lifetimes end (alpha-renaming).
++Distinct environments get distinct transfers; recurring maps share an exact
++structured cycle, without expansion proportional to the trip count.
++Local action calls reuse a memoised per-wire
+ structured transfer per callee/classical specialization, instantiated on actual
+ wires and effective controls. Known-false controls disable fact transfer;
+@@ -463,6 +486,7 @@
+ definite lifetime or non-permutation failures. §6 cleanup readers use complete captured
+ version-stack prefixes, so older readers do not block a nested exact adjoint.
+-Round-8 literal pins and deterministic families retain all round 4–7 negatives
+-and add nested adjoints, dead bindings and controlled callee chains.
++Round-9 literal pins and deterministic families retain all round 4–8 negatives
++and add opaque pairs, unmatched readers and carried/reallocated loop bindings,
++with independent identity maps including Bell-paired borrowed references.
+ 
+  Workspace widths follow executed
+@@ -485,5 +509,5 @@
+ ````
+ 
+-## `PROGRESS.md` (1515 lines)
++## `PROGRESS.md` (1606 lines)
+ 
+ ````markdown
+@@ -495,4 +519,95 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Round-9 fixes (2026-10-30)
++
++Tracking b-isa-spec-82k. Sole implementer; owned crate and external round-9 response only.
++Independent Python hashlib derivation reproduced all four member H/object pins
++without correction; exact LF bytes live in tests/fixtures/r9-*.bisa and derivation
++in tests/support/r9_pins.py. Exact library/CLI tests added before source changes.
++
++| Blocker | RED tests | Status | Commit |
++|---|---|---|---|
++| SOL-R9-B01 ≡ R9-B01 | r9_opaque_adjoint_restores_borrow_control, r9_matched_opaque_oracle_restores_outer_fact, r9_qinplace_adjoint_restores_borrow_control; CLI counterparts | exact GREEN | 334c27d |
++| R9-B02 | r9_mixed_loop_threads_reallocated_bindings; CLI counterpart | exact GREEN | 334c27d |
++
++Exact GREEN: 8/0; first completed full suite 323 passed / 0 failed / 5 ignored.
++The initial baseline run raced the newly added fixture files: its fixture audit
++failed 2 tests, so it is not a baseline pass. A clean git-archive baseline was
++rerun under the owned ignored .tmp, with the accepted spec read via symlink:
++315 passed / 0 failed / 5 ignored. Its first build lacked the spec include;
++adding the read-only symlink resolved that setup error.
++Initial RED setup also had an Argument-vs-controls API compile error, corrected
++before the semantic REDs. No compile error is counted as a reproduced blocker.
++
++Design: opaque calls carry an explicit adjoint key (oracle self-adjoint;
++qinplace swaps g/ginv) through lowering, instantiation and adjoints. They join
++all-operand LIFO stacks above quantum history; assigning qinplace starts history
++itself because its opaque symbolic assignment loses information. Unmatched
++readers prevent outer pops; lifetime/import barriers invalidate connected stacks.
++Loop lowering consumes released names and resolves each next body against its
++current live entry map. Equal-width, equal-role, nonoverlapping successor
++lifetimes are alpha-renamed to reusable entry slots. Changed environments get
++separate transfers; recurring environments share the exact structured cycle.
++Zero visits publish no binding or fact effects; lexical qregions stay hoisted.
++All physical frame boundaries, complete borrowed-touch guards and per-return
++obligations remain mandatory. No trip cap, expansion sample or scope narrowing.
++
++Extended R9 families: 2 passed, **33 accepted / 8 rejected** (opaque 13/5,
++loop bindings 20/3; one huge loop is static-only). Intermediate family 2/0:
++28/7 (opaque 11/4, loops 17/3). The initial family 0/2 was fixture blank lines;
++a changed-control fixture then hit §3.3 for an aliased target and was corrected
++to a distinct read-only operand. No implementation change was needed for these.
++The exploratory 2^40 fresh-allocation execution was stopped without a result:
++execution cycle keys still distinguish fresh wire ids (existing performance
++follow-up b-isa-spec-436 updated). Small family cases execute both directions;
++large analysis has no trip cap or sampled proof.
++
++An additional causal audit reproduced **0/1 RED** for three qinplace inverse
++pairs on clean workspace with no outer H. Plain permutation-loop ANF squaring
++cannot simplify assigning opaque g^-1(g(x)); `Node::needs_history` now routes
++these loops through the exact stack transfer/cycle. This extends the same rule
++rather than adding a function-specific oracle identity. Targeted GREEN: 8/0 (6 library regressions + 2 deterministic families).
++Zero-budget qinplace rejects §4.5 before its own mutation, including independent
++adjoints; the literal member action rejects at execution as required. Earlier
++exact GREEN was 8/0, extended budget GREEN 9/0. RNG/seeds remain unchanged.
++
++### Final round-9 verification
++
++Core commit **334c27d**, extended history/families commit **b07ab5b**.
++All gates use absolute crate manifest, offline, headless and repository .tmp;
++test optimization level 1 preserves domains/assertions/overflow checks.
++
++| Gate | Observed result |
++|---|---|
++| clean archived baseline | **315 passed / 0 failed / 5 ignored**, 8 unit + 307 integration; 15.96 s |
++| first full suite | **323 passed / 0 failed / 5 ignored**; 37.65 s |
++| final full suite | **327 passed / 0 failed / 5 ignored**, 8 unit + 319 integration, 0 doctests; 14.65 s |
++| fmt --check | pass, 0 tests executed |
++| strict all-target Clippy | pass, 0 warnings, 0 tests executed; 1.16 s |
++| all five ignored sweeps | **5 passed / 0 failed**, 93.83 s runner sum |
++| independent pins | all four root H/object pairs and both oracle H values match, no correction |
++| archived pre-fix CLI replay | **44 commands**, each exit 1, empty stdout, exact §5.6 diagnostic |
++
++| Sweep | Domain | Result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.72 s |
++| checked certificate | 262,144 domain elements, subject and expected program | 1/0; 14.85 s |
++| differential | 200,000 programs: **70,930 accepted, all clean / 129,070 rejected** | 1/0; 73.38 s |
++| recursive prefixes | 256 inputs × every prefix through completion/first fault | 1/0; 2.37 s |
++
++Final pin-only strengthening explicitly compares interface AND closure values
++with stored member pins in library/CLI tests. Semantic sources are unchanged
++since the passing sweeps. Pin-targeted rerun: **10/0**; final full-suite rerun: **327/0/5**, 14.61 s runner sum.
++Fmt passes; strict all-target Clippy passes with 0 warnings (0.29 s).
++Tracking b-isa-spec-82k closed; evidence commit follows.
++No conformance test was run. All existing round 4–8 negatives remain.
++No new ISA gap or amendment; SPEC-QUESTIONS unchanged. Accepted spec SHA-256:
++90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e.
++Beads metadata auto-export is outside owned commits; no push. External response:
++../bennett/docs/council/isa-ref-2026-10-29/round-9/response.md.
++Logs: repository .tmp/r9-final-*.log, r9-clean-baseline.log,
++r9-red-{library,cli,assign-repeat}.log, r9-independent-pins.log.
+ 
+ ## Round-8 fixes (2026-10-30)
+@@ -2327,325 +2442,249 @@
+ ````
+ 
+-## `council/response-round-8.md` (318 lines)
++## `council/response-round-9.md` (242 lines)
+ 
+ ````markdown
+-# Editor response: council round 8
+-
+-Inputs: full `out-sol.json` and `out-codex.json`, reviewed snapshot 00ceee2,
+-and both implementation briefs. All four distinct S0 findings are resolved;
+-final verification is recorded below. Owned paths: `reference-interpreter/`
+-and this response only. No push, dependency, RNG-distribution, accepted-spec,
+-conformance or Python-seed change. Tracking: b-isa-spec-41i and the adjacent
+-version-sensitive cleanup finding b-isa-spec-2kd. Staged deliverables 8–11
+-retain their disclosures.
++# Editor response: council round 9
++
++Both distinct S0 core blockers are resolved. Inputs are the round-9 brief,
++its binding round-8/7 briefs, the full member blocker objects and pins in
++report.md/out-sol.json/out-codex.json, and accepted ISA 0.8. Tracking:
++b-isa-spec-82k. Sole interpreter implementer; only reference-interpreter/ and
++this response were changed/committed. No push, spec/conformance/Python-seed,
++dependency, RNG-distribution or seed change. Existing deliverables 8–11 retain
++their staging; this response claims neither their completion nor conformance
++harness results. The concurrent intentionally red conformance test was not run.
+ 
+ ## Design
+ 
+-1. A live wire has an ANF basis expression; allocation alone supplies zero.
+-2. Diagonal gates and read-only controls preserve basis facts; permutations transform ANFs.
+-3. Non-diagonal targets become fresh unknowns; no unknown result invents a fact.
+-4. Each information-losing gate pushes its saved expressions on every operand stack.
+-5. Reversible gates above those histories push likewise; independent wire stacks interleave.
+-6. An exact adjoint pops only when the same saved event tops ALL operand stacks.
+-7. Nested pairs restore LIFO; outstanding readers block an outer pop; opaque/lifetime barriers invalidate connected history.
+-8. One structured source lowering publishes both physical bindings/borrow sets and the fact-node program; zero trips publish none of them. Static dead-body checks and lexical qregion hoisting remain.
+-9. Local calls reuse canonical structured per-wire transfers, memoised by callee and exact classical specialization; SCC validation excludes action recursion (§5.1).
+-10. Effective controls predicate callee gates; a known-false call transfers no facts; imported calls leave modified outputs unknown and preserve read-only operands.
+-11. Every physical quantum gate/call boundary and FULL borrowed-touch guard remains, including disabled calls; every return proves restoration and output independence.
+-12. Permutation loops square maps AND return obligations; mixed loops visit exact entries, skip identical complete analysis states or prove an unknown-top inductive invariant. No sampled admission or semantic trip cap.
+-
+-`borrow.rs::Facts::{reversible,forget_inverses,sequence}` implement the causal
+-per-wire stacks. Ordinary basis permutations need no history unless they touch
+-an existing quantum history: their ANFs already retain exact basis information.
+-Saved expressions include every operand, preserving correlations. The stack
+-checks all controls and targets, so an unmatched entangling operation cannot
+-resurrect a saved clean control. Physical frame boundaries are retained even
+-when a pair cancels in the fact domain.
+-
+-`Compiler::compile` is the sole traversal of source lifetime/binding effects;
+-it emits the exact structured node program that Facts traverses. Zero-trip
+-bodies are omitted there before any `produce`, live-borrow mutation, call,
+-node or trace effect, following the existing `action.rs::LifetimeWidths`
+-executed-lifetime rule. There is no successor environment inferred from a dead
+-body. Static validation still checks that body in its cloned state; function
+-entry still hoists every lexical qregion, including declarations in dead bodies.
+-
+-`Compiler::call_transfer` compiles a local callee into canonical wire coordinates
+-once per classical specialization, including nested calls, then remaps the
+-structured effect onto actual operands. The cache is shared by child compilers.
+-`Node::Call` separates its complete physical touched set from mutable outputs
+-and the analysed transfer. `Facts::sequence` handles its predicate and transfer;
+-`check_permutation_touches` independently checks the full call touch set and
+-recurses into callee-local lifetimes. Imported calls leave facts unknown only on modified outputs; opaque readers
+-invalidate inverse history across all touched operands, including read-only
+-controls, without erasing those controls' current basis facts. The existing Tarjan SCC call-graph validation runs first;
+-recursion through lifted oracle procedures remains opaque to this action pass.
+-
+-## SOL-R8-B01 ≡ codex R8-B02 — resolved
+-
+-RED exact library tests `r8_compound_adjoint_restores_borrow_control` and
+-`r8_diagonal_nested_adjoint_restores_borrow_control`: **0 passed / 2 failed**.
+-CLI counterparts `r8_cli_compound_x/s`: **0 passed / 2 failed**, exit 1,
+-empty stdout, `§5.6: a wire released inside a borrow frame is not clean`.
+-
+-The first H record now survives nested X/X or S/Sdg computation. Each inner
+-pair pops before the final H restores c=0. CX(0,b) is identity for arbitrary
+-b and its external reference; c is clean at release. Commit **366a711**.
+-
+-The deterministic family covers nested matched pairs through depth 3, H, X,
+-CX, SWAP, S/Sdg and literal Rx/Ry inverse pairs, loop wrappers and interleaved
+-histories on two workspace wires. The library checks all 16 t/pool basis
+-entries plus superposition and Bell-paired borrowed/reference entries, with
+-forward and adjoint initialized independently, followed by exact reversal.
+-Unmatched inner S, entangling CX and SWAP before the borrow still reject,
+-including with a certificate and with valid complete cleanup after the return.
+-
+-The family exposed an adjacent §6.2 over-rejection: an older SWAP reader was
+-blocking an inner Rx/Rx† pair that it never read. `validation.rs::Discipline::change`
+-now tests the captured current-operation version-stack prefix. An added nested SWAP/SWAP
+-case reproduced the same defect in `joint_change`; the same version-sensitive
+-rule now covers joint events. Both REDs reported `§6.2: released value has not
+-been uncomputed` (initial family **0/3**, later joint audit **0/1**).
+-Older ancestor readers do not block a nested pair; an outstanding reader whose
+-snapshot contains the complete current event prefix still blocks its inverse. This implements
+-the existing SPEC-QUESTIONS 25 reading without changing its text or weakening
+-outstanding-entanglement negatives. Tracking b-isa-spec-2kd; initial correction
+-and families **b658ac9**; final joint/prefix and opaque-reader correction **0b70157**.
+-
+-A final static import family distinguishes fact preservation from history
+-preservation. Its unknown-control negative initially stopped at §6.2 (**0/1**),
+-showing why matching only a reused top gate ID was insufficient for repeated H
+-events. Complete captured stack prefixes allow the matched whole-region
+-cleanup; the test then exposed an unsound borrow admission (**0/1**) through an
+-opaque imported reader. The import now invalidates connected inverse history
+-on all touched operands while changing facts only on mutable outputs. A
+-known-false imported call still preserves c=0; this positive is explicitly
+-static-only because no callee definition is linked. Added repeated-H/SWAP
+-identities protect the prefix distinction.
+-
+-## SOL-R8-B02 ≡ codex R8-B01 — resolved
+-
+-RED library **0 passed / 3 failed**, CLI **0 passed / 3 failed**:
+-
+-| Subject / test | Observed RED |
++1. Each live wire has an ANF basis expression; allocation alone supplies zero.
++2. Permutations transform expressions, diagonals/readonly controls preserve them, and non-diagonal targets become independent unknowns.
++3. Causal events save all operand expressions on every operand's LIFO stack.
++4. A matching adjoint restores them only when the same event tops ALL those stacks.
++5. Oracle calls carry a self-adjoint key; qinplace carries explicit swapped g/ginv keys.
++6. Keys include callees, classical/token specialisation, controls and actual input/memory/output wires.
++7. Unmatched opaque readers block outer restoration; lifetime/unresolved-import barriers invalidate connected histories.
++8. Assigning qinplace starts history even on known basis entries; its loops use causal transfer, not uninterpreted assignment squaring.
++9. Source lifetime lowering consumes released names and resolves each visit against its current live binding map.
++10. Equal-width, equal-role, nonoverlapping successor lifetimes alpha-rename to reusable entry slots; changed maps get distinct transfers, recurring maps share a structured cycle.
++11. Zero visits publish nothing; lexical qregions remain hoisted. No count cap or sampled/truncated admission.
++12. Physical frame boundaries, full borrowed-touch checks and every return's restoration/independence proof remain mandatory. Ordinary permutation maps and return obligations still square; mixed/history transfers retain the existing exact-cycle/invariant rules.
++
++## SOL-R9-B01 ≡ codex R9-B01 — resolved
++
++Sections: §§4.5, 4.7, 5.2, 5.3, 5.6, 6.2, 14.2.
++
++RED before source edits: library **0 passed / 4 failed**, CLI **0 passed /
++4 failed**, covering the three opaque subjects and the separate loop subject.
++All four in each target rejected with `§5.6: a wire released inside a borrow
++frame is not clean`; CLI exit 1 and no data output. Logs:
++`.tmp/r9-red-library.log`, `.tmp/r9-red-cli.log`. Initial test setup compilation
++mistakes (Argument supplied in the controls slot, then the wrong bindings field)
++were corrected before these semantic RED runs and are not reproduction evidence.
++
++Hand derivation: @o reaches lift.retval in one row. At B=1, it XORs c into
++Sol's t or codex's d and leaves f=0; the identical call cancels that XOR.
++At B=0, payload=0 and code=1, so two fault XORs cancel as well. Thus
++H;O;O;H restores c=0 and leaves all other quantum operands unchanged.
++CX(0,b)=I for every bR, and every allocated workspace wire is clean at exit.
++Sol's qinplace uses a fault-free identity oracle at B=1; the explicit inverse
++is normative, and the same cancellation applies to arbitrary valid g/ginv
++when the second key swaps them. B=0 must still fail the runtime §4.5 guard.
++No function-specific certificate or new specification reading is involved.
++
++Changes: `borrow.rs::Node::{adjoint,instantiate}` preserve an explicit opaque
++inverse identity; `Compiler::compile` supplies self-adjoint oracle and swapped
++qinplace keys. `Facts::{sequence,reversible}` route opaque events through the
++same all-operand stacks as primitive gates, rather than forgetting their
++ancestors. Operands read by an unmatched opaque call remain on top, preventing
++an outer H pop. `forget_inverses` still invalidates connected history at genuine
++barriers. Assigning qinplace creates a saved event even without a preceding H.
++
++An additional RED audit, `r9_qinplace_repeated_pairs_on_clean_workspace`, was
++**0/1**, with the same §5.6 diagnostic. A pure permutation Repeat was composing
++opaque assignments as g^-1(g(x)), without causal cancellation. `Node::needs_history`
++now routes such loops through the stack transfer/cycle. GREEN: **8/0** across
++six library regressions and the two R9 families; no runtime or count restriction.
++
++Exact library witnesses:
++
++- `r9_opaque_adjoint_restores_borrow_control` (Sol oracle)
++- `r9_matched_opaque_oracle_restores_outer_fact` (codex oracle)
++- `r9_qinplace_adjoint_restores_borrow_control` (Sol qinplace)
++- `r9_qinplace_zero_budget_rejects_before_mutation`
++- `r9_qinplace_repeated_pairs_on_clean_workspace`
++
++The first three have exact `r9_cli_*` counterparts in cli_xam.rs. Each library
++identity checks all **8** t/b/R basis entries, a superposition and a Bell-paired
++bR entry, independently initialized forward/adjoint followed by the opposite
++direction, with exact state/allocator equality and no escaping workspace.
++Both oracle subjects use steps(0) and steps(1); qinplace uses steps(1).
++The B=0 guard test invokes qinplace directly on a superposition in each direction
++and requires §4.5 with the complete state unchanged. The exact member action's
++B=0 CLI run also requires exit 1, empty stdout and §4.5.
++
++CLI positives require hash/check with literal byte pins, t=0/1 and
++0.6|0>+0.8i|1> unchanged in independent forward and adjoint runs, wires=1,
++and reverse equals_entry=true for each input. Total initial exact GREEN **8/0**;
++extended budget GREEN **9/0**.
++
++`generated_r9_opaque_histories_match_independent_identity`: **13 accepted /
++5 rejected**. Positives include pair loops 0/1/2/3, a matched pair split across
++two qloop 1 bodies, local child-call/adjoint wrappers in both orders, nested
++and interleaved disjoint histories, qinplace with distinct swapped oracle names,
++and qinplace on basis workspace without an outer H. Rejections cover unmatched
++readers, changed inputs, changed effective controls, different token
++specialisations, and a split pair whose two intervening completed borrowings
++cancel globally but violate each individual return. Rejections also run through
++CLI hash/check (exit 1, empty stdout); no final whole-region identity can waive
++them. Runtime §4.5 checks and the full borrowed-touch guard are untouched.
++
++## codex R9-B02 — resolved
++
++Sections: §§3.3, 4.3, 4.6, 5.3, 5.6, 14.2.
++
++The exact library `r9_mixed_loop_threads_reallocated_bindings` and CLI
++`r9_cli_mixed_loop_threads_reallocated_bindings` were each RED as part of the
++0/4 runs above; now both are GREEN with the member's exact signature, function,
++interface/closure and object pins.
++
++Hand derivation: c=0 before the first visit. Each visit applies CX(0,b),
++returns b unchanged and independent of every surviving output, frees clean c,
++allocates a new zero c, and applies H²=I to t. Induction gives c=0 at every
++visit and final release; the region is I_t tensor I_bR on arbitrary bR.
++Zero visits leave the original c binding untouched.
++
++Changes: `Compiler::compile` removes consumed qfree/qreturn/quncopy/qunload
++bindings. `Compiler::compile_repeat` compiles against the actual current entry
++map and publishes its successor. A freshly produced successor can reuse an
++entry slot only at equal width/borrow role and after that old slot is absent
++from every live successor binding. This renames nonoverlapping lifetimes;
++it performs no quantum exchange and carries no fact across release. Allocation
++and lifetime barriers still reset/check the reused slot. First-visit changes
++(e.g. width 1 to 2) compile separately; repeated live maps reuse the exact cycle
++of structured transfers. Frames and trace snapshots receive the same alpha
++renaming. No expansion proportional to n and no trip cap. Existing zero-trip
++omission and unconditional lexical qregion hoisting remain.
++
++`generated_r9_loop_bindings_match_independent_identity`: **20 accepted /
++3 rejected**, covering counts 0/1/2/3, nested loops, alpha-renamed straight-line
++expansions, first-visit width changes and dirty controls that reject at their
++first invalid return. Nineteen positives execute the independent I_t tensor I_bR
++map on all library inputs above; the **2^40** positive checks analysis/hash only.
++A fresh-wire runtime exploration at 2^40 was stopped without a completed result:
++execution's existing cycle key distinguishes newly allocated wire ids. It is
++not claimed as an execution pass or rejection; existing performance follow-up
++b-isa-spec-436 now records it. No execution limit was added or capability removed.
++
++## Independent literal hash derivation
++
++All member pins reproduced exactly; none required correction. The independent
++standard-library script `tests/support/r9_pins.py` contains the complete literal
++functions/signatures and writes their exact LF-terminated fixture bytes. It
++uses Python hashlib, not interpreter output. For each memoryless function it
++hashes `isa=0.8\nptr_width=32\n`, canonical sorted-key signature JSON plus LF,
++then the exact function including its definition header. In caller body lines,
++@o becomes @H_o; the distinct H_o is appended once plus LF in first-reference
++order. The complete object is the standard header, blank line, symbols section
++with stored H values in sorted-key JSON, blank line and functions section,
++functions in the specified order, final LF. The script asserts every published
++H and object hash before writing; Rust additionally pins stored hashes and
++object byte digests. Logs: `.tmp/r9-independent-pins.log`.
++
++| Subject | H_a = closure | object_hash | caller envelope bytes |
++|---|---|---|---|
++| Sol oracle | 4cabd490b0d1a8dfe31489ec234e91867e66b54c6c4d030eb4e8d1cf6f84bb38 | ef010633dbc984abbaa9fbfb97c6233c5390fa99a17bc38e09725cddec936832 | 519 |
++| Sol qinplace | bc6e5d89276a62eec7074a716d8dbce40e94a2c80c287ad8fc5b5e5c6c756fbf | 77664ac9392aec50b0415027771ae7ef49dcea7762b70025f0cd918d53a6ee1e | 596 |
++| codex oracle | be1f0e087e06fecd99df7c3cbb5c3c8c186fde8f814be1f826487e858fa66296 | 49ad3ba6c411ed73bebacdebe6728ebff5995dbf8bbc03c016d1cb0c5c3e8625 | 544 |
++| codex loop | bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89 | 80478acc73d52bbf64c395816470293b5b4b4a1ee36a5c550bf00436f06fc192 | 283 |
++
++Sol's oracle H_o = closure is
++a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27;
++codex's is cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926.
++All seven new fixture symbols are independently pinned in r1_fixtures.rs.
++
++## Retained checks and observed verification
++
++Every existing round 4–8 positive and negative remains. This includes completed
++lifetime independence, later-borrow/global-identity nonwaivers, certificate
++subject binding and full-domain replay, full borrowed phase/quantum/call touch
++sets, unmatched primitive/opaque readers, diagonal/transitive readers, window
++and cell versions, evolving controls beyond iteration three, changed-width and
++zero-trip lifetimes, and lexical local regions. Certificate fallback and
++physical boundaries were not weakened. No conformance command was run.
++
++All commands unset DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER,
++set TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp, use
++absolute paths and --offline. Test optimization was CARGO_PROFILE_TEST_OPT_LEVEL=1,
++with the same assertions, overflow checks and domains. Commands:
++
++```sh
++cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++cargo clippy --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline --all-targets -- -D warnings
++cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline
++cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline -- --ignored --nocapture
++python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r9_pins.py
++```
++
++Development filters used the same manifest/environment: `--test r1_borrow r9_`,
++`--test cli_xam r9_`, `--test r1_fuzz_discipline generated_r9`,
++`--test r1_borrow r9_qinplace_repeated`, and the combined borrow/family targets.
++
++| Run | Observed result |
+ |---|---|
+-| `zero-wide` / `r8_zero_trip_lifetime_environment_does_not_escape`, `r8_cli_zero_wide` | §3.3: c must be one wire |
+-| `zero-same` / `r8_zero_trip_surviving_fact`, `r8_cli_zero_same` | §5.6: released wire not clean |
+-| `zero-h` / `r8_zero_trip_cannot_hide_borrowed_quantum_touches`, CLI counterpart | parse/hash/check incorrectly accepted |
+-| `zero-s` / same literal test loop | independently replayed against pre-fix 366a711: parse accepted, CLI check exit 0/status ok; **0 passed / 1 failed** |
+-
+-The separate S replay uses an isolated git-archive source snapshot beneath the
+-repository's `.tmp`, never a shared checkout mutation. It prints both outcomes
+-before failing its rejection assertion; its stdout pins the published S hashes.
+-This supplies independent RED evidence because the initial combined H/S test
+-stopped at H. Final GREEN runs cover both H and S and require §5.6, exit 1,
+-empty stdout before execution; certificate-present variants retain rejection.
+-
+-Zero trips now execute no compiler lifetime or binding operation, so the
+-successor c is still the original clean one-wire allocation and b is still
+-the original live borrowed wire. Commit **b11b43f**. GREEN for the two
+-positives checks pinned hash/check; forward and independently started adjoint
+-at t=0/1 and 0.6|0>+0.8i|1>; one surviving interface wire; reverse
+-`equals_entry=true`; and exact identity with arbitrary/entangled bR.
+-
+-Variants include nested zero loops, alpha-renaming, dead qcopy/qload/qborrow
+-rebindings and a qregion declaration in a dead body subsequently used live.
+-Static live-name redefinition still rejects; trip count 1 with the two-wire
+-successor still rejects scalar CX. The full non-permutation borrowed-touch
+-guard applies to H/S even when a certificate is attached.
+-
+-## codex R8-B03 — resolved
+-
+-RED `r8_action_call_preserves_readonly_control` and `r8_cli_call`: each
+-**0 passed / 1 failed**, §5.6 released wire not clean, CLI exit 1/empty stdout.
+-The literal two-function object has c=0, so controlled H and CX(c,b) both
+-transfer identity. It now preserves all library/CLI identity inputs, standalone
+-adjoints and exact reversals described above. Commit **5ad0555**.
+-
+-The deterministic family adds known-zero/known-one effective controls (expected
+-I/H on t), the equivalent read-only in-parameter control, callee chains of
+-length 1–3, analysed compound identities on workspace, and unknown-control
+-negatives. The compound-identity workspace case explicitly calls the adjoint
+-after the borrow, retaining §6.2's required exact call cleanup; its c=0 fact
+-at the earlier borrow must come from the callee analysis. Unknown interface
+-controls of H on workspace cannot establish workspace=0 and therefore reject
+-the intervening borrow even though the call is subsequently undone.
+-Borrowed effective controls and direct borrowed operands of non-permutation
+-calls continue to reject, including disabled calls in the retained R3 family.
+-
+-## SOL-R8-B03 — resolved
+-
+-RED `exact::r8_tests::r8_unsigned_decimal_multiplication`: **0/1**, 2^127
+-became negative. RED `r1_linking::r8_unsigned_multiplicity_composition`:
+-**0/1**, composed `epsilon_total.diamond` was JSON number 0 instead of the
+-required exact string `340282366920938463463374607431768211456`.
+-
+-`exact.rs::BigInt::from_u128` builds the complete unsigned limb magnitude;
+-`Decimal::mul_int` uses it without an intermediate signed cast. Signed
+-construction also reuses the unsigned magnitude constructor. Commit **366a711**.
+-Tests cover 0, i128::MAX, 2^127, u128::MAX and fractional 0.1, with exact
+-expected decimal strings. The exact client/callee fixture uses local diamond=1,
+-callee inclusive=1, client inclusive=2^128 and multiplicity=u128::MAX;
+-`Object::link` now returns the exact positive string and `check_hashes` passes.
+-No multiplicity cap, precision fallback or interval-verifier dependency.
+-
+-## Published literal pins
+-
+-The helper asserts exact stored-H object bytes with SHA-256 even for rejected
+-subjects. Accepted subjects also assert interface, closure and object hashes
+-and `check_hashes`. Hash expectations are the independently published member
+-values, never implementation outputs copied into fixtures.
+-
+-| Subject | interface = closure H | object_hash |
+-|---|---|---|
+-| H X X H | 0fd6d6eadcb219457ce3d9aa091a2176d38ce9f81551235799dae7cabe6e0e2f | 5eff1283a8f71dcce612e1802e510fdcae30c609395686311962bd630f01461c |
+-| H S Sdg H | a8a4f90c95a1995df9a28afe4369f3455239ae54b6c22b5c8133df7a60253401 | 535f274d3c7328e13cfd99e8785751ec3874e4d3090da3544e781855ca35439f |
+-| zero / wide | c9cbc01c190e4454e37b553e1d7e8e9eeea856631a6ab397029577447b053b87 | 708531c08cb63447ea2bbaa966c69562300ab1bc89e07efb9c3278799c54922d |
+-| zero / same | d607c1df25e3a4d8f4e730501cf13a04a62cfa6adbeae5c36133a4f140f406bd | 568f2a4ee6c4cb927cafe4bd54414def5e91257186832704e6be7abfe99fd1bc |
+-| zero / H borrowed | 90cbbcb904bff3ae413e3aaa3ec398173654dc1690354777bcb3837881098080 | 60865de88a18adc53e2ecb23ab54d86f44836e4895cb7fb54e3ac78c0c879280 |
+-| zero / S borrowed | 1c0599e2f06674ccbc34f0017d5d158af1588d7d54982aa1adfebddc4262fa58 | fd5167fefabbbc72d9cd486e6cf036119f2ba5088558cccb155f898eaa7285ec |
+-| controlled call / @a | 63ae90bc9af75ebe3e958956282567f52129b0097651a445c08f7c5f2845ac79 | c4a3c1adad250d856a334556766f0cc398a71b6c65df3ce5f81adf86d07f968e |
+-
+-The controlled-call @u interface/closure pin is
+-`c0c51a4bf1e9713e237601daaf342134f91eae5fd7143f8638595157d33db5b6`.
+-
+-## Retained negatives and contracts
+-
+-All round 4–8 tests remain. Retained checks include independent loop-local
+-returns (later borrowing cannot repair an earlier return), globally restored
+-four/eight-trip rotation negatives, evolving clean controls after iteration 3,
+-unknown dirty controls, unmatched H, outstanding transitive/diagonal readers,
+-cell-version/window closure, illegal borrowed quantum/phase/call controls,
+-opaque borrowed-input claim requirements, certificate subject binding, checked
+-claim replay, mixed lifetimes and nonzero/zero-trip qregion hoisting.
+-Neither translation-lemma structure nor a final whole-region certificate can
+-waive a definite per-return or non-permutation touch failure. RNG generator,
+-seeds and distribution are unchanged. No semantic trip, wire or multiplicity
+-limit was added; no accepted ISA capability was intentionally narrowed.
+-
+-## Verification commands and observed counts
+-
+-All gates use the repository root, absolute manifest, offline, headless and
+-project-local temporary storage. `CARGO_PROFILE_TEST_OPT_LEVEL=1` changes
+-optimization only; assertions, overflow checks and test domains are unchanged.
+-
+-```sh
+-unset DISPLAY WAYLAND_DISPLAY DBUS_SESSION_BUS_ADDRESS BROWSER
+-export TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp
+-export CARGO_PROFILE_TEST_OPT_LEVEL=1
+-cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
+-cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
+-cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
+-cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --ignored --nocapture
+-```
+-
+-Development commands used the same prefix/manifest with these filters:
+-`r8_unsigned`, `--test r1_linking r8_unsigned`,
+-`--test r1_borrow r8_`, `--test cli_xam r8_`,
+-`--test r1_borrow r8_zero`, `--test cli_xam r8_cli_zero`,
+-`--test r1_borrow r8_action_call`, `--test cli_xam r8_cli_call`,
+-`--test r1_borrow sol_r5_b02`,
+-`--test r1_fuzz_discipline generated_r8`, and later `generated_r8_nested`,
+-all with `-- --nocapture`. RED S replay uses the git archive of 366a711 at
+-`.tmp/r8-red-s/reference-interpreter/Cargo.toml`, `--test r8_red_s -- --nocapture`.
+-
+-Observed development GREEN counts: **6/0** nested/numeric; **10/0** R8
+-borrow/CLI after zero-trip fix; **1/0** existing huge permutation regression;
+-**12/0** R8 borrow/CLI after call fix; family intermediate **3/0**, **134
+-accepted / 25 rejected** (86/6 nested, 33/10 zero, 15/9 call). Initial family
+-**0/3** includes two fixture errors (address width; missing explicit call
+-adjoint) corrected to comply with §§3.3/6.2, plus the genuine nested-reader
+-rejection. The extended joint-reader RED was **0/1**. The separate S witness
+-pre-fix replay was **0/1**, with both load surfaces observed before assertion.
+-
+-First completed full suite: **314 passed / 0 failed / 5 ignored**, 8 unit +
+-306 integration, 0 doctests; 36.79 s summed runner time. Initial strict Clippy
+-reported one map-entry style violation; after its correction strict Clippy
+-passed with zero warnings (9.07 s). Fmt checks passed. One earlier full run
+-raced test authoring, observed new zero-trip REDs, and was stopped during
+-needless permutation-history expansion; the basis-ANF fast path was corrected
+-and its huge regression passed. A later gate attempt was stopped to include
+-the final joint-reader RED. Interrupted runs are not reported as passes.
+-
+-Final source gates after **0b70157**:
+-
+-| Gate | Observed result |
+-|---|---|
+-| fmt --check | pass; 0 tests executed |
+-| strict all-target Clippy | pass; 0 warnings, 0 tests executed; 2.84 s |
+-| normal suite | **315 passed / 0 failed / 5 ignored**, 8 unit + 307 integration, 0 doctests; 21.07 s summed runner time |
+-| deterministic R8 families | **4 passed / 0 failed**, **139 accepted / 26 rejected** |
+-| standalone read-only conformance | **445 pass / 0 fail / 65 unavailable / 510**, exit 2 for explicit staging |
+-
+-Final family details: **90/6** nested, **33/10** zero trips, **15/9** local
+-calls, **1/1** static imports. The earlier joint-only family run was **3/0**,
+-**136/25** (88/6 nested). Every accepted executable R8 family subject is
+-checked against independently derived I or H maps, including arbitrary and
+-entangled borrowed inputs; the unlinked import positive is static-only.
+-
+-Read-only conformance command (build artifacts confined to the owned crate):
+-
+-```sh
+-CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp/conformance-target cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref
+-```
+-
+-| Suite | pass | fail | unavailable | total |
+-|---|---|---|---|---|
+-| A | 21 | 0 | 1 | 22 |
+-| B | 35 | 0 | 0 | 35 |
+-| C | 339 | 0 | 1 | 340 |
+-| D | 7 | 0 | 6 | 13 |
+-| E | 0 | 0 | 29 | 29 |
+-| F | 33 | 0 | 4 | 37 |
+-| G | 10 | 0 | 14 | 24 |
+-| H | 0 | 0 | 10 | 10 |
+-
+-The concurrently maintained harness adds unavailable contract cases compared
+-with round 7's 507-case run. No unavailable item is counted as a pass; the
+-existing deliverables 8–11 staging is retained. Conformance sources were never
+-modified by this implementation. Final logs are repository
+-`.tmp/r8-complete-{fmt,clippy,tests,sweeps,conformance}.log`; all RED logs and
+-isolated S replay are retained there too.
+-
++| clean archived baseline | 315 passed / 0 failed / 5 ignored; 8 unit + 307 integration; 15.96 s runner sum |
++| exact RED library / CLI | 0 passed / 4 failed each |
++| exact GREEN library + CLI | 8 passed / 0 failed |
++| first full suite | 323 passed / 0 failed / 5 ignored; 37.65 s runner sum |
++| budget-extended GREEN | 9 passed / 0 failed |
++| intermediate families | 2 passed / 0 failed; 28 accepted / 7 rejected (11/4 opaque, 17/3 loop) |
++| final R9 families | 2 passed / 0 failed; 33 accepted / 8 rejected (13/5 opaque, 20/3 loop) |
++| assigning Repeat RED | 0 passed / 1 failed |
++| extended library/family GREEN | 8 passed / 0 failed (6 + 2) |
++| final fmt --check | pass; 0 tests executed |
++| final strict all-target Clippy | pass; 0 warnings; 0 tests executed; 1.16 s |
++| final normal suite | 327 passed / 0 failed / 5 ignored; 8 unit + 319 integration; 0 doctests; 14.65 s runner sum |
++| final five ignored sweeps | 5 passed / 0 failed; 93.83 s runner sum |
+ 
+ | Ignored sweep | Domain | Observed result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | **1 passed / 0 failed**, 0.70 s |
+-| 17-wire borrow | 131,072 entries | **1 passed / 0 failed**, 4.31 s |
+-| checked borrow certificate | 262,144 domain elements, subject and expected program | **1 passed / 0 failed**, 22.04 s |
+-| §6 differential | 200,000 programs: **70,930 accepted (all exactly clean) / 129,070 rejected** | **1 passed / 0 failed**, 80.30 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | **1 passed / 0 failed**, 2.38 s |
+-
+-All five ignored sweeps: **5 passed / 0 failed**, 109.73 s summed runner time.
+-The higher accepted count than the historical 64,717/135,283 follows the
+-version-sensitive cleanup correction with unchanged random code/distribution
+-and seeds; every accepted sampled program passed independent exact cleanup.
+-
+-The unchanged Python seed was also run headlessly:
+-`python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py`.
+-It verified **2 example objects and 2 printed envelopes**, executing as stated.
+-Only a source comment was clarified after the final semantic tests: cached
+-call proof templates predicate paired image preparation/unpreparation together,
+-using C(P†) C(U) C(P) = C(P† U P); actual execution still prepares images
+-unconditionally. Fmt and strict all-target Clippy were rerun and passed
+-(0 warnings, 0 tests; Clippy 1.29 s), logged as
+-`.tmp/r8-comment-{fmt,clippy}.log`. No semantic Rust changes followed the final
+-normal or ignored suites. Owned diff checks pass.
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1 passed / 0 failed; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1 passed / 0 failed; 2.72 s |
++| checked borrow certificate | 262,144 domain elements, subject and expected program | 1 passed / 0 failed; 14.85 s |
++| §6 differential | 200,000 programs: 70,930 accepted (all exactly clean) / 129,070 rejected | 1 passed / 0 failed; 73.38 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1 passed / 0 failed; 2.37 s |
++
++Archived pre-fix CLI replay additionally ran **44 commands**: all four subjects,
++hash/check and three inputs in forward/adjoint/reverse, requiring exit 1,
++empty stdout and the exact §5.6 diagnostic. A final test-only pin strengthening
++explicitly compares every library/CLI closure hash with the stored member
++interface pin as well: targeted **10 passed / 0 failed**, followed by full suite
++**327 passed / 0 failed / 5 ignored** (14.61 s runner sum), fmt pass and
++strict all-target Clippy pass (0 warnings, 0 tests, 0.29 s). No semantic source
++change followed the sweeps. Tracking b-isa-spec-82k is closed.
++
++The initial live baseline overlapped newly created fixture files and failed
++its fixture audit **2 passed / 2 failed**; it is not a baseline pass. The isolated
++git-archive baseline lacked the spec include on its first build; a read-only
++symlink supplied the unchanged accepted spec before the completed 315/0/5 run.
++Initial generated family **0 passed / 2 failed** was fixture blank-line syntax;
++a later changed-control fixture hit §3.3 target aliasing and was corrected.
++The intermediate huge runtime exploration was stopped before its loop-family
++result; no interrupted run is counted as a pass or semantic rejection.
++Final logs are `.tmp/r9-final-{fmt,clippy,tests,sweeps}.log`; baseline, RED and
++intermediate logs are named in PROGRESS.md.
+ 
+ ## ISA 0.8 gaps and disposition
+ 
+-No new ISA gap, spec amendment, decline or partial finding. The stack and
+-version-prefix rules implement §§5.3/6.2 and existing SPEC-QUESTIONS 25; zero
+-trips follow §4.6 and executed lifetimes; call transfer follows §§3.5/4.7/6.1;
+-unsigned composition follows §§9.1/9.3/12.3. No scope, trip, wire, multiplicity
+-or frame restriction was added. Existing staged deliverables 8–11 and the
+-pre-existing performance follow-up b-isa-spec-436 retain their disclosures.
+-Accepted ISA 0.8 SHA-256 is unchanged:
+-`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
+-
+-Implementation commits: **366a711**, **b11b43f**, **5ad0555**, **b658ac9**,
+-**0b70157**. Final evidence/comment commit: **e15a187**. Only explicit owned paths
+-were committed with BEADS_HOOK_TIMEOUT=20; no push. Beads' automatic export is
+-left to the maintainer outside owned commit paths.
++No new ISA gap, amendment, decline or partial blocker. The fixes implement the
++existing adjoint/lifetime semantics and do not change SPEC-QUESTIONS 20/25/28/30.
++No trip/wire/budget cap, frame merge/waiver or function-specific certificate
++requirement was added. Existing deliverables 8–11 and performance follow-up
++b-isa-spec-436 remain disclosed. Accepted spec SHA-256 remains
++90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e.
++
++Implementation commits: **334c27d**, **b07ab5b**; closure-pin/final evidence
++commit **532e3de**. This response is committed separately in the council repository.
++Only explicit owned paths were committed with BEADS_HOOK_TIMEOUT=20; no push.
+ ````
+ 
+@@ -4703,4 +4742,327 @@
+ that file is outside the owned commit paths and is left for the maintainer.
+ No push; no new ISA gap or specification edit required.
++````
++
++## `council/response-round-8.md` (318 lines)
++
++````markdown
++# Editor response: council round 8
++
++Inputs: full `out-sol.json` and `out-codex.json`, reviewed snapshot 00ceee2,
++and both implementation briefs. All four distinct S0 findings are resolved;
++final verification is recorded below. Owned paths: `reference-interpreter/`
++and this response only. No push, dependency, RNG-distribution, accepted-spec,
++conformance or Python-seed change. Tracking: b-isa-spec-41i and the adjacent
++version-sensitive cleanup finding b-isa-spec-2kd. Staged deliverables 8–11
++retain their disclosures.
++
++## Design
++
++1. A live wire has an ANF basis expression; allocation alone supplies zero.
++2. Diagonal gates and read-only controls preserve basis facts; permutations transform ANFs.
++3. Non-diagonal targets become fresh unknowns; no unknown result invents a fact.
++4. Each information-losing gate pushes its saved expressions on every operand stack.
++5. Reversible gates above those histories push likewise; independent wire stacks interleave.
++6. An exact adjoint pops only when the same saved event tops ALL operand stacks.
++7. Nested pairs restore LIFO; outstanding readers block an outer pop; opaque/lifetime barriers invalidate connected history.
++8. One structured source lowering publishes both physical bindings/borrow sets and the fact-node program; zero trips publish none of them. Static dead-body checks and lexical qregion hoisting remain.
++9. Local calls reuse canonical structured per-wire transfers, memoised by callee and exact classical specialization; SCC validation excludes action recursion (§5.1).
++10. Effective controls predicate callee gates; a known-false call transfers no facts; imported calls leave modified outputs unknown and preserve read-only operands.
++11. Every physical quantum gate/call boundary and FULL borrowed-touch guard remains, including disabled calls; every return proves restoration and output independence.
++12. Permutation loops square maps AND return obligations; mixed loops visit exact entries, skip identical complete analysis states or prove an unknown-top inductive invariant. No sampled admission or semantic trip cap.
++
++`borrow.rs::Facts::{reversible,forget_inverses,sequence}` implement the causal
++per-wire stacks. Ordinary basis permutations need no history unless they touch
++an existing quantum history: their ANFs already retain exact basis information.
++Saved expressions include every operand, preserving correlations. The stack
++checks all controls and targets, so an unmatched entangling operation cannot
++resurrect a saved clean control. Physical frame boundaries are retained even
++when a pair cancels in the fact domain.
++
++`Compiler::compile` is the sole traversal of source lifetime/binding effects;
++it emits the exact structured node program that Facts traverses. Zero-trip
++bodies are omitted there before any `produce`, live-borrow mutation, call,
++node or trace effect, following the existing `action.rs::LifetimeWidths`
++executed-lifetime rule. There is no successor environment inferred from a dead
++body. Static validation still checks that body in its cloned state; function
++entry still hoists every lexical qregion, including declarations in dead bodies.
++
++`Compiler::call_transfer` compiles a local callee into canonical wire coordinates
++once per classical specialization, including nested calls, then remaps the
++structured effect onto actual operands. The cache is shared by child compilers.
++`Node::Call` separates its complete physical touched set from mutable outputs
++and the analysed transfer. `Facts::sequence` handles its predicate and transfer;
++`check_permutation_touches` independently checks the full call touch set and
++recurses into callee-local lifetimes. Imported calls leave facts unknown only on modified outputs; opaque readers
++invalidate inverse history across all touched operands, including read-only
++controls, without erasing those controls' current basis facts. The existing Tarjan SCC call-graph validation runs first;
++recursion through lifted oracle procedures remains opaque to this action pass.
++
++## SOL-R8-B01 ≡ codex R8-B02 — resolved
++
++RED exact library tests `r8_compound_adjoint_restores_borrow_control` and
++`r8_diagonal_nested_adjoint_restores_borrow_control`: **0 passed / 2 failed**.
++CLI counterparts `r8_cli_compound_x/s`: **0 passed / 2 failed**, exit 1,
++empty stdout, `§5.6: a wire released inside a borrow frame is not clean`.
++
++The first H record now survives nested X/X or S/Sdg computation. Each inner
++pair pops before the final H restores c=0. CX(0,b) is identity for arbitrary
++b and its external reference; c is clean at release. Commit **366a711**.
++
++The deterministic family covers nested matched pairs through depth 3, H, X,
++CX, SWAP, S/Sdg and literal Rx/Ry inverse pairs, loop wrappers and interleaved
++histories on two workspace wires. The library checks all 16 t/pool basis
++entries plus superposition and Bell-paired borrowed/reference entries, with
++forward and adjoint initialized independently, followed by exact reversal.
++Unmatched inner S, entangling CX and SWAP before the borrow still reject,
++including with a certificate and with valid complete cleanup after the return.
++
++The family exposed an adjacent §6.2 over-rejection: an older SWAP reader was
++blocking an inner Rx/Rx† pair that it never read. `validation.rs::Discipline::change`
++now tests the captured current-operation version-stack prefix. An added nested SWAP/SWAP
++case reproduced the same defect in `joint_change`; the same version-sensitive
++rule now covers joint events. Both REDs reported `§6.2: released value has not
++been uncomputed` (initial family **0/3**, later joint audit **0/1**).
++Older ancestor readers do not block a nested pair; an outstanding reader whose
++snapshot contains the complete current event prefix still blocks its inverse. This implements
++the existing SPEC-QUESTIONS 25 reading without changing its text or weakening
++outstanding-entanglement negatives. Tracking b-isa-spec-2kd; initial correction
++and families **b658ac9**; final joint/prefix and opaque-reader correction **0b70157**.
++
++A final static import family distinguishes fact preservation from history
++preservation. Its unknown-control negative initially stopped at §6.2 (**0/1**),
++showing why matching only a reused top gate ID was insufficient for repeated H
++events. Complete captured stack prefixes allow the matched whole-region
++cleanup; the test then exposed an unsound borrow admission (**0/1**) through an
++opaque imported reader. The import now invalidates connected inverse history
++on all touched operands while changing facts only on mutable outputs. A
++known-false imported call still preserves c=0; this positive is explicitly
++static-only because no callee definition is linked. Added repeated-H/SWAP
++identities protect the prefix distinction.
++
++## SOL-R8-B02 ≡ codex R8-B01 — resolved
++
++RED library **0 passed / 3 failed**, CLI **0 passed / 3 failed**:
++
++| Subject / test | Observed RED |
++|---|---|
++| `zero-wide` / `r8_zero_trip_lifetime_environment_does_not_escape`, `r8_cli_zero_wide` | §3.3: c must be one wire |
++| `zero-same` / `r8_zero_trip_surviving_fact`, `r8_cli_zero_same` | §5.6: released wire not clean |
++| `zero-h` / `r8_zero_trip_cannot_hide_borrowed_quantum_touches`, CLI counterpart | parse/hash/check incorrectly accepted |
++| `zero-s` / same literal test loop | independently replayed against pre-fix 366a711: parse accepted, CLI check exit 0/status ok; **0 passed / 1 failed** |
++
++The separate S replay uses an isolated git-archive source snapshot beneath the
++repository's `.tmp`, never a shared checkout mutation. It prints both outcomes
++before failing its rejection assertion; its stdout pins the published S hashes.
++This supplies independent RED evidence because the initial combined H/S test
++stopped at H. Final GREEN runs cover both H and S and require §5.6, exit 1,
++empty stdout before execution; certificate-present variants retain rejection.
++
++Zero trips now execute no compiler lifetime or binding operation, so the
++successor c is still the original clean one-wire allocation and b is still
++the original live borrowed wire. Commit **b11b43f**. GREEN for the two
++positives checks pinned hash/check; forward and independently started adjoint
++at t=0/1 and 0.6|0>+0.8i|1>; one surviving interface wire; reverse
++`equals_entry=true`; and exact identity with arbitrary/entangled bR.
++
++Variants include nested zero loops, alpha-renaming, dead qcopy/qload/qborrow
++rebindings and a qregion declaration in a dead body subsequently used live.
++Static live-name redefinition still rejects; trip count 1 with the two-wire
++successor still rejects scalar CX. The full non-permutation borrowed-touch
++guard applies to H/S even when a certificate is attached.
++
++## codex R8-B03 — resolved
++
++RED `r8_action_call_preserves_readonly_control` and `r8_cli_call`: each
++**0 passed / 1 failed**, §5.6 released wire not clean, CLI exit 1/empty stdout.
++The literal two-function object has c=0, so controlled H and CX(c,b) both
++transfer identity. It now preserves all library/CLI identity inputs, standalone
++adjoints and exact reversals described above. Commit **5ad0555**.
++
++The deterministic family adds known-zero/known-one effective controls (expected
++I/H on t), the equivalent read-only in-parameter control, callee chains of
++length 1–3, analysed compound identities on workspace, and unknown-control
++negatives. The compound-identity workspace case explicitly calls the adjoint
++after the borrow, retaining §6.2's required exact call cleanup; its c=0 fact
++at the earlier borrow must come from the callee analysis. Unknown interface
++controls of H on workspace cannot establish workspace=0 and therefore reject
++the intervening borrow even though the call is subsequently undone.
++Borrowed effective controls and direct borrowed operands of non-permutation
++calls continue to reject, including disabled calls in the retained R3 family.
++
++## SOL-R8-B03 — resolved
++
++RED `exact::r8_tests::r8_unsigned_decimal_multiplication`: **0/1**, 2^127
++became negative. RED `r1_linking::r8_unsigned_multiplicity_composition`:
++**0/1**, composed `epsilon_total.diamond` was JSON number 0 instead of the
++required exact string `340282366920938463463374607431768211456`.
++
++`exact.rs::BigInt::from_u128` builds the complete unsigned limb magnitude;
++`Decimal::mul_int` uses it without an intermediate signed cast. Signed
++construction also reuses the unsigned magnitude constructor. Commit **366a711**.
++Tests cover 0, i128::MAX, 2^127, u128::MAX and fractional 0.1, with exact
++expected decimal strings. The exact client/callee fixture uses local diamond=1,
++callee inclusive=1, client inclusive=2^128 and multiplicity=u128::MAX;
++`Object::link` now returns the exact positive string and `check_hashes` passes.
++No multiplicity cap, precision fallback or interval-verifier dependency.
++
++## Published literal pins
++
++The helper asserts exact stored-H object bytes with SHA-256 even for rejected
++subjects. Accepted subjects also assert interface, closure and object hashes
++and `check_hashes`. Hash expectations are the independently published member
++values, never implementation outputs copied into fixtures.
++
++| Subject | interface = closure H | object_hash |
++|---|---|---|
++| H X X H | 0fd6d6eadcb219457ce3d9aa091a2176d38ce9f81551235799dae7cabe6e0e2f | 5eff1283a8f71dcce612e1802e510fdcae30c609395686311962bd630f01461c |
++| H S Sdg H | a8a4f90c95a1995df9a28afe4369f3455239ae54b6c22b5c8133df7a60253401 | 535f274d3c7328e13cfd99e8785751ec3874e4d3090da3544e781855ca35439f |
++| zero / wide | c9cbc01c190e4454e37b553e1d7e8e9eeea856631a6ab397029577447b053b87 | 708531c08cb63447ea2bbaa966c69562300ab1bc89e07efb9c3278799c54922d |
++| zero / same | d607c1df25e3a4d8f4e730501cf13a04a62cfa6adbeae5c36133a4f140f406bd | 568f2a4ee6c4cb927cafe4bd54414def5e91257186832704e6be7abfe99fd1bc |
++| zero / H borrowed | 90cbbcb904bff3ae413e3aaa3ec398173654dc1690354777bcb3837881098080 | 60865de88a18adc53e2ecb23ab54d86f44836e4895cb7fb54e3ac78c0c879280 |
++| zero / S borrowed | 1c0599e2f06674ccbc34f0017d5d158af1588d7d54982aa1adfebddc4262fa58 | fd5167fefabbbc72d9cd486e6cf036119f2ba5088558cccb155f898eaa7285ec |
++| controlled call / @a | 63ae90bc9af75ebe3e958956282567f52129b0097651a445c08f7c5f2845ac79 | c4a3c1adad250d856a334556766f0cc398a71b6c65df3ce5f81adf86d07f968e |
++
++The controlled-call @u interface/closure pin is
++`c0c51a4bf1e9713e237601daaf342134f91eae5fd7143f8638595157d33db5b6`.
++
++## Retained negatives and contracts
++
++All round 4–8 tests remain. Retained checks include independent loop-local
++returns (later borrowing cannot repair an earlier return), globally restored
++four/eight-trip rotation negatives, evolving clean controls after iteration 3,
++unknown dirty controls, unmatched H, outstanding transitive/diagonal readers,
++cell-version/window closure, illegal borrowed quantum/phase/call controls,
++opaque borrowed-input claim requirements, certificate subject binding, checked
++claim replay, mixed lifetimes and nonzero/zero-trip qregion hoisting.
++Neither translation-lemma structure nor a final whole-region certificate can
++waive a definite per-return or non-permutation touch failure. RNG generator,
++seeds and distribution are unchanged. No semantic trip, wire or multiplicity
++limit was added; no accepted ISA capability was intentionally narrowed.
++
++## Verification commands and observed counts
++
++All gates use the repository root, absolute manifest, offline, headless and
++project-local temporary storage. `CARGO_PROFILE_TEST_OPT_LEVEL=1` changes
++optimization only; assertions, overflow checks and test domains are unchanged.
++
++```sh
++unset DISPLAY WAYLAND_DISPLAY DBUS_SESSION_BUS_ADDRESS BROWSER
++export TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp
++export CARGO_PROFILE_TEST_OPT_LEVEL=1
++cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
++cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
++cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --ignored --nocapture
++```
++
++Development commands used the same prefix/manifest with these filters:
++`r8_unsigned`, `--test r1_linking r8_unsigned`,
++`--test r1_borrow r8_`, `--test cli_xam r8_`,
++`--test r1_borrow r8_zero`, `--test cli_xam r8_cli_zero`,
++`--test r1_borrow r8_action_call`, `--test cli_xam r8_cli_call`,
++`--test r1_borrow sol_r5_b02`,
++`--test r1_fuzz_discipline generated_r8`, and later `generated_r8_nested`,
++all with `-- --nocapture`. RED S replay uses the git archive of 366a711 at
++`.tmp/r8-red-s/reference-interpreter/Cargo.toml`, `--test r8_red_s -- --nocapture`.
++
++Observed development GREEN counts: **6/0** nested/numeric; **10/0** R8
++borrow/CLI after zero-trip fix; **1/0** existing huge permutation regression;
++**12/0** R8 borrow/CLI after call fix; family intermediate **3/0**, **134
++accepted / 25 rejected** (86/6 nested, 33/10 zero, 15/9 call). Initial family
++**0/3** includes two fixture errors (address width; missing explicit call
++adjoint) corrected to comply with §§3.3/6.2, plus the genuine nested-reader
++rejection. The extended joint-reader RED was **0/1**. The separate S witness
++pre-fix replay was **0/1**, with both load surfaces observed before assertion.
++
++First completed full suite: **314 passed / 0 failed / 5 ignored**, 8 unit +
++306 integration, 0 doctests; 36.79 s summed runner time. Initial strict Clippy
++reported one map-entry style violation; after its correction strict Clippy
++passed with zero warnings (9.07 s). Fmt checks passed. One earlier full run
++raced test authoring, observed new zero-trip REDs, and was stopped during
++needless permutation-history expansion; the basis-ANF fast path was corrected
++and its huge regression passed. A later gate attempt was stopped to include
++the final joint-reader RED. Interrupted runs are not reported as passes.
++
++Final source gates after **0b70157**:
++
++| Gate | Observed result |
++|---|---|
++| fmt --check | pass; 0 tests executed |
++| strict all-target Clippy | pass; 0 warnings, 0 tests executed; 2.84 s |
++| normal suite | **315 passed / 0 failed / 5 ignored**, 8 unit + 307 integration, 0 doctests; 21.07 s summed runner time |
++| deterministic R8 families | **4 passed / 0 failed**, **139 accepted / 26 rejected** |
++| standalone read-only conformance | **445 pass / 0 fail / 65 unavailable / 510**, exit 2 for explicit staging |
++
++Final family details: **90/6** nested, **33/10** zero trips, **15/9** local
++calls, **1/1** static imports. The earlier joint-only family run was **3/0**,
++**136/25** (88/6 nested). Every accepted executable R8 family subject is
++checked against independently derived I or H maps, including arbitrary and
++entangled borrowed inputs; the unlinked import positive is static-only.
++
++Read-only conformance command (build artifacts confined to the owned crate):
++
++```sh
++CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp/conformance-target cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref
++```
++
++| Suite | pass | fail | unavailable | total |
++|---|---|---|---|---|
++| A | 21 | 0 | 1 | 22 |
++| B | 35 | 0 | 0 | 35 |
++| C | 339 | 0 | 1 | 340 |
++| D | 7 | 0 | 6 | 13 |
++| E | 0 | 0 | 29 | 29 |
++| F | 33 | 0 | 4 | 37 |
++| G | 10 | 0 | 14 | 24 |
++| H | 0 | 0 | 10 | 10 |
++
++The concurrently maintained harness adds unavailable contract cases compared
++with round 7's 507-case run. No unavailable item is counted as a pass; the
++existing deliverables 8–11 staging is retained. Conformance sources were never
++modified by this implementation. Final logs are repository
++`.tmp/r8-complete-{fmt,clippy,tests,sweeps,conformance}.log`; all RED logs and
++isolated S replay are retained there too.
++
++
++| Ignored sweep | Domain | Observed result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | **1 passed / 0 failed**, 0.70 s |
++| 17-wire borrow | 131,072 entries | **1 passed / 0 failed**, 4.31 s |
++| checked borrow certificate | 262,144 domain elements, subject and expected program | **1 passed / 0 failed**, 22.04 s |
++| §6 differential | 200,000 programs: **70,930 accepted (all exactly clean) / 129,070 rejected** | **1 passed / 0 failed**, 80.30 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | **1 passed / 0 failed**, 2.38 s |
++
++All five ignored sweeps: **5 passed / 0 failed**, 109.73 s summed runner time.
++The higher accepted count than the historical 64,717/135,283 follows the
++version-sensitive cleanup correction with unchanged random code/distribution
++and seeds; every accepted sampled program passed independent exact cleanup.
++
++The unchanged Python seed was also run headlessly:
++`python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py`.
++It verified **2 example objects and 2 printed envelopes**, executing as stated.
++Only a source comment was clarified after the final semantic tests: cached
++call proof templates predicate paired image preparation/unpreparation together,
++using C(P†) C(U) C(P) = C(P† U P); actual execution still prepares images
++unconditionally. Fmt and strict all-target Clippy were rerun and passed
++(0 warnings, 0 tests; Clippy 1.29 s), logged as
++`.tmp/r8-comment-{fmt,clippy}.log`. No semantic Rust changes followed the final
++normal or ignored suites. Owned diff checks pass.
++
++## ISA 0.8 gaps and disposition
++
++No new ISA gap, spec amendment, decline or partial finding. The stack and
++version-prefix rules implement §§5.3/6.2 and existing SPEC-QUESTIONS 25; zero
++trips follow §4.6 and executed lifetimes; call transfer follows §§3.5/4.7/6.1;
++unsigned composition follows §§9.1/9.3/12.3. No scope, trip, wire, multiplicity
++or frame restriction was added. Existing staged deliverables 8–11 and the
++pre-existing performance follow-up b-isa-spec-436 retain their disclosures.
++Accepted ISA 0.8 SHA-256 is unchanged:
++`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
++
++Implementation commits: **366a711**, **b11b43f**, **5ad0555**, **b658ac9**,
++**0b70157**. Final evidence/comment commit: **e15a187**. Only explicit owned paths
++were committed with BEADS_HOOK_TIMEOUT=20; no push. Beads' automatic export is
++left to the maintainer outside owned commit paths.
+ ````
+ 
+@@ -6712,5 +7074,5 @@
+ ````
+ 
+-## `src/borrow.rs` (1862 lines)
++## `src/borrow.rs` (1986 lines)
+ 
+ ````rust
+@@ -6726,5 +7088,10 @@
+ //! over the frame's full domain (T3), with no wire-count limit; permutation loops use repeated
+ //! squaring; mixed loops carry facts through every iteration or a proved invariant. Opaque applications retain their full
+-//! input expressions: composition substitutes recursively into those inputs and
++//! input expressions. Oracle self-adjoints and explicit qinplace g/ginv inverses
++//! join the same all-operand causal stacks as gates; unmatched readers block an
++//! outer pop. Loop transfers resolve each visit's live bindings, alpha-renaming
++//! nonoverlapping successor lifetimes to reusable slots; recurring environments
++//! share structured cycles, including first-visit width changes. ANF composition
++//! substitutes recursively into opaque inputs and
+ //! interns the resulting application, rather than freezing an ANF variable.
+ //! This proves identities valid for arbitrary black-box functions; unresolved
+@@ -6837,4 +7204,5 @@
+     Opaque {
+         key: String,
++        inverse: String,
+         controls: Vec<(String, bool)>,
+         inputs: Vec<String>,
+@@ -6917,4 +7285,13 @@
+         }
+     }
++    /// Assigning black boxes need their causal inverse events even when all
++    /// entries are basis-definite. Plain ANF substitution cannot reduce g^-1(g(x)).
++    fn needs_history(&self) -> bool {
++        match self {
++            Self::Opaque { assign: true, .. } => true,
++            Self::Repeat(n, body) => *n != 0 && body.iter().any(Self::needs_history),
++            _ => false,
++        }
++    }
+     fn adjoint(&self) -> Self {
+         match self {
+@@ -6923,15 +7300,17 @@
+             }
+             Self::Opaque {
+-                assign: true,
+                 key,
++                inverse,
+                 controls,
+                 inputs,
+                 outputs,
++                assign,
+             } => Self::Opaque {
+-                key: format!("inverse({key})"),
++                key: inverse.clone(),
++                inverse: key.clone(),
+                 controls: controls.clone(),
+                 inputs: inputs.clone(),
+                 outputs: outputs.clone(),
+-                assign: true,
++                assign: *assign,
+             },
+             Self::Quantum {
+@@ -7010,4 +7389,5 @@
+             Self::Opaque {
+                 key,
++                inverse,
+                 controls,
+                 inputs,
+@@ -7016,4 +7396,5 @@
+             } => Self::Opaque {
+                 key: key.clone(),
++                inverse: inverse.clone(),
+                 controls: cs(controls),
+                 inputs: ws(inputs),
+@@ -7249,4 +7630,95 @@
+         })
+     }
++    /// Binding-parameterised loop transfers. Newly produced successor bindings
++    /// reuse the entry slot only after that lifetime has ended, at equal width
++    /// and borrow role. This is alpha-renaming, not a quantum exchange. Distinct
++    /// entry environments (e.g. a first-visit width change) get distinct transfers;
++    /// recurring environments share their exact cycle, independently of n.
++    fn compile_repeat(
++        &mut self,
++        n: u64,
++        source: &[Instruction],
++        predicate: &[(String, bool)],
++        out: &mut Vec<Node>,
++    ) -> Result<()> {
++        let mut entries = Vec::new();
++        let mut bodies: Vec<Vec<Node>> = Vec::new();
++        let mut iteration = 0;
++        while iteration < n {
++            let entry = (self.bundles.clone(), self.live_borrowed.clone());
++            if let Some(previous) = entries.iter().position(|e| e == &entry) {
++                let period = bodies.len() - previous;
++                let copies = (n - iteration) / period as u64;
++                if copies > 0 {
++                    out.push(Node::Repeat(copies, bodies[previous..].concat()));
++                    iteration += copies * period as u64;
++                    continue;
++                }
++            }
++            let trace_lengths: BTreeMap<_, _> =
++                self.trace.as_ref().map_or_else(BTreeMap::new, |t| {
++                    t.iter().map(|(line, v)| (*line, v.len())).collect()
++                });
++            let mut body = Vec::new();
++            self.compile(source, predicate, &mut body)?;
++            let entry_wires: BTreeSet<_> = entry.0.values().flatten().cloned().collect();
++            let exit_wires: BTreeSet<_> = self.bundles.values().flatten().cloned().collect();
++            let mut rename = BTreeMap::new();
++            for (name, after) in &self.bundles {
++                if let Some(before) = entry.0.get(name) {
++                    if before.len() == after.len()
++                        && before.iter().all(|w| !exit_wires.contains(w))
++                        && after.iter().all(|w| !entry_wires.contains(w))
++                        && before
++                            .iter()
++                            .zip(after)
++                            .all(|(a, b)| self.borrowed.contains(a) == self.borrowed.contains(b))
++                    {
++                        rename.extend(after.iter().cloned().zip(before.iter().cloned()));
++                    }
++                }
++            }
++            let mut all = BTreeSet::new();
++            for node in &body {
++                node.wires(&mut all);
++            }
++            for w in all {
++                rename.entry(w.clone()).or_insert(w);
++            }
++            let remap = |w: &String| rename.get(w).cloned().unwrap_or_else(|| w.clone());
++            body = body
++                .iter()
++                .map(|node| node.instantiate(&rename, &[]))
++                .collect();
++            for wires in self.bundles.values_mut() {
++                *wires = wires.iter().map(remap).collect();
++            }
++            self.borrowed = self.borrowed.iter().map(remap).collect();
++            self.live_borrowed = self.live_borrowed.iter().map(remap).collect();
++            if let Some(trace) = &mut self.trace {
++                for (line, snapshots) in trace {
++                    for t in snapshots
++                        .iter_mut()
++                        .skip(*trace_lengths.get(line).unwrap_or(&0))
++                    {
++                        for wires in t.bundles.values_mut() {
++                            *wires = wires.iter().map(remap).collect();
++                        }
++                        t.borrowed = t.borrowed.iter().map(remap).collect();
++                        t.nodes = t
++                            .nodes
++                            .iter()
++                            .map(|node| node.instantiate(&rename, &[]))
++                            .collect();
++                    }
++                }
++            }
++            entries.push(entry);
++            bodies.push(body.clone());
++            out.extend(body);
++            iteration += 1;
++        }
++        Ok(())
++    }
+     fn compile(
+         &mut self,
+@@ -7286,5 +7758,8 @@
+                     }
+                 }
+-                "qfree" => out.push(Node::Free(self.bundle(&a[0])?)),
++                "qfree" => {
++                    out.push(Node::Free(self.bundle(&a[0])?));
++                    self.bundles.remove(&a[0]);
++                }
+                 "qreturn" => {
+                     let wires = self.bundle(&a[0])?;
+@@ -7293,4 +7768,5 @@
+                     }
+                     out.push(Node::Return(wires));
++                    self.bundles.remove(&a[0]);
+                 }
+                 "qpred" => predicate.push((self.scalar(&a[0])?, true)),
+@@ -7318,4 +7794,5 @@
+                     if op == "quncopy" {
+                         out.push(Node::Free(target));
++                        self.bundles.remove(&a[1]);
+                     }
+                 }
+@@ -7355,7 +7832,5 @@
+                         }
+                     } else {
+-                        let mut body = Vec::new();
+-                        self.compile(&i.bodies[0], &predicate, &mut body)?;
+-                        out.push(Node::Repeat(n, body));
++                        self.compile_repeat(n, &i.bodies[0], &predicate, out)?;
+                     }
+                 }
+@@ -7386,4 +7861,5 @@
+                     if op == "qunload" {
+                         out.push(Node::Free(value));
++                        self.bundles.remove(&a[2]);
+                     }
+                 }
+@@ -7411,16 +7887,18 @@
+                             memory.extend(cells.into_iter().flatten());
+                         }
++                        let key = format!(
++                            "oracle:{:?}",
++                            (
++                                &callee.name,
++                                self.classical(&ca[1])?,
++                                list(&ca[6])?
++                                    .iter()
++                                    .map(|n| self.classical(n))
++                                    .collect::<Result<Vec<_>>>()?
++                            )
++                        );
+                         out.push(Node::Opaque {
+-                            key: format!(
+-                                "oracle:{:?}",
+-                                (
+-                                    &callee.name,
+-                                    self.classical(&ca[1])?,
+-                                    list(&ca[6])?
+-                                        .iter()
+-                                        .map(|n| self.classical(n))
+-                                        .collect::<Result<Vec<_>>>()?
+-                                )
+-                            ),
++                            inverse: key.clone(),
++                            key,
+                             controls: c,
+                             inputs: [inputs, memory].concat(),
+@@ -7506,4 +7984,5 @@
+                     out.push(Node::Opaque {
+                         key: format!("qinplace:{:?}", (&a[0], &a[1], self.classical(&a[2])?)),
++                        inverse: format!("qinplace:{:?}", (&a[1], &a[0], self.classical(&a[2])?)),
+                         controls: predicate.clone(),
+                         inputs: x.clone(),
+@@ -7740,4 +8219,5 @@
+             Node::Opaque {
+                 key,
++                inverse: _,
+                 controls,
+                 inputs,
+@@ -7957,5 +8437,5 @@
+     }
+     fn forget_inverses(&mut self, touched: &BTreeSet<String>) {
+-        // An opaque/lifetime touch is a causal barrier. Invalidate the whole
++        // An unresolved import or lifetime touch is a causal barrier. Invalidate the whole
+         // connected history, including ancestors reached through another operand.
+         let mut affected = touched.clone();
+@@ -8008,5 +8488,5 @@
+                 diagonal: false,
+                 ..
+-            }
++            } | Node::Opaque { assign: true, .. }
+         ) && !touched.iter().any(|w| self.inverses.contains_key(w))
+         {
+@@ -8061,5 +8541,8 @@
+                 let mut wires = BTreeSet::new();
+                 node.wires(&mut wires);
+-                if !node.permutation() || wires.iter().any(|w| self.inverses.contains_key(w)) {
++                if !node.permutation()
++                    || node.needs_history()
++                    || wires.iter().any(|w| self.inverses.contains_key(w))
++                {
+                     self.repeat(*n, body)?;
+                     continue;
+@@ -8120,8 +8603,10 @@
+                 }
+             } else {
+-                let gate = matches!(node, Node::Flip(..) | Node::Swap(..));
++                let gate = matches!(node, Node::Flip(..) | Node::Swap(..) | Node::Opaque { .. });
+                 if gate
+                     && self.e.condition(match node {
+-                        Node::Flip(c, _) | Node::Swap(c, _, _) => c,
++                        Node::Flip(c, _)
++                        | Node::Swap(c, _, _)
++                        | Node::Opaque { controls: c, .. } => c,
+                         _ => unreachable!(),
+                     }) == Poly::zero()
+@@ -8563,4 +9048,5 @@
+             Node::Opaque {
+                 key: "unknown".into(),
++                inverse: "unknown".into(),
+                 controls: vec![],
+                 inputs: vec![b.clone()],
+@@ -25051,5 +25537,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (1593 lines)
++## `tests/cli_xam.rs` (1670 lines)
+ 
+ ````rust
+@@ -26646,4 +27132,81 @@
+ fn r8_cli_call() {
+     r8_cli_identity("call");
++}
++
++fn r9_cli_identity(case: &str, tokens: &[&str]) {
++    let text = support::r9_fixture(case);
++    let path = tmp_file(&format!("r9-{case}.bisa"), text);
++    let hashes = ok(&["hash", &path]);
++    assert_eq!(
++        field(&hashes, "object_hash"),
++        &Json::String(bennett_isa_ref::sha256_hex(text.as_bytes()))
++    );
++    let stored = support::json(text.lines().nth(3).unwrap());
++    for symbol in stored.object().unwrap().values() {
++        let name = field(symbol, "name").string().unwrap();
++        let actual = field(&hashes, "symbols").get(name).unwrap();
++        assert_eq!(
++            field(actual, "interface_hash"),
++            field(symbol, "interface_hash")
++        );
++        assert_eq!(
++            field(actual, "closure_hash"),
++            field(symbol, "interface_hash")
++        );
++    }
++    ok(&["check", &path]);
++    for token in tokens {
++        for (flag, input) in [
++            ("--mut", "0"),
++            ("--mut", "1"),
++            ("--state", "0=0.6,0;1=0,0.8"),
++        ] {
++            for adj in [false, true] {
++                let mut args = vec!["run-action", &path, "a", flag, input];
++                if !token.is_empty() {
++                    args.extend(["--arg", token]);
++                }
++                if adj {
++                    args.push("--adjoint");
++                }
++                let v = ok(&args);
++                assert_eq!(uint(&v, "wires"), 1);
++                if flag == "--mut" {
++                    assert_eq!(
++                        field(&v, "state").canonical(),
++                        format!("{{\"{input}\":[1,0]}}")
++                    );
++                } else {
++                    let state = field(&v, "state").object().unwrap();
++                    assert_eq!(state.len(), 2);
++                    r6_amplitude(&state["0"], 0.6, 0.0);
++                    r6_amplitude(&state["1"], 0.0, 0.8);
++                }
++            }
++            let mut args = vec!["reverse", &path, "a", flag, input];
++            if !token.is_empty() {
++                args.extend(["--arg", token]);
++            }
++            let v = ok(&args);
++            assert_eq!(field(&v, "equals_entry"), &Json::Bool(true));
++            assert_eq!(uint(&v, "wires"), 1);
++        }
++    }
++}
++#[test]
++fn r9_cli_opaque_adjoint_restores_borrow_control() {
++    r9_cli_identity("sol-oracle", &["token:0,0,0,0", "token:1,0,0,0"]);
++}
++#[test]
++fn r9_cli_matched_opaque_oracle_restores_outer_fact() {
++    r9_cli_identity("codex-oracle", &["token:0,0,0,0", "token:1,0,0,0"]);
++}
++#[test]
++fn r9_cli_qinplace_adjoint_restores_borrow_control() {
++    r9_cli_identity("sol-qinplace", &["token:1,0,0,0"]);
++}
++#[test]
++fn r9_cli_mixed_loop_threads_reallocated_bindings() {
++    r9_cli_identity("loop", &[""]);
+ }
+ ````
+@@ -27538,4 +28101,134 @@
+ ````
+ 
++## `tests/fixtures/r9-codex-oracle.bisa` (24 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926","kind":"oracle","name":"o","signature":{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}},"1":{"interface_hash":"be1f0e087e06fecd99df7c3cbb5c3c8c186fde8f814be1f826487e858fa66296","kind":"action","name":"a","signature":{"abi":"0.8","args":["token"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}}}
++
++section functions
++oracle @o (x:wire in) (t:wire) (f:wire[4]) () ()
++^entry():
++lift.retval x
++action @a (t:wire mut) () () (tk:token) ()
++^entry():
++c = qalloc any 1
++d = qalloc any 1
++f = qalloc any 4
++h c
++oracle_call @o tk (c) d f () ()
++oracle_call @o tk (c) d f () ()
++h c
++b = qborrow any 1
++cx c b
++qreturn b
++qfree f
++qfree d
++qfree c
++````
++
++## `tests/fixtures/r9-codex-oracle.comments` (1 lines)
++
++````
++Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.
++````
++
++## `tests/fixtures/r9-loop.bisa` (20 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[2],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () () () ()
++regs {  } bounds {2}
++^entry():
++c = qalloc any 1
++qloop 2 {
++b = qborrow any 1
++cx c b
++qreturn b
++qfree c
++c = qalloc any 1
++h t
++h t
++}
++qfree c
++````
++
++## `tests/fixtures/r9-loop.comments` (1 lines)
++
++````
++Hand: each visit returns b under clean c, frees c and allocates a fresh zero; H²=I_t.
++````
++
++## `tests/fixtures/r9-sol-oracle.bisa` (22 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27","kind":"oracle","name":"o","signature":{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}},"1":{"interface_hash":"4cabd490b0d1a8dfe31489ec234e91867e66b54c6c4d030eb4e8d1cf6f84bb38","kind":"action","name":"a","signature":{"abi":"0.8","args":["token"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}}}
++
++section functions
++oracle @o (p:wire in) (v:wire) (fr:wire[4]) () ()
++^entry():
++lift.retval p
++action @a (t:wire mut) () () (tk:token) ()
++^entry():
++c = qalloc any 1
++f = qalloc any 4
++h c
++oracle_call @o tk (c) t f () ()
++oracle_call @o tk (c) t f () ()
++h c
++b = qborrow any 1
++cx c b
++qreturn b
++qfree f
++qfree c
++````
++
++## `tests/fixtures/r9-sol-oracle.comments` (1 lines)
++
++````
++Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.
++````
++
++## `tests/fixtures/r9-sol-qinplace.bisa` (20 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27","kind":"oracle","name":"o","signature":{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}},"1":{"interface_hash":"bc6e5d89276a62eec7074a716d8dbce40e94a2c80c287ad8fc5b5e5c6c756fbf","kind":"action","name":"a","signature":{"abi":"0.8","args":["token"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}}}
++
++section functions
++oracle @o (p:wire in) (v:wire) (fr:wire[4]) () ()
++^entry():
++lift.retval p
++action @a (t:wire mut) () () (tk:token) ()
++^entry():
++c = qalloc any 1
++h c
++qinplace @o @o tk c
++qinplace @o @o tk c
++h c
++b = qborrow any 1
++cx c b
++qreturn b
++qfree c
++````
++
++## `tests/fixtures/r9-sol-qinplace.comments` (1 lines)
++
++````
++Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.
++````
++
+ ## `tests/fixtures/registers.bisa` (50 lines)
+ 
+@@ -29512,5 +30205,5 @@
+ ````
+ 
+-## `tests/r1_borrow.rs` (806 lines)
++## `tests/r1_borrow.rs` (904 lines)
+ 
+ ````rust
+@@ -30321,4 +31014,102 @@
+     r8_identity("call");
+ }
++
++fn r9_pinned_identity(case: &str, budgets: &[u64]) {
++    let o = Object::parse(support::r9_fixture(case)).unwrap();
++    o.check_hashes().unwrap();
++    let id = o.identity().unwrap();
++    for (name, h) in &id.interface_hashes {
++        assert_eq!(id.closure_hashes[name].as_deref(), Some(h.as_str()));
++    }
++    assert_eq!(
++        o.identity().unwrap().object_hash,
++        bennett_isa_ref::sha256_hex(o.text.as_bytes())
++    );
++    for steps in budgets {
++        support::r9_identity(
++            &o,
++            &[bennett_isa_ref::Argument::Token(
++                bennett_isa_ref::Budget::steps(*steps),
++            )],
++        );
++    }
++}
++#[test]
++fn r9_opaque_adjoint_restores_borrow_control() {
++    r9_pinned_identity("sol-oracle", &[0, 1]);
++}
++#[test]
++fn r9_matched_opaque_oracle_restores_outer_fact() {
++    r9_pinned_identity("codex-oracle", &[0, 1]);
++}
++#[test]
++fn r9_qinplace_adjoint_restores_borrow_control() {
++    r9_pinned_identity("sol-qinplace", &[1]);
++}
++#[test]
++fn r9_mixed_loop_threads_reallocated_bindings() {
++    let o = Object::parse(support::r9_fixture("loop")).unwrap();
++    o.check_hashes().unwrap();
++    let id = o.identity().unwrap();
++    assert_eq!(
++        id.closure_hashes["a"].as_deref(),
++        Some("bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89")
++    );
++    support::r9_identity(&o, &[]);
++}
++
++#[test]
++fn r9_qinplace_zero_budget_rejects_before_mutation() {
++    use bennett_isa_ref::{Argument, Budget};
++    let o = support::rehash(&support::r9_opaque_object("qinplace @o @o tk t", &[], None));
++    for adjoint in [false, true] {
++        let mut q = QuantumState::new();
++        let w = q.allocate(1).unwrap();
++        q.gate("h", &w, None, &[]).unwrap();
++        let entry = q.clone();
++        let mut b = QuantumBindings::default();
++        b.bundles.insert("t".into(), w);
++        b.args
++            .insert("tk".into(), Argument::Token(Budget::steps(0)));
++        let e = o.execute_action("a", &mut q, &b, adjoint, &[]).unwrap_err();
++        assert!(e.to_string().contains("§4.5"), "{e}");
++        assert_eq!(q, entry);
++    }
++    // The exact member subject still checks statically but must reject B=0 at execution.
++    let o = Object::parse(support::r9_fixture("sol-qinplace")).unwrap();
++    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".tmp/r9-qinplace-zero.bisa");
++    std::fs::write(&path, &o.text).unwrap();
++    let out = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++        .arg("run-action")
++        .arg(&path)
++        .args(["a", "--mut", "0", "--arg", "token:0,0,0,0"])
++        .output()
++        .unwrap();
++    assert_eq!(out.status.code(), Some(1));
++    assert!(out.stdout.is_empty());
++    assert!(String::from_utf8_lossy(&out.stderr).contains("§4.5"));
++}
++
++#[test]
++fn r9_qinplace_repeated_pairs_on_clean_workspace() {
++    let text = support::r9_fixture("sol-qinplace")
++        .replace("h c\n", "")
++        .replace("\"bounds\":[]", "\"bounds\":[3]")
++        .replace(
++            "(tk:token) ()\n^entry():",
++            "(tk:token) ()\nregs {  } bounds {3}\n^entry():",
++        )
++        .replace(
++            "qinplace @o @o tk c\nqinplace @o @o tk c",
++            "qloop 3 {\nqinplace @o @o tk c\nqinplace @o @o tk c\n}",
++        );
++    let o = support::rehash(&text);
++    support::r9_identity(
++        &o,
++        &[bennett_isa_ref::Argument::Token(
++            bennett_isa_ref::Budget::steps(1),
++        )],
++    );
++}
+ ````
+ 
+@@ -31691,5 +32482,5 @@
+ ````
+ 
+-## `tests/r1_fixtures.rs` (594 lines)
++## `tests/r1_fixtures.rs` (629 lines)
+ 
+ ````rust
+@@ -32263,4 +33054,39 @@
+             "0755279a5f665b6bb03930ed4b5a7fb376aafa5bc3cebb737a1b20d3d8139332",
+         ),
++        (
++            "r9-sol-oracle",
++            "o",
++            "a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27",
++        ),
++        (
++            "r9-sol-oracle",
++            "a",
++            "4cabd490b0d1a8dfe31489ec234e91867e66b54c6c4d030eb4e8d1cf6f84bb38",
++        ),
++        (
++            "r9-sol-qinplace",
++            "o",
++            "a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27",
++        ),
++        (
++            "r9-sol-qinplace",
++            "a",
++            "bc6e5d89276a62eec7074a716d8dbce40e94a2c80c287ad8fc5b5e5c6c756fbf",
++        ),
++        (
++            "r9-codex-oracle",
++            "o",
++            "cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926",
++        ),
++        (
++            "r9-codex-oracle",
++            "a",
++            "be1f0e087e06fecd99df7c3cbb5c3c8c186fde8f814be1f826487e858fa66296",
++        ),
++        (
++            "r9-loop",
++            "a",
++            "bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89",
++        ),
+     ];
+     let mut checked = 0;
+@@ -32290,5 +33116,5 @@
+ ````
+ 
+-## `tests/r1_fuzz_discipline.rs` (1421 lines)
++## `tests/r1_fuzz_discipline.rs` (1613 lines)
+ 
+ ````rust
+@@ -33714,4 +34540,196 @@
+     eprintln!("R8 import transfer (static): 1 accepted / 1 rejected");
+ }
++
++#[test]
++fn generated_r9_opaque_histories_match_independent_identity() {
++    use bennett_isa_ref::{Argument, Budget};
++    let call = "oracle_call @o tk (c) t f () ()";
++    let tail = "b = qborrow any 1\ncx c b\nqreturn b\nqfree f\nqfree c";
++    let mut accepted = 0;
++    let mut rejected = 0;
++    let mut positives = vec![(format!("{call}\n{call}"), vec![])];
++    for n in [0, 1, 2, 3] {
++        positives.push((format!("qloop {n} {{\n{call}\n{call}\n}}"), vec![n]));
++    }
++    positives.push((
++        format!("qloop 1 {{\n{call}\n}}\nqloop 1 {{\n{call}\n}}"),
++        vec![1, 1],
++    ));
++    positives.push(("qinplace @o @o tk c\nqinplace @o @o tk c".into(), vec![]));
++    for (middle, bounds) in positives {
++        let body = format!("c = qalloc any 1\nf = qalloc any 4\nh c\n{middle}\nh c\n{tail}");
++        let o = support::rehash(&support::r9_opaque_object(&body, &bounds, None));
++        for steps in if middle.contains("qinplace") {
++            vec![1]
++        } else {
++            vec![0, 1]
++        } {
++            support::r9_identity(&o, &[Argument::Token(Budget::steps(steps))]);
++        }
++        accepted += 1;
++    }
++    // Two disjoint quantum/opaque histories interleave without sharing outputs.
++    for reverse in [false, true] {
++        let other = "oracle_call @o tk (e) u fr () ()";
++        let middle = if reverse {
++            format!("{call}\n{other}\n{other}\n{call}")
++        } else {
++            format!("{call}\n{other}\n{call}\n{other}")
++        };
++        let body = format!("c = qalloc any 1\ne = qalloc any 1\nu = qalloc any 1\nf = qalloc any 4\nfr = qalloc any 4\nh c\nh e\n{middle}\nh c\nh e\nqfree fr\nqfree u\nqfree e\n{tail}");
++        let o = support::rehash(&support::r9_opaque_object(&body, &[], None));
++        support::r9_identity(&o, &[Argument::Token(Budget::steps(1))]);
++        accepted += 1;
++    }
++    // Local non-permutation call boundaries retain the analysed opaque events.
++    let child = "action @child (v:wire mut, fr:wire[4] mut) (p:wire in) () (tk:token) ()\n^entry():\noracle_call @o tk (p) v fr () ()";
++    for adj in [false, true] {
++        let call = "action_call @child (t, f) (c) () (tk)";
++        let middle = if adj {
++            format!("adj {call}\n{call}")
++        } else {
++            format!("{call}\nadj {call}")
++        };
++        let body = format!("c = qalloc any 1\nf = qalloc any 4\nh c\n{middle}\nh c\n{tail}");
++        let o = support::rehash(&support::r9_opaque_object(&body, &[], Some(child)));
++        support::r9_identity(&o, &[Argument::Token(Budget::steps(1))]);
++        accepted += 1;
++    }
++    // Full opaque keys: changed input, unmatched reader and changed control.
++    let first = format!("c = qalloc any 1\nf = qalloc any 4\nh c\n{call}");
++    for middle in [
++        "".into(),
++        format!("x c\n{call}\nx c"),
++        format!("ctl c {call}"),
++    ] {
++        let body = format!("{first}\n{middle}\nh c\n{tail}");
++        let body = body
++            .lines()
++            .filter(|l| !l.is_empty())
++            .collect::<Vec<_>>()
++            .join("\n");
++        let text = support::r9_opaque_object(&body, &[], None);
++        let e = Object::parse(&text).unwrap_err().to_string();
++        assert!(e.contains("§5.6") || e.contains("§6.2"), "{e}");
++        let rule = if e.contains("§5.6") {
++            "§5.6"
++        } else {
++            "§6.2"
++        };
++        support::reject_cli(&text, rule, &format!("r9-unmatched-{rejected}"));
++        rejected += 1;
++    }
++    // Two later borrowings cancel globally; neither invalid earlier return is waived.
++    let body = format!("{first}\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nb = qborrow any 1\ncx c b\nqreturn b\nh c\n{call}\nh c\nqfree f\nqfree c");
++    let text = support::r9_opaque_object(&body, &[], None);
++    support::reject_cli(&text, "§5.6", "r9-split-opaque");
++    rejected += 1;
++    // Distinct oracle names require the explicit swapped g/ginv identity.
++    for enclosing_h in [false, true] {
++        let os = r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++        let ac = r#"{"abi":"0.8","args":["token"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++        let h = if enclosing_h { "h c\n" } else { "" };
++        let body = format!("action @a (t:wire mut) () () (tk:token) ()\n^entry():\nc = qalloc any 1\n{h}qinplace @g @gi tk c\nqinplace @gi @g tk c\n{h}b = qborrow any 1\ncx c b\nqreturn b\nqfree c");
++        let text = support::object(
++            &[
++                (
++                    "g",
++                    os,
++                    "oracle @g (p:wire in) (v:wire) (fr:wire[4]) () ()\n^entry():\nlift.retval p",
++                ),
++                (
++                    "gi",
++                    os,
++                    "oracle @gi (p:wire in) (v:wire) (fr:wire[4]) () ()\n^entry():\nlift.retval p",
++                ),
++                ("a", ac, &body),
++            ],
++            "{}",
++            "",
++        );
++        let o = support::rehash(&text);
++        support::r9_identity(&o, &[Argument::Token(Budget::steps(1))]);
++        accepted += 1;
++    }
++    // Different token specialisations cannot cancel even when operand names agree.
++    let body = format!("{first}\noracle_call @o tk2 (c) t f () ()\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nh c\noracle_call @o tk2 (c) t f () ()\n{call}\nh c\nqfree f\nqfree c");
++    let text = support::r9_opaque_object(&body, &[], None)
++        .replace("\"args\":[\"token\"]", "\"args\":[\"token\",\"token\"]")
++        .replace("(tk:token)", "(tk:token, tk2:token)");
++    support::reject_cli(&text, "§5.6", "r9-token-specialisation");
++    rejected += 1;
++    eprintln!("R9 opaque: {accepted} accepted / {rejected} rejected");
++}
++
++#[test]
++fn generated_r9_loop_bindings_match_independent_identity() {
++    let mut accepted = 0;
++    let mut rejected = 0;
++    for n in [0, 1, 2, 3] {
++        for nested in [false, true] {
++            for renamed in [false, true] {
++                let visit =
++                    "b = qborrow any 1\ncx c b\nqreturn b\nqfree c\nc = qalloc any 1\nh t\nh t";
++                let (middle, bounds) = if renamed {
++                    let mut visits = Vec::new();
++                    for i in 0..(if nested { n * 2 } else { n }) {
++                        visits.push(format!("b{i} = qborrow any 1\ncx c{i} b{i}\nqreturn b{i}\nqfree c{i}\nc{} = qalloc any 1\nh t\nh t",i+1));
++                    }
++                    (
++                        format!(
++                            "c0 = qalloc any 1\n{}\nqfree c{}",
++                            visits.join("\n"),
++                            if nested { n * 2 } else { n }
++                        ),
++                        vec![],
++                    )
++                } else {
++                    let (body, bounds) = if nested {
++                        (format!("qloop 2 {{\n{visit}\n}}"), vec![n, 2])
++                    } else {
++                        (visit.into(), vec![n])
++                    };
++                    (
++                        format!("c = qalloc any 1\nqloop {n} {{\n{body}\n}}\nqfree c"),
++                        bounds,
++                    )
++                };
++                let middle = middle
++                    .lines()
++                    .filter(|l| !l.is_empty())
++                    .collect::<Vec<_>>()
++                    .join("\n");
++                let text = support::borrow_lifetime_object(&middle, &bounds)
++                    .replace("perm_action", "action");
++                let o = support::rehash(&text);
++                support::r9_identity(&o, &[]);
++                accepted += 1;
++            }
++        }
++        if n > 0 {
++            let body = format!("c = qalloc any 1\nx c\nqloop {n} {{\nb = qborrow any 1\ncx c b\nqreturn b\nx c\nqfree c\nc = qalloc any 1\nx c\nh t\nh t\n}}\nx c\nqfree c");
++            let text =
++                support::borrow_lifetime_object(&body, &[n]).replace("perm_action", "action");
++            support::reject_cli(&text, "§5.6", &format!("r9-dirty-{n}"));
++            rejected += 1;
++        }
++    }
++    // First-visit width differs from the steady entry; indexed reads resolve anew.
++    for n in [1, 2, 3] {
++        let body = format!("c = qalloc any 1\nqloop {n} {{\nb = qborrow any 1\ncx c[0] b\nqreturn b\nqfree c\nc = qalloc any 2\nh t\nh t\n}}\nqfree c");
++        let text = support::borrow_lifetime_object(&body, &[n]).replace("perm_action", "action");
++        support::r9_identity(&support::rehash(&text), &[]);
++        accepted += 1;
++    }
++    // Static huge count exercises recurring binding transfers, not loop expansion.
++    let n = 1u64 << 40;
++    let body = format!("c = qalloc any 1\nqloop {n} {{\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nc = qalloc any 1\nh t\nh t\n}}\nqfree c");
++    let o = support::rehash(
++        &support::borrow_lifetime_object(&body, &[n]).replace("perm_action", "action"),
++    );
++    o.check_hashes().unwrap(); // Static proof; dynamic fresh-wire execution is enumerative.
++    accepted += 1;
++    eprintln!("R9 loop bindings: {accepted} accepted / {rejected} rejected");
++}
+ ````
+ 
+@@ -35875,5 +36893,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (402 lines)
++## `tests/support/mod.rs` (493 lines)
+ 
+ ````rust
+@@ -36280,4 +37298,142 @@
+     (text, h, oh)
+ }
++
++/// Independent I_t tensor I_bR expectation; each direction starts at entry.
++pub fn r9_identity(o: &Object, args: &[bennett_isa_ref::Argument]) {
++    use bennett_isa_ref::{QuantumBindings, QuantumState};
++    for input in 0..10 {
++        let mut q = QuantumState::new();
++        let w = q.allocate(3).unwrap();
++        for (bit, wire) in w.iter().enumerate() {
++            if input < 8 && input >> bit & 1 == 1 {
++                q.gate("x", &[*wire], None, &[]).unwrap();
++            }
++        }
++        if input >= 8 {
++            q.gate("h", &[w[0]], None, &[]).unwrap();
++            q.gate("h", &[w[1]], None, &[]).unwrap();
++            if input == 9 {
++                q.gate("cx", &[w[1], w[2]], None, &[]).unwrap();
++            }
++        }
++        let entry = q;
++        let mut bindings = QuantumBindings::default();
++        bindings.bundles.insert("t".into(), vec![w[0]]);
++        bindings.borrowed.push(vec![w[1]]);
++        if let Some(arg) = args.first() {
++            bindings.args.insert("tk".into(), arg.clone());
++        }
++        for adjoint in [false, true] {
++            let mut actual = entry.clone();
++            o.execute_action("a", &mut actual, &bindings, adjoint, &[])
++                .unwrap();
++            assert_eq!(actual, entry, "input={input} adjoint={adjoint}");
++            o.execute_action("a", &mut actual, &bindings, !adjoint, &[])
++                .unwrap();
++            assert_eq!(actual, entry);
++        }
++    }
++}
++pub fn r9_fixture(case: &str) -> &'static str {
++    let (text, hash) = match case {
++        "sol-oracle" => (
++            include_str!("../fixtures/r9-sol-oracle.bisa"),
++            "ef010633dbc984abbaa9fbfb97c6233c5390fa99a17bc38e09725cddec936832",
++        ),
++        "sol-qinplace" => (
++            include_str!("../fixtures/r9-sol-qinplace.bisa"),
++            "77664ac9392aec50b0415027771ae7ef49dcea7762b70025f0cd918d53a6ee1e",
++        ),
++        "codex-oracle" => (
++            include_str!("../fixtures/r9-codex-oracle.bisa"),
++            "49ad3ba6c411ed73bebacdebe6728ebff5995dbf8bbc03c016d1cb0c5c3e8625",
++        ),
++        "loop" => (
++            include_str!("../fixtures/r9-loop.bisa"),
++            "80478acc73d52bbf64c395816470293b5b4b4a1ee36a5c550bf00436f06fc192",
++        ),
++        _ => panic!("unknown R9 fixture"),
++    };
++    assert_eq!(bennett_isa_ref::sha256_hex(text.as_bytes()), hash);
++    text
++}
++
++pub fn r9_opaque_object(body: &str, bounds: &[u64], child: Option<&str>) -> String {
++    let os =
++        r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#;
++    let ac = format!(
++        r#"{{"abi":"0.8","args":["token"],"bounds":{:?},"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}}"#,
++        bounds
++    );
++    let bound_text = bounds
++        .iter()
++        .map(u64::to_string)
++        .collect::<Vec<_>>()
++        .join(", ");
++    let regs = if bounds.is_empty() {
++        String::new()
++    } else {
++        format!("regs {{  }} bounds {{{bound_text}}}\n")
++    };
++    let action = format!("action @a (t:wire mut) () () (tk:token) ()\n{regs}^entry():\n{body}");
++    let mut functions = vec![(
++        "o",
++        os,
++        "oracle @o (p:wire in) (v:wire) (fr:wire[4]) () ()\n^entry():\nlift.retval p",
++    )];
++    let child_sig = r#"{"abi":"0.8","args":["token"],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1,4],"tier":"q"}"#;
++    if let Some(child) = child {
++        functions.push(("child", child_sig, child));
++    }
++    functions.push(("a", &ac, &action));
++    object(&functions, "{}", "")
++}
++````
++
++## `tests/support/r9_pins.py` (42 lines)
++
++````python
++"""Independent ISA 9.2 derivation; writes only the four literal R9 fixtures."""
++import hashlib
++import json
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1] / "fixtures"
++def j(x):
++    return json.dumps(x, sort_keys=True, separators=(",", ":"))
++def sha(s):
++    return hashlib.sha256(s.encode()).hexdigest()
++OS = {"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}
++AS = {"abi":"0.8","args":["token"],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}
++SOL = "oracle @o (p:wire in) (v:wire) (fr:wire[4]) () ()\n^entry():\nlift.retval p\n"
++CODEX = "oracle @o (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\n"
++HEADER = "bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n"
++BORROW = "b = qborrow any 1\ncx c b\nqreturn b\n"
++CASES = [
++    ("sol-oracle", SOL, "c = qalloc any 1\nf = qalloc any 4\nh c\noracle_call @o tk (c) t f () ()\noracle_call @o tk (c) t f () ()\nh c\n" + BORROW + "qfree f\nqfree c\n", "4cabd490b0d1a8dfe31489ec234e91867e66b54c6c4d030eb4e8d1cf6f84bb38", "ef010633dbc984abbaa9fbfb97c6233c5390fa99a17bc38e09725cddec936832"),
++    ("sol-qinplace", SOL, "c = qalloc any 1\nh c\nqinplace @o @o tk c\nqinplace @o @o tk c\nh c\n" + BORROW + "qfree c\n", "bc6e5d89276a62eec7074a716d8dbce40e94a2c80c287ad8fc5b5e5c6c756fbf", "77664ac9392aec50b0415027771ae7ef49dcea7762b70025f0cd918d53a6ee1e"),
++    ("codex-oracle", CODEX, "c = qalloc any 1\nd = qalloc any 1\nf = qalloc any 4\nh c\noracle_call @o tk (c) d f () ()\noracle_call @o tk (c) d f () ()\nh c\n" + BORROW + "qfree f\nqfree d\nqfree c\n", "be1f0e087e06fecd99df7c3cbb5c3c8c186fde8f814be1f826487e858fa66296", "49ad3ba6c411ed73bebacdebe6728ebff5995dbf8bbc03c016d1cb0c5c3e8625"),
++    ("loop", None, "c = qalloc any 1\nqloop 2 {\n" + BORROW + "qfree c\nc = qalloc any 1\nh t\nh t\n}\nqfree c\n", "bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89", "80478acc73d52bbf64c395816470293b5b4b4a1ee36a5c550bf00436f06fc192"),
++]
++for name, oracle, body, expected_h, expected_object in CASES:
++    sig = AS if oracle else dict(AS, args=[], bounds=[2])
++    function = "action @a (t:wire mut) () () " + ("(tk:token) ()\n" if oracle else "() ()\nregs {  } bounds {2}\n") + "^entry():\n" + body
++    refs = []
++    if oracle:
++        oh = sha("isa=0.8\nptr_width=32\n" + j(OS) + "\n" + oracle)
++        assert oh == ("a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27" if oracle == SOL else "cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926")
++        refs = [oh]
++    envelope = "isa=0.8\nptr_width=32\n" + j(sig) + "\n" + function.replace("@o", "@" + refs[0] if refs else "@o") + "".join(h + "\n" for h in refs)
++    h = sha(envelope)
++    assert h == expected_h, (name, h)
++    symbols = {}
++    if oracle:
++        symbols["0"] = dict(name="o", kind="oracle", signature=OS, interface_hash=oh)
++    symbols[str(len(symbols))] = dict(name="a", kind="action", signature=sig, interface_hash=h)
++    text = HEADER + j(symbols) + "\n\nsection functions\n" + (oracle or "") + function
++    assert sha(text) == expected_object, (name, sha(text))
++    (ROOT / ("r9-" + name + ".bisa")).write_text(text)
++    (ROOT / ("r9-" + name + ".comments")).write_text("Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.\n" if oracle else "Hand: each visit returns b under clean c, frees c and allocates a fresh zero; H²=I_t.\n")
++    print(name, "H=" + h, "object=" + sha(text), "envelope-bytes=" + str(len(envelope.encode())))
+ ````
+ 
