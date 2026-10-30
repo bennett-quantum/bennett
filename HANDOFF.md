@@ -7,35 +7,33 @@ clean). Bennett.jl v1 at `~/Projects/Bennett.jl` is the deprecated
 reference implementation and differential oracle; its worklog chunks
 121–123 hold the reboot's history up to this point.
 
-**Orchestrator session block (2026-10-30 05:50Z, written for a successor session).** Operating rules: Claude usage minimal; all
-implementation on codex `gpt-6.1-sol` xhigh via T3 Code `delegate_task`; muse `muse-wonder-full-1.0` reviews specs only
-(dialect rounds, ISA 0.9 council) until its usage reset; interpreter rounds run with sol + codex (`gpt-6-astra`); keep
-Codex weekly PACE (the `quota` CLI) within +3% of linear; commit after every verified milestone and push (the ISA repo's
-pre-push gate tests the working tree, so push only when reference-interpreter/ is clean); `BEADS_HOOK_TIMEOUT=20` for
-git commits; every job gets a brief with owned paths and a progress file, commits its own paths, never pushes; the
-orchestrator verifies test counts itself and writes the worklog entries. Council loop per stream: collect each seat's
-JSON with `tools/council.py collect`, `aggregate`, commit, push; no consensus → one sol editor (dialect: spec + checker
-together; interpreter: the crate) with a response file → next round prepared with the precheck gate (dialect) or a
-fresh detached worktree + `tools/review_packet.py` (interpreter; `--no-diff` when the diff is large; tell muse to read
-the prompt in bounded slices). Streams and their state: **interpreter** round 5 closed (muse accept; sol/codex revise, 7 blockers; mean 4.08), all 7 fixed and pushed
-(9e4984f, 262 tests); round 6 prepared on 9e4984f and in session with sol + codex (muse's seat held). **dialect** round 4 aggregated (all revise, 5 blockers, mean 4.08), round-4 editor
-running (spec + checker); then gate, push, round 5 with sol + codex + muse. **VM** at the 0.8 frontier (849f7f7, 101
-tests, conformance parity); nothing to do until 0.9 or a sibling repo. **circuits** M2 closed by disposition (design
-note), M3 placement running. **targets** M1 running (brief docs/briefs/2026-10-30-targets-milestone-1.md). **ISA repo**
-0.9-draft mirror of VM beads hsd/clw running. Hold: bennett-estimate (needs hsd contracts), bennett-sched (needs the §11
-library), plugin/driver (dialect acceptance). Running T3 child task IDs at 05:50Z (poll with `task_status` from a new
-session; completion notices go to the launching thread only): interpreter round-6 seats: see the T3 thread list (launched 05:52Z);
-dialect round-4 editor `...%3Adelegate-task%3Ac25f1868-87cf-4156-8ceb-c1e5b9d8b47f`; circuits M3
-`...%3Adelegate-task%3Ab097153b-9aa3-4627-9355-5a5833b76aff`; ISA 0.9 mirror
-`...%3Adelegate-task%3A3ffa2f10-a3de-4b2b-90ab-0579f2565e1a`; targets M1
-`...%3Adelegate-task%3Ad17390e5-095a-4846-96fa-1e628c4a2ef6` (prefix identical to the first id). Known failure modes:
-muse network drops / quota 429 / OOM on >1.4 MB prompts (retry once, then close the round without it); T3 "workspace
-routing discovery timed out" kills every child (relaunch from committed state + progress file); the beads pre-commit
-hook can stall 300 s.
+**Orchestrator session block (STOPPED by the maintainer 2026-10-30 06:25Z; no child is running).** Rules that applied and
+should carry over: Claude usage minimal; implementation on codex `gpt-6.1-sol` xhigh via T3 `delegate_task`; muse
+`muse-wonder-full-1.0` reviews specs only until its quota reset (dialect rounds, ISA 0.9 council), read prompts in
+<=1,500-line slices; interpreter rounds with sol + `gpt-6-astra`; Codex weekly PACE within +3% of linear (`quota`);
+`BEADS_HOOK_TIMEOUT=20`; briefs with owned paths + progress files; orchestrator verifies test counts and writes
+worklogs; council loop: collect -> aggregate -> one sol editor (dialect: spec + checker together; interpreter: the
+crate) -> next round (dialect: precheck gate; interpreter: fresh worktree + review_packet.py).
+Stream state and next step: **interpreter** round 6 closed (sol/codex revise, 2 shared defects: an unrelated
+non-permutation gate discards established clean workspace in borrow analysis; the round-5 width fix is keyed by static
+source line and runs zero-trip body effects against the outer lifetime; mean 4.38): fix both, then round 7 with muse
+once its quota resets (snapshot 9e4984f, 262 tests). **dialect** round 5 closed on 0.2.5 (all revise; sol 1, codex 2,
+muse 5; mean 4.21; report docs/council/dialect-2026-10-29/round-5/report.md): one sol editor pass (spec + checker) on
+the pw address-space rule (§1.5 vs §16.3/§16.4, raised by sol and codex), PT6 overlapping-slot loads, and muse's five
+(persistent-memory scoping of BD3-R4-1, soft-float i128 assumption in §13.1, N27 vs N22 ordering, N9 missing form, the
+dropped GEP canonical-row algorithm), then round 6. **VM** at the 0.8 frontier (849f7f7 pushed): first update
+tests/conformance.rs to the 48-unavailable baseline and fix the JCS small-exponent number serializer (bead from
+b-targets-4kf), then push (one beads-export commit is local). **circuits** M3 done (c92b22f, 128 tests); M4/M5
+(certificates, QIR/Quil) next; publication-blocked items name their beads. **targets** M1 committed (99d8afb + hook
+fix) on origin wip/targets-m1; main unblocks once the VM JCS fix lands. **ISA repo** 0.9 draft carries ISA-7, Q14,
+ISA-REF-LIB, EPS-DECADE, BLOCK-IMAGE, K12, K13 and open beads for topology schema and draw ordering; the 0.9 council
+round waits on the maintainer decisions below. Hold: bennett-estimate (K12 contracts), bennett-sched (§11 library),
+plugin/driver (dialect acceptance).
 
 **Maintainer decisions pending (orchestrator, 2026-10-29 evening, unattended run):**
 - **ISA §11 reference library `ref` (bennett-vm-47t).** ISA 0.8 §11/§17 name the library the ISA repository "publishes" but define neither its serialization, hash rule, ordinals nor gate decompositions. Nothing was invented for 0.8: a sol agent is drafting the contract into `../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md` (item ISA-REF-LIB) with the decision points stated in the mirrored bead. VM scheduled execution and the suite-E/G schedule cases stay `unavailable` until 0.9 is accepted. Decide: the decomposition set and the hash rule.
 - **Circuits M2 proof contracts (bennett-circuits, 2026-10-30).** `docs/design/2026-10-30-m2-open-proofs.md` in that repo: two design choices (proof-IR / action-CFG representation, bead 7bu; opaque workspace proof summaries, z9r) and three ISA 0.9 publication items (certificate replay tuple encoding 4pf, frame schema JSON encoding 4fa, operation-identity publication for §6.4 recompute matching yz8, the last depending on the §11 library). Each states the alternatives and costs; the specialiser refuses those paths with the bead id until decided.
+- **ISA 0.9 K12 LAUNCH-ESTIMATE and K13 CLAIM-REPLAY (from bennett-vm beads hsd, clw; ISA beads c15, 9uy).** Drafted at §10.1 and §12.1/§12.3 of the 0.9 draft with both readings recorded in `spec/isa-0.9.PROGRESS.md`: request API and defaults, per-class representation, 34-digit decimal policy, sampled-claim default and comparison relation, invocation encoding/location, table encoding. Accept or amend before the 0.9 council round.
 - **Q14 reading** (lproc token/classical params) applied to the 0.9 draft from the worklog wording; overrule if wrong.
 - **Council seats:** sol (gpt-6.1-sol) substitutes for opus/fable; muse is council-only; isa-ref rounds 2-3 closed with two seats after the muse provider outage, muse rejoined at round 4.
 
