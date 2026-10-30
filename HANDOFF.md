@@ -7,6 +7,44 @@ clean). Bennett.jl v1 at `~/Projects/Bennett.jl` is the deprecated
 reference implementation and differential oracle; its worklog chunks
 121–123 hold the reboot's history up to this point.
 
+**Orchestrator session block (PAUSED by the maintainer 2026-10-30 ~14:30Z; read this one first).** Rules of the day:
+codex `gpt-6.1-sol` xhigh does the work via T3 `delegate_task` (briefs in each repo's `docs/briefs/`, progress files,
+owned paths, commits by explicit path list); astra (`gpt-6-astra`) is the codex council seat; **muse unavailable
+until 2026-10-31**, its seat held in every round (consensus needs it for acceptance); Opus sparingly; pace by `quota`
+(Codex ended +3.9% ahead of linear; launches throttled from +3%). **All maintainer decisions are ratified**
+(`docs/decisions/2026-10-30-maintainer-decision-memo.md`, "Ratification"); one proposal is open: make the targets
+gate exit 0 with a loud report on published acceptance blockers (today it exits 2 by design, so targets' main cannot
+be pushed; it lives on `origin/wip/targets-m1`).
+
+Still running at the pause (read-only reviewers; harmless): **isa-ref round 9 sol** and **dialect round 8 sol**. When
+their files land (`bennett/.tmp/isa-ref-r9-sol.json`, `bennett/.tmp/dialect-r8-sol.json`): `python3 tools/council.py
+collect --run <run> --round <N> --member sol --file <file>`; then launch astra (`gpt-6-astra` xhigh) for the same round
+with the same task text as the sol child (prompt.md/schema.json under `docs/council/<run>/round-<N>/`, cwd the review
+worktree or the dialect repo, output to `bennett/.tmp/<run>-r<N>-codex.json`), collect, `aggregate`. Stopped at
+checkpoints (resume from their progress files): **circuits M4** (bennett-circuits 3a12d9e, 164 tests green, brief
+`docs/briefs/2026-10-30-circuits-m4.md`) and **ref library §11.1 completion + catalog** (bennett-isa-spec fcea698,
+mid-TDD: `conformance/tests/ref_call_flag.rs` is the RED test in progress, so the ISA pre-push gate is red and main is
+backed up on `origin/wip/ref-library-2026-10-30`; brief `docs/briefs/2026-10-30-ref-library-contract-completion.md`).
+
+Stream state and next step. **Interpreter**: rounds 6-8 fixed by one sol editor each (274 -> 297 -> 315 tests); round
+7 found a regression from patch-on-patch and the editor replaced the borrow-fact analysis with a per-wire gate
+fact-transfer engine, round 8 completed it (LIFO adjoint stacks, one structured traversal, memoised callee transfers);
+round 9 prepared on snapshot 4796970 (worktree `../bennett-isa-spec-review`, packet-round-9.md) with sol reviewing;
+next: astra, aggregate, editor pass if needed, muse's seat on the acceptance candidate. **Dialect**: 0.2.5 -> 0.2.9
+(rounds 5-7 fixed; sol core accept in round 6; relay pass fixed G1 numbering + corpus runtime ABI 0.2); round 8
+prepared on 0.2.9 (gate 2732/2732) with sol reviewing; next: astra, aggregate, editor pass, muse for acceptance.
+**ISA 0.9**: every ratified decision applied as normative text with witnesses (0b913da); the §11.1 recipe language
+needs the typed-formals/angles/variadic extension (beads cbk, 8sc) that the stopped job was adding; the complete
+`ref` catalog and its hash follow; then the 0.9 council dossier (gate: interpreter accepted). **VM**: JCS numbers
+fixed, churn-free conformance pin, main pushed (29d3bce); next work needs 0.9 (ref library, estimates). **Targets**:
+re-baselined, VM divergence closed, main on wip (gate policy above). **Circuits**: M4 foundation committed
+(c9c264e + checkpoint); continue M4 then M5. **Plugin**: M1 two passes (11 published objects reproduced on LLVM 18/23,
+corpus gate 63 agree / 1 deferred / 2 blocked-upstream now fixed in dialect 0.2.9 / 0 diverge); cmake installed and the
+CMake path verified; main on `origin/wip/plugin-m1` (gate red on dialect pin drift until re-pinned to 0.2.9); next:
+third pass (`docs/briefs/2026-10-30-plugin-milestone-1b.md` items 3-5, re-pin to 0.2.9/aa0f72e, mark CMake verified,
+clear the compiler warning), then M2. **Hold**: estimate, sched, driver, runtimes, arith, conformance. **North star
+round 7** (A1 + A2) when muse is back.
+
 **Orchestrator session block (STOPPED by the maintainer 2026-10-30 06:25Z; no child is running).** Rules that applied and
 should carry over: Claude usage minimal; implementation on codex `gpt-6.1-sol` xhigh via T3 `delegate_task`; muse
 `muse-wonder-full-1.0` reviews specs only until its quota reset (dialect rounds, ISA 0.9 council), read prompts in
