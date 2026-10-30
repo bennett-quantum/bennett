@@ -1,0 +1,3603 @@
+--- round-5/doc.md
++++ round-6/doc.md
+@@ -1,25 +1,26 @@
+-# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 5)
+-
+-Snapshot of `reference-interpreter/` at commit `5d6d03e`. 90 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 331 lines, sha256 de3d981d13d3
+-- `PROGRESS.md` 1003 lines, sha256 01a3a0e2ef24
+-- `SPEC-QUESTIONS.md` 223 lines, sha256 22bd03d701ee
++# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 6)
++
++Snapshot of `reference-interpreter/` at commit `9e4984f`. 91 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 347 lines, sha256 d568d0a7a64c
++- `PROGRESS.md` 1171 lines, sha256 aaaad3436737
++- `SPEC-QUESTIONS.md` 252 lines, sha256 5f3eac093fd0
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-4.md` 340 lines, sha256 9528fe4def7d
+-- `council/response-round-3.md` 189 lines, sha256 3831e81a7913
++- `council/response-round-5.md` 325 lines, sha256 07661e3520cb
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+ - `council/response-round-1.md` 398 lines, sha256 0aa2f796e5d7
+ - `council/response-round-2.md` 260 lines, sha256 ec60481cde56
++- `council/response-round-3.md` 189 lines, sha256 3831e81a7913
++- `council/response-round-4.md` 347 lines, sha256 aa70294bbb53
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+-- `src/action.rs` 966 lines, sha256 f529741e0c19
++- `src/action.rs` 996 lines, sha256 36f16bea19d1
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 1202 lines, sha256 6e4dc4645f50
++- `src/borrow.rs` 1334 lines, sha256 43b83bd40c49
+ - `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+ - `src/certificate.rs` 557 lines, sha256 0bacdb2984d3
+-- `src/claims.rs` 759 lines, sha256 e7293205e64f
++- `src/claims.rs` 790 lines, sha256 c88aa17340d2
+ - `src/classical.rs` 1621 lines, sha256 03116b542f5c
+-- `src/exact/measurement.rs` 303 lines, sha256 40a7e87afcb3
++- `src/exact/measurement.rs` 336 lines, sha256 7f53135babf9
+ - `src/exact.rs` 700 lines, sha256 45263ea03d04
+ - `src/handle_validation.rs` 99 lines, sha256 6b1e868a7572
+@@ -33,6 +34,6 @@
+ - `src/object.rs` 1804 lines, sha256 0ee68d1e4c3f
+ - `src/oracle.rs` 860 lines, sha256 c852a0c5d82c
+-- `src/quantum.rs` 777 lines, sha256 c8a650a5c927
+-- `src/registers.rs` 260 lines, sha256 3a4aae95c769
++- `src/quantum.rs` 893 lines, sha256 9ac2ba04ab35
++- `src/registers.rs` 258 lines, sha256 d0e263c64ed6
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+@@ -42,5 +43,5 @@
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 1270 lines, sha256 95792964397e
++- `tests/cli_xam.rs` 1304 lines, sha256 c3f7c66729ef
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -73,12 +74,12 @@
+ - `tests/oracle.rs` 301 lines, sha256 a441482548ea
+ - `tests/parser.rs` 212 lines, sha256 d0e875703f78
+-- `tests/quantum.rs` 206 lines, sha256 7b46511016f1
++- `tests/quantum.rs` 365 lines, sha256 24af474cf09d
+ - `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
+-- `tests/r1_borrow.rs` 507 lines, sha256 96179097d19d
+-- `tests/r1_certificates.rs` 501 lines, sha256 eda9ce802b38
++- `tests/r1_borrow.rs` 619 lines, sha256 485928595d73
++- `tests/r1_certificates.rs` 845 lines, sha256 bea1d30abcc7
+ - `tests/r1_discipline.rs` 385 lines, sha256 44c512ebe8c8
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+ - `tests/r1_fixtures.rs` 594 lines, sha256 ca26e8c771a2
+-- `tests/r1_fuzz_discipline.rs` 696 lines, sha256 1ec3f29164ad
++- `tests/r1_fuzz_discipline.rs` 870 lines, sha256 b8a5da001aa1
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+ - `tests/r1_linking.rs` 130 lines, sha256 1ae51c3da293
+@@ -88,13 +89,13 @@
+ - `tests/r1_widths.rs` 260 lines, sha256 5607035e9d75
+ - `tests/r2_validation.rs` 84 lines, sha256 7804bd497504
+-- `tests/registers.rs` 345 lines, sha256 c1fb87e18c75
++- `tests/registers.rs` 360 lines, sha256 f3affd1b3b71
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 234 lines, sha256 9957d6b2c0bb
++- `tests/support/mod.rs` 257 lines, sha256 13f98fba3102
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 30957 lines.
+-
+-## `README.md` (331 lines)
++Total embedded: 32703 lines.
++
++## `README.md` (347 lines)
+ 
+ ````markdown
+@@ -180,5 +181,8 @@
+ are `{"args","bytes","dev","op"}`: the §7.3 tape triple plus the bytes the
+ operation transferred, hex. Measurements are `{"bits","reg","value"}` with
+-`bits` in wire order (wire 0 first). Console output is `console_hex` always
++`bits` in wire order (wire 0 first). Draws select the first outcome, in
++lexicographic order of the bits string (wire 0 first), whose cumulative Born
++weight exceeds draw × total weight; integer values remain little-endian
++(SPEC-QUESTIONS 29). Console output is `console_hex` always
+ and `console` when it is valid UTF-8, else null. `memory_digest` is the
+ SHA-256 of the complete §7.1 memory (allocation table, heap bump, every
+@@ -380,5 +384,7 @@
+   outward-rounded dyadic enclosures, refining without a precision cutoff.
+   Supported outcomes survive underflow; conditional binary64 amplitudes are
+-  normalized with a shared extended exponent. Display probabilities remain
++  normalized with a shared extended exponent in both `amplitudes` and
++  `exact_support`, including after further gates. Unprojected user vectors
++  retain their supplied scale. Display probabilities remain
+   approximations (a positive value can display as zero).
+   `QuantumState::set_state_vector` installs a sparse superposition with each
+@@ -390,5 +396,10 @@
+   check the complete named translation frame (canonical nested-line points,
+   actual borrowed wires, exact reverse V, repeated W and side conditions) and
+-  library structural claims. Expected programs bind bundles and region cells
++  library structural claims. Frame maximality inside qloop/qif is judged within
++  the containing static body sequence (SPEC-QUESTIONS 30). Borrow-frame admission preserves every frame and
++  completed return: definite violations cannot be waived by a region-final
++  certificate. Both parsing and public certificate verification require
++  permutation-only instructions touching borrowed wires, independently of tuple
++  replay; unrelated quantum gates in an action remain legal. Expected programs bind bundles and region cells
+   by ABI group and position, independently of local names; borrowed pools retain
+   domain order and omitted partial-domain inputs start at zero. Interval
+@@ -421,5 +432,11 @@
+ composition and adjoints: each return proves restoration and independence before
+ repetitions compose. A borrow spanning a loop may be restored by the whole loop;
+-a later borrowing cannot restore an earlier completed lifetime.
++a later borrowing cannot restore an earlier completed lifetime. Loop proofs
++compose per-return obligations on reachable entries, retaining known-clean
++workspace invariants. Certificates cannot override definite lifetime or
++non-permutation failures; their exhaustive replay checks restoration and output
++independence at each completed return. Workspace widths belong to individual
++producing/consuming instructions, including inverse releases, so a consumed
++spelling may be reused at another width.
+ Matched lifted oracle calls preserve all tuple
+ boundaries and account for every possible numeric `qjumpr` destination.
+@@ -432,5 +449,5 @@
+ ````
+ 
+-## `PROGRESS.md` (1003 lines)
++## `PROGRESS.md` (1171 lines)
+ 
+ ````markdown
+@@ -442,4 +459,172 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Council round 5, codex/muse second pass (2026-10-30)
++
++Codex R5-B01 resolved-by d0f7dbb and 738b233. Exact three certified witnesses
++(including the third CX direction's published hashes) reject on HEAD before
++production edits; straight-line/nested certificate forms reject too. New pin
++`codex_r5_b01_exact_three_certified_lifetime_witnesses`: 1 passed. The
++appendable response records the SOL proof/audit pins and positive controls.
++
++Codex R5-B03 resolved-by e205f93: both exact one-iteration qfree placements
++and the unrolled form already pass, with all three published interface hashes,
++CLI check/run/reverse, full basis, superposition and entangled-reference pins.
++X-before-free negatives still reject. New pin
++`codex_r5_b03_one_iteration_release_matches_unrolled_clean_entry`: 1 passed.
++
++Codex R5-B02: exact certified CZ already rejects at parse/hash/check on HEAD.
++An additional public-API CZ pair against a clean auxiliary was RED (Proof),
++then fixed: certificate borrow proofs now independently require permutation-only
++borrowed touches, not just final tuples or reachable phase comparisons.
++The full exact witness and phase-sensitive |++> pin, borrow_frames=[] negative,
++and unrelated-H positive certify the intended boundary. Targeted tests:
++31 pass / 0 fail / 2 ignored; normal suite: 256 pass / 0 fail / 5 ignored.
++No decline, partial or new ambiguity. README records mandatory frame/return checks.
++
++Muse's pure correctness/clarity suggestions applied: exact-zero measurement
++helpers now terminate (RED overflow/timeout first), the negative draw threshold
++is hoisted, draw order and containing-body frame maximality are documented and
++pinned (SPEC-QUESTIONS 29/30). Codex's Bell projection diagnostic contract is
++pinned and exact_support's comment clarified (normalized after projection,
++raw shadows internal). Additional deterministic 28-case family: 8 accept /
++20 reject, certificate-present and one-iteration cleanup/nonpermutation
++coverage. Original random seeds/distribution unchanged. Targeted suggestion
++checks: 50 integration tests and 2 new helper unit tests passed, 2 ignored.
++Deliverables 8–11 and all existing unavailable/Unverified disclosures stay staged.
++
++### Final codex/muse second-pass verification
++
++All three codex blockers resolved; none declined or partial. Blocker commits:
++**f108397** (B01, resolved-by d0f7dbb/738b233), **6635e4f** (B03, resolved-by
++e205f93), **88a62ff** (B02 mandatory structural premise in public borrow
++certificate verification). Pure correctness/clarity suggestions: **5be6fcf**.
++See council/response-round-5.md for exact witnesses, RED evidence, pin names,
++§12 claim-semantics quotes and each suggestion's disposition.
++
++After the last Rust edits, rebuilt offline and ran the exact standalone command
++from conformance/PROGRESS.md:
++`cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref`.
++Result: **445 pass / 0 fail / 46 unavailable of 491**, exit **2** for existing
++staging. CARGO_TARGET_DIR redirected build artifacts to this crate's ignored
++`.tmp/conformance-target`. Conformance sources are read-only and unavailable
++cases are never counted as passes; deliverables 8–11 remain staged below.
++
++Then ran all required gates with absolute
++`--manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`:
++
++| Gate | Result |
++|---|---|
++| `cargo test --offline` | **262 passed / 0 failed / 5 ignored** (258 integration + 4 unit, 0 doctests; 3.71 s summed runner time) |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed / 0 failed**, 353.16 s summed runner time |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged Python `isa_check.py` | passes; diff against 71c1d6e empty |
++| `git diff --check` | clean |
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1.75 s |
++| 17-wire borrow execution | 2^17 entries | 10.24 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 60.54 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all exactly clean / 135,283 rejected** | 271.54 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 9.09 s |
++
++All validation ran with DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and
++BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs: `.tmp/r5-codex-{conformance,tests,ignored,clippy,python}.log`.
++Accepted spec SHA-256:
++`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e` (unchanged).
++No Rust changes followed these gates. No spec/docs/conformance/include/worklog/
++HANDOFF/CLAUDE or Python-seed edits, no dependencies or RNG changes, no push.
++Bead b-isa-spec-zq2 remains open for the staged whole-ISA deliverables.
++
++## Council round 5, SOL first pass (2026-10-30)
++
++SOL-R5-B01 resolved after RED on the exact correctly bound certificate witness.
++Definite Boolean/non-permutation failures cannot fall back to certificates;
++full-domain library proof replay checks every completed return, including
++restoration and independence before later pool reuse. Exact X/CX witnesses
++reject at parse/hash/check with or without metadata. Targeted borrow/certificate
++suite: 24 pass, 0 fail, 2 ignored; round-4 pins remain green. Reading 20 now
++explicitly records per-completed-lifetime qualification. See appendable
++council/response-round-5.md. SOL-R5-B02 also resolved after RED on the exact clean-d loop: Repeat
++composes per-return restoration/independence obligations through every reachable
++entry using doubling, preserving clean invariants without aggregate cancellation.
++Trips 1/2/3/2^40, nesting, renamed unrolling, d=1 negatives and a second-entry
++toggle pin pass. Borrow/certificate/generator targets: 32 pass, 0 fail, 3 ignored.
++SOL-R5-B03 resolved after independent CLI/library RED witnesses. Workspace
++widths now bind to each producing/consuming instruction lifetime, including
++inverse releases. Exact hashes, basis/superposition, mixed qcopy/qload/qborrow,
++alpha-renamed counterparts, nested loops and entangled references pass in both
++directions; quantum/CLI targets: 42 pass, 0 fail. SOL-R5-B04 resolved after
++RED on the exact two-wire sparse observer. A projection marker normalizes
++sparse conditional diagnostics with extended exponents while retaining raw
++exact shadows and caller-supplied input scale. Tiny entangled residuals and
++subsequent Born results pass; quantum/register/CLI targets: 54 pass, 0 fail.
++All four received SOL blockers are resolved; final complete gates are recorded below.
++Additional deterministic coverage: 128 certified/uncertified lifetime and clean
++context cases (64 accept / 64 reject), plus 18 reused/renamed-width positives.
++Direct certificate verification rejects invalid internal returns and frames
++even when the whole-region claim proves identity. An additional RED control
++found that basis-only audit observations narrowed valid superposed contexts;
++audits now compare exact surviving quantum states and observe non-permutation
++frame boundaries as well as returns. Original random distribution is unchanged.
++
++Correction to round-4 evidence: the original X/CX rejection pins lacked
++certificate-adorned subjects, and generic-body proof discarded clean entry
++invariants. Round 5 covers these separately; prior counts below are historical.
++
++### Final round-5 SOL verification
++
++Blocker commits: **d0f7dbb** (B01), **e205f93** (B02), **860ebbd** (B03),
++**f34ff55** (B04). Additional admission/metamorphic coverage: **6188112**;
++quantum-context and full-frame audit correction/controls: **738b233**.
++Every received blocker is resolved, none declined or partial. The response
++remains appendable for pending codex/muse seats reviewing 5d6d03e.
++
++After the final source change, rebuilt offline and ran the exact standalone
++harness command from conformance/PROGRESS.md:
++`cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref`.
++Result: **445 pass, 0 fail, 46 unavailable / 491**, exit **2** for the existing
++staged deliverables 8–11. No unavailable case is counted as a pass. Build
++artifacts were redirected with CARGO_TARGET_DIR to this crate's ignored
++`.tmp/conformance-target`; conformance/include sources remained read-only.
++
++Then ran the complete required gates, each Rust command with absolute
++`--manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`:
++
++| Command | Result |
++|---|---|
++| `cargo test --offline` | **253 passed, 0 failed, 5 ignored** (251 integration + 2 unit; 0 doctests), 4.56 s summed runner time |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed, 0 failed**, 268.07 s summed runner time |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged Python `isa_check.py` | passes; diff against 5d6d03e empty |
++| `git diff --check` | clean |
++
++| Ignored sweep | Cases | Runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 operations = 262,144 executions | 2.20 s |
++| 17-wire borrow execution | 2^17 basis entries | 12.29 s |
++| checked borrow-frame certificate | 2^18 claim elements, both programs | 64.41 s |
++| extended §6 differential | 200,000 programs: **64,717 accepted, all exactly clean**, 135,283 rejected | 180.51 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 8.66 s |
++
++Independent CLI replay additionally passes **72 clean-context checks** for B02:
++trips 1/2/3/2^40, flat/nested, t=0/1 and complex superposition, forward/adjoint
++and equals_entry reversal. These use the hash-bound regression subjects.
++All round-4 tests remain green. Original RNG distribution/Python seed unchanged.
++
++All commands ran headlessly with DISPLAY, WAYLAND_DISPLAY,
++DBUS_SESSION_BUS_ADDRESS and BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Logs: `.tmp/r5-sol-{conformance,tests,ignored,clippy,python,clean-cli}.log`.
++Accepted 0.8 SHA-256 remains
++`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
++No source changes followed these gates. No dependencies, spec/docs/conformance/
++include/worklog/HANDOFF/CLAUDE edits or pushes. Bead b-isa-spec-zq2 stays open
++for staged whole-ISA work; its round-5 notes are updated through bd.
+ 
+ ## Council round 4, muse third pass (2026-10-30)
+@@ -1440,5 +1625,5 @@
+ ````
+ 
+-## `SPEC-QUESTIONS.md` (223 lines)
++## `SPEC-QUESTIONS.md` (252 lines)
+ 
+ ````markdown
+@@ -1586,5 +1771,8 @@
+     certificate `borrow_frames` claims (proofs over D whose borrowed components
+     are restored and do not influence the other outputs). *Proposed 0.9:* "A
+-    checker MAY establish the factorisation by any exact decision procedure."
++    checker MAY establish the factorisation by any exact decision procedure.
++    Every completed qborrow/qreturn lifetime MUST satisfy it independently of
++    future borrowing; a certificate of the final whole-region map alone does
++    not discharge internal return obligations."
+ 21. **Checking exhaustive and sampled claims (§12.1–§12.2)** *new (round 1)*. The
+     claim schema fixes neither the output tuple nor the table encoding, nor the
+@@ -1666,4 +1854,30 @@
+     preserve the image, including under inherited predicates. This follows the
+     explicit §4.6 rule; no additional ambiguity or restriction is introduced.
++
++29. **Measurement draw order (§14.2)** *new (round 5, muse suggestion)*.
++    Question: projective Born probabilities do not specify how a supplied draw
++    maps to an outcome. Reading: outcomes follow lexicographic order of their
++    printed bits string (wire 0 first), independently of the little-endian
++    integer value. Select the first outcome whose cumulative exact weight is
++    strictly greater than draw × total weight; an exact CDF tie selects the
++    next outcome. The distribution is unchanged. *Proposed 0.9:* "Reference
++    measurement draws enumerate outcomes lexicographically by the bits string
++    (wire 0 first), selecting the first cumulative Born weight exceeding the
++    draw times total weight." Pin:
++    `registers::muse_r5_measurement_draws_order_bits_lexicographically`.
++
++30. **Translation-frame maximality in structured bodies (§5.6)**
++    *new (round 5, muse suggestion)*. Question: does “maximal contiguous
++    permutation-only subcircuits” mean maximal in unrolled execution or within
++    the static instruction sequence containing the endpoints? Reading: within
++    the containing static qloop/qif body sequence, consistent with canonical
++    nested-line points and independently checked frame instances. The region
++    still satisfies factorisation at every frame/return; this does not waive
++    any borrowed touch or lifetime obligation. *Proposed 0.9:* "Maximality of
++    a frame inside a qloop/qif body is judged within that body's instruction
++    sequence." Pin:
++    `r1_certificates::muse_r5_translation_frame_maximality_is_within_its_static_sequence`
++    has two pre-loop identity touches followed by a loop-body frame at ordinals
++    4–7; the structural claim proves that complete inner frame.
+ ````
+ 
+@@ -1733,541 +1947,332 @@
+ ````
+ 
+-## `council/response-round-4.md` (340 lines)
++## `council/response-round-5.md` (325 lines)
+ 
+ ````markdown
+-# Editor response: council round 4
+-
+-Inputs: codex out-codex.json and sol out-sol.json, snapshot 8e11fe7. This
+-response is appendable for the pending muse pass. Owned paths are exclusively
+-reference-interpreter; ISA 0.8, the Python seed and random seeds are unchanged.
+-
+-## R4-B01 — resolved
+-
+-RED: `r1_borrow::r4_loop_local_returns_cannot_be_restored_by_later_borrowings`
+-accepted the exact loop-local borrow/X/return witness before the fix.
+-`src/borrow.rs::Node` now retains Borrow/Return lifetime boundaries;
+-Compiler emits them and reverses them under adjoints. Evaluation checks
+-restoration of every returned wire and independence of every other live
+-output at Return, then removes the returned system. Repeat proves these
+-boundaries on the generic body BEFORE composing its surviving-wire map by
+-squaring. Borrowing starts a fresh independent symbolic entry. Lifetimes
+-spanning a loop remain in its map and are checked only at their actual return.
+-Zero-trip loops apply no lifetime; no unrolling threshold or new cap is added.
+-The exact evaluator includes surrounding allocation/cleanup so a clean
+-allocation preceding Borrow is known clean if freed before Return.
+-
+-Pins: the exact witness, straight-line unrolling (reused name), single lifetime,
+-nested even loops, and a restored-but-dependent CX output all reject at parse
+-and CLI hash/check with §5.6, exit 1 and empty stdout. The positive pin
+-`r4_borrow_lifetimes_inside_and_across_loops_preserve_full_state` covers spanning
+-and iteration-local lifetimes, nesting, and surrounding clean allocation.
+-Every positive runs forward/adjoint over all t,b basis pairs, superposition,
+-and a borrowed wire entangled with an untouched reference, with exact equality.
+-`r1_fuzz_discipline::generated_loop_local_borrow_returns_match_alpha_renamed_unrollings`
+-adds 32 deterministic cases (trip counts 1..4, one/two X gates, loop/unrolling,
+-with/without outer even loop). Independent per-return parity gives precisely
+-16 rejects / 16 accepts; every accept passes the same full-state checks.
+-GREEN: 11 active borrow + 5 active generator tests; whole normal suite
+-217 passed, 0 failed, 5 ignored. No SPEC-QUESTIONS entry: §§4.3, 4.6, 5.1
+-and 5.6 explicitly require return AFTER its frame and factorisation on B.
+-
+-## R4-B02 — resolved
+-
+-RED: exact select-created interface alias in the library and CLI produced an
+-internal §3.3 error instead of fault JSON. Replaying all five new library
+-regressions against pre-fix classical.rs also witnessed the control-target
+-internal error, region-interface internal error, and an oracle alias silently
+-completing. The combined CLI pin initially failed at the exact action witness.
+-
+-`src/classical.rs::ClassicalMachine::region_record` validates physical wire
+-uniqueness in every interface bundle and passed region BEFORE handle-id
+-deduplication. Effective controls are checked against oracle target/fault
+-wires, transitive action interface targets and mutable-region cells, before
+-execution or lifecycle changes. `call_discipline.rs::interface_targets` is
+-shared with the static checker. Only the specified runtime alias preconditions
+-are marked `trap`; simulator/internal failures still propagate as diagnostics.
+-The existing step path pushes the ordinary terminal fault-4 history frame.
+-Control/read-only-input overlap remains valid and bookkeeping still deduplicates
+-its handle. No gate runs and no handle is consumed when validation fails.
+-
+-Pins in `tests/registers.rs`: `r4_dynamic_interface_alias_is_an_atomic_reversible_cc_and_r_fault`,
+-`r4_dynamic_control_target_alias_is_an_atomic_reversible_cc_and_r_fault`,
+-`r4_dynamic_oracle_input_output_alias_is_an_atomic_reversible_cc_and_r_fault`,
+-`r4_dynamic_control_can_overlap_a_readonly_input`, and
+-`r4_dynamic_alias_checks_cover_regions_block_parameters_and_child_targets`.
+-Exact select witnesses run in both CC and R: c=1 records fault 4 at two steps,
+-no results, unchanged quantum state AND handles; c=0 completes at three steps,
+-target 1, read-only source 1. Both restore the complete entry snapshot under
+-reversal. Extra pins cover passed-region aliases, block parameters, nested
+-child targets and directly aliased R entry bindings.
+-
+-`cli_xam::r4_dynamic_region_aliases_report_failed_json_and_reverse_the_prefix`
+-pins all four families for run-cc/reverse (CC and R), plus run-program (CC).
+-The invalid branch exits 0 with FAILED/fault=4/steps=2/results=[], one named
+-FAULT_UB_TRAP record; reverse exits 0 with equals_entry=true after the faulted
+-prefix. Disjoint branches remain COMPLETED at three steps with exact reversal.
+-GREEN: 11 register tests + 29 CLI tests, and the full normal suite: **223
+-passed, 0 failed, 5 ignored**. No SPEC-QUESTIONS entry: §§3.3, 4.7 and 7.4
+-explicitly prescribe physical disjointness, the trap and prefix reversal.
+-
+-Both received blockers are resolved; no declines or partials. This response
+-remains appendable for sol/muse.
+-
+-## Final verification of this received pass
+-
+-Blocker commits: **40ef8ce** (R4-B01), **09fe805** (R4-B02). Rebuilt offline,
+-then ran the exact standalone conformance harness from conformance/PROGRESS.md
+-against the absolute reference binary: **445 pass, 0 fail, 45 unavailable /
+-490**, exit **2** for the previously disclosed deliverables 8–11. Conformance
+-and headers were read-only; build artifacts went into the interpreter's `.tmp`.
+-
+-Final normal suite: **223 passed, 0 failed, 5 ignored**. All ignored tests:
+-**5 passed, 0 failed** (u8 division/remainder, 2^17 borrow basis entries,
+-2^18 certificate elements, 200,000 generated discipline programs, all prefixes
+-for 256 recursive inputs). The discipline sweep reports **64,717 accepted,
+-all exactly clean / 135,283 rejected**; the new 32-case lifetime family runs
+-separately in the normal suite. PROGRESS.md records runner timings.
+-
+-Strict all-target Clippy, formatting check, unchanged Python seed check and
+-diff check pass. Every verification command used absolute manifest paths,
+-DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset, and
++# Editor response: council round 5
++
++Inputs: SOL out-sol.json, codex out-codex.json and muse out-muse.json against
++5d6d03e. The SOL first pass and codex/muse second pass are recorded below. ISA 0.8, the Python seed,
++random seeds and conformance sources are unchanged; owned paths are exclusively
++reference-interpreter/.
++
++## SOL-R5-B01 — resolved
++
++RED: `r1_certificates::sol_r5_b01_certificates_cannot_waive_completed_lifetimes`
++accepted the exact certified X witness. Both literal interface envelopes and
++object digests are independently SHA-256 checked before parsing; construction
++does not parse an invalid uncertified subject. X and CX subjects, with and
++without correctly bound certificates, now reject at Object::parse and CLI
++hash/check (exit 1, empty stdout, §5.6).
++
++`borrow.rs` distinguishes a definite Boolean/non-permutation failure from an
++unresolved opaque-function identity. Only the latter can invoke the library
++route. `claims.rs::check_borrow_independence` additionally audits every actual
++qreturn and each non-permutation frame boundary during full-domain replay,
++including inlined/nested action calls.
++`quantum.rs` retains opt-in exact-state observations: the returned factor must equal
++its entry, and every other live wire must be independent of that entry at that
++boundary. Comparisons hold all other input bits fixed. Prior completed frames
++have already restored their independent entries, so subsequent physical pool
++reuse cannot conceal an invalid earlier frame. Audited replay visits every
++iteration rather than skipping a period with unobserved internal boundaries.
++Normal execution retains cycle skipping and allocates no audit records.
++
++The existing round-4 lifetime negatives, carried-even-loop and doubled-X/CX
++positives, entangled-reference tests and round-4 certificate/structural pins
++remain green: targeted borrow/certificate run **24 passed, 0 failed, 2 ignored**.
++No new ambiguity or blocker decline. §4.3 requires qreturn to be the matched
++inverse after its frame; §§5.1/5.6 require the property per completed lifetime.
++Final whole-suite/conformance verification follows after all received blockers.
++
++## SOL-R5-B02 — resolved
++
++RED: `r1_borrow::sol_r5_b02_clean_surrounding_loop_controls_are_reachable_invariants`
++rejected the exact clean-d witness with §5.6. `Evaluation` now records
++restoration equations and Boolean-derivative independence obligations at each
++Return (and cleanliness equations at Free). Repeat composes both its carried
++map and these obligations by doubling: obligations in a later block are
++substituted through the preceding block's map. Only then are actual entry
++values substituted. All obligations must vanish, independently of the final
++map; repeated constraints are deduplicated, never parity-cancelled. No unrolling
++bound or wire/trip cap is introduced.
++
++The exact positive accepts at trips 1,2,3,2^40, with nesting; hash/check pass,
++and forward/adjoint preserve all interface/borrowed basis entries,
++superposition and an external entangled reference. Alpha-renamed unrollings
++agree. Setting d=1 before the loop and restoring it afterward rejects at
++every bound, including even counts. An additional d-toggle witness checks the
++second reachable entry: first-entry validity alone cannot admit it.
++
++GREEN: borrow/certificate/generator targets **32 passed, 0 failed, 3 ignored**,
++including all round-4 lifetime and opaque-composition pins. No spec question:
++§§4.3/5.2/14.2 fix allocation at zero and §4.6 requires the body n times.
++
++## SOL-R5-B03 — resolved
++
++RED: exact CLI and library witnesses independently failed with `§3.3: scalar
++wire required`. `action.rs::infer_widths` now scans live producing/consuming
++lifetimes in source order and records widths by instruction line identity,
++which is retained by body cloning. Both qalloc/qborrow and inverse qfree/qreturn
++use their own row's resolved width; `produce` cannot overwrite another row's
++metadata. qcopy/quncopy and qload/qunload participate in lifetime resolution.
++
++`quantum::sol_r5_b03_consumed_workspace_names_keep_their_own_widths` pins the
++literal interface/object hashes, all basis inputs and superposition, then
++mixed qalloc/qcopy/qload/qborrow lifetimes at widths 1/2 with nested loops,
++alpha-renamed counterparts, all eight t/pool basis entries, superposition and
++an entangled reference. Each direction is independently identity and leaves no
++workspace. Producing a still-live spelling remains rejected.
++`cli_xam::sol_r5_b03_reused_workspace_widths_run_and_reverse` checks hash-bound
++check, forward/adjoint at t=0/1, exact state output and equals_entry reversal,
++plus a complex superposition. GREEN: quantum/CLI targets **42 passed, 0 failed**.
++No ambiguity: §§4.3/5.1 fix each producer's width and cleanup, and §5.3 explicitly
++renumbers versions under adjoints.
++
++## SOL-R5-B04 — resolved
++
++RED: `quantum::sol_r5_b04_sparse_observer_reports_the_conditional_state`
++reported (1/sqrt(2),0) for the exact two-wire witness instead of (1,0).
++`QuantumState` now marks projected conditional states. `exact_support` retains
++exact support and emits normalized amplitudes through the extended-exponent,
++refined evaluator already used by projection's dense cache. Gates/allocation/
++clean release retain the marker, and `set_state_vector` explicitly resets it
++without imposing normalization. Basis-only projection also normalizes its
++conditional phase. Exact shadows remain unnormalised for support, cleanliness
++and subsequent Born ratios; no probability floor or reversal rule changed.
++
++The exact two outcomes report (1,0) and agree with dense output; H on the
++survivor reports two amplitudes 1/sqrt(2). Existing tiny entangled-residual and
++below-binary64-range tests now also check finite sparse amplitudes, unit norm,
++dense agreement before/after gates, and unchanged subsequent Born outcomes.
++Unnormalised user vectors retain their supplied scale, including replacing a
++previously projected state. GREEN: quantum/register/CLI targets **54 passed,
++0 failed**. No ambiguity: §14.2 specifies conditional projective measurement
++with Born probabilities.
++
++## Additional admission and metamorphic coverage
++
++`sol_r5_b01_library_replay_checks_boundaries_even_when_region_map_is_identity`
++independently exercises verify_certificate: public Object fields reconstruct
++the exact invalid subjects without parse admission. verify_claim proves the
++final region identity, but verify_certificate rejects each internal X/CX
++return. Certified doubled-X/doubled-CX and carried-even-loop positives prove
++and preserve the entangled reference. Shared fixture construction hashes the
++literal envelope/object without parsing the uncertified subject.
++
++`borrow::tests::unresolved_earlier_frame_cannot_hide_a_definite_later_nonpermutation`
++was separately RED: an unresolved earlier frame hid a later illegal borrowed
++touch. decide_frames now scans all runs, retains an unresolved result, and lets
++any definite failure take precedence before certificate admission.
++
++Two separate deterministic families (no RNG/Python seed change):
++`generated_r5_certificate_and_clean_context_lifetimes_match_independent_maps`
++checks **128 cases, 64 accept / 64 reject**, with and without correctly bound
++certificates: X/CX in either direction, trips 1..4, nesting, doubled gates,
++known-zero vs known-one outer controls and alpha-renamed unrollings. Every
++accepted subject preserves all basis/superposed/entangled-reference states;
++every accepted certificate verifies. `generated_r5_alpha_renaming_consumed_workspace_preserves_widths`
++adds **18 positive cases**, reused/renamed consumed widths 1..3 in loops 1..3,
++with the same exact full-state checks in both directions.
++
++Further audit control: `sol_r5_b01_certificate_return_checks_keep_quantum_surrounding_state`
++was RED on the first audit implementation: basis-reading all surviving wires
++incorrectly rejected an identity with t in superposition at return. Audits now
++compare the exact surviving quantum state (including phase), requiring only
++the borrowed entry to be restored, and do not narrow quantum action contexts.
++`sol_r5_b01_library_replay_checks_frames_before_nonpermutation_boundaries`
++isolates verify_certificate on X/CX maps that cancel across two H gates:
++verify_claim sees the region identity, but frame auditing rejects the earlier
++invalid frame before the non-permutation boundary. Valid frames surrounding
++such gates still certify and preserve superposition/entangled references.
++
++## Final verification of this received SOL pass
++
++All four SOL blockers resolved; no declines or partials. Separate blocker
++commits: **d0f7dbb** (B01), **e205f93** (B02), **860ebbd** (B03), **f34ff55**
++(B04), with additional coverage in **6188112** and full-frame/quantum-context
++audit controls in **738b233**. Response stays appendable for codex/muse.
++
++After the final source changes, rebuilt offline and ran the exact standalone
++command from conformance/PROGRESS.md: **445 pass, 0 fail, 46 unavailable / 491**,
++exit **2** for unchanged explicit staging. Then ran the normal suite: **253
++passed, 0 failed, 5 ignored** (251 integration + 2 unit; 4.56 s summed runner
++time), and all ignored sweeps: **5 passed, 0 failed** (268.07 s summed runner
++time). The 200,000-program sweep retains **64,717 accepted, all exactly clean /
++135,283 rejected**. PROGRESS.md records each sweep's case count and timing.
++
++Strict all-target Clippy, formatting, unchanged Python seed and diff checks
++pass. An additional independent CLI replay verifies **72 B02 clean-context
++runs**: bounds 1/2/3/2^40, flat/nested, both t basis entries and a complex
++superposition, forward/adjoint plus equals_entry reversal. Every round-4
++regression remains green. No source changes followed these gates.
++
++All validation used absolute manifest/binary paths, the requested project-local
++TMPDIR and all four display/browser variables unset. Conformance/include are
++read-only; harness artifacts stay under the interpreter's ignored `.tmp`.
++No accepted spec, seed, dependency or random-distribution changes; no pushes.
++Staged/unverified whole-ISA deliverable disclosures remain unchanged.
++
++## Codex R5-B01 — resolved-by d0f7dbb (SOL-R5-B01), 738b233
++
++Re-ran the exact three astra/codex witnesses against HEAD before changing
++production code. New pin
++`r1_certificates::codex_r5_b01_exact_three_certified_lifetime_witnesses`
++independently checks all three published interface/object digests, including
++CX t b, without parsing the invalid subject to compute its identity. All
++three reject at Object::parse and CLI hash/check with §5.6, exit 1, empty
++stdout, both with and without their correctly bound exhaustive certificates.
++Certified straight-line and nested equivalents also reject. GREEN on HEAD:
++1 test passed. No additional production fix required.
++
++The SOL pins `sol_r5_b01_library_replay_checks_boundaries_even_when_region_map_is_identity`
++and `sol_r5_b01_library_replay_checks_frames_before_nonpermutation_boundaries`
++retain the independent public-API checks; certified carried/doubled-gate
++positives retain full basis, superposition and external entangled-reference
++checks. §§4.3/5.1 require each matched return after its frame; §5.6 requires
++P_F = P′ ⊗ I_B. No decline, partial, new ambiguity or scope change.
++
++## Codex R5-B03 — resolved-by e205f93 (SOL-R5-B02)
++
++Re-ran both exact one-iteration qfree variants and the unrolled form against
++HEAD before production edits. New pin
++`r1_borrow::codex_r5_b03_one_iteration_release_matches_unrolled_clean_entry`
++checks all three published interface hashes, parse/hash/check, run-action and
++reverse at t=0/1. All accept and act as identity; reverse reports equals_entry.
++Full basis entries, superposition and an external entangled borrowed reference
++are preserved in each direction. Adding X c before release remains rejected.
++GREEN on HEAD: 1 test passed. No additional production fix was necessary.
++
++SOL's reachable-entry obligation substitution covers this free obligation as
++well as returns; `sol_r5_b02_clean_surrounding_loop_controls_are_reachable_invariants`
++also pins later iterations and 2^40 without a trip cap. §4.3's “n clean wires”,
++§14.2's “qalloc tensors |0⟩” and §4.6's “body n times” decide the reading.
++No certificate is needed. No decline, partial or new ambiguity.
++
++## Codex R5-B02 — resolved (existing parse fix plus public-API hardening)
++
++First re-ran the exact published CZ signature, interface hash and object hash:
++parse/hash/check already reject with §5.6 after d0f7dbb/738b233, with the
++exhaustive borrow_frames claim, with borrow_frames=[], and without metadata.
++Existing exact-state replay also rejects the isolated public-API CZ witness
++and CZ;CZ on arbitrary t. New pin:
++`r1_certificates::codex_r5_b02_exact_cz_certificate_cannot_admit_a_nonpermutation_frame`.
++Its phase-sensitive |++⟩ execution checks the three +1/2 coefficients and the
++−1/2 coefficient at 11, independently of integer basis tuple comparisons.
++
++The additional public-API control CZ b c; CZ b c with known-clean c was RED:
++verify_certificate returned Proof because no reachable replay state sees a
++phase. This still violates the gate-boundary structural premise. Added
++`borrow.rs::check_borrow_frame_structure` and the shared recursive
++`check_permutation_touches`, applied during parse validation and before
++`claims.rs::check_borrow_independence` replay. They compile/in-line the actual
++subject and inspect borrowed touches, including nested loops and calls;
++non-permutation touches are errors independently of tuple/phase cancellation.
++Zero-trip bodies remain unexecuted. This guard never calls certificate
++admission recursively and does not require an entire action to be a permutation.
++
++§12.1's structural checker obligation is “check the rule's side conditions
++syntactically against the object and the subclaims' results”. Its exhaustive
++obligation is “re-execute every domain element … compare full tuples”, not
++permission to waive another claim's premise. §5.6 requires “maximal contiguous
++permutation-only subcircuits”; §14.3 T3 begins “If the realised unitary V … is a
++permutation matrix”. CZ = diag(1,1,1,−1) (§4.4) fails that premise even if
++particular reachable inputs hide its phase. Tuple Proof alone is not a borrow
++proof; verification.borrow_frames now explicitly checks the premise in both
++admission surfaces.
++
++GREEN: targeted borrow/certificate tests 31 passed, 0 failed, 2 ignored; full
++normal suite 256 passed, 0 failed, 5 ignored. Positive actions with H only on
++unrelated t and a valid permutation frame certify and preserve all basis,
++superposition and entangled-reference states. Legitimate unresolved black-box
++claim routes remain covered. README documents per-frame/per-return admission.
++No decline, partial or genuine new ambiguity; reading 20 is unchanged.
++
++## Nonblocking codex/muse suggestions — dispositions
++
++- Muse draw-order contract: applied. README and SPEC-QUESTIONS 29 record
++  lexicographic printed bits (wire 0 first), strict cumulative comparison and
++  little-endian numeric values. `muse_r5_measurement_draws_order_bits_lexicographically`
++  pins |++> draws 0.1/0.3/0.6/0.9 → values 0/2/1/3. No execution change.
++- Muse loop-nested maximality: applied. README and SPEC-QUESTIONS 30 record
++  maximality within the containing static sequence; the pre-loop identity
++  pair plus full in-loop translation frame at ordinals 4–7 returns Proof in
++  `muse_r5_translation_frame_maximality_is_within_its_static_sequence`.
++  No rule was weakened and every actual frame/return remains checked.
++- Muse exact-helper robustness: applied with RED before source changes.
++  `zero_amplitudes_normalize_without_refining` hit precision-doubling overflow;
++  `zero_probability_weight_does_not_refine` did not terminate (3 s timeout).
++  Exact-zero amplitudes now emit (0,0) without setting the shared exponent;
++  all-zero input emits zeros. A zero probability weight returns 0 directly.
++  Mixed zero/nonzero normalization is pinned too. The negative measurement
++  threshold is computed once outside the outcome loop. Both unit pins GREEN.
++- Codex sparse-diagnostic contract: behavior already fixed by f34ff55
++  (SOL-R5-B04). Expanded the public exact_support method comment and added
++  `codex_r5_bell_projection_diagnostics_are_conditional_amplitudes`: initial
++  Bell coefficients 1/sqrt(2), branch probabilities 1/2, projected sparse and
++  dense coefficient 1. Raw shadows remain internal, so callers cannot mistake
++  their old scale for the conditional diagnostic's amplitude.
++- Codex deterministic interaction generator: applied in addition to SOL's
++  128-case certificate-present family (unchanged). New
++  `generated_r5_one_iteration_cleanup_and_nonpermutation_certificates` adds
++  28 cases: 8 accepts / 20 rejects, with/without correctly bound certificates,
++  wrapped/unwrapped clean/dirty qfree and inner/outer borrowing, plus forbidden
++  CZ/S/H borrowed touches. Accepts preserve basis/superposition/entangled
++  reference states in both directions. Existing RNG and Python seeds unchanged.
++- Both seats' staging suggestions: retained explicitly, not claimed delivered
++  by this correctness pass. Deliverables 8–11, the proposed F-link-conflict /
++  F-frame-live-ranges promotions and the interval checker remain in the same
++  recorded order. Unavailable/Unverified results remain explicit; final
++  conformance must have 0 fail, not relabel unavailable cases as passes.
++- Muse's proposed ISA 0.9 adoption is for the spec editor. No accepted spec
++  edit; the proposed wording remains in SPEC-QUESTIONS for that work.
++
++Targeted suggestion gates: 50 integration tests passed / 0 failed / 2 ignored,
++plus the 2 new helper unit tests passed. Complete final gates follow below.
++
++## Final codex/muse second-pass verification (2026-10-30)
++
++All three codex blockers resolved, no declines or partials. Separate commits:
++**f108397** (B01 exact pins, resolved-by d0f7dbb/738b233), **6635e4f** (B03
++exact pins, resolved-by e205f93), **88a62ff** (B02 public certificate structural
++premise); **5be6fcf** contains the nonblocking correctness/clarity suggestions.
++The exact witnesses were run against HEAD before any additional production
++fix. Muse accepted with zero blockers; its pure correctness/clarity suggestions
++are applied and every other suggestion has an explicit disposition above.
++
++After the last source changes, rebuilt offline and ran the standalone command
++from conformance/PROGRESS.md, with absolute conformance manifest and reference
++binary paths. CARGO_TARGET_DIR kept build artifacts under this crate's ignored
++`.tmp/conformance-target`; conformance sources remained read-only. Result:
++**445 pass / 0 fail / 46 unavailable of 491**, exit **2** for unchanged staged
++deliverables 8–11. No unavailable case is counted as successful conformance.
++
++Then ran all requested Rust gates with absolute `--manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml`:
++
++| Gate | Result |
++|---|---|
++| `cargo test --offline` | **262 passed / 0 failed / 5 ignored**, 258 integration + 4 unit, 0 doctests; 3.71 s summed runner time |
++| `cargo test --offline -- --ignored --nocapture` | **5 passed / 0 failed**, 353.16 s summed runner time |
++| `cargo clippy --offline --all-targets -- -D warnings` | clean |
++| `cargo fmt -- --check` | clean |
++| unchanged Python `isa_check.py` | passes; seed diff against 71c1d6e empty |
++| `git diff --check` | clean |
++
++Ignored sweeps: u8 division 262,144 executions (1.75 s); 17-wire borrow 2^17
++entries (10.24 s); checked 17-wire certificate 2^18 elements, both programs
++(60.54 s); 200,000-program §6 sweep **64,717 accepted, all exactly clean /
++135,283 rejected** (271.54 s); recursive prefix reversal 256 inputs × every
++prefix (9.09 s). Original RNG distribution and Python seed are unchanged.
++
++All validation was headless with DISPLAY, WAYLAND_DISPLAY,
++DBUS_SESSION_BUS_ADDRESS and BROWSER unset, and
+ TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
+-No dependencies, spec edits, seed changes, declines or pushes. README retains
+-the failed-result promise and documents lifetime and dynamic-alias semantics.
+-
+-## SOL-R4-B01 — resolved
+-
+-RED: `cli_xam::sol_r4_b01_tiny_born_branch_is_selectable` selected 1 instead
+-of 0 at theta=1e-162, draw=0. Independently,
+-`quantum::sol_r4_b01_tiny_projection_preserves_entangled_residual_and_second_born_weights`
+-failed on nonfinite conditional amplitudes.
+-
+-`quantum.rs::measurement_branches` now derives exact Laurent-polynomial
+-weights from the exact amplitude shadows. `registers.rs::measure` compares
+-cumulative weights against draw times the total weight, preserving ascending
+-outcome order and strict CDF boundaries. `exact/measurement.rs` decides exact
+-zero first, then refines outward-rounded dyadic enclosures until the sign is
+-proved. Phase enclosures use a Taylor tail bound on |x| <= 1/2 and repeated
+-squaring; sqrt(2) uses bounding binary digits. There is no precision cutoff,
+-probability floor or guessed clamp. Projection display amplitudes use refined
+-shadows and a shared binary exponent before normalization; subsequent Born
+-weights use norm ratios of the unnormalised shadows. Binary64 probability
+-fields remain diagnostic approximations and may display zero for a positive
+-weight. README documents this distinction.
+-
+-Pins: the exact memoryless ptr_width=32 CLI witness at 1e-100, 1e-161,
+-1e-162, 1e-200 and the smallest positive binary64 angle: draw=0 selects 0,
+-draw=0.5 selects 1; angle=0 selects 1. Each completes in three rows, without
+-fault; every measured reversal is refused. The residual entangled-pair pin
+-checks finite normalized amplitudes and a second measurement's independent
+-1/2,1/2 probabilities and correlations. A third pin,
+-`quantum::sol_r4_b01_projection_recovers_amplitudes_below_binary64_range`,
+-uses two tiny rotations (amplitude ~2.5e-401), projects a residual |+>, then
+-cleans it with H and releases it exactly.
+-
+-GREEN: full normal suite **226 passed, 0 failed, 5 ignored**. No new spec
+-question: §§3.3, 4.4 and 14.2 specify this behavior directly. No seed changes.
+-
+-## SOL-R4-B02 — resolved
+-
+-RED: `r1_certificates::sol_r4_b02_translation_claim_must_prove_its_complete_named_frame`
+-returned Proof for the exact two-gate truncated frame. The separately run
+-nested-line positive failed with `unknown instruction ordinal` before the fix.
+-
+-`claims.rs::check_translation_witness` now resolves every V/W point AND both
+-frame endpoints through the shared canonical §9.2 resolver in `metadata.rs`.
+-`borrow.rs::check_translation_frame` uses an opt-in trace of the existing
+-borrow compiler, retaining physical wires, live borrow identities, inherited
+-controls, loop structure and complete instruction expansion. It requires the
+-actual contiguous named frame to equal V;W;reverse(V);W, with the listed V/W
+-points naming its leading instructions in order. It checks X/B side conditions
+-on the compiled flips, requires B to name live borrowed wires and cover every
+-borrowed touch, and rejects omitted adjacent touches in the permutation run.
+-Lifetime changes/non-permutation operations bound that run. No source line,
+-intervening operation, swap, phase or control can silently disappear. Tracing
+-is disabled in ordinary borrow validation; no exhaustive limit is added.
+-
+-Pins exercise both `verify_claim` and `verify_certificate`, leaving
+-`verification.borrow_frames` empty: truncated [1,2] rejects, full [1,4] proves;
+-nonexistent/reversed endpoints, nonexistent or misplaced V/W, fake B and changed
+-second W reject. `sol_r4_b02_translation_claim_uses_nested_line_ordinals`
+-proves gates 2..5 inside a qloop and rejects its truncated frame.
+-`sol_r4_b02_translation_frame_rejects_omissions_and_checks_reverse_order`
+-proves a two-gate V in exact reverse order, rejects a skipped intervening gate,
+-and rejects a four-gate slice omitting adjacent borrowed touches. The negative
+-objects themselves remain valid full circuits, so the claim checker is tested
+-independently of parse-time factorisation. README documents the complete check.
+-
+-GREEN: all 3 new structural regressions pass; whole normal suite: **229 passed,
+-0 failed, 5 ignored**; strict Clippy clean.
+-No SPEC-QUESTIONS entry: §§5.6, 9.2 and 12.1 specify the checks directly.
+-
+-## SOL-R4-B03 — resolved
+-
+-RED: `r1_certificates::sol_r4_b03_expected_program_uses_signature_positions_for_renamed_bundles`
+-failed on element 1 of the exact four-element identity-vs-renamed-identity
+-witness (subject closure e153e677…, expected program 44e334e5…). The region
+-analogue independently failed on element 1 before the fix.
+-
+-`claims.rs::Component` now identifies interface bundles by (ABI group, slot)
+-and region cells by (ABI group, slot, cell index). `domain` resolves these
+-positions once against the subject; `execute_element` binds those same
+-positions to either function, independently of local names. Borrowed pool
+-components retain their domain order. Deliberately omitted partial-domain
+-inputs still initialize to zero, and output tuples retain signature order.
+-Both exhaustive and sampled comparisons use this common representation.
+-
+-Pins: the exact four tuples now return Proof through both verify_claim and
+-verify_certificate, as do reversed domain enumeration order and two extra
+-borrowed pool components in deliberate z,b order. Omitting p still yields
+-Evidence(2). A single-X reference still fails with a §12.1 full-tuple mismatch.
+-`sol_r4_b03_expected_program_maps_renamed_region_cells_positionally` proves
+-all 16 interface/memory tuples for m→n and checks a partial cell-1 domain
+-(Evidence(8)); a reference changing only memory rejects.
+-`sol_r4_b03_positions_distinguish_same_width_slots_and_crossed_names` uses
+-two mutable bundles and reuses t/u/p in different groups in the reference:
+-all eight tuples agree positionally; writing the wrong mutable slot rejects.
+-README documents positional input binding and retained partial-domain rules.
+-
+-GREEN: full normal suite **232 passed, 0 failed, 5 ignored**. No new ambiguity:
+-§§5.1, 9.4 and 12.1, consistently with SPEC-QUESTIONS 21, determine the ABI
+-and tuple correspondence. All three SOL blockers are resolved; no declines,
+-partials, dependencies, Python/random seed changes or spec edits.
+-
+-
+-## Final verification of the SOL second pass
+-
+-Separate blocker commits: **3ba7154** (SOL-R4-B01), **21da2cc**
+-(SOL-R4-B02), **d7a14fd** (SOL-R4-B03). All three resolved, no declines or
+-partials. The response remains appendable for muse's pending review.
+-
+-Rebuilt the binary offline, then ran the exact standalone conformance command
+-from conformance/PROGRESS.md, keeping conformance/include read-only and build
+-artifacts in the interpreter's ignored `.tmp/conformance-target`:
+-**445 passed, 0 failed, 45 unavailable / 490**, exit **2** for existing staging.
+-
+-Final normal suite: **232 passed, 0 failed, 5 ignored**, 5.55 s summed runner
+-time. Ignored suite: **5 passed, 0 failed**, 336.09 s summed runner time,
+-including 2^18 checked certificate elements and the 200,000-program discipline
+-sweep (**64,717 accepted, all exactly clean / 135,283 rejected**). Strict
+-all-target Clippy, formatting, unchanged Python seed and diff checks pass.
+-PROGRESS.md records individual sweep counts/times and retained log names.
+-
+-All validation used absolute manifest/binary paths, the specified local
+-TMPDIR, and DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset.
+-No dependencies, spec/conformance/header edits, seed changes or pushes.
+-
+-## MUSE-R4-B01 — resolved (by 40ef8ce; exact muse pins in this pass)
+-
+-Input: `out-muse.json` and the complete round-4 report; implementation starts
+-from 8fa5d98 with the read-only conformance update at 92c26af. This blocker
+-shares the lifetime/factorisation cause fixed in pass 1, rather than requiring
+-a second, different loop model. No blocker is declined or partial.
+-
+-RED: copied the committed 8e11fe7 crate into the interpreter's ignored `.tmp`
+-and added the new regression/support files. Running
+-`r1_borrow::muse_r4_b01_each_iteration_has_an_independent_borrowed_entry`
+-there failed on the EXACT `qloop 2 { d = qborrow any 1; cx d t; qreturn d }`
+-object: Object::parse accepted it. The same new test passes on the current
+-implementation. Log: `.tmp/r4-muse-borrow-red.log`. This replay did not replace
+-or edit live source, spec, conformance or the Python seed.
+-
+-The existing `Compiler::compile` emits Borrow/Return nodes, including inside
+-inlined permutation children. `Evaluation::apply(Return)` proves both identity
+-on the returned wires AND absence of their entry variables in every other live
+-output, before removing the returned system. Repeat checks that generic body
+-before squaring its surviving-wire map. Thus each iteration-local beta is
+-universally quantified independently, while a lifetime spanning the loop stays
+-carried and can be restored by the whole loop. This pass clarifies this invariant
+-on Node::Repeat; no new cap, unrolling strategy or semantic special case is added.
+-
+-Named pins in `tests/r1_borrow.rs`:
+-
+-- `muse_r4_b01_each_iteration_has_an_independent_borrowed_entry`: both CX
+-  directions, single lifetime, trips 2 and 4, nested 2x2 and independently named
+-  unrolling. Every negative requires Object::parse Err plus CLI hash/check exit
+-  1, empty stdout and §5.6. For d→t, t'=t XOR beta at each return; for t→d,
+-  d'=beta XOR t. Even iteration counts cannot remove either per-return failure.
+-- `muse_r4_b01_carried_and_local_borrow_cx_identities_have_no_trip_cap`:
+-  borrowing outside the two-iteration loop, and doubled-CX local lifetimes at
+-  trips 2 and **1,099,511,627,776**, for both CX directions. Every positive checks
+-  hashes and exact forward/adjoint state equality over all t,b basis entries,
+-  superposition, and b entangled with an untouched reference.
+-
+-New independent generated families in `tests/r1_fuzz_discipline.rs`:
+-
+-- `generated_fresh_borrow_cx_loops_match_per_lifetime_maps`: 64 cases, **32
+-  accept / 32 reject**; both CX directions, trips 1..4, one/two gates per
+-  lifetime, nested loops, alpha-renamed unrollings. The oracle is each lifetime's
+-  map, never whole-loop parity or simulator agreement. Every accept gets the
+-  full basis/superposition/entangled-reference identity check.
+-- `generated_nested_calls_with_regions_and_local_borrows_match_boolean_maps`:
+-  128 cases, **96 accept / 32 reject**, direct and doubly nested calls, renamed
+-  interfaces, passed mutable-region cells, iteration-local borrowed pools,
+-  loop bounds 1..4 and nested loops. From V=(b ^= p), W=(t ^= b; r[p] ^= b),
+-  the independent map for V;W;V;W is t ^= p, r[1] ^= p, with r[0],p,b unchanged.
+-  Omitting the second W with odd multiplicity must reject irrespective of loop
+-  parity. All accepts compare the complete state against that map on 32 basis
+-  inputs, a full superposition and an entangled borrowed reference, then reverse
+-  exactly. No RNG, Python seed or existing sweep expectation changed.
+-
+-No SPEC-QUESTIONS entry is needed: §4.6 explicitly says "body n times", §5.1
+-requires each qreturn after its frame, and §5.6 requires identity on EVERY
+-borrowed bundle and its external reference. Readings 20 and 28 are unchanged.
+-
+-## Non-blocking round-4 suggestions — dispositions
+-
+-All three JSON `suggestions` arrays and criterion-level `change` proposals
+-were read. The table includes proposals already completed by passes 1–2;
+-non-blocking coverage declines below are not blocker declines.
+-
+-| Source / suggestion | Disposition and reason |
+-|---|---|
+-| codex suggestions / C7: lifetime loops versus unrollings and dynamic aliases | Applied in pass 1; this pass adds the fresh-CX 64-case family and exact muse pins. Existing select/block-parameter CC/R alias tests still pass with FAILED/fault=4 and reversible prefixes. |
+-| muse suggestions 1 / C8: refuse --samples 0 | Applied in main.rs, README and `cli_xam::muse_r4_step_check_requires_a_nonempty_sample`; zero exits 1 with §17.13 and empty stdout; one sample still runs. Witnessed RED: the old CLI returned cases=0/status=ok. |
+-| muse suggestions 2 / C8: cite rules on malformed CLI numbers/HEX | Applied: shared budget parsing cites §5.4, including host-counter overflow; memory/HEX diagnostics cite §16.1. `cli_xam::muse_r4_malformed_options_cite_the_isa_without_partial_output` pins all four exact reported options. Archived old CLI reproduces each bare error independently in `.tmp/r4-muse-options-red.log`; the new test was also witnessed RED live. |
+-| muse suggestions 3: handle-map and SSA error expects | Applied: all seven register transition expects use a fallible §3.3 status helper; the SSA retry invariant now returns a §3.3 error if its recorded diagnostic is unexpectedly absent. Existing ownership/alias/reversal tests verify normal behavior. |
+-| muse suggestions 3: signature Json::Array expects | Declined: these arrays are constructed as Json::Array immediately before reading them, and header validation checks singleton arity; making the infallible public signature API return Result for this unreachable invariant is not a pure correctness gain for validated objects. |
+-| muse suggestions 4 / C7: broaden generated structured borrowing | Applied with the 64-case local-borrow family and the 128-case nested mutable-region/call/pool family; existing seeds and the 200,000-case random distribution are unchanged. |
+-| muse suggestions 4 / C7: also add qinplace, ctl/adj oracle calls, while selectors and indexed multi-bit random families | Declined in this pass: these are separate coverage projects with different semantic oracles; changing the old random distribution would obscure the retained sweep baseline. Existing instruction support and dedicated tests remain in scope and unchanged. |
+-| sol suggestions: nested calls with mutable regions and borrowed pools | Applied: the 128-case Boolean-map family checks the full interface/memory/borrow/reference state and its exact adjoint, independently of interpreter-to-interpreter agreement. |
+-| muse suggestions 5: adopt readings into spec 0.9 | Declined here: spec/ is explicitly read-only for this task; all proposed wordings remain recorded in SPEC-QUESTIONS.md. |
+-| muse suggestions 6: complete staged deliverables 8–11, first F probes | Retained as whole-ISA work, not falsely marked complete; the current pass verifies the updated harness and keeps every unavailable outcome explicit. F-link-conflict/F-frame-live-ranges remain the proposed first F promotions when those surfaces land. |
+-| codex C2 / muse C2: independent two-member SCC envelope | Applied in `identity::council_r4_mutual_scc_has_independent_literal_envelopes`: literal LF bytes, f/g name order, @$0/@$1 references, no intra-SCC dependency lines, concatenation and ASCII member suffixes; FIPS-tested SHA-256 only builds the expectation. |
+-| sol C2: independent CC envelope with service and model | Adapted in `identity::council_r4_cc_envelope_includes_service_but_not_unused_model`: literal service/layout/LF bytes and exclusion of a declared unused model. A single function cannot directly use both: §4.8 makes effect R-only and hostcall CC-only. Existing R model envelope/hash pins remain. |
+-| codex C3 / sol C3: literal recursive step/stack boundaries | Applied in `oracle::council_r4_sum_db_literal_step_and_stack_cutoffs`: n=2 at B=38/37 and stack=47 gives (3,0,38)/(0,1,37)/(0,3,29); n=0 at B=9/10 gives (0,1,9)/(0,0,10). |
+-| muse C4: small recursive every-prefix sweep in normal tests | Applied for n=0..3, 132 prefixes through the first idle-HALT step, in `step_machine::council_r4_small_recursive_inputs_gate_every_prefix_in_normal_suite`; the full ignored 256-input sweep is retained. |
+-| codex C4 / sol C4: inspect private call-record fields | Declined: no incorrect record was identified; inspecting private slots/stack requires a new inspection API, while complete pre/post snapshot inversion, every-prefix checks and literal outcomes already gate this path. |
+-| muse C3: add a fault-to-fixture index to all fixture comments | Declined: no incorrect fixture derivation was identified; a second index duplicates the existing fixture/test inventory rather than correcting it. |
+-| muse C5: one new registers.rs test name for each trap cause | Declined: reorganizing every trap witness into registers.rs is a separate test-organization expansion; this pass retains the current named fault/reversal pins and makes no trap-code semantic change. |
+-| sol C1/C5/C6/C7/C8 and codex C1/C5/C6/C8 | Applied by the five prior blocker fixes and their independent regressions; all retained tests pass in this pass. |
+-
+-
+-## Final verification of the MUSE third pass
+-
+-MUSE-R4-B01 is resolved-by **40ef8ce**, now pinned by its exact independent
+-muse witnesses, huge-bound positives and two new generated families. No new
+-borrow semantic fix was necessary or claimed. All six round-4 blocker IDs
+-(codex 2, SOL 3, MUSE 1) are resolved; none is declined or partial. The
+-non-blocking dispositions above deliberately distinguish coverage suggestions
+-from correctness requirements. SPEC-QUESTIONS.md and the accepted ISA 0.8
+-are unchanged.
+-
+-After rebuilding the binary offline, the exact standalone harness command
+-from conformance/PROGRESS.md against the updated **92c26af** conformance crate
+-reported **445 passed, 0 failed, 46 unavailable / 491**, exit **2**. The extra
+-unavailable target case is the documented harness addition; no unavailable
+-outcome is silently skipped or counted as a pass. Conformance/include stayed
+-read-only; CARGO_TARGET_DIR kept build artifacts in the interpreter's `.tmp`.
+-
+-Normal suite: **242 passed, 0 failed, 5 ignored**, 12.05 s summed runner time.
+-Ignored suite: **5 passed, 0 failed**, 596.07 s summed runner time, including
+-2^17 borrow entries, 2^18 certificate elements, every recursive prefix for all
+-256 inputs, and the 200,000-program discipline sweep (**64,717 accepted, all
+-exactly clean / 135,283 rejected**). The two new deterministic families run
+-separately in the normal suite; existing seeds/distribution are unchanged.
+-Strict all-target Clippy, formatting, unchanged Python seed and diff checks
+-pass. PROGRESS.md records per-sweep times and log paths.
+-
+-All validation used the required absolute manifests/binary, with DISPLAY,
+-WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset and
+-TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
+-Only reference-interpreter paths changed; no dependencies, spec/docs/header/
+-conformance/worklog/HANDOFF/CLAUDE edits, seed changes or pushes. The full-ISA
+-bead remains in progress for staged deliverables 8–11.
+-````
+-
+-## `council/response-round-3.md` (189 lines)
+-
+-````markdown
+-# Editor response: council round 3
+-
+-Inputs: SOL out-sol.json and codex out-codex.json, both reviewing snapshot
+-2e61144. The first pass resolves five SOL blockers; the codex second pass below
+-covers R3-B01..B03 after rechecking the overlaps against 788a5e0. This response
+-remains appendable for muse. No spec or Python seed edits.
+-
+-## SOL-R3-B01 — resolved
+-
+-`src/call_discipline.rs::validate_matched_oracle_calls` records both payload
+-and fault deliveries for calls and uncalls as writes. Every outstanding input
+-reader is invalidated; only output XOR delivery retains the commuting exception.
+-The inverse consumes its own pre-row identity before invalidating other readers.
+-Pin: `r1_rules::r3_nested_oracle_deliveries_invalidate_outstanding_inputs`:
+-exact inc8 witness, another uncall delivery, fault delivery, parser and CLI
+-hash/check rejection (§5.5, exit 1, empty stdout); no-middle positive gives
+-(payload,code,steps)=(0,0,4), interpreter/machine agreement and prefix reversal.
+-Existing two-call/two-uncall multiplicity positive remains accepted.
+-RED: exact witness was accepted; GREEN: all 16 r1_rules tests pass.
+-No SPEC-QUESTIONS entry: §§4.2 and 5.5 explicitly specify the writes.
+-
+-## SOL-R3-B02 — resolved
+-
+-`validation.rs::validate_action_sequence` snapshots all mutable bundles and
+-mutable-region cells jointly, with immutable interface/cell/control reads;
+-`Discipline::joint_change` generalizes exchange tracking to forward/adjoint
+-call pairs. Every output inherits the OLD transitive union and other provenance.
+-Cancellation requires the complete output group, entry versions and unchanged
+-read/control versions; outside readers block other-value cleanup. Mutable cell
+-epochs and non-permutation window closures still advance on every call.
+-Pins: `r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies`
+-(exact call-wrapped swap witness and mutable-region variant reject §6.2;
+-doubled-CX positives are exact identities on all basis inputs and superposition,
+-forward/adjoint). `r1_fuzz_discipline::generated_child_call_wrapping_preserves_bell_cleanup_obligations`
+-generates 12 direct/wrapped, odd/even CX variants; independent Bell/parity
+-reasoning requires rejection or clean execution over the full small interface.
+-RED: exact witness accepted. GREEN: 17 discipline + 3 active generator tests.
+-No SPEC-QUESTIONS entry: this is the explicit §6.1 union and §6.2 identity rule.
+-
+-## SOL-R3-B03 — resolved
+-
+-`borrow.rs::Application` retains callee/classical identity, output bit and full
+-symbolic input tuple. `Evaluation::{symbol,substitute,compose,apply}` substitutes
+-recursively inside applications at every Repeat composition and at the final
+-entry substitution; equal applications are re-interned. A substituted borrowed
+-input explicitly requires the existing verified §12 claim route. No frozen
+-opaque symbol remains across a changing-input substitution.
+-Pin: `r1_borrow::r3_opaque_loop_composition_substitutes_inside_applications`:
+-exact loop and unrolled witness reject §5.6 in parser/hash/check; invariant-input
+-positives preserve all 64 t,f,d basis entries and a superposition, forward/adjoint.
+-`r1_fuzz_discipline::generated_changing_input_opaque_loops_match_independent_parity`
+-generates 32 loops/nested loops, n=0..7, with/without input X; independent parity
+-requires precisely the valid borrow identities and checks all accepted programs
+-on all 64 entries plus a superposition, forward/adjoint.
+-RED: exact changing-input loop accepted. GREEN: 5 active borrow tests and the
+-new generator pass. SPEC-QUESTIONS 20 and module prose now distinguish exact
+-Boolean decisions from sound opaque-function symbolic proofs; unresolved
+-function-specific identities retain the verified certificate path. This corrects
+-the existing reading's description, with no new ambiguity or scope restriction.
+-
+-## SOL-R3-B04 — resolved
+-
+-`validation.rs::classical_instruction` resolves a normalized call's ctl operand
+-through `rd` and requires `qreg[1]` before region-call validation. It checks
+-oracle target/fault aliases and action inherited targets (including through
+-child calls) plus mutable-region aliases. `call_discipline.rs::validate_inherited_targets`
+-now also accepts qreg bindings, applying the same bit-for-bit target analysis
+-as structured calls. Forward type inference remains iterative.
+-Pins: `parser::r3_normalized_cc_controls_are_typed_and_disjoint_at_load`
+-(exact i8 witness, token, unknown, qreg[2], target alias; parser and hash/check
+-exit 1, empty stdout, §3.3); `registers::r3_typed_cc_controlled_calls_execute_and_restore_history`
+-(distinct qreg[1] control/target, all four basis pairs, exact t XOR c,
+-two-step completion, full reversal; also six-step definition-after-use-in-text
+-positive using select). RED: exact i8 witness accepted. GREEN: 10 parser tests
+-and the typed execution/reversal pin pass. No SPEC-QUESTIONS entry: §§3.3,
+-4.7 and 4.8 fix the operand type and disjointness requirement.
+-
+-## SOL-R3-B05 — resolved
+-
+-`borrow.rs::Compiler::compile` includes the entire effective control context
+-(normalized ctl plus inherited predicates), mut/in interface bundles and every
+-passed region cell in a non-permutation action call's `Node::Other` touch set.
+-Pin: `r1_borrow::r3_nonpermutation_calls_touch_all_effective_controls` rejects
+-the exact ctl-H witness, its inherited-qpred form and direct controlled-H,
+-all through parser and CLI hash/check (§5.6, exit 1, empty stdout). A perm_action
+-X child invoked twice under the borrowed control remains accepted and exactly
+-preserves every t,d basis input plus a superposed input, forward/adjoint.
+-RED: exact ctl witness accepted. GREEN: all 6 active r1_borrow tests pass.
+-No SPEC-QUESTIONS entry: §§4.7, 5.6 and 14.2 explicitly include controls.
+-
+-All five first-pass SOL blocker IDs are resolved; no declines or partials.
+-The codex second pass is appended below; muse remains a subsequent pass. Deliverables 8–11 remain
+-staged as documented in PROGRESS.md, outside this round's received blockers.
+-
+-## Final verification of this pass
+-
+-All commands used absolute manifest paths, project-local TMPDIR and the four
+-display/browser variables unset. Normal tests: **210 passed, 0 failed, 5 ignored**.
+-Ignored tests (`--ignored --nocapture`): **5 passed, 0 failed**. Strict all-target
+-Clippy, formatting check and unchanged Python seed check pass. No dependencies
+-added. The five ignored sweeps and timings are recorded in PROGRESS.md; the
+-200,000-program sweep reported **64,717 accepted, all exactly clean**, 135,283
+-rejected. Dedicated call-wrapping and changing-input loop families run in the
+-normal suite in addition to the unchanged random sweep.
+-
+-Conformance command: `cargo run --offline --manifest-path
+-/home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml --
+---bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref`.
+-Result: **445 pass, 0 fail, 45 unavailable, 490 total**, exit **2** for explicit
+-staging (same as baseline). No conformance/include/spec/docs edits or pushes.
+-
+-## Codex R3-B01 — resolved-by c2d97f8 (SOL-R3-B01)
+-
+-Re-ran the exact six-row identity-oracle witness against HEAD 788a5e0:
+-parser and CLI hash/check reject with §5.5, exit 1 and empty stdout. No new
+-semantic fix needed. `r1_rules::codex_r3_b01_exact_implicit_delivery_witnesses`
+-pins that object and a four-bit input overwritten by another call's fault
+-delivery. The five-row no-middle control, outer B=5 and token B=1, yields
+-(payload,code,steps)=(0,0,5), agrees with the step machine, and reverses to the
+-complete entry snapshot. Existing two-call/two-uncall multiplicity positive
+-also passes. All **17 r1_rules tests pass**. No new development RED claimed:
+-the earlier SOL fix already handles these witnesses; its RED is recorded above.
+-Re-read §§4.2 and 5.5 and SPEC-QUESTIONS: implicit deliveries explicitly write
+-both destinations, and unchanged ins are mandatory. No ambiguity or decline.
+-
+-## Codex R3-B02 — resolved-by f83fc71 (SOL-R3-B02)
+-
+-Re-ran the exact call-wrapped swap witness against HEAD: rejects §6.2.
+-Extended `r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies`
+-with the CX-child witness; both reject in parser and CLI hash/check, exit 1,
+-empty stdout. The existing mutable-region analogue also rejects. Doubled-CX
+-positives preserve every t,m basis input (and region address) and a superposed
+-entry, forward and adjoint, with exact state equality and no workspace.
+-No semantic change needed: f83fc71 already jointly transfers old mut/ins/cell
+-and effective-control dependencies and cancels complete inverse output groups.
+-
+-`r1_fuzz_discipline::generated_child_call_wrapping_preserves_bell_cleanup_obligations`
+-now generates **36** cases (swap, CX, mutable-region exchange; direct/called;
+-0..5 middle CXs). Independent parity demands **18 rejects / 18 accepts**;
+-all accepts execute over the eight-entry interface and a superposed input and
+-reverse exactly. Random seeds unchanged. All **17 discipline + 4 active
+-generator tests pass** (1 ignored sweep deferred to final verification).
+-No new semantic RED: these witnesses already pass after the SOL commit.
+-Re-read §§5.1, 5.7, 6.1–6.3 and SPEC-QUESTIONS: full joint dependency union
+-and exact inverse obligations are explicit; no new ambiguity or decline.
+-
+-## Codex R3-B03 — resolved
+-
+-RED witnessed for all three new regressions: exact adjoint child, nonzero
+-image and zero-trip declaration each rejected with §5.6's unclean-release
+-error before the fix. `borrow.rs::Compiler::compile_function` now emits the
+-complete local-region entry/body/exit for top-level analysis and every inlined
+-child. Clean `Node::Alloc` and explicit unconditional image-X `Node::Flip`s
+-replace image-carrying allocations; the exit is the entry's exact adjoint.
+-The call adjoint reverses the complete lifetime, preserving image preparation
+-and restoration. No cleanliness or borrow-factorisation diagnostic is weakened.
+-
+-Pins: `r1_borrow::codex_r3_b03_adjoint_child_local_region_exact_witness`,
+-`codex_r3_b03_adjoint_child_nonzero_image`, and
+-`codex_r3_b03_adjoint_child_zero_trip_region_declaration`. Each exercises
+-forward/adjoint children, with/without an inherited borrowed predicate,
+-all four t,b basis values, superposition, and b entangled with an untouched
+-external reference. Parent execution and its adjoint each equal entry exactly;
+-no workspace remains. The zero-trip case reads the image before its lexical
+-declaration. The nonzero image is the requested one-byte ff for region[1,4].
+-CLI run-action for t=0/1 returns the unchanged basis state and reverse reports
+-equals_entry=true for every variant; hashes check. All **9 active borrow tests
+-pass** (1 ignored), and the full normal suite is **214 passed, 0 failed,
+-5 ignored**. Re-read §§4.6, 5.3 and 5.6; no new ambiguity. SPEC-QUESTIONS 28
+-retains its proposed wording and now references these local-lifetime pins.
+-
+-## Codex second-pass final verification
+-
+-All three codex blockers resolved, no declines or partials. Commits: 377e807
+-(B01 exact pins, resolved-by c2d97f8), faf6dff (B02 pins/generated coverage,
+-resolved-by f83fc71), fbe8320 (B03 lifetime fix and pins).
+-
+-After the fixes, rebuilt offline and ran the documented standalone conformance
+-harness with the absolute reference `--bin`: **445 pass, 0 fail, 45 unavailable
+-of 490**, exit **2** for explicit staged work, unchanged from baseline.
+-`CARGO_TARGET_DIR` redirected build artefacts into the interpreter's ignored
+-`.tmp`; conformance sources remained read-only. Then the normal Rust suite
+-passed **214 tests, 0 failed, 5 ignored**; the ignored suite passed **5 tests,
+-0 failed**. Strict all-target Clippy, formatting check and unchanged Python seed
+-check pass. The 200,000-program sweep again reports **64,717 accepted, all
+-clean / 135,283 rejected**, with the original seeds unchanged. PROGRESS.md
+-records each exhaustive sweep's cases and timing. All validation was headless
+-with the requested absolute project-local TMPDIR and absolute manifest paths.
+-No spec changes, dependency additions or pushes.
++Logs: `.tmp/r5-codex-{conformance,tests,ignored,clippy,python}.log`.
++Accepted spec SHA-256 remains
++`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
++No Rust changes followed these final gates. No dependencies, accepted spec,
++docs, conformance, include, worklog, HANDOFF or CLAUDE edits, and no push.
++Bead b-isa-spec-zq2 remains open for the explicitly staged whole-ISA work.
+ ````
+ 
+@@ -2956,4 +2961,550 @@
+ operations. No runtime width, iteration, precision, or program-size cap was added.
+ Specification and Python seed diffs against dc46d07 are empty. No push.
++````
++
++## `council/response-round-3.md` (189 lines)
++
++````markdown
++# Editor response: council round 3
++
++Inputs: SOL out-sol.json and codex out-codex.json, both reviewing snapshot
++2e61144. The first pass resolves five SOL blockers; the codex second pass below
++covers R3-B01..B03 after rechecking the overlaps against 788a5e0. This response
++remains appendable for muse. No spec or Python seed edits.
++
++## SOL-R3-B01 — resolved
++
++`src/call_discipline.rs::validate_matched_oracle_calls` records both payload
++and fault deliveries for calls and uncalls as writes. Every outstanding input
++reader is invalidated; only output XOR delivery retains the commuting exception.
++The inverse consumes its own pre-row identity before invalidating other readers.
++Pin: `r1_rules::r3_nested_oracle_deliveries_invalidate_outstanding_inputs`:
++exact inc8 witness, another uncall delivery, fault delivery, parser and CLI
++hash/check rejection (§5.5, exit 1, empty stdout); no-middle positive gives
++(payload,code,steps)=(0,0,4), interpreter/machine agreement and prefix reversal.
++Existing two-call/two-uncall multiplicity positive remains accepted.
++RED: exact witness was accepted; GREEN: all 16 r1_rules tests pass.
++No SPEC-QUESTIONS entry: §§4.2 and 5.5 explicitly specify the writes.
++
++## SOL-R3-B02 — resolved
++
++`validation.rs::validate_action_sequence` snapshots all mutable bundles and
++mutable-region cells jointly, with immutable interface/cell/control reads;
++`Discipline::joint_change` generalizes exchange tracking to forward/adjoint
++call pairs. Every output inherits the OLD transitive union and other provenance.
++Cancellation requires the complete output group, entry versions and unchanged
++read/control versions; outside readers block other-value cleanup. Mutable cell
++epochs and non-permutation window closures still advance on every call.
++Pins: `r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies`
++(exact call-wrapped swap witness and mutable-region variant reject §6.2;
++doubled-CX positives are exact identities on all basis inputs and superposition,
++forward/adjoint). `r1_fuzz_discipline::generated_child_call_wrapping_preserves_bell_cleanup_obligations`
++generates 12 direct/wrapped, odd/even CX variants; independent Bell/parity
++reasoning requires rejection or clean execution over the full small interface.
++RED: exact witness accepted. GREEN: 17 discipline + 3 active generator tests.
++No SPEC-QUESTIONS entry: this is the explicit §6.1 union and §6.2 identity rule.
++
++## SOL-R3-B03 — resolved
++
++`borrow.rs::Application` retains callee/classical identity, output bit and full
++symbolic input tuple. `Evaluation::{symbol,substitute,compose,apply}` substitutes
++recursively inside applications at every Repeat composition and at the final
++entry substitution; equal applications are re-interned. A substituted borrowed
++input explicitly requires the existing verified §12 claim route. No frozen
++opaque symbol remains across a changing-input substitution.
++Pin: `r1_borrow::r3_opaque_loop_composition_substitutes_inside_applications`:
++exact loop and unrolled witness reject §5.6 in parser/hash/check; invariant-input
++positives preserve all 64 t,f,d basis entries and a superposition, forward/adjoint.
++`r1_fuzz_discipline::generated_changing_input_opaque_loops_match_independent_parity`
++generates 32 loops/nested loops, n=0..7, with/without input X; independent parity
++requires precisely the valid borrow identities and checks all accepted programs
++on all 64 entries plus a superposition, forward/adjoint.
++RED: exact changing-input loop accepted. GREEN: 5 active borrow tests and the
++new generator pass. SPEC-QUESTIONS 20 and module prose now distinguish exact
++Boolean decisions from sound opaque-function symbolic proofs; unresolved
++function-specific identities retain the verified certificate path. This corrects
++the existing reading's description, with no new ambiguity or scope restriction.
++
++## SOL-R3-B04 — resolved
++
++`validation.rs::classical_instruction` resolves a normalized call's ctl operand
++through `rd` and requires `qreg[1]` before region-call validation. It checks
++oracle target/fault aliases and action inherited targets (including through
++child calls) plus mutable-region aliases. `call_discipline.rs::validate_inherited_targets`
++now also accepts qreg bindings, applying the same bit-for-bit target analysis
++as structured calls. Forward type inference remains iterative.
++Pins: `parser::r3_normalized_cc_controls_are_typed_and_disjoint_at_load`
++(exact i8 witness, token, unknown, qreg[2], target alias; parser and hash/check
++exit 1, empty stdout, §3.3); `registers::r3_typed_cc_controlled_calls_execute_and_restore_history`
++(distinct qreg[1] control/target, all four basis pairs, exact t XOR c,
++two-step completion, full reversal; also six-step definition-after-use-in-text
++positive using select). RED: exact i8 witness accepted. GREEN: 10 parser tests
++and the typed execution/reversal pin pass. No SPEC-QUESTIONS entry: §§3.3,
++4.7 and 4.8 fix the operand type and disjointness requirement.
++
++## SOL-R3-B05 — resolved
++
++`borrow.rs::Compiler::compile` includes the entire effective control context
++(normalized ctl plus inherited predicates), mut/in interface bundles and every
++passed region cell in a non-permutation action call's `Node::Other` touch set.
++Pin: `r1_borrow::r3_nonpermutation_calls_touch_all_effective_controls` rejects
++the exact ctl-H witness, its inherited-qpred form and direct controlled-H,
++all through parser and CLI hash/check (§5.6, exit 1, empty stdout). A perm_action
++X child invoked twice under the borrowed control remains accepted and exactly
++preserves every t,d basis input plus a superposed input, forward/adjoint.
++RED: exact ctl witness accepted. GREEN: all 6 active r1_borrow tests pass.
++No SPEC-QUESTIONS entry: §§4.7, 5.6 and 14.2 explicitly include controls.
++
++All five first-pass SOL blocker IDs are resolved; no declines or partials.
++The codex second pass is appended below; muse remains a subsequent pass. Deliverables 8–11 remain
++staged as documented in PROGRESS.md, outside this round's received blockers.
++
++## Final verification of this pass
++
++All commands used absolute manifest paths, project-local TMPDIR and the four
++display/browser variables unset. Normal tests: **210 passed, 0 failed, 5 ignored**.
++Ignored tests (`--ignored --nocapture`): **5 passed, 0 failed**. Strict all-target
++Clippy, formatting check and unchanged Python seed check pass. No dependencies
++added. The five ignored sweeps and timings are recorded in PROGRESS.md; the
++200,000-program sweep reported **64,717 accepted, all exactly clean**, 135,283
++rejected. Dedicated call-wrapping and changing-input loop families run in the
++normal suite in addition to the unchanged random sweep.
++
++Conformance command: `cargo run --offline --manifest-path
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml --
++--bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref`.
++Result: **445 pass, 0 fail, 45 unavailable, 490 total**, exit **2** for explicit
++staging (same as baseline). No conformance/include/spec/docs edits or pushes.
++
++## Codex R3-B01 — resolved-by c2d97f8 (SOL-R3-B01)
++
++Re-ran the exact six-row identity-oracle witness against HEAD 788a5e0:
++parser and CLI hash/check reject with §5.5, exit 1 and empty stdout. No new
++semantic fix needed. `r1_rules::codex_r3_b01_exact_implicit_delivery_witnesses`
++pins that object and a four-bit input overwritten by another call's fault
++delivery. The five-row no-middle control, outer B=5 and token B=1, yields
++(payload,code,steps)=(0,0,5), agrees with the step machine, and reverses to the
++complete entry snapshot. Existing two-call/two-uncall multiplicity positive
++also passes. All **17 r1_rules tests pass**. No new development RED claimed:
++the earlier SOL fix already handles these witnesses; its RED is recorded above.
++Re-read §§4.2 and 5.5 and SPEC-QUESTIONS: implicit deliveries explicitly write
++both destinations, and unchanged ins are mandatory. No ambiguity or decline.
++
++## Codex R3-B02 — resolved-by f83fc71 (SOL-R3-B02)
++
++Re-ran the exact call-wrapped swap witness against HEAD: rejects §6.2.
++Extended `r1_discipline::r3_action_calls_transfer_the_old_joint_dependencies`
++with the CX-child witness; both reject in parser and CLI hash/check, exit 1,
++empty stdout. The existing mutable-region analogue also rejects. Doubled-CX
++positives preserve every t,m basis input (and region address) and a superposed
++entry, forward and adjoint, with exact state equality and no workspace.
++No semantic change needed: f83fc71 already jointly transfers old mut/ins/cell
++and effective-control dependencies and cancels complete inverse output groups.
++
++`r1_fuzz_discipline::generated_child_call_wrapping_preserves_bell_cleanup_obligations`
++now generates **36** cases (swap, CX, mutable-region exchange; direct/called;
++0..5 middle CXs). Independent parity demands **18 rejects / 18 accepts**;
++all accepts execute over the eight-entry interface and a superposed input and
++reverse exactly. Random seeds unchanged. All **17 discipline + 4 active
++generator tests pass** (1 ignored sweep deferred to final verification).
++No new semantic RED: these witnesses already pass after the SOL commit.
++Re-read §§5.1, 5.7, 6.1–6.3 and SPEC-QUESTIONS: full joint dependency union
++and exact inverse obligations are explicit; no new ambiguity or decline.
++
++## Codex R3-B03 — resolved
++
++RED witnessed for all three new regressions: exact adjoint child, nonzero
++image and zero-trip declaration each rejected with §5.6's unclean-release
++error before the fix. `borrow.rs::Compiler::compile_function` now emits the
++complete local-region entry/body/exit for top-level analysis and every inlined
++child. Clean `Node::Alloc` and explicit unconditional image-X `Node::Flip`s
++replace image-carrying allocations; the exit is the entry's exact adjoint.
++The call adjoint reverses the complete lifetime, preserving image preparation
++and restoration. No cleanliness or borrow-factorisation diagnostic is weakened.
++
++Pins: `r1_borrow::codex_r3_b03_adjoint_child_local_region_exact_witness`,
++`codex_r3_b03_adjoint_child_nonzero_image`, and
++`codex_r3_b03_adjoint_child_zero_trip_region_declaration`. Each exercises
++forward/adjoint children, with/without an inherited borrowed predicate,
++all four t,b basis values, superposition, and b entangled with an untouched
++external reference. Parent execution and its adjoint each equal entry exactly;
++no workspace remains. The zero-trip case reads the image before its lexical
++declaration. The nonzero image is the requested one-byte ff for region[1,4].
++CLI run-action for t=0/1 returns the unchanged basis state and reverse reports
++equals_entry=true for every variant; hashes check. All **9 active borrow tests
++pass** (1 ignored), and the full normal suite is **214 passed, 0 failed,
++5 ignored**. Re-read §§4.6, 5.3 and 5.6; no new ambiguity. SPEC-QUESTIONS 28
++retains its proposed wording and now references these local-lifetime pins.
++
++## Codex second-pass final verification
++
++All three codex blockers resolved, no declines or partials. Commits: 377e807
++(B01 exact pins, resolved-by c2d97f8), faf6dff (B02 pins/generated coverage,
++resolved-by f83fc71), fbe8320 (B03 lifetime fix and pins).
++
++After the fixes, rebuilt offline and ran the documented standalone conformance
++harness with the absolute reference `--bin`: **445 pass, 0 fail, 45 unavailable
++of 490**, exit **2** for explicit staged work, unchanged from baseline.
++`CARGO_TARGET_DIR` redirected build artefacts into the interpreter's ignored
++`.tmp`; conformance sources remained read-only. Then the normal Rust suite
++passed **214 tests, 0 failed, 5 ignored**; the ignored suite passed **5 tests,
++0 failed**. Strict all-target Clippy, formatting check and unchanged Python seed
++check pass. The 200,000-program sweep again reports **64,717 accepted, all
++clean / 135,283 rejected**, with the original seeds unchanged. PROGRESS.md
++records each exhaustive sweep's cases and timing. All validation was headless
++with the requested absolute project-local TMPDIR and absolute manifest paths.
++No spec changes, dependency additions or pushes.
++````
++
++## `council/response-round-4.md` (347 lines)
++
++````markdown
++# Editor response: council round 4
++
++Round-5 correction: R4-B01/MUSE-R4-B01 evidence below established rejection
++without certificates. SOL-R5-B01 found that certificate fallback readmitted
++both invalid lifetimes; SOL-R5-B02 found that generic Repeat lost known-clean
++entry invariants. The corrective implementation and certified/clean-context
++regressions are recorded in response-round-5.md; historical green counts below
++are evidence for their stated runs, not certified-admission coverage.
++
++Inputs: codex out-codex.json and sol out-sol.json, snapshot 8e11fe7. This
++response is appendable for the pending muse pass. Owned paths are exclusively
++reference-interpreter; ISA 0.8, the Python seed and random seeds are unchanged.
++
++## R4-B01 — resolved
++
++RED: `r1_borrow::r4_loop_local_returns_cannot_be_restored_by_later_borrowings`
++accepted the exact loop-local borrow/X/return witness before the fix.
++`src/borrow.rs::Node` now retains Borrow/Return lifetime boundaries;
++Compiler emits them and reverses them under adjoints. Evaluation checks
++restoration of every returned wire and independence of every other live
++output at Return, then removes the returned system. Repeat proves these
++boundaries on the generic body BEFORE composing its surviving-wire map by
++squaring. Borrowing starts a fresh independent symbolic entry. Lifetimes
++spanning a loop remain in its map and are checked only at their actual return.
++Zero-trip loops apply no lifetime; no unrolling threshold or new cap is added.
++The exact evaluator includes surrounding allocation/cleanup so a clean
++allocation preceding Borrow is known clean if freed before Return.
++
++Pins: the exact witness, straight-line unrolling (reused name), single lifetime,
++nested even loops, and a restored-but-dependent CX output all reject at parse
++and CLI hash/check with §5.6, exit 1 and empty stdout. The positive pin
++`r4_borrow_lifetimes_inside_and_across_loops_preserve_full_state` covers spanning
++and iteration-local lifetimes, nesting, and surrounding clean allocation.
++Every positive runs forward/adjoint over all t,b basis pairs, superposition,
++and a borrowed wire entangled with an untouched reference, with exact equality.
++`r1_fuzz_discipline::generated_loop_local_borrow_returns_match_alpha_renamed_unrollings`
++adds 32 deterministic cases (trip counts 1..4, one/two X gates, loop/unrolling,
++with/without outer even loop). Independent per-return parity gives precisely
++16 rejects / 16 accepts; every accept passes the same full-state checks.
++GREEN: 11 active borrow + 5 active generator tests; whole normal suite
++217 passed, 0 failed, 5 ignored. No SPEC-QUESTIONS entry: §§4.3, 4.6, 5.1
++and 5.6 explicitly require return AFTER its frame and factorisation on B.
++
++## R4-B02 — resolved
++
++RED: exact select-created interface alias in the library and CLI produced an
++internal §3.3 error instead of fault JSON. Replaying all five new library
++regressions against pre-fix classical.rs also witnessed the control-target
++internal error, region-interface internal error, and an oracle alias silently
++completing. The combined CLI pin initially failed at the exact action witness.
++
++`src/classical.rs::ClassicalMachine::region_record` validates physical wire
++uniqueness in every interface bundle and passed region BEFORE handle-id
++deduplication. Effective controls are checked against oracle target/fault
++wires, transitive action interface targets and mutable-region cells, before
++execution or lifecycle changes. `call_discipline.rs::interface_targets` is
++shared with the static checker. Only the specified runtime alias preconditions
++are marked `trap`; simulator/internal failures still propagate as diagnostics.
++The existing step path pushes the ordinary terminal fault-4 history frame.
++Control/read-only-input overlap remains valid and bookkeeping still deduplicates
++its handle. No gate runs and no handle is consumed when validation fails.
++
++Pins in `tests/registers.rs`: `r4_dynamic_interface_alias_is_an_atomic_reversible_cc_and_r_fault`,
++`r4_dynamic_control_target_alias_is_an_atomic_reversible_cc_and_r_fault`,
++`r4_dynamic_oracle_input_output_alias_is_an_atomic_reversible_cc_and_r_fault`,
++`r4_dynamic_control_can_overlap_a_readonly_input`, and
++`r4_dynamic_alias_checks_cover_regions_block_parameters_and_child_targets`.
++Exact select witnesses run in both CC and R: c=1 records fault 4 at two steps,
++no results, unchanged quantum state AND handles; c=0 completes at three steps,
++target 1, read-only source 1. Both restore the complete entry snapshot under
++reversal. Extra pins cover passed-region aliases, block parameters, nested
++child targets and directly aliased R entry bindings.
++
++`cli_xam::r4_dynamic_region_aliases_report_failed_json_and_reverse_the_prefix`
++pins all four families for run-cc/reverse (CC and R), plus run-program (CC).
++The invalid branch exits 0 with FAILED/fault=4/steps=2/results=[], one named
++FAULT_UB_TRAP record; reverse exits 0 with equals_entry=true after the faulted
++prefix. Disjoint branches remain COMPLETED at three steps with exact reversal.
++GREEN: 11 register tests + 29 CLI tests, and the full normal suite: **223
++passed, 0 failed, 5 ignored**. No SPEC-QUESTIONS entry: §§3.3, 4.7 and 7.4
++explicitly prescribe physical disjointness, the trap and prefix reversal.
++
++Both received blockers are resolved; no declines or partials. This response
++remains appendable for sol/muse.
++
++## Final verification of this received pass
++
++Blocker commits: **40ef8ce** (R4-B01), **09fe805** (R4-B02). Rebuilt offline,
++then ran the exact standalone conformance harness from conformance/PROGRESS.md
++against the absolute reference binary: **445 pass, 0 fail, 45 unavailable /
++490**, exit **2** for the previously disclosed deliverables 8–11. Conformance
++and headers were read-only; build artifacts went into the interpreter's `.tmp`.
++
++Final normal suite: **223 passed, 0 failed, 5 ignored**. All ignored tests:
++**5 passed, 0 failed** (u8 division/remainder, 2^17 borrow basis entries,
++2^18 certificate elements, 200,000 generated discipline programs, all prefixes
++for 256 recursive inputs). The discipline sweep reports **64,717 accepted,
++all exactly clean / 135,283 rejected**; the new 32-case lifetime family runs
++separately in the normal suite. PROGRESS.md records runner timings.
++
++Strict all-target Clippy, formatting check, unchanged Python seed check and
++diff check pass. Every verification command used absolute manifest paths,
++DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset, and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++No dependencies, spec edits, seed changes, declines or pushes. README retains
++the failed-result promise and documents lifetime and dynamic-alias semantics.
++
++## SOL-R4-B01 — resolved
++
++RED: `cli_xam::sol_r4_b01_tiny_born_branch_is_selectable` selected 1 instead
++of 0 at theta=1e-162, draw=0. Independently,
++`quantum::sol_r4_b01_tiny_projection_preserves_entangled_residual_and_second_born_weights`
++failed on nonfinite conditional amplitudes.
++
++`quantum.rs::measurement_branches` now derives exact Laurent-polynomial
++weights from the exact amplitude shadows. `registers.rs::measure` compares
++cumulative weights against draw times the total weight, preserving ascending
++outcome order and strict CDF boundaries. `exact/measurement.rs` decides exact
++zero first, then refines outward-rounded dyadic enclosures until the sign is
++proved. Phase enclosures use a Taylor tail bound on |x| <= 1/2 and repeated
++squaring; sqrt(2) uses bounding binary digits. There is no precision cutoff,
++probability floor or guessed clamp. Projection display amplitudes use refined
++shadows and a shared binary exponent before normalization; subsequent Born
++weights use norm ratios of the unnormalised shadows. Binary64 probability
++fields remain diagnostic approximations and may display zero for a positive
++weight. README documents this distinction.
++
++Pins: the exact memoryless ptr_width=32 CLI witness at 1e-100, 1e-161,
++1e-162, 1e-200 and the smallest positive binary64 angle: draw=0 selects 0,
++draw=0.5 selects 1; angle=0 selects 1. Each completes in three rows, without
++fault; every measured reversal is refused. The residual entangled-pair pin
++checks finite normalized amplitudes and a second measurement's independent
++1/2,1/2 probabilities and correlations. A third pin,
++`quantum::sol_r4_b01_projection_recovers_amplitudes_below_binary64_range`,
++uses two tiny rotations (amplitude ~2.5e-401), projects a residual |+>, then
++cleans it with H and releases it exactly.
++
++GREEN: full normal suite **226 passed, 0 failed, 5 ignored**. No new spec
++question: §§3.3, 4.4 and 14.2 specify this behavior directly. No seed changes.
++
++## SOL-R4-B02 — resolved
++
++RED: `r1_certificates::sol_r4_b02_translation_claim_must_prove_its_complete_named_frame`
++returned Proof for the exact two-gate truncated frame. The separately run
++nested-line positive failed with `unknown instruction ordinal` before the fix.
++
++`claims.rs::check_translation_witness` now resolves every V/W point AND both
++frame endpoints through the shared canonical §9.2 resolver in `metadata.rs`.
++`borrow.rs::check_translation_frame` uses an opt-in trace of the existing
++borrow compiler, retaining physical wires, live borrow identities, inherited
++controls, loop structure and complete instruction expansion. It requires the
++actual contiguous named frame to equal V;W;reverse(V);W, with the listed V/W
++points naming its leading instructions in order. It checks X/B side conditions
++on the compiled flips, requires B to name live borrowed wires and cover every
++borrowed touch, and rejects omitted adjacent touches in the permutation run.
++Lifetime changes/non-permutation operations bound that run. No source line,
++intervening operation, swap, phase or control can silently disappear. Tracing
++is disabled in ordinary borrow validation; no exhaustive limit is added.
++
++Pins exercise both `verify_claim` and `verify_certificate`, leaving
++`verification.borrow_frames` empty: truncated [1,2] rejects, full [1,4] proves;
++nonexistent/reversed endpoints, nonexistent or misplaced V/W, fake B and changed
++second W reject. `sol_r4_b02_translation_claim_uses_nested_line_ordinals`
++proves gates 2..5 inside a qloop and rejects its truncated frame.
++`sol_r4_b02_translation_frame_rejects_omissions_and_checks_reverse_order`
++proves a two-gate V in exact reverse order, rejects a skipped intervening gate,
++and rejects a four-gate slice omitting adjacent borrowed touches. The negative
++objects themselves remain valid full circuits, so the claim checker is tested
++independently of parse-time factorisation. README documents the complete check.
++
++GREEN: all 3 new structural regressions pass; whole normal suite: **229 passed,
++0 failed, 5 ignored**; strict Clippy clean.
++No SPEC-QUESTIONS entry: §§5.6, 9.2 and 12.1 specify the checks directly.
++
++## SOL-R4-B03 — resolved
++
++RED: `r1_certificates::sol_r4_b03_expected_program_uses_signature_positions_for_renamed_bundles`
++failed on element 1 of the exact four-element identity-vs-renamed-identity
++witness (subject closure e153e677…, expected program 44e334e5…). The region
++analogue independently failed on element 1 before the fix.
++
++`claims.rs::Component` now identifies interface bundles by (ABI group, slot)
++and region cells by (ABI group, slot, cell index). `domain` resolves these
++positions once against the subject; `execute_element` binds those same
++positions to either function, independently of local names. Borrowed pool
++components retain their domain order. Deliberately omitted partial-domain
++inputs still initialize to zero, and output tuples retain signature order.
++Both exhaustive and sampled comparisons use this common representation.
++
++Pins: the exact four tuples now return Proof through both verify_claim and
++verify_certificate, as do reversed domain enumeration order and two extra
++borrowed pool components in deliberate z,b order. Omitting p still yields
++Evidence(2). A single-X reference still fails with a §12.1 full-tuple mismatch.
++`sol_r4_b03_expected_program_maps_renamed_region_cells_positionally` proves
++all 16 interface/memory tuples for m→n and checks a partial cell-1 domain
++(Evidence(8)); a reference changing only memory rejects.
++`sol_r4_b03_positions_distinguish_same_width_slots_and_crossed_names` uses
++two mutable bundles and reuses t/u/p in different groups in the reference:
++all eight tuples agree positionally; writing the wrong mutable slot rejects.
++README documents positional input binding and retained partial-domain rules.
++
++GREEN: full normal suite **232 passed, 0 failed, 5 ignored**. No new ambiguity:
++§§5.1, 9.4 and 12.1, consistently with SPEC-QUESTIONS 21, determine the ABI
++and tuple correspondence. All three SOL blockers are resolved; no declines,
++partials, dependencies, Python/random seed changes or spec edits.
++
++
++## Final verification of the SOL second pass
++
++Separate blocker commits: **3ba7154** (SOL-R4-B01), **21da2cc**
++(SOL-R4-B02), **d7a14fd** (SOL-R4-B03). All three resolved, no declines or
++partials. The response remains appendable for muse's pending review.
++
++Rebuilt the binary offline, then ran the exact standalone conformance command
++from conformance/PROGRESS.md, keeping conformance/include read-only and build
++artifacts in the interpreter's ignored `.tmp/conformance-target`:
++**445 passed, 0 failed, 45 unavailable / 490**, exit **2** for existing staging.
++
++Final normal suite: **232 passed, 0 failed, 5 ignored**, 5.55 s summed runner
++time. Ignored suite: **5 passed, 0 failed**, 336.09 s summed runner time,
++including 2^18 checked certificate elements and the 200,000-program discipline
++sweep (**64,717 accepted, all exactly clean / 135,283 rejected**). Strict
++all-target Clippy, formatting, unchanged Python seed and diff checks pass.
++PROGRESS.md records individual sweep counts/times and retained log names.
++
++All validation used absolute manifest/binary paths, the specified local
++TMPDIR, and DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset.
++No dependencies, spec/conformance/header edits, seed changes or pushes.
++
++## MUSE-R4-B01 — resolved (by 40ef8ce; exact muse pins in this pass)
++
++Input: `out-muse.json` and the complete round-4 report; implementation starts
++from 8fa5d98 with the read-only conformance update at 92c26af. This blocker
++shares the lifetime/factorisation cause fixed in pass 1, rather than requiring
++a second, different loop model. No blocker is declined or partial.
++
++RED: copied the committed 8e11fe7 crate into the interpreter's ignored `.tmp`
++and added the new regression/support files. Running
++`r1_borrow::muse_r4_b01_each_iteration_has_an_independent_borrowed_entry`
++there failed on the EXACT `qloop 2 { d = qborrow any 1; cx d t; qreturn d }`
++object: Object::parse accepted it. The same new test passes on the current
++implementation. Log: `.tmp/r4-muse-borrow-red.log`. This replay did not replace
++or edit live source, spec, conformance or the Python seed.
++
++The existing `Compiler::compile` emits Borrow/Return nodes, including inside
++inlined permutation children. `Evaluation::apply(Return)` proves both identity
++on the returned wires AND absence of their entry variables in every other live
++output, before removing the returned system. Repeat checks that generic body
++before squaring its surviving-wire map. Thus each iteration-local beta is
++universally quantified independently, while a lifetime spanning the loop stays
++carried and can be restored by the whole loop. This pass clarifies this invariant
++on Node::Repeat; no new cap, unrolling strategy or semantic special case is added.
++
++Named pins in `tests/r1_borrow.rs`:
++
++- `muse_r4_b01_each_iteration_has_an_independent_borrowed_entry`: both CX
++  directions, single lifetime, trips 2 and 4, nested 2x2 and independently named
++  unrolling. Every negative requires Object::parse Err plus CLI hash/check exit
++  1, empty stdout and §5.6. For d→t, t'=t XOR beta at each return; for t→d,
++  d'=beta XOR t. Even iteration counts cannot remove either per-return failure.
++- `muse_r4_b01_carried_and_local_borrow_cx_identities_have_no_trip_cap`:
++  borrowing outside the two-iteration loop, and doubled-CX local lifetimes at
++  trips 2 and **1,099,511,627,776**, for both CX directions. Every positive checks
++  hashes and exact forward/adjoint state equality over all t,b basis entries,
++  superposition, and b entangled with an untouched reference.
++
++New independent generated families in `tests/r1_fuzz_discipline.rs`:
++
++- `generated_fresh_borrow_cx_loops_match_per_lifetime_maps`: 64 cases, **32
++  accept / 32 reject**; both CX directions, trips 1..4, one/two gates per
++  lifetime, nested loops, alpha-renamed unrollings. The oracle is each lifetime's
++  map, never whole-loop parity or simulator agreement. Every accept gets the
++  full basis/superposition/entangled-reference identity check.
++- `generated_nested_calls_with_regions_and_local_borrows_match_boolean_maps`:
++  128 cases, **96 accept / 32 reject**, direct and doubly nested calls, renamed
++  interfaces, passed mutable-region cells, iteration-local borrowed pools,
++  loop bounds 1..4 and nested loops. From V=(b ^= p), W=(t ^= b; r[p] ^= b),
++  the independent map for V;W;V;W is t ^= p, r[1] ^= p, with r[0],p,b unchanged.
++  Omitting the second W with odd multiplicity must reject irrespective of loop
++  parity. All accepts compare the complete state against that map on 32 basis
++  inputs, a full superposition and an entangled borrowed reference, then reverse
++  exactly. No RNG, Python seed or existing sweep expectation changed.
++
++No SPEC-QUESTIONS entry is needed: §4.6 explicitly says "body n times", §5.1
++requires each qreturn after its frame, and §5.6 requires identity on EVERY
++borrowed bundle and its external reference. Readings 20 and 28 are unchanged.
++
++## Non-blocking round-4 suggestions — dispositions
++
++All three JSON `suggestions` arrays and criterion-level `change` proposals
++were read. The table includes proposals already completed by passes 1–2;
++non-blocking coverage declines below are not blocker declines.
++
++| Source / suggestion | Disposition and reason |
++|---|---|
++| codex suggestions / C7: lifetime loops versus unrollings and dynamic aliases | Applied in pass 1; this pass adds the fresh-CX 64-case family and exact muse pins. Existing select/block-parameter CC/R alias tests still pass with FAILED/fault=4 and reversible prefixes. |
++| muse suggestions 1 / C8: refuse --samples 0 | Applied in main.rs, README and `cli_xam::muse_r4_step_check_requires_a_nonempty_sample`; zero exits 1 with §17.13 and empty stdout; one sample still runs. Witnessed RED: the old CLI returned cases=0/status=ok. |
++| muse suggestions 2 / C8: cite rules on malformed CLI numbers/HEX | Applied: shared budget parsing cites §5.4, including host-counter overflow; memory/HEX diagnostics cite §16.1. `cli_xam::muse_r4_malformed_options_cite_the_isa_without_partial_output` pins all four exact reported options. Archived old CLI reproduces each bare error independently in `.tmp/r4-muse-options-red.log`; the new test was also witnessed RED live. |
++| muse suggestions 3: handle-map and SSA error expects | Applied: all seven register transition expects use a fallible §3.3 status helper; the SSA retry invariant now returns a §3.3 error if its recorded diagnostic is unexpectedly absent. Existing ownership/alias/reversal tests verify normal behavior. |
++| muse suggestions 3: signature Json::Array expects | Declined: these arrays are constructed as Json::Array immediately before reading them, and header validation checks singleton arity; making the infallible public signature API return Result for this unreachable invariant is not a pure correctness gain for validated objects. |
++| muse suggestions 4 / C7: broaden generated structured borrowing | Applied with the 64-case local-borrow family and the 128-case nested mutable-region/call/pool family; existing seeds and the 200,000-case random distribution are unchanged. |
++| muse suggestions 4 / C7: also add qinplace, ctl/adj oracle calls, while selectors and indexed multi-bit random families | Declined in this pass: these are separate coverage projects with different semantic oracles; changing the old random distribution would obscure the retained sweep baseline. Existing instruction support and dedicated tests remain in scope and unchanged. |
++| sol suggestions: nested calls with mutable regions and borrowed pools | Applied: the 128-case Boolean-map family checks the full interface/memory/borrow/reference state and its exact adjoint, independently of interpreter-to-interpreter agreement. |
++| muse suggestions 5: adopt readings into spec 0.9 | Declined here: spec/ is explicitly read-only for this task; all proposed wordings remain recorded in SPEC-QUESTIONS.md. |
++| muse suggestions 6: complete staged deliverables 8–11, first F probes | Retained as whole-ISA work, not falsely marked complete; the current pass verifies the updated harness and keeps every unavailable outcome explicit. F-link-conflict/F-frame-live-ranges remain the proposed first F promotions when those surfaces land. |
++| codex C2 / muse C2: independent two-member SCC envelope | Applied in `identity::council_r4_mutual_scc_has_independent_literal_envelopes`: literal LF bytes, f/g name order, @$0/@$1 references, no intra-SCC dependency lines, concatenation and ASCII member suffixes; FIPS-tested SHA-256 only builds the expectation. |
++| sol C2: independent CC envelope with service and model | Adapted in `identity::council_r4_cc_envelope_includes_service_but_not_unused_model`: literal service/layout/LF bytes and exclusion of a declared unused model. A single function cannot directly use both: §4.8 makes effect R-only and hostcall CC-only. Existing R model envelope/hash pins remain. |
++| codex C3 / sol C3: literal recursive step/stack boundaries | Applied in `oracle::council_r4_sum_db_literal_step_and_stack_cutoffs`: n=2 at B=38/37 and stack=47 gives (3,0,38)/(0,1,37)/(0,3,29); n=0 at B=9/10 gives (0,1,9)/(0,0,10). |
++| muse C4: small recursive every-prefix sweep in normal tests | Applied for n=0..3, 132 prefixes through the first idle-HALT step, in `step_machine::council_r4_small_recursive_inputs_gate_every_prefix_in_normal_suite`; the full ignored 256-input sweep is retained. |
++| codex C4 / sol C4: inspect private call-record fields | Declined: no incorrect record was identified; inspecting private slots/stack requires a new inspection API, while complete pre/post snapshot inversion, every-prefix checks and literal outcomes already gate this path. |
++| muse C3: add a fault-to-fixture index to all fixture comments | Declined: no incorrect fixture derivation was identified; a second index duplicates the existing fixture/test inventory rather than correcting it. |
++| muse C5: one new registers.rs test name for each trap cause | Declined: reorganizing every trap witness into registers.rs is a separate test-organization expansion; this pass retains the current named fault/reversal pins and makes no trap-code semantic change. |
++| sol C1/C5/C6/C7/C8 and codex C1/C5/C6/C8 | Applied by the five prior blocker fixes and their independent regressions; all retained tests pass in this pass. |
++
++
++## Final verification of the MUSE third pass
++
++MUSE-R4-B01 is resolved-by **40ef8ce**, now pinned by its exact independent
++muse witnesses, huge-bound positives and two new generated families. No new
++borrow semantic fix was necessary or claimed. All six round-4 blocker IDs
++(codex 2, SOL 3, MUSE 1) are resolved; none is declined or partial. The
++non-blocking dispositions above deliberately distinguish coverage suggestions
++from correctness requirements. SPEC-QUESTIONS.md and the accepted ISA 0.8
++are unchanged.
++
++After rebuilding the binary offline, the exact standalone harness command
++from conformance/PROGRESS.md against the updated **92c26af** conformance crate
++reported **445 passed, 0 failed, 46 unavailable / 491**, exit **2**. The extra
++unavailable target case is the documented harness addition; no unavailable
++outcome is silently skipped or counted as a pass. Conformance/include stayed
++read-only; CARGO_TARGET_DIR kept build artifacts in the interpreter's `.tmp`.
++
++Normal suite: **242 passed, 0 failed, 5 ignored**, 12.05 s summed runner time.
++Ignored suite: **5 passed, 0 failed**, 596.07 s summed runner time, including
++2^17 borrow entries, 2^18 certificate elements, every recursive prefix for all
++256 inputs, and the 200,000-program discipline sweep (**64,717 accepted, all
++exactly clean / 135,283 rejected**). The two new deterministic families run
++separately in the normal suite; existing seeds/distribution are unchanged.
++Strict all-target Clippy, formatting, unchanged Python seed and diff checks
++pass. PROGRESS.md records per-sweep times and log paths.
++
++All validation used the required absolute manifests/binary, with DISPLAY,
++WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset and
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp.
++Only reference-interpreter paths changed; no dependencies, spec/docs/header/
++conformance/worklog/HANDOFF/CLAUDE edits, seed changes or pushes. The full-ISA
++bead remains in progress for staged deliverables 8–11.
+ ````
+ 
+@@ -3512,5 +4063,5 @@
+ ````
+ 
+-## `src/action.rs` (966 lines)
++## `src/action.rs` (996 lines)
+ 
+ ````rust
+@@ -3527,5 +4078,5 @@
+ struct Environment {
+     bindings: QuantumBindings,
+-    widths: BTreeMap<String, usize>,
++    widths: BTreeMap<usize, usize>,
+     predicates: Vec<Wire>,
+     borrowed: BTreeMap<String, Vec<usize>>,
+@@ -3575,5 +4126,4 @@
+             return err("§3.3", "live bundle produced twice");
+         }
+-        self.widths.insert(n.into(), wires.len());
+         self.bindings.bundles.insert(n.into(), wires);
+         Ok(())
+@@ -3779,9 +4329,5 @@
+         let mut env = Environment {
+             bindings: bindings.clone(),
+-            widths: bindings
+-                .bundles
+-                .iter()
+-                .map(|(n, w)| (n.clone(), w.len()))
+-                .collect(),
++            widths: BTreeMap::new(),
+             predicates: Vec::new(),
+             borrowed: BTreeMap::new(),
+@@ -3826,6 +4372,11 @@
+             local.push((wires, image));
+         }
++        let mut live_widths = bindings
++            .bundles
++            .iter()
++            .map(|(n, w)| (n.clone(), w.len()))
++            .collect();
+         for b in &f.blocks {
+-            infer_widths(&b.instructions, &mut env)?;
++            infer_widths(&b.instructions, &mut env, &mut live_widths)?;
+         }
+         let instructions: Vec<_> = f
+@@ -3874,4 +4425,7 @@
+             let op = i.op.as_str();
+             if gate(op) {
++                if !matches!(op, "x" | "cx" | "ccx" | "mcx" | "swap") {
++                    q.audit_frame()?;
++                }
+                 let mut wires = Vec::new();
+                 let mut angle = None;
+@@ -3950,5 +4504,8 @@
+                             self.action_sequence(&i.bodies[0], q, e, adjoint, &context)?;
+                             done += 1;
+-                            if done < n && (q.content(), e.bindings.bundles.clone()) == entry {
++                            if done < n
++                                && !q.auditing_borrows()
++                                && (q.content(), e.bindings.bundles.clone()) == entry
++                            {
+                                 done += (n - done) / done * done;
+                             }
+@@ -4014,5 +4571,8 @@
+                     let name = if op == "qalloc" { &i.lhs[0] } else { &a[0] };
+                     if allocate {
+-                        let n = e.widths[name];
++                        let n = *e
++                            .widths
++                            .get(&i.line)
++                            .ok_or_else(|| Error("§4.3: missing matched lifetime width".into()))?;
+                         let w = q.allocate(n)?;
+                         e.produce(name, w)?;
+@@ -4027,5 +4587,8 @@
+                     let name = if op == "qborrow" { &i.lhs[0] } else { &a[0] };
+                     if borrow {
+-                        let n = e.widths[name];
++                        let n = *e
++                            .widths
++                            .get(&i.line)
++                            .ok_or_else(|| Error("§4.3: missing matched lifetime width".into()))?;
+                         let pool = e
+                             .bindings
+@@ -4045,9 +4608,11 @@
+                             );
+                         }
+-                        let wires = indices.iter().map(|i| pool[*i]).collect();
++                        let wires: Vec<_> = indices.iter().map(|i| pool[*i]).collect();
+                         e.borrow_used.extend(&indices);
+                         e.borrowed.insert(name.into(), indices);
++                        q.audit_borrow(&wires);
+                         e.produce(name, wires)?;
+                     } else {
++                        q.audit_return(&e.bundle(name)?)?;
+                         let indices = e
+                             .borrowed
+@@ -4416,37 +4981,53 @@
+     }
+ }
+-fn infer_widths(seq: &[Instruction], e: &mut Environment) -> Result<()> {
++/// Source-order lifetime resolution. A release records the width of its
++/// matching producer, so inverse traversal never consults a later definition
++/// with the same spelling. Instruction line identities survive body cloning.
++fn infer_widths(
++    seq: &[Instruction],
++    e: &mut Environment,
++    live: &mut BTreeMap<String, usize>,
++) -> Result<()> {
+     for i in seq {
+-        match i.op.as_str() {
+-            "qalloc" | "qborrow" => {
+-                e.widths.insert(
+-                    i.lhs[0].clone(),
+-                    i.operands[1]
+-                        .parse()
+-                        .map_err(|_| Error("§4.3: allocation width".into()))?,
+-                );
+-            }
+-            "qcopy" => {
+-                let n = if i.operands[0].contains('[') {
+-                    1
+-                } else {
+-                    *e.widths
+-                        .get(&i.operands[0])
+-                        .ok_or_else(|| Error("§3.3: copy source width".into()))?
+-                };
+-                e.widths.insert(i.lhs[0].clone(), n);
+-            }
+-            "qload" => {
+-                let r = e
+-                    .bindings
++        let width = match i.op.as_str() {
++            "qalloc" | "qborrow" => Some(
++                i.operands[1]
++                    .parse()
++                    .map_err(|_| Error("§4.3: allocation width".into()))?,
++            ),
++            "qcopy" => Some(if i.operands[0].contains('[') {
++                1
++            } else {
++                *live
++                    .get(&i.operands[0])
++                    .ok_or_else(|| Error("§3.3: copy source width".into()))?
++            }),
++            "qload" => Some(
++                e.bindings
+                     .regions
+                     .get(&i.operands[0])
+-                    .ok_or_else(|| Error("§4.6: load region width".into()))?;
+-                e.widths.insert(i.lhs[0].clone(), r.cell_width as usize);
+-            }
+-            _ => {}
++                    .ok_or_else(|| Error("§4.6: load region width".into()))?
++                    .cell_width as usize,
++            ),
++            _ => None,
++        };
++        if let Some(width) = width {
++            live.insert(i.lhs[0].clone(), width);
++            e.widths.insert(i.line, width);
++        }
++        let consumed = match i.op.as_str() {
++            "qfree" | "qreturn" => Some(&i.operands[0]),
++            "quncopy" => Some(&i.operands[1]),
++            "qunload" => Some(&i.operands[2]),
++            _ => None,
++        };
++        if let Some(name) = consumed {
++            let width = live
++                .remove(name)
++                .ok_or_else(|| Error("§3.3: missing consumed lifetime width".into()))?;
++            e.widths.insert(i.line, width);
+         }
+         for b in &i.bodies {
+-            infer_widths(b, e)?;
++            infer_widths(b, e, live)?;
+         }
+     }
+@@ -4872,5 +5453,5 @@
+ ````
+ 
+-## `src/borrow.rs` (1202 lines)
++## `src/borrow.rs` (1334 lines)
+ 
+ ````rust
+@@ -5473,4 +6054,6 @@
+ /// Symbolic evaluation state of one frame.
+ struct Evaluation<'a> {
++    opaque_seen: bool,
++    obligations: BTreeMap<Poly, String>,
+     vars: BTreeMap<String, u32>,
+     state: BTreeMap<String, Poly>,
+@@ -5481,4 +6064,5 @@
+ impl Evaluation<'_> {
+     fn symbol(&mut self, app: Application) -> Result<Poly> {
++        self.opaque_seen = true;
+         if app.inputs.iter().any(|p| p.mentions(self.borrowed)) {
+             return err("§5.6", "composed black-box input depends on borrowed wires; needs a §12 borrow_frames claim");
+@@ -5527,4 +6111,18 @@
+             .collect()
+     }
++    fn transport_obligations(
++        &mut self,
++        obligations: &BTreeMap<Poly, String>,
++        map: &BTreeMap<String, Poly>,
++    ) -> Result<BTreeMap<Poly, String>> {
++        let sub = map
++            .iter()
++            .filter_map(|(w, p)| self.vars.get(w).map(|v| (*v, p.clone())))
++            .collect();
++        obligations
++            .iter()
++            .map(|(p, message)| Ok((self.substitute(p, &sub)?, message.clone())))
++            .collect()
++    }
+     fn var(&mut self, w: &str) -> Poly {
+         if let Some(p) = self.state.get(w) {
+@@ -5571,17 +6169,26 @@
+                 let returned: BTreeSet<_> = wires.iter().map(|w| self.vars[w]).collect();
+                 for w in wires {
+-                    if self.var(w) != Poly::var(self.vars[w]) {
+-                        return err(
+-                            "§5.6",
+-                            format!("qreturn does not restore borrowed wire {w}"),
+-                        );
+-                    }
++                    let difference = self.var(w).xor(&Poly::var(self.vars[w]));
++                    self.obligations.insert(
++                        difference,
++                        format!("qreturn does not restore borrowed wire {w}"),
++                    );
+                 }
+                 for (w, p) in &self.state {
+-                    if !wires.contains(w) && p.mentions(&returned) {
+-                        return err(
+-                            "§5.6",
+-                            format!("qreturn output {w} depends on borrowed entry values"),
+-                        );
++                    if !wires.contains(w) {
++                        // Boolean derivative: zero iff this output is independent
++                        // of this lifetime's fresh borrowed entry bit.
++                        for v in &returned {
++                            let derivative = Poly(
++                                p.0.iter()
++                                    .filter(|m| m.contains(v))
++                                    .map(|m| m.iter().filter(|x| *x != v).copied().collect())
++                                    .collect(),
++                            );
++                            self.obligations.insert(
++                                derivative,
++                                format!("qreturn output {w} depends on borrowed entry values"),
++                            );
++                        }
+                     }
+                 }
+@@ -5597,7 +6204,9 @@
+             Node::Free(wires) => {
+                 for w in wires {
+-                    if self.var(w) != Poly::zero() {
+-                        return err("§5.6", "a wire released inside a borrow frame is not clean");
+-                    }
++                    let value = self.var(w);
++                    self.obligations.insert(
++                        value,
++                        "a wire released inside a borrow frame is not clean".into(),
++                    );
+                     self.state.remove(w);
+                 }
+@@ -5610,4 +6219,5 @@
+                 assign,
+             } => {
++                self.opaque_seen = true;
+                 let ins: Vec<Poly> = inputs.iter().map(|w| self.var(w)).collect();
+                 let c = self.condition(controls);
+@@ -5640,9 +6250,8 @@
+                     return Ok(());
+                 }
+-                // Prove all internal return boundaries on the generic body
+-                // BEFORE squaring its surviving-wire map. Borrowed systems
+-                // whose lifetimes span the loop remain in that map and may be
+-                // restored by its full power, rather than by each iteration.
+-                // The body as a map from its wires' entry values; M^n by squaring.
++                // Summarize both the carried map AND every internal lifetime
++                // obligation. Doubling transports obligations to each reachable
++                // entry; known-clean surrounding state is substituted only after
++                // composition, without assuming all iterations share that state.
+                 let mut wires = BTreeSet::new();
+                 for b in body {
+@@ -5661,4 +6270,5 @@
+                     .collect();
+                 let saved = std::mem::replace(&mut self.state, identity);
++                let saved_obligations = std::mem::take(&mut self.obligations);
+                 for b in body {
+                     self.apply(b)?;
+@@ -5666,4 +6276,7 @@
+                 let body_map = std::mem::replace(&mut self.state, saved);
+                 let mut power: BTreeMap<String, Poly> = body_map;
++                let mut power_obligations =
++                    std::mem::replace(&mut self.obligations, saved_obligations);
++                let mut result_obligations = BTreeMap::new();
+                 let mut result: BTreeMap<String, Poly> = wires
+                     .iter()
+@@ -5673,10 +6286,18 @@
+                 while k > 0 {
+                     if k & 1 == 1 {
++                        result_obligations
++                            .extend(self.transport_obligations(&power_obligations, &result)?);
+                         result = self.compose(&result, &power)?;
+                     }
+                     k >>= 1;
+                     if k > 0 {
++                        power_obligations
++                            .extend(self.transport_obligations(&power_obligations, &power)?);
+                         power = self.compose(&power, &power)?;
+                     }
++                }
++                for (p, message) in result_obligations {
++                    let value = self.substitute(&p, &entry)?;
++                    self.obligations.insert(value, message);
+                 }
+                 for (w, p) in result {
+@@ -5689,4 +6310,19 @@
+         Ok(())
+     }
++}
++fn check_permutation_touches(nodes: &[Node], borrowed: &BTreeSet<String>) -> Result<()> {
++    for node in nodes {
++        if let Node::Repeat(n, body) = node {
++            if *n != 0 {
++                check_permutation_touches(body, borrowed)?;
++            }
++        } else if !node.permutation() && touches(node, borrowed) {
++            return err(
++                "§5.6",
++                "borrowed wire touched by a non-permutation instruction",
++            );
++        }
++    }
++    Ok(())
+ }
+ fn touches(node: &Node, borrowed: &BTreeSet<String>) -> bool {
+@@ -5752,5 +6388,17 @@
+ }
+ /// The exact route: P_F = P' ⊗ I_B on the frame's full domain.
+-fn factorises(frame: &[Node], borrowed: &BTreeSet<String>) -> Result<()> {
++enum FrameFailure {
++    Invalid(Error),
++    NeedsClaim(Error),
++}
++impl From<Error> for FrameFailure {
++    fn from(e: Error) -> Self {
++        Self::Invalid(e)
++    }
++}
++fn factorises(
++    frame: &[Node],
++    borrowed: &BTreeSet<String>,
++) -> std::result::Result<(), FrameFailure> {
+     let mut wires = BTreeSet::new();
+     for n in frame {
+@@ -5768,4 +6416,6 @@
+         .collect();
+     let mut e = Evaluation {
++        opaque_seen: false,
++        obligations: BTreeMap::new(),
+         state: vars
+             .iter()
+@@ -5777,6 +6427,18 @@
+         borrowed: &borrowed_vars,
+     };
++    let failure = |e: &Evaluation<'_>, error| {
++        if e.opaque_seen {
++            FrameFailure::NeedsClaim(error)
++        } else {
++            FrameFailure::Invalid(error)
++        }
++    };
+     for n in frame {
+-        e.apply(n)?;
++        e.apply(n).map_err(|error| failure(&e, error))?;
++    }
++    for (p, message) in &e.obligations {
++        if *p != Poly::zero() {
++            return Err(failure(&e, Error(format!("§5.6: {message}"))));
++        }
+     }
+     for (w, p) in &e.state {
+@@ -5784,16 +6446,20 @@
+             Some(v) if borrowed.contains(w) => {
+                 if *p != Poly::var(*v) {
+-                    return err(
+-                        "§5.6",
+-                        format!("borrow frame does not restore borrowed wire {w}"),
+-                    );
++                    return Err(failure(
++                        &e,
++                        Error(format!(
++                            "§5.6: borrow frame does not restore borrowed wire {w}"
++                        )),
++                    ));
+                 }
+             }
+             _ => {
+                 if p.mentions(&borrowed_vars) {
+-                    return err(
+-                        "§5.6",
+-                        format!("borrow frame output {w} depends on borrowed entry values"),
+-                    );
++                    return Err(failure(
++                        &e,
++                        Error(format!(
++                            "§5.6: borrow frame output {w} depends on borrowed entry values"
++                        )),
++                    ));
+                 }
+             }
+@@ -6021,4 +6687,13 @@
+         Ok(())
+     }
++    /// The §5.6 gate-boundary premise is structural, not an exhaustive tuple
++    /// obligation. Check it independently for public certificate verification,
++    /// which can also be called on an Object assembled through public fields.
++    pub(crate) fn check_borrow_frame_structure(&self, f: &Function) -> Result<()> {
++        let mut compiler = self.borrow_compiler(f)?;
++        let mut nodes = Vec::new();
++        compiler.compile_function(f, &[], &mut nodes)?;
++        check_permutation_touches(&nodes, &compiler.borrowed)
++    }
+     pub(crate) fn validate_borrow_frames(&self, f: &Function) -> Result<()> {
+         fn has_borrow(seq: &[Instruction]) -> bool {
+@@ -6033,25 +6708,27 @@
+         compiler.compile_function(f, &[], &mut nodes)?;
+         let borrowed = compiler.borrowed;
++        check_permutation_touches(&nodes, &borrowed)?;
+         match self.decide_frames(&nodes, &borrowed) {
+             Ok(()) => Ok(()),
+             // The library route of §5.6: verified certificate borrow_frames claims.
+-            Err(e) if self.borrow_frames_certified(f)? => {
+-                let _ = e;
+-                Ok(())
+-            }
+-            Err(e) => Err(e),
+-        }
+-    }
+-    fn decide_frames(&self, nodes: &[Node], borrowed: &BTreeSet<String>) -> Result<()> {
++            Err(FrameFailure::NeedsClaim(_)) if self.borrow_frames_certified(f)? => Ok(()),
++            Err(FrameFailure::Invalid(e) | FrameFailure::NeedsClaim(e)) => Err(e),
++        }
++    }
++    fn decide_frames(
++        &self,
++        nodes: &[Node],
++        borrowed: &BTreeSet<String>,
++    ) -> std::result::Result<(), FrameFailure> {
+         // Frames: maximal permutation-only runs, from the first to the last
+         // operation touching a borrowed wire.
++        let mut unresolved = None;
+         let mut start = 0;
+         while start < nodes.len() {
+             if !nodes[start].permutation() {
+                 if touches(&nodes[start], borrowed) {
+-                    return err(
+-                        "§5.6",
+-                        "borrowed wire touched by a non-permutation instruction",
+-                    );
++                    return Err(FrameFailure::Invalid(Error(
++                        "§5.6: borrowed wire touched by a non-permutation instruction".into(),
++                    )));
+                 }
+                 start += 1;
+@@ -6069,10 +6746,46 @@
+                     // lifetime boundaries; the cropped gate frame alone may
+                     // omit a clean allocation consumed before a qreturn.
+-                    factorises(&nodes[start..end], borrowed)?;
++                    match factorises(&nodes[start..end], borrowed) {
++                        Ok(()) => {}
++                        Err(FrameFailure::Invalid(e)) => return Err(FrameFailure::Invalid(e)),
++                        Err(FrameFailure::NeedsClaim(e)) => {
++                            unresolved.get_or_insert(e);
++                        }
++                    }
+                 }
+             }
+             start = end;
+         }
+-        Ok(())
++        match unresolved {
++            Some(e) => Err(FrameFailure::NeedsClaim(e)),
++            None => Ok(()),
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn unresolved_earlier_frame_cannot_hide_a_definite_later_nonpermutation() {
++        let o = Object::parse(include_str!("../tests/fixtures/inc8.bisa")).unwrap();
++        let b = "b".to_string();
++        let nodes = [
++            Node::Borrow(vec![b.clone()]),
++            Node::Opaque {
++                key: "unknown".into(),
++                controls: vec![],
++                inputs: vec![b.clone()],
++                outputs: vec!["t".into()],
++                assign: false,
++            },
++            Node::Return(vec![b.clone()]),
++            Node::Other(vec![b.clone()]),
++        ];
++        assert!(matches!(
++            o.decide_frames(&nodes, &BTreeSet::from([b])),
++            Err(FrameFailure::Invalid(_))
++        ));
+     }
+ }
+@@ -7036,5 +7749,5 @@
+ ````
+ 
+-## `src/claims.rs` (759 lines)
++## `src/claims.rs` (790 lines)
+ 
+ ````rust
+@@ -7292,4 +8005,13 @@
+         element: &[(Component, BitVector)],
+         budget: Option<Budget>,
++    ) -> Result<Vec<BitVector>> {
++        self.execute_element_audited(f, element, budget, None)
++    }
++    fn execute_element_audited(
++        &self,
++        f: &Function,
++        element: &[(Component, BitVector)],
++        budget: Option<Budget>,
++        mut audit: Option<&mut Vec<crate::quantum::BorrowObservation>>,
+     ) -> Result<Vec<BitVector>> {
+         let value = |name: &str, width: usize| -> Result<BitVector> {
+@@ -7404,5 +8126,11 @@
+             }
+         }
++        if audit.is_some() {
++            q.start_borrow_audit()?;
++        }
+         self.execute_action(&f.name, &mut q, &b, false, &[])?;
++        if let Some(audit) = &mut audit {
++            audit.extend(q.take_borrow_audit());
++        }
+         let read = |q: &QuantumState, wires: &[u64]| -> Result<BitVector> {
+             let mut v = BitVector::zero(wires.len())?;
+@@ -7726,4 +8454,8 @@
+     }
+     fn check_borrow_independence(&self, f: &Function, closure: &str, index: usize) -> Result<()> {
++        // §12.1 tuple replay does not prove the §14.3 T3 permutation premise.
++        // Require permutation-only borrowed touches even when phases happen to
++        // cancel, or are invisible on a known-clean auxiliary wire.
++        self.check_borrow_frame_structure(f)?;
+         let certificate = self
+             .section("certificate")
+@@ -7751,4 +8483,5 @@
+         // borrowed outputs must equal borrowed inputs.
+         let mut by_rest: BTreeMap<Vec<String>, Vec<String>> = BTreeMap::new();
++        let mut at_return = BTreeMap::new();
+         for values in enumerate(&domain)? {
+             let element: Vec<(Component, BitVector)> = domain
+@@ -7758,5 +8491,16 @@
+                 .zip(values)
+                 .collect();
+-            let out = self.execute_element(f, &element, None)?;
++            let mut audit = Vec::new();
++            let out = self.execute_element_audited(f, &element, None, Some(&mut audit))?;
++            // Each completed lifetime is checked before any future borrowing.
++            // Prior checked frames are independent of their returned entries,
++            // so reusing a physical pool bit cannot cancel an invalid lifetime.
++            for (ordinal, (wires, rest, output)) in audit.into_iter().enumerate() {
++                let key = (ordinal, wires, rest);
++                if at_return.get(&key).is_some_and(|prior| *prior != output) {
++                    return err("§5.6", "qreturn outputs depend on its borrowed entry");
++                }
++                at_return.insert(key, output);
++            }
+             let borrowed_in: Vec<String> = element
+                 .iter()
+@@ -9426,5 +10170,5 @@
+ ````
+ 
+-## `src/exact/measurement.rs` (303 lines)
++## `src/exact/measurement.rs` (336 lines)
+ 
+ ````rust
+@@ -9673,4 +10417,10 @@
+         let mut ready = true;
+         for a in amplitudes {
++            if a.is_zero() {
++                // A zero diagnostic neither needs refinement nor determines
++                // the common scale of the supported amplitudes.
++                values.push((Dyadic::int(0), Dyadic::int(0), i64::MIN));
++                continue;
++            }
+             let (r, i) = evaluate(a, p);
+             let (re, im) = (r.midpoint(), i.midpoint());
+@@ -9704,4 +10454,7 @@
+                 .iter()
+                 .fold(0.0f64, |s, (r, i)| s.hypot(*r).hypot(*i));
++            if norm == 0.0 {
++                return vec![(0.0, 0.0); values.len()];
++            }
+             return values
+                 .into_iter()
+@@ -9714,4 +10467,7 @@
+ /// Approximate positive weight ratio for display only; sampling uses real_sign.
+ pub(crate) fn probability(weight: &Amplitude, total: &Amplitude) -> f64 {
++    if weight.is_zero() {
++        return 0.0;
++    }
+     let mut p = 64;
+     loop {
+@@ -9730,4 +10486,25 @@
+         }
+         p *= 2;
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn zero_amplitudes_normalize_without_refining() {
++        let zero = Amplitude::zero();
++        assert_eq!(normalized(std::slice::from_ref(&zero)), vec![(0.0, 0.0)]);
++        let one = zero.add(&Amplitude::one());
++        assert_eq!(
++            normalized(&[zero.clone(), one, zero]),
++            vec![(0.0, 0.0), (1.0, 0.0), (0.0, 0.0)]
++        );
++    }
++
++    #[test]
++    fn zero_probability_weight_does_not_refine() {
++        assert_eq!(probability(&Amplitude::zero(), &Amplitude::one()), 0.0);
+     }
+ }
+@@ -18244,5 +19021,5 @@
+ ````
+ 
+-## `src/quantum.rs` (777 lines)
++## `src/quantum.rs` (893 lines)
+ 
+ ````rust
+@@ -18359,4 +19136,11 @@
+ #[derive(Clone, Debug, PartialEq)]
+ pub(crate) struct Content(Vec<Wire>, Vec<(Key, Amplitude)>);
++pub(crate) type BorrowObservation = (Vec<Wire>, Vec<bool>, Content);
++#[derive(Clone, Debug)]
++struct BorrowAudit {
++    entry: BTreeMap<Wire, bool>,
++    returns: Vec<BorrowObservation>,
++    live: BTreeSet<Wire>,
++}
+ #[derive(Clone, Debug)]
+ pub struct QuantumState {
+@@ -18364,9 +19148,14 @@
+     next: Wire,
+     state: State,
++    borrow_audit: Option<BorrowAudit>,
++    // Exact shadows of conditional states retain their projection scale for
++    // support and Born ratios. Both amplitude observers emit the normalized
++    // conditional vector; arbitrary set_state_vector input keeps its own scale.
++    projected: bool,
+ }
+ impl PartialEq for QuantumState {
+     /// Exact equality of the states (binary64 values are not compared).
+     fn eq(&self, other: &Self) -> bool {
+-        if self.ids != other.ids || self.next != other.next {
++        if self.ids != other.ids || self.next != other.next || self.projected != other.projected {
+             return false;
+         }
+@@ -18489,4 +19278,6 @@
+     pub fn new() -> Self {
+         Self {
++            borrow_audit: None,
++            projected: false,
+             ids: Vec::new(),
+             next: 0,
+@@ -18510,4 +19301,88 @@
+             },
+         )
++    }
++    pub(crate) fn start_borrow_audit(&mut self) -> Result<()> {
++        let entry = self
++            .ids
++            .iter()
++            .map(|w| Ok((*w, self.read_basis(&[*w])? != 0)))
++            .collect::<Result<_>>()?;
++        self.borrow_audit = Some(BorrowAudit {
++            entry,
++            returns: Vec::new(),
++            live: BTreeSet::new(),
++        });
++        Ok(())
++    }
++    pub(crate) fn auditing_borrows(&self) -> bool {
++        self.borrow_audit.is_some()
++    }
++    pub(crate) fn audit_borrow(&mut self, wires: &[Wire]) {
++        if let Some(audit) = &mut self.borrow_audit {
++            audit.live.extend(wires);
++        }
++    }
++    pub(crate) fn audit_frame(&mut self) -> Result<()> {
++        if let Some(audit) = &self.borrow_audit {
++            let wires: Vec<_> = audit.live.iter().copied().collect();
++            if !wires.is_empty() {
++                self.audit_borrow_boundary(&wires)?;
++            }
++        }
++        Ok(())
++    }
++    pub(crate) fn audit_return(&mut self, wires: &[Wire]) -> Result<()> {
++        self.audit_borrow_boundary(wires)?;
++        if let Some(audit) = &mut self.borrow_audit {
++            for w in wires {
++                audit.live.remove(w);
++            }
++        }
++        Ok(())
++    }
++    fn audit_borrow_boundary(&mut self, wires: &[Wire]) -> Result<()> {
++        let Some(audit) = &self.borrow_audit else {
++            return Ok(());
++        };
++        for w in wires {
++            if audit.entry.get(w).copied()
++                != Some(
++                    self.read_basis(&[*w]).map_err(|_| {
++                        Error("§5.6: qreturn/frame borrowed entry is not restored".into())
++                    })? != 0,
++                )
++            {
++                return err("§5.6", "qreturn/frame does not restore its borrowed entry");
++            }
++        }
++        let rest = audit
++            .entry
++            .iter()
++            .filter(|(w, _)| !wires.contains(w))
++            .map(|(_, v)| *v)
++            .collect();
++        let remove: Vec<_> = self.ids.iter().map(|w| wires.contains(w)).collect();
++        let content = self.content();
++        let output = Content(
++            content
++                .0
++                .into_iter()
++                .filter(|w| !wires.contains(w))
++                .collect(),
++            content
++                .1
++                .into_iter()
++                .map(|(k, e)| (compress(&k, &remove), e))
++                .collect(),
++        );
++        if let Some(audit) = &mut self.borrow_audit {
++            audit.returns.push((wires.to_vec(), rest, output));
++        }
++        Ok(())
++    }
++    pub(crate) fn take_borrow_audit(&mut self) -> Vec<BorrowObservation> {
++        self.borrow_audit
++            .take()
++            .map_or_else(Vec::new, |a| a.returns)
+     }
+     pub fn wire_count(&self) -> usize {
+@@ -18617,4 +19492,5 @@
+             }
+         }
++        self.projected = false;
+         if amplitudes.len() == 1 {
+             let (bits, amp) = &components[0];
+@@ -18630,14 +19506,28 @@
+         Ok(())
+     }
+-    /// The exact support as (basis bits, approximate amplitude), for diagnostics.
++    /// Exact support as (basis bits, approximate amplitude), for diagnostics.
++    /// After projection the amplitudes describe the normalized conditional
++    /// state, including after further gates. Unprojected caller-supplied vectors
++    /// retain their input scale. Internal exact shadows keep their raw scale;
++    /// Born weights use norm ratios rather than these binary64 diagnostics.
+     pub fn exact_support(&self) -> Vec<(Vec<bool>, (f64, f64))> {
+         let n = self.ids.len();
+-        match &self.state {
+-            State::Basis { bits, exact, .. } => vec![(bits.clone(), exact.approximate())],
++        let entries: Vec<_> = match &self.state {
++            State::Basis { bits, exact, .. } => vec![(bits.clone(), exact.clone())],
+             State::Vector { amplitudes } => amplitudes
+                 .iter()
+-                .map(|(k, (_, e))| (key_bits(k, n), e.approximate()))
++                .map(|(k, (_, e))| (key_bits(k, n), e.clone()))
+                 .collect(),
+-        }
++        };
++        let values = if self.projected {
++            exact::normalized(&entries.iter().map(|(_, e)| e.clone()).collect::<Vec<_>>())
++        } else {
++            entries.iter().map(|(_, e)| e.approximate()).collect()
++        };
++        entries
++            .into_iter()
++            .zip(values)
++            .map(|((bits, _), value)| (bits, value))
++            .collect()
+     }
+     /// The value of `wires` when it is the same on every component of the
+@@ -18923,5 +19813,5 @@
+             .filter_map(|(p, w)| (!remove[p]).then_some(*w))
+             .collect();
+-        if let State::Basis { bits, phase, exact } = &self.state {
++        if let State::Basis { bits, exact, .. } = &self.state {
+             let mut state = self.clone();
+             let result = positions.iter().map(|p| bits[*p]).collect();
+@@ -18932,7 +19822,9 @@
+                 .collect();
+             state.ids = kept_ids;
++            state.projected = true;
++            let (re, im) = exact::normalized(std::slice::from_ref(exact))[0];
+             state.state = State::Basis {
+                 bits: kept,
+-                phase: *phase,
++                phase: Complex::new(re, im),
+                 exact: exact.clone(),
+             };
+@@ -18979,4 +19871,5 @@
+             let mut state = self.clone();
+             state.ids = kept_ids.clone();
++            state.projected = true;
+             state.state = State::Vector { amplitudes: group };
+             branches.push(MeasurementBranch {
+@@ -19026,5 +19919,5 @@
+ ````
+ 
+-## `src/registers.rs` (260 lines)
++## `src/registers.rs` (258 lines)
+ 
+ ````rust
+@@ -19253,12 +20146,10 @@
+             .iter()
+             .fold(crate::exact::Amplitude::zero(), |s, b| s.add(&b.weight));
+-        let threshold = total.times_f64(draw)?;
++        let negative_threshold = total.times_f64(draw)?.times_f64(-1.0)?;
+         let mut cumulative = crate::exact::Amplitude::zero();
+         let mut selected = None;
+         for branch in branches {
+             cumulative = cumulative.add(&branch.weight);
+-            if cumulative.add(&threshold.times_f64(-1.0)?).real_sign()
+-                == std::cmp::Ordering::Greater
+-            {
++            if cumulative.add(&negative_threshold).real_sign() == std::cmp::Ordering::Greater {
+                 selected = Some(branch);
+                 break;
+@@ -22168,5 +23059,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (1270 lines)
++## `tests/cli_xam.rs` (1304 lines)
+ 
+ ````rust
+@@ -23440,4 +24331,38 @@
+         );
+     }
++}
++
++#[test]
++fn sol_r5_b03_reused_workspace_widths_run_and_reverse() {
++    let o = support::rehash(&support::borrow_lifetime_object(
++        "d = qalloc any 1\ncx t d\ncx t d\nqfree d\nd = qalloc any 2\nqfree d",
++        &[],
++    ));
++    let path = tmp_file("r5-widths.bisa", &o.text);
++    ok(&["check", &path]);
++    for t in ["0", "1"] {
++        for adj in [false, true] {
++            let mut args = vec!["run-action", &path, "a", "--mut", t];
++            if adj {
++                args.push("--adjoint");
++            }
++            let v = ok(&args);
++            assert_eq!(field(&v, "state").canonical(), format!("{{\"{t}\":[1,0]}}"));
++            assert_eq!(array(&v, "mut")[0].uint().unwrap().to_string(), t);
++        }
++        assert_eq!(
++            field(&ok(&["reverse", &path, "a", "--mut", t]), "equals_entry"),
++            &Json::Bool(true)
++        );
++    }
++    let v = ok(&["run-action", &path, "a", "--state", "0=0.6,0;1=0,0.8"]);
++    assert_eq!(field(&v, "state").object().unwrap().len(), 2);
++    assert_eq!(
++        field(
++            &ok(&["reverse", &path, "a", "--state", "0=0.6,0;1=0,0.8"]),
++            "equals_entry"
++        ),
++        &Json::Bool(true)
++    );
+ }
+ ````
+@@ -25697,5 +26622,5 @@
+ ````
+ 
+-## `tests/quantum.rs` (206 lines)
++## `tests/quantum.rs` (365 lines)
+ 
+ ````rust
+@@ -25867,4 +26792,5 @@
+         assert_eq!(first[0].bits, [false]);
+         let residual = &first[0].state;
++        sparse_matches_normalized_dense(residual);
+         let amps = residual.amplitudes().unwrap();
+         assert!(amps.iter().all(|a| a.re.is_finite() && a.im.is_finite()));
+@@ -25873,4 +26799,5 @@
+         assert_eq!(second.len(), 2);
+         for branch in second {
++            sparse_matches_normalized_dense(&branch.state);
+             assert!((branch.probability - 0.5).abs() < 1e-12);
+             assert_eq!(
+@@ -25898,4 +26825,5 @@
+     assert_eq!(branches.len(), 4);
+     let mut rare = branches[0].state.clone();
++    sparse_matches_normalized_dense(&rare);
+     for a in rare.amplitudes().unwrap() {
+         assert!((a.re.abs() - std::f64::consts::FRAC_1_SQRT_2).abs() < 1e-12);
+@@ -25904,5 +26832,161 @@
+     rare.gate("h", &[w[2]], None, &[]).unwrap();
+     assert_eq!(rare.read_basis(&[w[2]]).unwrap(), 0);
++    sparse_matches_normalized_dense(&rare);
+     rare.release(&[w[2]]).unwrap();
++}
++
++mod support;
++
++#[test]
++fn sol_r5_b03_consumed_workspace_names_keep_their_own_widths() {
++    let exact = "d = qalloc any 1\ncx t d\ncx t d\nqfree d\nd = qalloc any 2\nqfree d";
++    let o = support::rehash(&support::borrow_lifetime_object(exact, &[]));
++    assert_eq!(
++        o.identity().unwrap().interface_hashes["a"],
++        "ba05b26390994f78dc6405906f8ecf555075f83b6f2c47da1ffbee78e7afd140"
++    );
++    assert_eq!(
++        o.identity().unwrap().object_hash,
++        "1004ce41faf18591bbfa75d3cff461a2c61c0df9f3a89bcac513b3553c223340"
++    );
++    support::borrow_identity(&o);
++
++    for renamed in [false, true] {
++        for nested in [false, true] {
++            // Reuse after qcopy, qload, qborrow and qalloc; all consumed
++            // lifetimes have their own width, including inverse releases.
++            let body = "a = qalloc any 1\nz = qalloc any 2\nd = qcopy t\nquncopy t d\nd = qcopy z\nquncopy z d\nd = qload r a\nqunload r a d\nd = qalloc any 1\ncx t d\ncx t d\nqfree d\nd = qborrow any 2\nx d[1]\nx d[1]\nqreturn d\nd = qborrow any 1\ncx d t\ncx d t\nqreturn d\nqfree z\nqfree a";
++            let body = if renamed {
++                body.replacen("d = qcopy z\nquncopy z d", "e = qcopy z\nquncopy z e", 1)
++                    .replacen(
++                        "d = qborrow any 2\nx d[1]\nx d[1]\nqreturn d",
++                        "f = qborrow any 2\nx f[1]\nx f[1]\nqreturn f",
++                        1,
++                    )
++            } else {
++                body.into()
++            };
++            let (body, bounds) = if nested {
++                (
++                    format!("qregion r 1 2\nqloop 2 {{\nqloop 3 {{\n{body}\n}}\n}}"),
++                    vec![2, 3],
++                )
++            } else {
++                (format!("qregion r 1 2\n{body}"), vec![])
++            };
++            let o = support::rehash(&support::borrow_lifetime_object(&body, &bounds));
++            for input in 0..10 {
++                let mut q = QuantumState::new();
++                let w = q.allocate(4).unwrap();
++                for (i, wire) in w[..3].iter().enumerate() {
++                    if input >= 8 {
++                        q.gate("h", &[*wire], None, &[]).unwrap();
++                    } else if input >> i & 1 == 1 {
++                        q.gate("x", &[*wire], None, &[]).unwrap();
++                    }
++                }
++                if input == 9 {
++                    q.gate("cx", &[w[1], w[3]], None, &[]).unwrap();
++                }
++                let entry = q.clone();
++                let mut b = QuantumBindings::default();
++                b.bundles.insert("t".into(), vec![w[0]]);
++                b.borrowed.push(w[1..3].to_vec());
++                for adjoint in [false, true] {
++                    o.execute_action("a", &mut q, &b, adjoint, &[]).unwrap();
++                    assert_eq!(
++                        q, entry,
++                        "renamed={renamed}, nested={nested}, input={input}, adj={adjoint}"
++                    );
++                }
++            }
++        }
++    }
++    assert!(Object::parse(&support::borrow_lifetime_object(
++        "d = qalloc any 1\nd = qalloc any 2\nqfree d",
++        &[]
++    ))
++    .is_err());
++}
++
++fn sparse_matches_normalized_dense(q: &QuantumState) {
++    let dense = q.amplitudes().unwrap();
++    let sparse = q.exact_support();
++    let mut norm = 0.0;
++    for (bits, (re, im)) in sparse {
++        assert!(re.is_finite() && im.is_finite());
++        let index = bits
++            .iter()
++            .enumerate()
++            .fold(0, |x, (i, b)| x | (usize::from(*b) << i));
++        close(Complex::new(re, im), dense[index]);
++        norm += re * re + im * im;
++    }
++    assert!((norm - 1.0).abs() < 1e-12, "sparse conditional norm={norm}");
++}
++
++#[test]
++fn sol_r5_b04_sparse_observer_reports_the_conditional_state() {
++    let mut q = QuantumState::new();
++    let w = q.allocate(2).unwrap();
++    q.gate("h", &[w[0]], None, &[]).unwrap();
++    for mut branch in q.measurement_branches(&[w[0]]).unwrap() {
++        assert!((branch.probability - 0.5).abs() < 1e-12);
++        assert_eq!(
++            branch.state.exact_support(),
++            vec![(vec![false], (1.0, 0.0))]
++        );
++        sparse_matches_normalized_dense(&branch.state);
++        branch.state.gate("h", &[w[1]], None, &[]).unwrap();
++        sparse_matches_normalized_dense(&branch.state);
++        for (_, (re, im)) in branch.state.exact_support() {
++            close(
++                Complex::new(re, im),
++                Complex::new(std::f64::consts::FRAC_1_SQRT_2, 0.0),
++            );
++        }
++    }
++    // set_state_vector's contract leaves normalization to the caller.
++    q.set_state_vector(&[(vec![false, false], Complex::new(2.0, 2.0))])
++        .unwrap();
++    assert_eq!(q.exact_support(), vec![(vec![false, false], (2.0, 2.0))]);
++    q.gate("h", &[w[1]], None, &[]).unwrap();
++    let norm: f64 = q
++        .exact_support()
++        .iter()
++        .map(|(_, (r, i))| r * r + i * i)
++        .sum();
++    assert!((norm - 8.0).abs() < 1e-12);
++    // A basis projection also returns its normalized conditional global phase.
++    q.gate("h", &[w[1]], None, &[]).unwrap();
++    let branch = q.measurement_branches(&[w[0]]).unwrap().remove(0);
++    sparse_matches_normalized_dense(&branch.state);
++    let mut reset = branch.state;
++    reset
++        .set_state_vector(&[(vec![false], Complex::new(3.0, 0.0))])
++        .unwrap();
++    assert_eq!(reset.exact_support(), vec![(vec![false], (3.0, 0.0))]);
++}
++
++#[test]
++fn codex_r5_bell_projection_diagnostics_are_conditional_amplitudes() {
++    let mut q = QuantumState::new();
++    let w = q.allocate(2).unwrap();
++    q.gate("h", &[w[0]], None, &[]).unwrap();
++    q.gate("cx", &[w[0], w[1]], None, &[]).unwrap();
++    for (_, (re, im)) in q.exact_support() {
++        close(
++            Complex::new(re, im),
++            Complex::new(std::f64::consts::FRAC_1_SQRT_2, 0.0),
++        );
++    }
++    for branch in q.measurement_branches(&[w[0]]).unwrap() {
++        assert!((branch.probability - 0.5).abs() < 1e-12);
++        assert_eq!(
++            branch.state.exact_support(),
++            vec![(vec![branch.bits[0]], (1.0, 0.0))]
++        );
++        sparse_matches_normalized_dense(&branch.state);
++    }
+ }
+ ````
+@@ -26073,5 +27157,5 @@
+ ````
+ 
+-## `tests/r1_borrow.rs` (507 lines)
++## `tests/r1_borrow.rs` (619 lines)
+ 
+ ````rust
+@@ -26583,7 +27667,119 @@
+     }
+ }
++
++#[test]
++fn sol_r5_b02_clean_surrounding_loop_controls_are_reachable_invariants() {
++    for n in [1, 2, 3, 1 << 40] {
++        for nested in [false, true] {
++            let inner = format!("qloop {n} {{\nb = qborrow any 1\ncx d b\nqreturn b\n}}");
++            let (loops, bounds) = if nested {
++                (format!("qloop 3 {{\n{inner}\n}}"), vec![3, n])
++            } else {
++                (inner, vec![n])
++            };
++            // d=0 is unchanged: EACH CX is I on arbitrary/entangled beta_i.
++            let body = format!("d = qalloc any 1\n{loops}\nqfree d");
++            let o = support::rehash(&support::borrow_lifetime_object(&body, &bounds));
++            support::borrow_identity(&o);
++            let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".tmp");
++            let path = dir.join(format!("r5-clean-{n}-{nested}.bisa"));
++            std::fs::write(&path, &o.text).unwrap();
++            for cmd in ["hash", "check"] {
++                let out = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                    .arg(cmd)
++                    .arg(&path)
++                    .output()
++                    .unwrap();
++                assert!(out.status.success(), "{out:?}");
++            }
++            // d=1 makes each return invalid, including at even trip counts.
++            let bad = format!("d = qalloc any 1\nx d\n{loops}\nx d\nqfree d");
++            support::reject_cli(
++                &support::borrow_lifetime_object(&bad, &bounds),
++                "§5.6",
++                &format!("r5-dirty-{n}-{nested}"),
++            );
++            if n <= 3 {
++                let unrolled = (0..n)
++                    .map(|i| format!("b{i} = qborrow any 1\ncx d b{i}\nqreturn b{i}"))
++                    .collect::<Vec<_>>()
++                    .join("\n");
++                support::borrow_identity(&support::rehash(&support::borrow_lifetime_object(
++                    &format!("d = qalloc any 1\n{unrolled}\nqfree d"),
++                    &[],
++                )));
++            }
++        }
++    }
++    // Reachability must include later iterations: d=0 on the first entry,
++    // then toggles to 1. A first-iteration-only check would admit this.
++    support::reject_cli(
++        &support::borrow_lifetime_object(
++            "d = qalloc any 1\nqloop 2 {\nb = qborrow any 1\ncx d b\nqreturn b\nx d\n}\nqfree d",
++            &[2],
++        ),
++        "§5.6",
++        "r5-later-entry",
++    );
++}
++
++#[test]
++fn codex_r5_b03_one_iteration_release_matches_unrolled_clean_entry() {
++    for (i, (body, bounds, hash)) in [
++        (
++            "c = qalloc any 1\nb = qborrow any 1\nqloop 1 {\nqfree c\n}\nqreturn b",
++            vec![1],
++            "a42079194137127e703185faaeb6b5bc85c6941ccc03988eb67c19c14481e8df",
++        ),
++        (
++            "c = qalloc any 1\nb = qborrow any 1\nqfree c\nqreturn b",
++            vec![],
++            "77ec83b71a86ed5ecff50d17e3eafe79fc371da7ff553ab53eb2de7a19abd218",
++        ),
++        (
++            "c = qalloc any 1\nqloop 1 {\nb = qborrow any 1\nqfree c\nqreturn b\n}",
++            vec![1],
++            "1f7845d8ea763f50cbd05294dacce1f1c8de52f18a506a240ffee4b909ce7712",
++        ),
++    ]
++    .iter()
++    .enumerate()
++    {
++        // c is exactly zero, so freeing it once is legal; b never changes.
++        let o = support::rehash(&support::borrow_lifetime_object(body, bounds));
++        assert_eq!(o.identity().unwrap().interface_hashes["a"], *hash);
++        o.check_hashes().unwrap();
++        support::borrow_identity(&o);
++        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
++            .join(format!(".tmp/codex-r5-b03-{i}.bisa"));
++        std::fs::write(&path, &o.text).unwrap();
++        for cmd in ["hash", "check", "run-action", "reverse"] {
++            for t in ["0", "1"] {
++                let mut command = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"));
++                command.arg(cmd).arg(&path);
++                if matches!(cmd, "run-action" | "reverse") {
++                    command.args(["a", "--mut", t]);
++                }
++                let out = command.output().unwrap();
++                assert!(out.status.success(), "{cmd}, {out:?}");
++                if cmd == "run-action" {
++                    let result = support::json(std::str::from_utf8(&out.stdout).unwrap());
++                    assert_eq!(
++                        result.get("state").unwrap().canonical(),
++                        format!("{{\"{t}\":[1,0]}}")
++                    );
++                } else if cmd == "reverse" {
++                    assert!(String::from_utf8_lossy(&out.stdout).contains("\"equals_entry\":true"));
++                }
++            }
++        }
++        // The same release with c=1 is unclean, irrespective of the wrapper.
++        let dirty = body.replace("c = qalloc any 1", "c = qalloc any 1\nx c");
++        assert!(Object::parse(&support::borrow_lifetime_object(&dirty, bounds)).is_err());
++    }
++}
+ ````
+ 
+-## `tests/r1_certificates.rs` (501 lines)
++## `tests/r1_certificates.rs` (845 lines)
+ 
+ ````rust
+@@ -27088,4 +28284,348 @@
+         .to_string()
+         .contains("§12.1"));
++}
++
++/// The hashes are derived without parsing the invalid uncertified subject.
++fn r5_certified_lifetime(gate: &str) -> String {
++    let (h, object_hash) = match gate {
++        "x b" => (
++            "3bc76b4398502416eed66400092c8ec2e5e273d97283b5199065a88a3ed9f1d7",
++            "9b10654c083129047b847830d3582ff3dbf15cf7c8759f4586f836c02e5b6266",
++        ),
++        "cx b t" => (
++            "1e0d1484447af491bd512ef5cc3cbe4f1b9532863aa56ae2149f61247973f343",
++            "4aaf72716633ad6037e3b542f000eb31372accd743ddb97aa97d2960447ac43b",
++        ),
++        "cx t b" => (
++            "020372af2df49bc56df0f37f08dfc7b58af2e258df9fb58da7010a7a8d3eb24a",
++            "cb7ef9243fc8e1144a6863142a46e2969941940894e993bd2abddb685725f7cd",
++        ),
++        _ => panic!("test gate"),
++    };
++    let body = format!("qloop 2 {{\nb = qborrow any 1\n{gate}\nqreturn b\n}}");
++    let text = support::borrow_lifetime_object(&body, &[2]).replace(&"0".repeat(64), h);
++    let certified = support::certified_borrow_identity(&body, &[2]);
++    assert_eq!(
++        certified.split("\nsection certificate").next().unwrap(),
++        text
++    );
++    let cert = json(certified.lines().last().unwrap());
++    assert_eq!(
++        cert.get("bindings")
++            .unwrap()
++            .get("object_hash")
++            .unwrap()
++            .string()
++            .unwrap(),
++        object_hash
++    );
++    certified
++}
++
++#[test]
++fn sol_r5_b01_certificates_cannot_waive_completed_lifetimes() {
++    for (i, gate) in ["x b", "cx b t"].iter().enumerate() {
++        // Each beta_i is independent: X fails restoration, CX fails output
++        // independence. Whole-loop parity is irrelevant to either obligation.
++        let certified = r5_certified_lifetime(gate);
++        for (j, text) in [
++            certified.split("\nsection certificate").next().unwrap(),
++            &certified,
++        ]
++        .iter()
++        .enumerate()
++        {
++            support::reject_cli(text, "§5.6", &format!("r5-certified-{i}-{j}"));
++        }
++    }
++}
++
++#[test]
++fn sol_r5_b01_library_replay_checks_boundaries_even_when_region_map_is_identity() {
++    for gate in ["x b", "cx b t"] {
++        let invalid = r5_certified_lifetime(gate);
++        // Object's fields are public. Isolate verify_certificate from parse's
++        // definite-failure guard by constructing the same compiled subject from
++        // a valid paired-gate object, then installing the independently bound
++        // invalid source/metadata. This tests the second admission defense.
++        let valid = support::borrow_lifetime_object(
++            &format!("qloop 2 {{\nb = qborrow any 1\n{gate}\n{gate}\nqreturn b\n}}"),
++            &[2],
++        );
++        let mut o = Object::parse(&valid).unwrap();
++        let f = o.functions.get_mut("a").unwrap();
++        f.blocks[0].instructions[0].bodies[0].remove(2);
++        f.lines = invalid
++            .split("section functions\n")
++            .nth(1)
++            .unwrap()
++            .split("\n\nsection certificate")
++            .next()
++            .unwrap()
++            .lines()
++            .map(str::to_string)
++            .collect();
++        o.metadata.insert(
++            "symbols".into(),
++            json(
++                invalid
++                    .split("section symbols\n")
++                    .nth(1)
++                    .unwrap()
++                    .lines()
++                    .next()
++                    .unwrap(),
++            ),
++        );
++        o.metadata
++            .insert("certificate".into(), json(invalid.lines().last().unwrap()));
++        o.text = invalid;
++        let closure = o.identity().unwrap().closure_hashes["a"].clone().unwrap();
++        assert_eq!(o.verify_claim(&closure, 0).unwrap(), ClaimVerdict::Proof);
++        let error = o.verify_certificate().unwrap_err().to_string();
++        assert!(
++            error.contains("§5.6") && error.contains("qreturn"),
++            "{error}"
++        );
++    }
++    for body in [
++        "qloop 2 {\nb = qborrow any 1\nx b\nx b\nqreturn b\n}",
++        "qloop 2 {\nb = qborrow any 1\ncx b t\ncx b t\nqreturn b\n}",
++        "b = qborrow any 1\nqloop 2 {\ncx b t\n}\nqreturn b",
++    ] {
++        let o = Object::parse(&support::certified_borrow_identity(body, &[2])).unwrap();
++        assert_eq!(
++            o.verify_certificate().unwrap()[0].verdict,
++            ClaimVerdict::Proof
++        );
++        support::borrow_identity(&o);
++    }
++}
++
++#[test]
++fn sol_r5_b01_certificate_return_checks_keep_quantum_surrounding_state() {
++    // Each borrowed frame is identity even though t is a superposition at
++    // qreturn. Auditing the classical values of all other wires would narrow
++    // this valid action; compare their exact quantum state instead.
++    for body in [
++        "h t\nb = qborrow any 1\nx b\nx b\nqreturn b\nh t",
++        "b = qborrow any 1\nx b\nx b\nh t\nh t\nx b\nx b\nqreturn b",
++    ] {
++        let o = Object::parse(&support::certified_borrow_identity_kind(
++            body,
++            &[],
++            "action",
++        ))
++        .unwrap();
++        assert_eq!(
++            o.verify_certificate().unwrap()[0].verdict,
++            ClaimVerdict::Proof
++        );
++        support::borrow_identity(&o);
++    }
++}
++
++#[test]
++fn sol_r5_b01_library_replay_checks_frames_before_nonpermutation_boundaries() {
++    for gate in ["x b", "cx b t"] {
++        let body = format!("b = qborrow any 1\n{gate}\nh t\nh t\n{gate}\nqreturn b");
++        let invalid = support::certified_borrow_identity_kind(&body, &[], "action");
++        let valid = support::borrow_lifetime_object(
++            &format!("b = qborrow any 1\n{gate}\n{gate}\nh t\nh t\n{gate}\n{gate}\nqreturn b"),
++            &[],
++        )
++        .replace("perm_action", "action");
++        let mut o = Object::parse(&valid).unwrap();
++        let f = o.functions.get_mut("a").unwrap();
++        f.blocks[0].instructions.remove(6);
++        f.blocks[0].instructions.remove(2);
++        f.lines = invalid
++            .split("section functions\n")
++            .nth(1)
++            .unwrap()
++            .split("\n\nsection certificate")
++            .next()
++            .unwrap()
++            .lines()
++            .map(str::to_string)
++            .collect();
++        o.metadata.insert(
++            "symbols".into(),
++            json(
++                invalid
++                    .split("section symbols\n")
++                    .nth(1)
++                    .unwrap()
++                    .lines()
++                    .next()
++                    .unwrap(),
++            ),
++        );
++        o.metadata
++            .insert("certificate".into(), json(invalid.lines().last().unwrap()));
++        o.text = invalid;
++        let closure = o.identity().unwrap().closure_hashes["a"].clone().unwrap();
++        assert_eq!(o.verify_claim(&closure, 0).unwrap(), ClaimVerdict::Proof);
++        assert!(o
++            .verify_certificate()
++            .unwrap_err()
++            .to_string()
++            .contains("§5.6"));
++    }
++}
++
++#[test]
++fn codex_r5_b01_exact_three_certified_lifetime_witnesses() {
++    for (i, gate) in ["x b", "cx b t", "cx t b"].iter().enumerate() {
++        let exact = r5_certified_lifetime(gate);
++        for (j, text) in [exact.split("\nsection certificate").next().unwrap(), &exact]
++            .iter()
++            .enumerate()
++        {
++            support::reject_cli(text, "§5.6", &format!("codex-r5-b01-{i}-{j}"));
++        }
++        // No lifetime may borrow a future lifetime's parity cancellation.
++        for (j, (body, bounds)) in [
++            (format!("b = qborrow any 1\n{gate}\nqreturn b"), vec![]),
++            (
++                format!("qloop 2 {{\nqloop 2 {{\nb = qborrow any 1\n{gate}\nqreturn b\n}}\n}}"),
++                vec![2, 2],
++            ),
++        ]
++        .iter()
++        .enumerate()
++        {
++            support::reject_cli(
++                &support::certified_borrow_identity(body, bounds),
++                "§5.6",
++                &format!("codex-r5-b01-more-{i}-{j}"),
++            );
++        }
++    }
++}
++
++fn codex_r5_install_subject(invalid: &str, body: &str) -> Object {
++    // Parse a legal shape, then reconstruct public fields to isolate the
++    // certificate API's checks from load-time admission.
++    let valid = support::borrow_lifetime_object(body, &[]).replace("perm_action", "action");
++    let mut o = Object::parse(&valid.replace("cz b ", "x ")).unwrap();
++    for i in &mut o.functions.get_mut("a").unwrap().blocks[0].instructions {
++        if i.op == "x" {
++            i.op = "cz".into();
++            i.operands.insert(0, "b".into());
++        }
++    }
++    o.functions.get_mut("a").unwrap().lines = invalid
++        .split("section functions\n")
++        .nth(1)
++        .unwrap()
++        .split("\n\nsection certificate")
++        .next()
++        .unwrap()
++        .lines()
++        .map(str::to_string)
++        .collect();
++    o.metadata.insert(
++        "symbols".into(),
++        json(
++            invalid
++                .split("section symbols\n")
++                .nth(1)
++                .unwrap()
++                .lines()
++                .next()
++                .unwrap(),
++        ),
++    );
++    o.metadata
++        .insert("certificate".into(), json(invalid.lines().last().unwrap()));
++    o.text = invalid.into();
++    o
++}
++
++#[test]
++fn codex_r5_b02_exact_cz_certificate_cannot_admit_a_nonpermutation_frame() {
++    let body = "b = qborrow any 1\ncz b t\nqreturn b";
++    let exact = support::certified_borrow_identity_kind(body, &[], "action");
++    let cert = json(exact.lines().last().unwrap());
++    let bindings = cert.get("bindings").unwrap();
++    assert_eq!(
++        bindings.get("interface_hash").unwrap().string().unwrap(),
++        "26374c7b2da2747a9a755d48da06130bfa53e8ba67102e4749fa1cb8adc2f1a0"
++    );
++    assert_eq!(
++        bindings.get("object_hash").unwrap().string().unwrap(),
++        "2340cad379662fdcec0e7664aa161a667d77294eee1da295bced60916553158d"
++    );
++    for (i, text) in [
++        exact.split("\nsection certificate").next().unwrap(),
++        &exact,
++        &exact.replace("\"borrow_frames\":[0]", "\"borrow_frames\":[]"),
++    ]
++    .iter()
++    .enumerate()
++    {
++        support::reject_cli(text, "§5.6", &format!("codex-r5-b02-{i}"));
++    }
++    // Public API: a full tuple claim alone is not a T3 proof. Even a pair of
++    // illegal phase touches which cancels in the final unitary must fail the
++    // mandatory permutation-only gate-boundary premise, independently of replay.
++    for body in [
++        body,
++        "b = qborrow any 1\ncz b t\ncz b t\nqreturn b",
++        "c = qalloc any 1\nb = qborrow any 1\ncz b c\ncz b c\nqfree c\nqreturn b",
++    ] {
++        let invalid = support::certified_borrow_identity_kind(body, &[], "action");
++        let o = codex_r5_install_subject(&invalid, body);
++        let error = o
++            .verify_certificate()
++            .expect_err("nonpermutation borrow frame certified");
++        assert!(error.to_string().contains("§5.6"), "{error}");
++    }
++    // Quantum phase witness, not integer basis labels: CZ|++> has -1/2 at 11.
++    let o = codex_r5_install_subject(&exact, body);
++    let mut q = bennett_isa_ref::QuantumState::new();
++    let w = q.allocate(2).unwrap();
++    for wire in &w {
++        q.gate("h", &[*wire], None, &[]).unwrap();
++    }
++    let mut b = bennett_isa_ref::QuantumBindings::default();
++    b.bundles.insert("t".into(), vec![w[0]]);
++    b.borrowed.push(vec![w[1]]);
++    o.execute_action("a", &mut q, &b, false, &[]).unwrap();
++    for (bits, (re, im)) in q.exact_support() {
++        assert_eq!(re, if bits == [true, true] { -0.5 } else { 0.5 });
++        assert_eq!(im, 0.0);
++    }
++    // Non-permutation gates on unrelated wires remain legal, including when
++    // t is superposed at the frame's entry or return.
++    for body in [
++        "h t\nb = qborrow any 1\nx b\nx b\nqreturn b\nh t",
++        "b = qborrow any 1\nh t\nx b\nx b\nh t\nqreturn b",
++    ] {
++        let o = Object::parse(&support::certified_borrow_identity_kind(
++            body,
++            &[],
++            "action",
++        ))
++        .unwrap();
++        assert_eq!(
++            o.verify_certificate().unwrap()[0].verdict,
++            ClaimVerdict::Proof
++        );
++        support::borrow_identity(&o);
++    }
++}
++
++#[test]
++fn muse_r5_translation_frame_maximality_is_within_its_static_sequence() {
++    // Two pre-loop borrowed touches form an identity frame. Each iteration's
++    // complete translation frame is maximal within its own static body.
++    let text = sol_translation_object("cx p b\ncx b t\ncx p b\ncx b t", true).replace(
++        "b = qborrow any 1\nqloop",
++        "b = qborrow any 1\ncx p b\ncx p b\nqloop",
++    );
++    let text = support::rehash(&text).text;
++    sol_assert_translation(&text, &sol_translation_claim(&text, 4, 7, 4, 5, "b"), true);
+ }
+ ````
+@@ -28208,5 +29748,5 @@
+ ````
+ 
+-## `tests/r1_fuzz_discipline.rs` (696 lines)
++## `tests/r1_fuzz_discipline.rs` (870 lines)
+ 
+ ````rust
+@@ -28907,4 +30447,178 @@
+     assert_eq!(counts, (96, 32));
+ }
++
++#[test]
++fn generated_r5_certificate_and_clean_context_lifetimes_match_independent_maps() {
++    let (mut accepted, mut rejected) = (0, 0);
++    // Independent per-lifetime Boolean equations, irrespective of trip parity:
++    // one X: beta'=beta^1; one CX: beta'=beta^t OR t'=t^beta.
++    // Two identical gates cancel within the SAME lifetime.
++    for n in 1..=4 {
++        for gate in ["x b", "cx b t", "cx t b"] {
++            for repetitions in 1..=2 {
++                for nested in [false, true] {
++                    let gates = vec![gate; repetitions].join("\n");
++                    let inner = format!("qloop {n} {{\nb = qborrow any 1\n{gates}\nqreturn b\n}}");
++                    let (body, bounds) = if nested {
++                        (format!("qloop 2 {{\n{inner}\n}}"), vec![2, n])
++                    } else {
++                        (inner, vec![n])
++                    };
++                    for certified in [false, true] {
++                        let text = if certified {
++                            support::certified_borrow_identity(&body, &bounds)
++                        } else {
++                            support::borrow_lifetime_object(&body, &bounds)
++                        };
++                        if repetitions == 2 {
++                            let o = Object::parse(&text).unwrap();
++                            support::borrow_identity(&o);
++                            if certified {
++                                o.verify_certificate().unwrap();
++                            }
++                            accepted += 1;
++                        } else {
++                            let e = Object::parse(&text).unwrap_err().to_string();
++                            assert!(e.contains("§5.6"), "{e}");
++                            rejected += 1;
++                        }
++                    }
++                }
++            }
++        }
++        for dirty in [false, true] {
++            for unrolled in [false, true] {
++                let (lifetimes, bounds) = if unrolled {
++                    (
++                        (0..n)
++                            .map(|j| format!("b{j} = qborrow any 1\ncx d b{j}\nqreturn b{j}"))
++                            .collect::<Vec<_>>()
++                            .join("\n"),
++                        vec![],
++                    )
++                } else {
++                    (
++                        format!("qloop {n} {{\nb = qborrow any 1\ncx d b\nqreturn b\n}}"),
++                        vec![n],
++                    )
++                };
++                let x = if dirty { "x d\n" } else { "" };
++                let body = format!("d = qalloc any 1\n{x}{lifetimes}\n{x}qfree d");
++                for certified in [false, true] {
++                    let text = if certified {
++                        support::certified_borrow_identity(&body, &bounds)
++                    } else {
++                        support::borrow_lifetime_object(&body, &bounds)
++                    };
++                    if dirty {
++                        assert!(Object::parse(&text)
++                            .unwrap_err()
++                            .to_string()
++                            .contains("§5.6"));
++                        rejected += 1;
++                    } else {
++                        let o = Object::parse(&text).unwrap();
++                        support::borrow_identity(&o);
++                        if certified {
++                            o.verify_certificate().unwrap();
++                        }
++                        accepted += 1;
++                    }
++                }
++            }
++        }
++    }
++    assert_eq!((accepted, rejected), (64, 64));
++}
++
++#[test]
++fn generated_r5_alpha_renaming_consumed_workspace_preserves_widths() {
++    let mut count = 0;
++    for n in 1..=3 {
++        for width in 1..=3 {
++            for second in ["d", "e"] {
++                let body = format!("qloop {n} {{\nd = qalloc any 1\ncx t d\ncx t d\nqfree d\n{second} = qalloc any {width}\nqfree {second}\n}}");
++                let o = Object::parse(&support::borrow_lifetime_object(&body, &[n])).unwrap();
++                support::borrow_identity(&o);
++                count += 1;
++            }
++        }
++    }
++    assert_eq!(count, 18);
++}
++
++#[test]
++fn generated_r5_one_iteration_cleanup_and_nonpermutation_certificates() {
++    let (mut accepted, mut rejected) = (0, 0);
++    for inner_borrow in [false, true] {
++        for wrapped in [false, true] {
++            for dirty in [false, true] {
++                let release = if inner_borrow {
++                    "b = qborrow any 1\nqfree c\nqreturn b"
++                } else {
++                    "qfree c"
++                };
++                let release = if wrapped {
++                    format!("qloop 1 {{\n{release}\n}}")
++                } else {
++                    release.into()
++                };
++                let b = if inner_borrow {
++                    ""
++                } else {
++                    "b = qborrow any 1\n"
++                };
++                let ret = if inner_borrow { "" } else { "\nqreturn b" };
++                let x = if dirty { "x c\n" } else { "" };
++                let body = format!("c = qalloc any 1\n{x}{b}{release}{ret}");
++                let bounds: &[u64] = if wrapped { &[1] } else { &[] };
++                for certified in [false, true] {
++                    let text = if certified {
++                        support::certified_borrow_identity(&body, bounds)
++                    } else {
++                        support::borrow_lifetime_object(&body, bounds)
++                    };
++                    // Independent qalloc=0 and qloop-1 equivalence: precisely
++                    // X-before-free is dirty, regardless of wrapper/certificate.
++                    if dirty {
++                        assert!(Object::parse(&text).is_err());
++                        rejected += 1;
++                    } else {
++                        let o = Object::parse(&text).unwrap();
++                        support::borrow_identity(&o);
++                        if certified {
++                            o.verify_certificate().unwrap();
++                        }
++                        accepted += 1;
++                    }
++                }
++            }
++        }
++    }
++    for gate in ["cz b t", "s b", "h b"] {
++        for wrapped in [false, true] {
++            let lifetime = format!("b = qborrow any 1\n{gate}\n{gate}\nqreturn b");
++            let body = if wrapped {
++                format!("qloop 1 {{\n{lifetime}\n}}")
++            } else {
++                lifetime
++            };
++            let bounds: &[u64] = if wrapped { &[1] } else { &[] };
++            for certified in [false, true] {
++                let text = if certified {
++                    support::certified_borrow_identity_kind(&body, bounds, "action")
++                } else {
++                    support::borrow_lifetime_object(&body, bounds).replace("perm_action", "action")
++                };
++                assert!(Object::parse(&text)
++                    .unwrap_err()
++                    .to_string()
++                    .contains("§5.6"));
++                rejected += 1;
++            }
++        }
++    }
++    assert_eq!((accepted, rejected), (8, 20));
++}
+ ````
+ 
+@@ -30385,5 +32099,5 @@
+ ````
+ 
+-## `tests/registers.rs` (345 lines)
++## `tests/registers.rs` (360 lines)
+ 
+ ````rust
+@@ -30733,4 +32447,19 @@
+     }
+ }
++
++#[test]
++fn muse_r5_measurement_draws_order_bits_lexicographically() {
++    // |++>: printed bits 00,01,10,11 have values 0,2,1,3 (little endian).
++    let text = program().text.replace("cx t[0] t[1]", "h t[1]");
++    let p = rehash(&text);
++    for (draw, expected) in [(0.1, 0), (0.3, 2), (0.6, 1), (0.9, 3)] {
++        let mut m = ClassicalMachine::new(&p, "measurement", &[], &[]).unwrap();
++        m.push_measurement_draw(draw).unwrap();
++        assert_eq!(
++            m.run(100).unwrap().values,
++            vec![ClassicalValue::int(2, expected).unwrap()]
++        );
++    }
++}
+ ````
+ 
+@@ -31009,5 +32738,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (234 lines)
++## `tests/support/mod.rs` (257 lines)
+ 
+ ````rust
+@@ -31246,4 +32975,27 @@
+     rehash(&object(&[("a", sig, child), ("p", &ps, &parent)], "{}", ""))
+ }
++
++/// Independently hash a memoryless subject and attach its complete four-row
++/// interface/pool identity claim. Never parse an uncertified subject here.
++pub fn certified_borrow_identity(body: &str, bounds: &[u64]) -> String {
++    certified_borrow_identity_kind(body, bounds, "perm_action")
++}
++pub fn certified_borrow_identity_kind(body: &str, bounds: &[u64], kind: &str) -> String {
++    let sig = format!(
++        r#"{{"abi":"0.8","args":[],"bounds":{bounds:?},"in":[],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}}"#
++    );
++    let sig = json(&sig.replace("perm_action", kind)).canonical();
++    let raw = borrow_lifetime_object(body, bounds).replace("perm_action", kind);
++    let function = raw.split("section functions\n").nth(1).unwrap();
++    let envelope = format!("isa=0.8\nptr_width=32\n{sig}\n{function}");
++    let h = bennett_isa_ref::sha256_hex(envelope.as_bytes());
++    let text = raw.replace(&"0".repeat(64), &h);
++    let object_hash = bennett_isa_ref::sha256_hex(text.as_bytes());
++    let cert = json(&format!(
++        r#"{{"versions":{{"isa":"0.8","object":"0.8","launch":"0.8","sched":"0.8","cert":"0.8","coverage":"0.8","target":"0.8"}},"bindings":{{"object_hash":"{object_hash}","interface_hash":"{h}","closure_hash":"{h}","reference_program_hash":"{h}","dialect_mapping_version":"test.1","target_hash":"{}"}},"producer":{{"name":"tests","version":"1","materialisation":{{"llvm_version":"none","pipeline":"none","normaliser_version":"1"}}}},"regions":{{"{h}":{{"kind":"{kind}","signature":{sig},"bounds":{bounds:?},"frame":{{"interface":[{{"role":"mut","width":1,"class":"any"}}],"scratch":{{}},"retained_history":0,"borrow":{{"any":1}},"scheme_ancillae":{{}}}},"resources":{{}},"gates_used":{{}},"claims":[{{"kind":"exhaustive","label":"proof","domain":{{"bundles":[{{"name":"t","width":1,"lo":0,"hi":1}}],"borrowed":[{{"name":"b","width":1,"lo":0,"hi":1}}],"regions":[]}},"expected":{{"table":[[0,0],[0,1],[1,0],[1,1]]}}}}],"verification":{{"oracle":null,"borrow_frames":[0],"inverse_pairs":[],"unitary":[],"channel":[],"fault_rate":{{"domain":{{"bundles":[],"borrowed":[],"regions":[]}},"faults_by_code":{{}},"undefined_excluded":0,"layout_dependent_excluded":0}}}},"cleanup":{{}},"error":{{}},"definedness_assumptions":[]}}}},"composition":{{"multiplicities":{{}},"epsilon_total":{{"diamond":0}},"method":"sum_over_multiplicities"}}}}"#,
++        "3".repeat(64)
++    ));
++    format!("{text}\nsection certificate\n{}\n", cert.canonical())
++}
+ ````
+ 
