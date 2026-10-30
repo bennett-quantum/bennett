@@ -69,3 +69,26 @@ packed 2311/1797), and four-lane extraction with unreachable lane constants
 18/23 after the regression showed the old i1 comparison. Added native execution
 of existing n-dynamic-lane output: indices 2 and -1 still return zero, preserving
 the dialect's totalisation of LLVM poison. No decline, partial or ISA gap.
+
+## BD3-R4-1 — resolved
+
+Sections: §6.5 precondition/rule 2, §7.5(b), Appendix B.
+Hand derivation: @put runs its site once per invocation, but @slots retains the
+first live ROOT at return; another host call allocates a second distinct live
+instance. No finite per-call TC/E bound limits repetitions. Before self-disjoint
+or loop/call counting, the text now checks may-live ROOT in persistent memory
+and paths to an entry return lacking an exact-provenance free. Such sites have
+E=∞ and BLK-1; §7.5(b) substitutes reversible-invocation return and BLK-4.
+Internal callee return alone is insufficient; guaranteed caller frees can discharge
+it. The recogniser follows interprocedural call/return continuations and checks
+persistent memory reachable from globals, heap, results/env.
+Witness handle-cross-entry changed from observed accept/N=1 to
+blocked:BD-B-ISA4 with the named BLK-1 report. Its state family compiles the actual
+@put/@use LLVM with a native 64-slot fallback on clang 18/23: two host calls,
+two distinct allocations, both X;X and free, live_after=0/trap=0. Mutation of
+distinct fails. Unit checks also preserve accept after guaranteed free, the
+round-3 caller-free finite case, and verify BLK-4 for an R-entry variant.
+ISA 0.8 §§3.2–3.3/4.1 still lacks qreg memory conversion/dynamic register naming
+and R allocation; BLK-1=ISA-4 and BLK-4=ISA-12 retain their existing exact
+ISA changes in §25.1. A passing named-blocker verdict does not claim those
+operations landed. No decline, partial or scope narrowing.
