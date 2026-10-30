@@ -1,0 +1,98 @@
+exit 0 in 12s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "src/object.rs::parse_functions and instruction accept several strings excluded by the normative §16.2 productions. Independently rehashed fn-oracle, empty-bounds and empty-LHS inc8 variants all pass check and execute; bare cc/r headers also pass. Existing tests/parser.rs passes all 10 tests but omits these cases. See R10-B01.",
+      "change": "In src/object.rs, enforce the fhead alternatives and nonempty lhs/bounds productions before semantic validation; add the exact negative and positive controls specified in R10-B01 to tests/parser.rs."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "The §9.2 memoryless envelope derivation reproduces the published inc8 hash. All four literal R9 objects pass stored-hash checking with their published interface/closure/object pins. An independently SHA-256-hashed reordered-control witness still fails at §6.2, so R10-B02 is not a hash mismatch. No identity defect was established in the inspected paths.",
+      "change": "Add the independent reordered-control interface/closure and object pins in R10-B02 to tests/r1_fixtures.rs and the corresponding CLI acceptance regression after repairing control identities."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "Hand-derived inc8(255) gives payload=0/code=0/steps=3 at B=3 and payload=0/code=1/steps=2 at B=2; the CLI agrees. sum_db(0) with budget (10,4080,16,1) returns (0,0) in 10 rows; reducing stack to 15 faults with code 3 at row 3. These results follow §§3.7,4.2,5.4,14.1 without treating the implementation as an oracle.",
+      "change": "In tests/oracle.rs, add a literal paired assertion for sum_db(0) at budgets (10,4080,16,1) and (10,4080,15,1), including exact step counts 10 and 3, to make this stack-boundary hand derivation directly visible."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Inspected machine.rs::inverse_call/inverse_ret against C5^-1..C1^-1 and R5^-1..R1^-1: counters are restored before stack addressing and delivery. inc8 exhaustive step-check reports 256 cases; sum_db(0) prefix 9 reverses with frames_clean=true and all initial counters/locations restored. The normal recursive single-step and prefix tests pass.",
+      "change": "Add a small literal pre/post-state assertion in tests/step_machine.rs for the sum_db(0) first call and return, explicitly pinning sp=16 after return and restored fp/depth before inverse delivery, alongside the existing snapshot equality tests."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Traced the classical.bisa nested call/ret/uncall example through classical.rs::undo_frame and the uncall branch. g clock.read is undone once by its inner uncall; outer reversal skips reversed frames and the marker. CLI reverse nested returns result 0, clock=0, empty tape, memory_equals_entry=true and equals_entry=true. All four classical tests pass.",
+      "change": "In tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once, add intermediate single-step assertions immediately after inner and outer uncall so clock/tape restoration is pinned before the final whole-run reversal."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The original SOL-R9-B01/R9-B01/R9-B02 fixtures now check and reverse correctly. New shared-output X/X and nested-loop opaque pairs pass; an unmatched reader inside the outer pair rejects; carried plus reallocated loop environments pass at counts 2,3,17. However, identical effective-control sets in different stack orders, and a duplicated predicate, prevent oracle inverse recognition and reject an identity action (R10-B02).",
+      "change": "Canonicalize the semantic effective-control set separately from the lexical predicate stack in validation.rs operation identities and borrow.rs Node controls, retaining polarities and current operand versions. Add the R10-B02 full-domain and Bell-reference regressions and retain unequal-control/token negatives."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Locally ran the complete normal cargo test --offline suite: 327 passed, 0 failed, 5 ignored. The R9 fixture assertions use published pins and independently initialized forward/adjoint states. The new grammar and equivalent-control witnesses are absent from the passing suite. Ignored-sweep results were read as editor-reported evidence, not rerun or represented as independently verified.",
+      "change": "Add the constructive R10-B01 and R10-B02 regressions before changing sources, record their current failures, then run the unchanged normal suite and retained borrow/control negatives after the fixes."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Read all 30 SPEC-QUESTIONS entries and the staging disclosures. The set-based effective-control rule is explicit in §2 and is not overridden by a recorded reading. The grammar exceptions in R10-B01 likewise have no recorded authorization. No new defect was established in the inspected fail-fast and staged-diagnostic paths; this is a bounded review, not a complete certification of all readings/reporting.",
+      "change": "After implementing R10-B01/B02, update PROGRESS.md and the round response with the exact red/green cases and explain that ordered predicate-stack validation and canonical effective-control identities are separate concerns; no new specification exception is needed."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R10-B01",
+      "section": "§§16.1–16.2 and suite F; reference-interpreter/src/object.rs::Object::parse_functions, instruction, is_head",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The object parser accepts text outside three explicit §16.2 productions. Reproduce independently from tests/fixtures/inc8.bisa, with one mutation per object: (1) replace its header oracle @inc8 ... with fn oracle @inc8 ...; (2) append bounds {} to regs { one:reg[8], r:reg[8] }; (3) replace lift.retval r with () = lift.retval r. Recompute the stored interface hash independently as SHA-256 of isa=0.8 LF ptr_width=32 LF canonical signature LF exact mutated function LF. The resulting interface=closure hashes are respectively 607bffa4376f76dc181141c19dc70dfbde0d8064e3d220187b13001e25cab0ca, 31e7ad0837d13f0cd78e0fc2a155016c006ab18e3ecf6cc367308d58eb274437 and a2f5278ca8db3abb0e407e475c1fba93c4307b97f0db8c1fe4a0bbe2b48da782. Their object hashes are 3868eb11e0293db6f43d3a9c5589c36feab4d88916327a34241141c1949b2dd6, 6e0b6cfb1a74f8974706264ddc3b762bda7226e0abeb284f97978d5cb2f7d4f3 and 4ede077a7344efa101b22cd0f990feacde2c1a415dbec6667ee61290f9747480. All three actually pass check with status ok and execute inc8(255), B=3 as {code:0,payload:0,steps:3}; all should be load errors. A sole memoryless function cc @a () () () () () / ^entry(): / ret, with the corresponding cc signature, also passes check and run-cc; bare r does too. parse_functions independently recognizes fn and then accepts any kind, instead of coupling fn with cc/r. It silently treats an explicitly empty bounds list as absent. instruction delegates LHS parsing to the operand-list parser, which accepts (), erasing the distinction between no assignment and an explicitly empty assignment.",
+      "fix": "Change src/object.rs::Object::parse_functions to parse exactly the fhead alternatives, and use the same header recognizer for function-boundary detection in is_head. The determining §16.2 text is fhead := (\"fn\" SP (\"cc\"|\"r\") | \"oracle\" | \"action\" | \"perm_action\" | \"lproc\") ...; therefore fn oracle/fn action/fn perm_action/fn lproc and bare cc/r MUST reject. In parse_functions, reject an empty list when the bounds clause is present: the production says (SP \"bounds\" SP \"{\" INT (\",\" SP INT)* \"}\")?, requiring at least one INT. An action with no loops can omit the clause; this does not forbid its empty signature bounds array. In instruction, use a nonempty LHS parser: §16.2 says lhs := NAME | \"(\" NAME (\",\" SP NAME)* \")\", whereas the operand-list production permits empty lists. Reject () = even for zero-result instructions. Add tests/parser.rs::r10_exact_fhead_and_nonempty_optional_productions asserting Object::parse errors citing §16.2 for each literal mutation above; these assertions fail today. Include bare cc/r as the first and later function and every invalid fn-prefixed Q kind, so boundary detection is not position-dependent. Keep positive controls for canonical fn cc/fn r/Q headers, omitted bounds, regs {  } bounds {1} on a one-trip action, ordinary nonempty tuple LHS and legal empty operand lists. Add CLI check/hash tests using the supplied mutated pins: expected exit 1, empty stdout, §16.2 stderr regardless of input or budget; no execution should occur. These are explicit grammar rules, not an ambiguity requiring a SPEC-QUESTIONS exception."
+    },
+    {
+      "id": "R10-B02",
+      "section": "§§2,3.5,4.7,5.2,5.3,5.6,6.2; reference-interpreter/src/validation.rs::Object::validate_action_sequence, Discipline::change/joint_change and reference-interpreter/src/borrow.rs::Compiler::compile, Node::instantiate, Facts::reversible",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "Inverse recognition confuses the ordered lexical predicate stack with the semantic effective-control set. Start from tests/fixtures/r9-codex-oracle.bisa: keep @o, set @a signature in to [1,1], and replace @a with the following exact LF-terminated function:\naction @a (t:wire mut) (p:wire in, q:wire in) () (tk:token) ()\n^entry():\nc = qalloc any 1\nd = qalloc any 1\nf = qalloc any 4\nh c\nqpred p\nqpred q\noracle_call @o tk (c) d f () ()\nqunpred q\nqunpred p\nqpred q\nqpred p\noracle_call @o tk (c) d f () ()\nqunpred p\nqunpred q\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree f\nqfree d\nqfree c\nThe independent @a interface=closure hash is 386dce74595f0e05ed2b7eb9218fc22fece3fafe7ad6fd206aed542ad8b7deef; @o remains cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926. With canonical stored-H symbols and the original standard header/section formatting, object_hash is 7b1153bae80cc041447870eaa9623f73e6cb6df5085365a1efcbac99789076ad. Actual hash/check: exit 1, empty stdout, §6.2: released value has not been uncomputed. Removing only the borrow/CX/return triplet still rejects. Making both call contexts push p then q passes. A second independently tested variant with first stack [p] and second stack [p,p] also rejects. Hand: both calls are controlled by p AND q in the first witness (by p in the duplicate variant). At B=1 each toggles d by p*q*c, leaving f=0; at B=0 each toggles the same fault bit by p*q. Each pair is identity, H H restores c=0, CX(0,b) is identity for every borrowed b/reference R, and all workspace is zero at release. Thus the whole action is identity on t,p,q and bR. validation.rs embeds s.predicates in its oracle version and again in change/joint_change keys, so equal sets do not cancel. borrow.rs also compares Node.controls as ordered vectors (and direct qpred can retain duplicates), so repairing only the first validator is insufficient.",
+      "fix": "Keep the lexical predicate stack for push/pop validation, but introduce a canonical semantic effective-control representation for operation identities: resolve scalar physical wires, retain each polarity, sort and deduplicate equal literals, and retain the complete current version/dependency snapshots. Apply it to validation.rs::Object::validate_action_sequence oracle/action keys, Discipline::change/joint_change and other context-bearing keys, and to borrow.rs Compiler/Node construction and instantiation before Facts::reversible compares events. Do not sort input/output ABI operands or discard token/callee/version identity, negative polarities, or all-operand LIFO requirements. The determining §2 sentence defines effective control context as \"the set of wires on the active predicate stack plus the inherited control context\" and says \"duplicates count once\". §3.5 says \"the active predicate is their conjunction\"; §5.2 says \"The oracle is an involution on (ins, tgt, fr) and its own adjoint\"; §4.7 says \"adj oracle_call … ≡ oracle_call …\". Consequently [p,q] and [q,p], and [p] and [p,p], denote identical controls for this exact inverse, not different operations. Add tests/r1_borrow.rs::r10_equivalent_control_sets_preserve_opaque_inverse with the exact pinned object above and the duplicate variant. Object::parse success fails now. After the fix require parse/check/hash success; run-action a --mut 0 --in 1,1 --arg token:1,0,0,0 must return unchanged state {\"011\":[1,0]}, wires=3; token:0,0,0,0 has the same result. Independently initialize forward and adjoint across all t,p,q basis inputs and a superposition of controls; supply borrowed b entangled with untouched R and require exact identity and no escaping workspace. Require reverse equals_entry=true. Add nested qloop 1 / local-call variants, plus negative controls where one predicate is absent, has opposite polarity, changes version, or the token differs: those must not gain spurious cancellation. Extend the same effective-set test to qinplace explicit swapped g/ginv keys. No certificate, budget cap or extra syntactic restriction is justified."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R9-B01",
+      "status": "resolved",
+      "note": "The diff adds explicit opaque inverse keys/all-operand histories and assigning-qinplace history transfer. Both original Sol fixtures pass their exact stored hashes and complex-state reversal; the R9 qinplace B=0 guard test passes. R10-B02 is an additional equivalent-control-context edge."
+    },
+    {
+      "id": "R9-B01",
+      "status": "resolved",
+      "note": "The exact codex opaque-pair fixture now checks with object hash 49ad3ba6c411ed73bebacdebe6728ebff5995dbf8bbc03c016d1cb0c5c3e8625 and preserves/reverses the complex input. Shared-operand paired primitives and nested-body pairs also pass; an unmatched reader rejects."
+    },
+    {
+      "id": "R9-B02",
+      "status": "resolved",
+      "note": "compile_repeat now resolves each visit against live bindings and alpha-renames eligible successors. The exact loop fixture passes stored hashes and reversal; additional partially overlapping environments with a retained d and reallocated c pass analysis at counts 2,3,17."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [],
+  "verdict_core": "revise",
+  "verdict": "revise",
+  "path_to_accept": "First enforce the three §16.2 productions and add the red-to-green parser/CLI regressions in R10-B01. Then separate lexical predicate stacks from canonical semantic effective-control identities in both static passes and add the R10-B02 pinned, basis, superposition and borrowed-reference tests while retaining unequal-control/token and unmatched-reader rejections. Rerun the normal suite and retained negative families. These are the two constructive blockers established here. A complete packet-wide reread and completion of the mandatory audit coverage remain necessary before this member can certify acceptance; this report does not claim that coverage.",
+  "summary": "REVISE: two independently reproduced S0 core issues remain, strict object grammar acceptance and failure to recognize inverse operations under equivalent effective-control sets. All three prior issue IDs are resolved for their original witnesses, with no regression attributable to the round-9 diff established. Method 1: derived inc8(255), B=3 -> (payload 0, code 0, steps 3), B=2 -> (0,1,2); derived sum_db(0), stack 16 -> success in 10 rows, stack 15 -> code 3 at row 3; derived the inc8 envelope as isa=0.8 LF, ptr_width=32 LF, JCS signature LF and the six exact function lines each ending LF. CLI results and the published 8ce5e64f... hash agree. Method 2: traced inverse call C5..C1 and inverse ret R5..R1, restoring counters before addressing/delivery and clearing capture slots after restoring source locations; also traced an assignment inverse (inc8 add: exchange old destination back, XOR the recomputed sum to clear its slot). For sum_db(0), first call consumes 16 cells, ret leaves sp=16 while depth returns to zero; inverse ret restores callee fp/depth before delivery. Prefix 9 reverses completely. Traced nested classical call/ret/uncall: inner clock effect is undone once, outer traversal skips reversed frames/markers; CLI agrees with clock=0, empty tape and full entry equality. Method 3: read all 30 SPEC-QUESTIONS entries and compared the relevant rules for the inspected paths, but did not complete an exhaustive independent audit of every entry. Method 4: searched the crate for all required terms (1184 matches on 1129 lines in 55 files); inspected production assertion/invariant sites including history tops, nonempty sets, queued CFG states, running control, epoch ranks, nonzero limbs, ASCII/hex conversion, and explicit unsupported diagnostics. Test assertions, historical documentation and display approximation references dominate the rest; a line-by-line classification of every hit was not completed. Method 5: compared lifted/structured/classical opcode families, codes 0–10, call/ret/uncall frame handling, principal metadata validators and all eight CLI commands with the normative tables; the complete schema/suite crosswalk was not finished. Verification: full normal cargo test --offline completed 327 passed / 0 failed / 5 ignored; inc8 exhaustive step-check completed 256 cases. Additional hand-derived opaque shared-operand/nested positives, unmatched-reader negative and partial-overlap loop analysis behaved as expected except R10-B02. IMPORTANT COVERAGE LIMITATION: the requested complete 42,036-line packet reread was not completed; several large slice outputs were truncated and the whole crate was not read line by line. This is a bounded findings report, not a completed five-method/full-packet acceptance review. No ignored sweep was rerun, no alternate member review was read, and no tracked source file was modified."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r10-codex.json
