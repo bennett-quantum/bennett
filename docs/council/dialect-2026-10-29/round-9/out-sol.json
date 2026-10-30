@@ -1,0 +1,81 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "\u00a7\u00a74\u20135 fix processing order, variants and the reference analysis; \u00a7\u00a717\u201318 fix classical memory, the state tuple and observations. The new S2 obligation expressly includes materialised value effects before verdicts and dispatch freeze. Zero-filled local storage is now represented consistently with \u00a7\u00a717.1/17.3.",
+   "change": "In \u00a75.4 replace the non-normative pt-variable-index equality with: \"AV(%hk) includes ROOT(%h0) and the zero/null initial-image possibility. The latter contributes no ROOT and traps T-DEAD if selected at execution. The count field carries no ROOT and its integer recurrence eventually reaches TOP.\" This aligns the explanation with the repaired rules without changing execution."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "\u00a73 specifies marker signatures, operand domains and diagnostics; \u00a7\u00a712\u201316 provide normalisation and mapping rows. PT3 now distinguishes equal geometry from packing/resegmentation, including constant expressions and fixed-vscale forms. The 257/256 and inverse probes agree with LLVM 18/23 and native execution.",
+   "change": "Replace the atomicrmw/cmpxchg clause of \u00a75.2 PT12 with: \"Analyse the virtual N9 expansion during S2: PT6 supplies the old value, PT4/PT5 evaluate the operation and comparison, PT7 unions the computed new value into memory, and PT10 constructs/extracts cmpxchg result fields. The source atomic result is the old value; cmpxchg also returns the comparison bit. Apply N32 semantics to floating operations introduced by N9.\" This makes the already-required materialised-value obligation explicit locally."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "\u00a710 distinguishes generation, coherent slices, restored workspace and retained fault/channel outcomes. \u00a7\u00a78.6/8.7 and 18.2 specify involution, inverse cleanup and control; TDL-7/10 require trajectory cleanup and an actual inverse for overwritten inputs. Existing state checks exercise interference, failed-result gating, deferred records and loop cleanup.",
+   "change": "Extend suite DT with a controlled version of each new bitcast/zero-image witness: prepare an external control in |+>, perform the oracle twice under that control, undo input preparation and H(control), and require the complete entry tuple, zero workspace and P(control=1)=0. Include a budget-fault branch and assert that its target payload remains unchanged."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Resources, target matching and scheduling remain ISA-owned under \u00a7\u00a71.3/19.9; the dialect records widths, budgets, classes and runtime expansions rather than inventing another target model. \u00a7\u00a78.5/8.6 disclose snapshot and wide-output costs; \u00a725.3 separates efficiency from capability.",
+   "change": "Add a suite-DD resource-accounting fixture for a 160-bit OUT invocation and state: \"k=2 produces exactly three oracle invocations; both temporary fault and payload registers contribute their full live intervals; the caller-owned output and input registers are charged throughout the invocation.\" Compare its event count and occupancy with ISA \u00a78.2."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "\u00a7\u00a77.3, 9.2, 16 and 19.9 decide content identity, once-only budget selection, canonical reference objects and versioned outputs. \u00a725 explicitly names missing ISA operations and bounds their fallback behaviour; neither repair adds a dependency or narrows an existing capability.",
+   "change": "Add a suite-DD receipt requirement: \"For each shape record selection_identity, final identity, frozen capacities, resolved budget tuple and the final identity bound by every launch token; verify a steps-only overlay changes the token budget while preserving object identity.\" Use budget-stage as the concrete fixture."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "\u00a718.7 states observable agreement, including probabilities, faults and quantum state; \u00a721 separates analysis, native, mapping and executor suites. I reran the state family: 76/76 passed, zero failed or unavailable. The six new repair witnesses execute independent LLVM/native checks; this does not establish full-language correctness or completion of the production runtimes.",
+   "change": "In \u00a721.3 add: \"DB/DN/DS repair receipts identify, per witness and LLVM major, the source O0, instcombine where applicable, and materialised verification results; the exact scalar AV and dispatch domains; native optimisation level and observed width/gate/free tuple. Recognition success alone is not an execution result.\" Publish the already-available round-8 tuples in that format."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The complete text preserves the north-star interfaces and demo ladder through ordinary bitcode, oracle descriptors, private entry-state replay, TDL, virtual devices and platform mechanisms. \u00a722 ties restrictions to ratified requirements; \u00a725 gives exact ISA changes for capabilities unavailable on 0.8 instead of silently refusing them. No new narrowing was found.",
+   "change": "No normative repair is required. Add a \u00a721.4 traceability row for each of rungs 5\u20137 naming its normative mechanism sections and distinguishing executable microvector evidence from the still-required full demo acceptance test; retain every north-star acceptance obligation."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The rule tables, canonical objects, diagnostics, example index and explicit defaults permit independent implementation. Historical PROGRESS entries distinguish unavailable checks from later receipts. The new repairs are small and internally aligned; the remaining local presentation friction is PT12 shorthand and the stale pt-variable-index explanation.",
+   "change": "Add at the start of the historical PROGRESS material: \"Current execution status is the final 0.2.10 receipt above; all earlier counts and unavailable-family lists describe their dated snapshots only. A passing dependency-verdict check does not execute the missing ISA capability.\" Preserve the historical records underneath."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "SOL-R8-01",
+   "status": "resolved",
+   "note": "\u00a75.2 PT3 restricts lane copying to equal geometry and otherwise evaluates virtual N21 before S2 freezes. On LLVM 18/23, <1,1> packs to 257, instcombine folds qalloc to 257, and source/materialised native O0/O3 runs execute two X gates at index 256, final bit 0, one clean free and code 0; inverse unpack gives width 3."
+  },
+  {
+   "id": "R8-CODEX-01",
+   "status": "resolved",
+   "note": "\u00a75.2 initial seeding and PT1/PT6/PT8 now carry zero-byte initial images, symbolic extents, overlapping writes/copies and no invented ROOT. Stack, calloc and copy-to-initially-1-global witnesses have raw/idx={0,1}, width={1,3}; LLVM 18/23 verify, and materialised native O0/O3 runs on false/true receive widths 1/3 with one clean free and code 0."
+  },
+  {
+   "id": "R8-CODEX-02",
+   "status": "resolved",
+   "note": "The same PT3 repair gives one scalar INT(256) for <0,1>, preserved by zext. LLVM 18/23 instcombine folds qalloc to 256; source O0/instcombine/materialised verification and native O0/O3 width guards pass with one width-256 allocation, clean free and code 0."
+  }
+ ],
+ "regressions": [
+  "Nonblocking editorial regression: \u00a75.4's non-normative pt-variable-index explanation still states AV(%hk)={ROOT(%h0)}. Under the new zero-image seeding the load also includes a zero/null possibility. The normative transfer and runtime rules decide this correctly; update the explanatory equality as specified in C1."
+ ],
+ "suggestions": [
+  "S1, \u00a75.2 PT12: spell out virtual N9 analysis using the replacement in C2. The new general S2 materialised-value obligation already determines the intended transfer, so this is local clarification rather than a missing semantic decision. Retain the separately tracked atomic-update follow-up.",
+  "Editorial, \u00a75.4: replace the pt-variable-index abstract-value explanation with the exact wording in C1. Zero is an initial possibility, stores union rather than erase it, and zero contributes no ROOT; retain the example's accept verdict."
+ ],
+ "verdict_core": "accept",
+ "verdict": "accept",
+ "path_to_accept": "No S0 changes are required: accept now. To raise the lowest-scoring criteria from 4 to 5, first make PT12's virtual-N9 transfer explicit and update the stale zero-image explanation, then publish per-stage execution receipts and add the controlled repair witnesses described in C3/C6. These are nonblocking clarification and assurance improvements, not additional proof or mechanisation gates.",
+ "summary": "SOL-R8-01, R8-CODEX-01 and R8-CODEX-02 are resolved. I confirmed the diff first and read the entire 16,156-line packet, including the rubric, backgrounds, progress record and complete revised specification. Hand derivations are <1,1> -> 1|(1<<8)=257, <0,1> -> 256, and 769 -> <1,3>; initial zero union conditional store 1 gives extraction widths {1,3}. The state pre-flight rerun passed 76/76 checks. Its six new witnesses verify source/materialised IR on LLVM 18/23 (also instcombine for bitcasts), check scalar domains and dispatch, and execute native O0/O3 guards. I additionally reran LLVM folds and materialised O3 binaries directly: widths 257/256/3, the 257 case with two gates at index 256, and false/true widths 1/3 for stack/heap/copy; every tuple reports one free, final bit 0, no live register and code 0. The reviewed checkout has no tracked changes. No blocking issue remains in this review, and no new S0 inconsistency or north-star narrowing was found. The existing explicitly specified \u00a725 ISA-0.8 dependencies remain dependencies, not claims of executed missing capabilities. Both verdicts are accept."
+}

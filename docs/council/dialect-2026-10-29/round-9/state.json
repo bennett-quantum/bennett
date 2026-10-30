@@ -4,7 +4,17 @@
  "doc": "../bennett-dialect-spec/spec/Bennett-Dialect-Spec.md",
  "doc_sha256": "d4f3c1a88391cc147f8c8fa4f80f82852e3ebe6f880610fc16cd5151f33d7206",
  "prepared": "2026-10-30T21:56:22+00:00",
- "members": {},
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-30T22:02:51+00:00",
+   "exit": 0,
+   "seconds": 28,
+   "errors": [],
+   "updated": "2026-10-30T22:03:19+00:00"
+  }
+ },
  "rubric": "docs/council/rubric-isa.md",
  "subject": "Bennett LLVM dialect draft 0.2.10 (round-8 fixes: PT3 bitcast geometry via virtual N21; zero-filled initial images)",
  "context": [
