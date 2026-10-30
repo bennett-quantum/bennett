@@ -1,0 +1,2282 @@
+--- round-8/doc.md
++++ round-9/doc.md
+@@ -1,11 +1,11 @@
+-# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 8)
+-
+-Snapshot of `reference-interpreter/` at commit `00ceee2`. 93 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 365 lines, sha256 f1a6ac721f46
+-- `PROGRESS.md` 1373 lines, sha256 b93580e594ff
++# bennett-isa-ref: the Rust reference interpreter of ISA 0.8 (snapshot for council review, round 9)
++
++Snapshot of `reference-interpreter/` at commit `4796970`. 94 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 380 lines, sha256 aad6be7627dc
++- `PROGRESS.md` 1515 lines, sha256 524a5c73cdc7
+ - `SPEC-QUESTIONS.md` 252 lines, sha256 5f3eac093fd0
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-7.md` 267 lines, sha256 637d64bb5d94
++- `council/response-round-8.md` 318 lines, sha256 4c7814df8108
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+@@ -16,8 +16,9 @@
+ - `council/response-round-5.md` 325 lines, sha256 07661e3520cb
+ - `council/response-round-6.md` 216 lines, sha256 86e00e36bb18
++- `council/response-round-7.md` 267 lines, sha256 637d64bb5d94
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+ - `src/action.rs` 1059 lines, sha256 6179cce7d47f
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 1537 lines, sha256 a3979ad9d57b
++- `src/borrow.rs` 1862 lines, sha256 9cef31f74473
+ - `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+ - `src/certificate.rs` 557 lines, sha256 0bacdb2984d3
+@@ -25,5 +26,5 @@
+ - `src/classical.rs` 1621 lines, sha256 03116b542f5c
+ - `src/exact/measurement.rs` 356 lines, sha256 22e4c29864ce
+-- `src/exact.rs` 788 lines, sha256 85c079b2cf42
++- `src/exact.rs` 814 lines, sha256 2322cf555473
+ - `src/handle_validation.rs` 99 lines, sha256 6b1e868a7572
+ - `src/identity.rs` 434 lines, sha256 df6ff131275b
+@@ -40,10 +41,10 @@
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+-- `src/validation.rs` 1976 lines, sha256 dcb770ed6031
++- `src/validation.rs` 1989 lines, sha256 97e1d2e4877e
+ - `tests/bitvectors.rs` 117 lines, sha256 dcb60f20f4da
+ - `tests/borrow.rs` 195 lines, sha256 40d8a3a4b61e
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 1522 lines, sha256 f6302a757eaa
++- `tests/cli_xam.rs` 1593 lines, sha256 def774ac7008
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -78,12 +79,12 @@
+ - `tests/quantum.rs` 439 lines, sha256 aa99e93ffd96
+ - `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
+-- `tests/r1_borrow.rs` 763 lines, sha256 57accddf6f7f
++- `tests/r1_borrow.rs` 806 lines, sha256 7521a89c8615
+ - `tests/r1_certificates.rs` 845 lines, sha256 bea1d30abcc7
+ - `tests/r1_discipline.rs` 385 lines, sha256 44c512ebe8c8
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+ - `tests/r1_fixtures.rs` 594 lines, sha256 ca26e8c771a2
+-- `tests/r1_fuzz_discipline.rs` 1173 lines, sha256 2f067bd13478
++- `tests/r1_fuzz_discipline.rs` 1421 lines, sha256 ebf856cf0d2b
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+-- `tests/r1_linking.rs` 130 lines, sha256 1ae51c3da293
++- `tests/r1_linking.rs` 174 lines, sha256 03aa4b31c82f
+ - `tests/r1_literals.rs` 180 lines, sha256 89e4ca03f914
+ - `tests/r1_qinplace.rs` 146 lines, sha256 420bac787015
+@@ -94,10 +95,10 @@
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 359 lines, sha256 5fccc57d78f6
++- `tests/support/mod.rs` 402 lines, sha256 93f0936dc244
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 34679 lines.
+-
+-## `README.md` (365 lines)
++Total embedded: 35967 lines.
++
++## `README.md` (380 lines)
+ 
+ ````markdown
+@@ -438,17 +439,32 @@
+ a later borrowing cannot restore an earlier completed lifetime. Loop proofs
+ compose per-return obligations on reachable entries, retaining known-clean
+-workspace invariants. Per-wire basis facts follow every gate: diagonal operands and read-only controls
+-retain their values, permutations transform their ANFs, and non-diagonal targets
+-become independent unknowns. Exactly matched inverses on untouched operands
+-restore saved facts; intervening multi-wire touches invalidate those inverse
+-records. All quantum gates still partition frames and retain their complete
+-borrowed-touch sets. Mixed loops transfer facts at every actual iteration,
+-skipping only repeated complete analysis states, or prove an inductive unknown-top
+-lattice invariant for large noncycling bounds. Pure permutation loops retain
+-exact map/return-obligation composition by squaring. Round-7 pins cover restored
+-workspace, diagonal/control boundaries and evolving loop controls beyond the
+-third visit, alongside all round-6 entangled-reference pins. Certificates cannot override definite lifetime or
+-non-permutation failures; their exhaustive replay checks restoration and output
+-independence at each completed return. Workspace widths follow executed
++workspace invariants.
++
++**Design (round 8).** Per-wire ANF basis facts follow every gate: diagonal
++operands and read-only controls retain their values, permutations transform
++their ANFs, and non-diagonal targets become independent unknowns. Per-wire
++operation stacks preserve nested compute/adjoint history: an exact adjoint
++restores saved expressions only when the same event tops every operand stack,
++so outstanding entangling readers block restoration. Basis-only permutations
++need no history unless touching an existing stack. Source lowering publishes
++physical bindings, live borrows and fact nodes through one executed structured
++traversal: zero-trip bodies publish none of them; static validation and lexical
++qregion hoisting still apply. Local action calls reuse a memoised per-wire
++structured transfer per callee/classical specialization, instantiated on actual
++wires and effective controls. Known-false controls disable fact transfer;
++imports leave modified outputs unknown and preserve read-only facts, while
++invalidating inverse history across all opaque readers. Existing
++SCC validation excludes action recursion. Every quantum gate and non-permutation
++call retains its physical frame boundary and full borrowed-touch guard, even
++when disabled. Mixed loops visit every actual fact entry, skip repeated full
++analysis states, or prove an inductive unknown-top invariant; pure permutation
++loops compose exact maps and return obligations by squaring. Every return still
++proves restoration and output independence. Certificates cannot override
++definite lifetime or non-permutation failures. §6 cleanup readers use complete captured
++version-stack prefixes, so older readers do not block a nested exact adjoint.
++Round-8 literal pins and deterministic families retain all round 4–7 negatives
++and add nested adjoints, dead bindings and controlled callee chains.
++
++ Workspace widths follow executed
+ producing/consuming lifetimes: zero-trip bodies have no lifetime effects (lexical
+ qregions are still hoisted), and every inverse loop visit recreates its own
+@@ -469,5 +485,5 @@
+ ````
+ 
+-## `PROGRESS.md` (1373 lines)
++## `PROGRESS.md` (1515 lines)
+ 
+ ````markdown
+@@ -479,4 +495,146 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Round-8 fixes (2026-10-30)
++
++Tracking b-isa-spec-41i; sole interpreter implementer, no push.
++
++| Blocker | RED test | Status | Commit |
++|---|---|---|---|
++| SOL-R8-B01 ≡ R8-B02 | r8_compound_adjoint_restores_borrow_control, r8_diagonal_nested_adjoint_restores_borrow_control; r8_cli_compound_x/s | exact nested X/S witnesses green | 366a711 |
++| SOL-R8-B02 ≡ R8-B01 | r8_zero_trip_lifetime_environment_does_not_escape, r8_zero_trip_surviving_fact, r8_zero_trip_cannot_hide_borrowed_quantum_touches; CLI counterparts | exact witnesses green | b11b43f |
++| R8-B03 | r8_action_call_preserves_readonly_control; r8_cli_call | exact disabled controlled-H witness green | 5ad0555 |
++| SOL-R8-B03 | r8_unsigned_decimal_multiplication; r8_unsigned_multiplicity_composition | exact unsigned boundary and composition green | 366a711 |
++
++RED: nested library **0 passed / 2 failed**, CLI **0 passed / 2 failed**,
++§5.6 released wire not clean. Numeric unit **0 passed / 1 failed** at
++2^127 (negative); linking **0 passed / 1 failed** (zero instead of 2^128).
++Targeted GREEN `cargo test --offline ... r8_ -- --nocapture`: **6 passed /
++0 failed**, 1 unit + 5 integration. Logs `.tmp/r8-{red-*,green-stack-numeric}.log`.
++
++Design: each basis-changing gate, and each reversible gate above a saved
++quantum history, is recorded on every operand's operation stack.
++An exact adjoint pops only when the same entry tops every operand stack;
++nested/disjoint computation therefore restores in LIFO order, while an
++outstanding entangling reader prevents an outer restoration. Saved ANFs retain
++correlations. Opaque/lifetime barriers invalidate the connected history.
++Quantum frame boundaries, full touched sets and every return equation remain.
++`BigInt::from_u128` constructs all unsigned limbs, with no signed narrowing.
++
++Zero-trip RED: **0 passed / 3 failed** in each library and CLI target.
++The H subject was incorrectly admitted; wide c reported §3.3 scalar width;
++same-width c reported §5.6 released wire not clean. Both H and S pins remain
++literal tests (the first failure stops their combined RED test). GREEN:
++**10 passed / 0 failed** across R8 borrow/CLI tests. Existing huge permutation
++loop `sol_r5_b02` separately **1 passed / 0 failed**. Source lowering now omits
++zero visits before ANY binding, borrow-set, node or trace effect, following the
++executed-lifetime rule in LifetimeWidths; lexical qregions remain hoisted.
++The environment and fact-node output share that single structured traversal.
++An early full-suite run overlapped test authoring, observed the new zero-trip
++REDs and was stopped during a needless history expansion; it is not final gate
++evidence. Basis-only permutations now retain exact ANFs without recording
++history unless touching an existing quantum history; the huge test passes.
++
++Call RED: library and CLI each **0 passed / 1 failed**, §5.6 released
++wire not clean. GREEN combined R8 borrow/CLI targets: **12 passed / 0 failed**.
++Local non-permutation calls now have memoised canonical structured transfers,
++instantiated on actual wires and inherited controls. Cache keys include exact
++classical bindings; summaries are reused per callee specialization. The §5.1
++SCC validator excludes action recursion before this pass. Unresolved imports
++make only mut wires/mut cells unknown. Known-false call controls disable fact
++transfer; read-only operands keep their facts. The independent call boundary
++guard retains FULL actual touched sets, including disabled borrowed controls;
++callee-internal borrowed touches are checked recursively. Every physical call
++and quantum gate still delimits frames.
++
++Deterministic R8 families: **3 passed / 0 failed**, **134 accepted / 25
++rejected**: nested stacks **86/6**, zero trips **33/10**, callee transfers
++**15/9**. Includes depth 3, X/CX/S/SWAP/Rx/Ry, interleaved wires, loop wrapping,
++renamed/dead qcopy/qload/qborrow bindings, hoisted dead qregions, certified
++H/S borrowed-touch negatives, live-name/scalar-width negatives, known-zero/one
++controls, readonly input controls, unknown-control negatives and callee chains.
++Initial family run **0 passed / 3 failed**: wrong qload address width and
++missing explicit adjoint-call cleanup were fixture errors; the nested
++SWAP/Rx identity exposed a real §6.2 over-rejection, tracked as b-isa-spec-2kd.
++`Discipline::change` now distinguishes readers of the current operation's
++captured version ID from older readers of an ancestor. Outstanding entangling
++readers still block cancellation. SPEC-QUESTIONS 25's version-sensitive
++reading remains unchanged; no new ISA ambiguity or scope restriction.
++
++First completed normal gate after variants: **314 passed / 0 failed /
++5 ignored** (8 unit + 306 integration, 0 doctests). Fmt passed; strict Clippy
++found one map-entry style violation, corrected without a behavior change.
++Final gates and all five ignored sweeps follow after that correction.
++
++Final causal audit: nested two-output SWAP pairs reproduced §6.2 rejection
++(**0 passed / 1 failed**) and now use the same reader rule as single-wire
++changes. `reads_current` compares the complete captured version-stack prefix,
++not only the top gate ID: repeated H gates can share an operation identity
++while naming different nested events. Added repeated-H/SWAP positives.
++An imported unknown-control reader exposed the distinction between preserving
++a read-only wire's current fact and preserving its ancestor inverse history.
++The new static import test first rejected at §6.2 (**0/1**); after correcting
++version-prefix matching it exposed the unsound borrow admission (**0/1**).
++Opaque imported calls now invalidate connected history across ALL touched
++operands, while assigning fresh unknowns ONLY to modified outputs. Disabled
++imports remain fact no-ops. Local calls retain their analysed transfers.
++The test explicitly marks its unlinked positive as static-only evidence.
++S-only pre-fix replay from isolated 366a711 beneath `.tmp`: **0/1**, library
++accepted and CLI check exit 0/status ok with the exact published H/object pins.
++No shared source checkout was rewound.
++
++Final variant GREEN: **4 passed / 0 failed**, **139 accepted / 26 rejected**:
++nested **90/6**, zero-trip **33/10**, local-call **15/9**, imported-call
++static **1/1**. Intermediate joint-only family run was **3 passed / 0 failed**,
++**136/25** (88/6 nested). Final source fmt and strict all-target Clippy pass,
++0 warnings, 0 tests executed (Clippy 2.84 s). All semantic changes are frozen
++for the final full suite and five sweeps.
++
++### Final round-8 verification
++
++All four S0 findings resolved. Implementation commits: **366a711** (nested
++stacks and unsigned arithmetic), **b11b43f** (executed zero-trip bindings),
++**5ad0555** (memoised calls), **b658ac9** (families and version-aware readers),
++**0b70157** (complete version prefixes, joint readers and opaque histories).
++Only owned crate paths committed; no push. Council response is the separately
++owned `bennett/docs/council/isa-ref-2026-10-29/round-8/response.md`.
++
++Final gates use absolute manifest, headless/offline, TMPDIR at the repository's
++`.tmp`, CARGO_PROFILE_TEST_OPT_LEVEL=1 (same assertions/domains/overflow checks).
++
++| Gate | Observed result |
++|---|---|
++| fmt --check | pass, 0 tests executed; comment-only rerun also passes |
++| strict all-target Clippy | pass, 0 warnings, 0 tests executed; 2.84 s; comment-only rerun 1.29 s |
++| normal suite | **315 passed / 0 failed / 5 ignored**, 8 unit + 307 integration, 0 doctests; 21.07 s summed runner time |
++| all ignored sweeps | **5 passed / 0 failed**, 109.73 s summed runner time |
++| R8 deterministic families | **4 passed / 0 failed**, **139 accepted / 26 rejected** (90/6 nested, 33/10 zero, 15/9 local call, 1/1 static import) |
++| read-only standalone conformance | **445 pass / 0 fail / 65 unavailable / 510**, exit 2 for explicit staging |
++| unchanged Python seed | 2 example objects and 2 printed envelopes verified; execution as stated |
++| owned diff --check | clean |
++
++| Sweep | Domain | Result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1 passed / 0 failed; 0.70 s |
++| 17-wire borrow | 131,072 entries | 1 passed / 0 failed; 4.31 s |
++| checked borrow certificate | 262,144 claim elements, subject and expected program | 1 passed / 0 failed; 22.04 s |
++| §6 differential | 200,000 programs: **70,930 accepted (all exactly clean) / 129,070 rejected** | 1 passed / 0 failed; 80.30 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1 passed / 0 failed; 2.38 s |
++
++Acceptance improved from the historical 64,717/135,283 with unchanged RNG
++code/distribution/seeds; every newly accepted sampled program is independently
++executed for exact cleanup. Conformance's concurrently maintained checkout
++adds explicitly unavailable contract cases; none is counted as passed.
++Logs: repository `.tmp/r8-complete-{fmt,clippy,tests,sweeps,conformance,seed}.log`
++and `.tmp/r8-comment-{fmt,clippy}.log`. Only a comment explaining the equivalent
++controlled-image conjugation in cached proof templates changed after the final
++semantic tests; fmt and strict Clippy were rerun. Execution's unconditional
++image preparation is unchanged. No semantic source changes followed the gates.
++
++No new ISA 0.8 gap or proposed spec change is needed. Existing SPEC-QUESTIONS
++20/25/28/30 and staged deliverables 8–11 remain; no semantic cap or frame waiver.
++Accepted 0.8 SHA-256 remains
++`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
++Beads' automatic export is outside owned commit paths and left for the maintainer.
+ 
+ ## Round-7 fixes (2026-10-30)
+@@ -2169,188 +2327,206 @@
+ ````
+ 
+-## `council/response-round-7.md` (267 lines)
++## `council/response-round-8.md` (318 lines)
+ 
+ ````markdown
+-# Editor response: council round 7
+-
+-Inputs: full `out-sol.json` and `out-codex.json`, reviewed snapshot 67d1b94.
+-All four S0 findings are resolved; no declines or partials. Final verification is recorded below.
+-Owned paths: `reference-interpreter/` and this response only. No push, dependency,
+-RNG-distribution, accepted-spec, conformance or Python-seed change.
+-Tracking: b-isa-spec-lto; cycle-key correction b-isa-spec-gui; performance
+-follow-up b-isa-spec-436. Staged deliverables 8–11 retain their disclosures.
++# Editor response: council round 8
++
++Inputs: full `out-sol.json` and `out-codex.json`, reviewed snapshot 00ceee2,
++and both implementation briefs. All four distinct S0 findings are resolved;
++final verification is recorded below. Owned paths: `reference-interpreter/`
++and this response only. No push, dependency, RNG-distribution, accepted-spec,
++conformance or Python-seed change. Tracking: b-isa-spec-41i and the adjacent
++version-sensitive cleanup finding b-isa-spec-2kd. Staged deliverables 8–11
++retain their disclosures.
+ 
+ ## Design
+ 
+-1. A live wire has an ANF basis expression; an unconstrained entry is a variable.
+-2. Only allocation supplies zero. Losing information supplies a fresh unknown.
+-3. X-family gates transform target expressions; controls remain read-only.
+-4. Controlled swaps transform both outputs with the complete condition.
+-5. Diagonal gates preserve basis expressions, including known zero/one.
+-6. A false predicate disables the gate's fact transfer, not its §5.6 touch guard.
+-7. Non-diagonal targets become unknown; an untouched exact inverse restores saved expressions.
+-8. Any intervening operand touch invalidates the inverse record, including entangling gates.
+-9. Every quantum gate still ends a frame; the full touched set guards borrowed controls/targets.
+-10. Every return retains restoration and output-independence equations; certificates cannot waive them.
+-11. Zero trips transfer nothing; permutation loops square maps and obligations with the actual bound.
+-12. Mixed loops traverse exact entries, skip identical full analysis states, or prove a joined unknown-top invariant.
+-
+-`src/borrow.rs::Compiler::compile` emits structured Repeat nodes for all loops
+-and Quantum nodes carrying gate action separately from the full touched set.
+-`Facts::sequence`, `repeat`, `invariant`, `flush` replace prefix replay.
+-No `n.min(3)`, frame merging, sampled admission or semantic trip limit remains.
+-Inverse records preserve old correlations, and every intervening multi-wire
+-touch invalidates them; unknown results cannot resurrect a clean value.
+-`Evaluation::apply` retains exact permutation/opaque composition and every
+-per-return obligation. The cropped translation-lemma route still requires all
+-lifetime equations. Opaque unresolved proofs retain their certificate route.
+-Execution's quantum cycle skipping remains separate from analysis.
+-
+-## SOL-R7-B01 — resolved
+-
+-RED: `r1_borrow::r7_restored_zero_before_borrow` and
+-`cli_xam::r7_cli_restored` rejected the exact H(c); H(c) subject with
+-`§5.6: a wire released inside a borrow frame is not clean`.
+-
+-`borrow.rs::Facts::sequence` now restores the saved zero expression at the
+-second untouched H. The following CX(0,b) is I for arbitrary b and an external
+-entangled reference. GREEN pins interface = closure =
+-`12efae749cb84eec0918c9aa49adb348957eba9e81e0eaa8f2514481a0d9dba0`,
+-object = `b2534762bf5eb795efd7ba74195198f0b67e2012b9f3243700e58ee92ee9fc53`.
+-Implementation commit: **1caa062**.
+-
+-CLI hash/check succeed; forward and independently initialized adjoint preserve
+-t=0/1 and 0.6|0>+0.8i|1>; reverse reports equals_entry=true with one interface
+-wire. Library checks 16 t/pool basis entries, a superposition and a borrowed
+-wire entangled with an untouched reference, independently in both directions,
+-then exact reversal. The deterministic family adds H/H, Rx/Rx†, Ry/Ry†,
+-empty lifetimes, disjoint intervening touches and changed-c negative controls.
+-
+-## SOL-R7-B02 ≡ codex R7-B01 — resolved
+-
+-RED library and CLI tests:
+-
+-| Subject | Test suffix | Observed RED |
++1. A live wire has an ANF basis expression; allocation alone supplies zero.
++2. Diagonal gates and read-only controls preserve basis facts; permutations transform ANFs.
++3. Non-diagonal targets become fresh unknowns; no unknown result invents a fact.
++4. Each information-losing gate pushes its saved expressions on every operand stack.
++5. Reversible gates above those histories push likewise; independent wire stacks interleave.
++6. An exact adjoint pops only when the same saved event tops ALL operand stacks.
++7. Nested pairs restore LIFO; outstanding readers block an outer pop; opaque/lifetime barriers invalidate connected history.
++8. One structured source lowering publishes both physical bindings/borrow sets and the fact-node program; zero trips publish none of them. Static dead-body checks and lexical qregion hoisting remain.
++9. Local calls reuse canonical structured per-wire transfers, memoised by callee and exact classical specialization; SCC validation excludes action recursion (§5.1).
++10. Effective controls predicate callee gates; a known-false call transfers no facts; imported calls leave modified outputs unknown and preserve read-only operands.
++11. Every physical quantum gate/call boundary and FULL borrowed-touch guard remains, including disabled calls; every return proves restoration and output independence.
++12. Permutation loops square maps AND return obligations; mixed loops visit exact entries, skip identical complete analysis states or prove an unknown-top inductive invariant. No sampled admission or semantic trip cap.
++
++`borrow.rs::Facts::{reversible,forget_inverses,sequence}` implement the causal
++per-wire stacks. Ordinary basis permutations need no history unless they touch
++an existing quantum history: their ANFs already retain exact basis information.
++Saved expressions include every operand, preserving correlations. The stack
++checks all controls and targets, so an unmatched entangling operation cannot
++resurrect a saved clean control. Physical frame boundaries are retained even
++when a pair cancels in the fact domain.
++
++`Compiler::compile` is the sole traversal of source lifetime/binding effects;
++it emits the exact structured node program that Facts traverses. Zero-trip
++bodies are omitted there before any `produce`, live-borrow mutation, call,
++node or trace effect, following the existing `action.rs::LifetimeWidths`
++executed-lifetime rule. There is no successor environment inferred from a dead
++body. Static validation still checks that body in its cloned state; function
++entry still hoists every lexical qregion, including declarations in dead bodies.
++
++`Compiler::call_transfer` compiles a local callee into canonical wire coordinates
++once per classical specialization, including nested calls, then remaps the
++structured effect onto actual operands. The cache is shared by child compilers.
++`Node::Call` separates its complete physical touched set from mutable outputs
++and the analysed transfer. `Facts::sequence` handles its predicate and transfer;
++`check_permutation_touches` independently checks the full call touch set and
++recurses into callee-local lifetimes. Imported calls leave facts unknown only on modified outputs; opaque readers
++invalidate inverse history across all touched operands, including read-only
++controls, without erasing those controls' current basis facts. The existing Tarjan SCC call-graph validation runs first;
++recursion through lifted oracle procedures remains opaque to this action pass.
++
++## SOL-R8-B01 ≡ codex R8-B02 — resolved
++
++RED exact library tests `r8_compound_adjoint_restores_borrow_control` and
++`r8_diagonal_nested_adjoint_restores_borrow_control`: **0 passed / 2 failed**.
++CLI counterparts `r8_cli_compound_x/s`: **0 passed / 2 failed**, exit 1,
++empty stdout, `§5.6: a wire released inside a borrow frame is not clean`.
++
++The first H record now survives nested X/X or S/Sdg computation. Each inner
++pair pops before the final H restores c=0. CX(0,b) is identity for arbitrary
++b and its external reference; c is clean at release. Commit **366a711**.
++
++The deterministic family covers nested matched pairs through depth 3, H, X,
++CX, SWAP, S/Sdg and literal Rx/Ry inverse pairs, loop wrappers and interleaved
++histories on two workspace wires. The library checks all 16 t/pool basis
++entries plus superposition and Bell-paired borrowed/reference entries, with
++forward and adjoint initialized independently, followed by exact reversal.
++Unmatched inner S, entangling CX and SWAP before the borrow still reject,
++including with a certificate and with valid complete cleanup after the return.
++
++The family exposed an adjacent §6.2 over-rejection: an older SWAP reader was
++blocking an inner Rx/Rx† pair that it never read. `validation.rs::Discipline::change`
++now tests the captured current-operation version-stack prefix. An added nested SWAP/SWAP
++case reproduced the same defect in `joint_change`; the same version-sensitive
++rule now covers joint events. Both REDs reported `§6.2: released value has not
++been uncomputed` (initial family **0/3**, later joint audit **0/1**).
++Older ancestor readers do not block a nested pair; an outstanding reader whose
++snapshot contains the complete current event prefix still blocks its inverse. This implements
++the existing SPEC-QUESTIONS 25 reading without changing its text or weakening
++outstanding-entanglement negatives. Tracking b-isa-spec-2kd; initial correction
++and families **b658ac9**; final joint/prefix and opaque-reader correction **0b70157**.
++
++A final static import family distinguishes fact preservation from history
++preservation. Its unknown-control negative initially stopped at §6.2 (**0/1**),
++showing why matching only a reused top gate ID was insufficient for repeated H
++events. Complete captured stack prefixes allow the matched whole-region
++cleanup; the test then exposed an unsound borrow admission (**0/1**) through an
++opaque imported reader. The import now invalidates connected inverse history
++on all touched operands while changing facts only on mutable outputs. A
++known-false imported call still preserves c=0; this positive is explicitly
++static-only because no callee definition is linked. Added repeated-H/SWAP
++identities protect the prefix distinction.
++
++## SOL-R8-B02 ≡ codex R8-B01 — resolved
++
++RED library **0 passed / 3 failed**, CLI **0 passed / 3 failed**:
++
++| Subject / test | Observed RED |
++|---|---|
++| `zero-wide` / `r8_zero_trip_lifetime_environment_does_not_escape`, `r8_cli_zero_wide` | §3.3: c must be one wire |
++| `zero-same` / `r8_zero_trip_surviving_fact`, `r8_cli_zero_same` | §5.6: released wire not clean |
++| `zero-h` / `r8_zero_trip_cannot_hide_borrowed_quantum_touches`, CLI counterpart | parse/hash/check incorrectly accepted |
++| `zero-s` / same literal test loop | independently replayed against pre-fix 366a711: parse accepted, CLI check exit 0/status ok; **0 passed / 1 failed** |
++
++The separate S replay uses an isolated git-archive source snapshot beneath the
++repository's `.tmp`, never a shared checkout mutation. It prints both outcomes
++before failing its rejection assertion; its stdout pins the published S hashes.
++This supplies independent RED evidence because the initial combined H/S test
++stopped at H. Final GREEN runs cover both H and S and require §5.6, exit 1,
++empty stdout before execution; certificate-present variants retain rejection.
++
++Zero trips now execute no compiler lifetime or binding operation, so the
++successor c is still the original clean one-wire allocation and b is still
++the original live borrowed wire. Commit **b11b43f**. GREEN for the two
++positives checks pinned hash/check; forward and independently started adjoint
++at t=0/1 and 0.6|0>+0.8i|1>; one surviving interface wire; reverse
++`equals_entry=true`; and exact identity with arbitrary/entangled bR.
++
++Variants include nested zero loops, alpha-renaming, dead qcopy/qload/qborrow
++rebindings and a qregion declaration in a dead body subsequently used live.
++Static live-name redefinition still rejects; trip count 1 with the two-wire
++successor still rejects scalar CX. The full non-permutation borrowed-touch
++guard applies to H/S even when a certificate is attached.
++
++## codex R8-B03 — resolved
++
++RED `r8_action_call_preserves_readonly_control` and `r8_cli_call`: each
++**0 passed / 1 failed**, §5.6 released wire not clean, CLI exit 1/empty stdout.
++The literal two-function object has c=0, so controlled H and CX(c,b) both
++transfer identity. It now preserves all library/CLI identity inputs, standalone
++adjoints and exact reversals described above. Commit **5ad0555**.
++
++The deterministic family adds known-zero/known-one effective controls (expected
++I/H on t), the equivalent read-only in-parameter control, callee chains of
++length 1–3, analysed compound identities on workspace, and unknown-control
++negatives. The compound-identity workspace case explicitly calls the adjoint
++after the borrow, retaining §6.2's required exact call cleanup; its c=0 fact
++at the earlier borrow must come from the callee analysis. Unknown interface
++controls of H on workspace cannot establish workspace=0 and therefore reject
++the intervening borrow even though the call is subsequently undone.
++Borrowed effective controls and direct borrowed operands of non-permutation
++calls continue to reject, including disabled calls in the retained R3 family.
++
++## SOL-R8-B03 — resolved
++
++RED `exact::r8_tests::r8_unsigned_decimal_multiplication`: **0/1**, 2^127
++became negative. RED `r1_linking::r8_unsigned_multiplicity_composition`:
++**0/1**, composed `epsilon_total.diamond` was JSON number 0 instead of the
++required exact string `340282366920938463463374607431768211456`.
++
++`exact.rs::BigInt::from_u128` builds the complete unsigned limb magnitude;
++`Decimal::mul_int` uses it without an intermediate signed cast. Signed
++construction also reuses the unsigned magnitude constructor. Commit **366a711**.
++Tests cover 0, i128::MAX, 2^127, u128::MAX and fractional 0.1, with exact
++expected decimal strings. The exact client/callee fixture uses local diamond=1,
++callee inclusive=1, client inclusive=2^128 and multiplicity=u128::MAX;
++`Object::link` now returns the exact positive string and `check_hashes` passes.
++No multiplicity cap, precision fallback or interval-verifier dependency.
++
++## Published literal pins
++
++The helper asserts exact stored-H object bytes with SHA-256 even for rejected
++subjects. Accepted subjects also assert interface, closure and object hashes
++and `check_hashes`. Hash expectations are the independently published member
++values, never implementation outputs copied into fixtures.
++
++| Subject | interface = closure H | object_hash |
+ |---|---|---|
+-| SOL four-trip bad | r7_reject_loop_bad / r7_cli_reject_loop_bad | parse/hash incorrectly succeeded |
+-| SOL four-trip good | r7_nonpermutation_loop_positive / r7_cli_loop_good | released wire not clean, §5.6 |
+-| codex four-trip rotation | r7_reject_rotate_4 / r7_cli_reject_rotate_4 | parse/hash incorrectly succeeded |
+-| codex eight-trip rotation | r7_reject_rotate_8 / r7_cli_reject_rotate_8 | parse/hash incorrectly succeeded |
+-
+-The exact compiled trip count now governs every entry and return. SOL's c at
+-the borrow is initial_c XOR (n mod 2). Codex's four returns see c[3]=0,0,0,1;
+-the fourth return therefore rejects before hash/check emit anything. Eight
+-trips reject despite the later global restoration. The positive four-trip
+-subject preserves the complete I_t tensor I_bR map in both directions.
+-Implementation commit: **1caa062**.
+-
+-Published pins, including rejected objects' exact stored-H byte hashes:
+-
+-| Subject | interface = closure | object_hash |
+-|---|---|---|
+-| SOL bad | 232f157c4fe6c4abdb3ebc384d1b19b01751b68df4949b86d25996e87c300515 | 3e8f134a472e3e31545e6bd3ec22058da463927ea24af3929bf3357a36ca3926 |
+-| SOL good | fe26a45f4d75fde7d13f0e915a13d15a6ab9bb6b280dcc302996df1391f899d9 | 7f1312cd66fc88f5819be157a1a5964c27363f8f1bc728a9b21cdb342685b198 |
+-| codex 4 | 5dcd11b58f335ac7f301caf4e2773ffbfb172a01330fdb6c7c990c15036b340f | d58420852a90bad7d351d52072827bff5c6a8b592ae25072cffdf3b793e88de3 |
+-| codex 8 | 4036a594dfa32ab65353367719970549a2cbe1237e471ff6f43b169e09844112 | bc9ac8d642fe4c4569d81021da302108919d500fda82cde3577a2916b681068c |
+-
+-`generated_r7_evolving_loops_match_per_return_and_renamed_unrollings`:
+-**32 accepted / 38 rejected**, with counts 1/3/4/5/8 and 2^40, initial c=0/1,
+-nested 2×2, renamed straight-line expansion, rotation through eight returns,
+-and certified/uncertified subjects. Expectations are literal parity and each
+-return's one-hot control, never whole-region reversal as a substitute.
+-`generated_r7_large_noncycling_loop_proves_unknown_top_invariant`:
+-**1 accepted / 1 rejected**, static proofs at 2^40. H X X H is independently
+-I, but intervening touches invalidate the saved H in this fact domain, forcing
+-the invariant path; c=0 enables every lifetime proof, c=1 fails it.
+-
+-The large family exposed an adjacent static scalability defect:
+-`validation.rs::Discipline::cycle_key` now compares equality/order classes of
+-current/saved window epochs instead of absolute ever-increasing clocks.
+-The actual counters and all cleanup comparisons stay intact. A dedicated unit
+-test distinguishes an open saved window from a closed one after epoch shifts.
+-No epoch is discarded from a live cleanup obligation. Family/window/pin commit:
+-**6152d25**. A final RED audit pin,
+-`r7_zero_trip_is_not_an_intervening_inverse_operand_touch`, found that a zero
+-Repeat still invalidated an H inverse via its lexical touched set. The correct
+-§4.6 transfer now skips zero Repeat before any dynamic touch/frame/lifetime
+-operation. RED: 0 passed / 1 failed, released wire not clean (§5.6); GREEN:
+-8 R7 borrow tests passed. Commit **516052b** also corrects the obsolete Repeat
+-comment. This adds no exception for executed gates.
+-
+-## SOL-R7-B03 — resolved
+-
+-RED: `exact::r7_tests::r7_dyadic_scaled_conversion_boundary_rounding_and_subnormals`
+-failed at k=1024 with NaN instead of 1.0; the pinned CLI replay
+-`r7_cli_bounded_5000_h_t_reports_finite_amplitudes` failed exit 1, empty stdout,
+-`§16.1: non-finite binary64 has no JSON number`.
+-`r7_root2_cancellation_does_not_overflow_intermediate_terms` also failed its
+-finite-positive assertion for (1−sqrt(2))^810.
+-
+-`exact.rs::Dyadic::to_f64` rounds a bounded mantissa using guard/sticky bits and
+-the net exponent (nearest, ties to even). Subnormals use their exact binary64
+-power-of-two encoding, avoiding powi's intermediate underflow. `Root2::to_f64`
+-uses `exact/measurement.rs::root2_approximate` when separate terms would
+-otherwise overflow or severely cancel, refining dyadic enclosures until both
+-endpoints round alike. No NaN clamp, gate/denominator ceiling, or weakened JSON
+-non-finite check. Implementation commit: **51d45dc**.
+-
+-Pins: interface = closure =
+-`2b29d4983fd4149572528e684e31ed7802cd7727f628c50058f7d62329ca22e9`,
+-object = `8af0b609daca8eb239a88ad3f47fddec0e6e43e9a456bca951887ccd89af0080`.
+-Forward coordinates match the member's independent 100-digit matrix product
+-within 1e-12, with both support keys, unit norm, mut=[null] and one wire.
+-Standalone adjoint coordinates come from the conjugate first row of that
+-matrix; reverse equals_entry=true. `quantum::r7_bounded_h_t_exact_support_is_finite_and_reverses`
+-independently drives all 5,000 primitive pairs, checks the supplied coordinates,
+-and reverses exactly. Unit cases cover k=1023/1024/1056/2000/5000, signed
+-values, nearest-even ties, smallest subnormals, underflow and f64::MAX.
+-
+-## codex R7-B02 — resolved
+-
+-RED: `r7_diagonal_basis` / `r7_cli_diagonal` failed with
+-`§5.6: qreturn does not restore borrowed wire v2_0`;
+-`r7_readonly_control` / `r7_cli_control` failed with
+-`§5.6: a wire released inside a borrow frame is not clean`.
+-
+-`borrow.rs::Facts::sequence` preserves diagonal operands and read-only
+-controls rather than erasing every touched wire. Both exact actions are I,
+-with the same full library/CLI basis, complex-superposition, entangled-reference,
+-standalone-adjoint, one-wire and reversal checks as SOL-R7-B01.
+-Full touched sets still enforce permutation-only borrowed touches, including
+-disabled quantum controls and diagonal inverse pairs. Commit: **1caa062**.
+-
+-Diagonal interface = closure =
+-`0d7a3eccbc3cdd7440ec3c1ad66a12e8650203486b2736f6fe5ea2ddb87a56f6`,
+-object = `5b407065c615539c15c7f9381b8fccfebc8e109cae3e8966c05fbd4acd687205`.
+-Known-zero controlled-H interface = closure =
+-`06b70e4ca0799aac622c280b3f1de5b825888d21c19da5ec3f015c88b4fc1fe6`.
+-`generated_r7_diagonal_control_and_inverse_boundaries`: **60 accepted /
+-24 rejected**, including S/Sdg, T/Tdg, Rz±, CZ, known-zero/one predicates,
+-matched non-diagonal pairs, empty frames and certificate-present negatives.
++| H X X H | 0fd6d6eadcb219457ce3d9aa091a2176d38ce9f81551235799dae7cabe6e0e2f | 5eff1283a8f71dcce612e1802e510fdcae30c609395686311962bd630f01461c |
++| H S Sdg H | a8a4f90c95a1995df9a28afe4369f3455239ae54b6c22b5c8133df7a60253401 | 535f274d3c7328e13cfd99e8785751ec3874e4d3090da3544e781855ca35439f |
++| zero / wide | c9cbc01c190e4454e37b553e1d7e8e9eeea856631a6ab397029577447b053b87 | 708531c08cb63447ea2bbaa966c69562300ab1bc89e07efb9c3278799c54922d |
++| zero / same | d607c1df25e3a4d8f4e730501cf13a04a62cfa6adbeae5c36133a4f140f406bd | 568f2a4ee6c4cb927cafe4bd54414def5e91257186832704e6be7abfe99fd1bc |
++| zero / H borrowed | 90cbbcb904bff3ae413e3aaa3ec398173654dc1690354777bcb3837881098080 | 60865de88a18adc53e2ecb23ab54d86f44836e4895cb7fb54e3ac78c0c879280 |
++| zero / S borrowed | 1c0599e2f06674ccbc34f0017d5d158af1588d7d54982aa1adfebddc4262fa58 | fd5167fefabbbc72d9cd486e6cf036119f2ba5088558cccb155f898eaa7285ec |
++| controlled call / @a | 63ae90bc9af75ebe3e958956282567f52129b0097651a445c08f7c5f2845ac79 | c4a3c1adad250d856a334556766f0cc398a71b6c65df3ce5f81adf86d07f968e |
++
++The controlled-call @u interface/closure pin is
++`c0c51a4bf1e9713e237601daaf342134f91eae5fd7143f8638595157d33db5b6`.
+ 
+ ## Retained negatives and contracts
+ 
+-All existing tests remain, including R4 independent loop-local returns,
+-borrowed-output dependence, distinct-name unrollings, spanning lifetimes;
+-MUSE-R4 fresh-CX returns and paired-CX positives through 2^40;
+-R5 definite X/CX errors with validly bound exhaustive certificates, internal
+-return audits, certified CZ phase/control touches, empty certificate indices,
+-static translation-frame maximality and full-domain opaque composition;
+-R6 dirty c, single X b, single-H dirty control, dirty free, zero-trip/changing
+-width lifetimes and public certificate replay. Round-7 X c/single CX,
+-changed non-diagonal controls and every non-permutation B touch still reject
+-with §5.6/§6.2, exit 1 and empty stdout. Hash/schema/certificate binding, oracle
+-step/stack tuples, complete inverse machine snapshots, CC/R history, exact
+-support and Born-selection tests remain in the complete gates.
+-
+-README and PROGRESS describe gate transfer and the actual loop proof, replacing
+-the old untouched-wire/prefix-patch description. SPEC-QUESTIONS 20/25/28/30
+-remain consistent with this implementation. No new ISA 0.8 ambiguity or exact
+-specification change is needed.
++All round 4–8 tests remain. Retained checks include independent loop-local
++returns (later borrowing cannot repair an earlier return), globally restored
++four/eight-trip rotation negatives, evolving clean controls after iteration 3,
++unknown dirty controls, unmatched H, outstanding transitive/diagonal readers,
++cell-version/window closure, illegal borrowed quantum/phase/call controls,
++opaque borrowed-input claim requirements, certificate subject binding, checked
++claim replay, mixed lifetimes and nonzero/zero-trip qregion hoisting.
++Neither translation-lemma structure nor a final whole-region certificate can
++waive a definite per-return or non-permutation touch failure. RNG generator,
++seeds and distribution are unchanged. No semantic trip, wire or multiplicity
++limit was added; no accepted ISA capability was intentionally narrowed.
+ 
+ ## Verification commands and observed counts
+ 
+-Final sequential gates use the following environment and absolute manifest
+-(test optimization only; same domains/assertions and overflow checks):
++All gates use the repository root, absolute manifest, offline, headless and
++project-local temporary storage. `CARGO_PROFILE_TEST_OPT_LEVEL=1` changes
++optimization only; assertions, overflow checks and test domains are unchanged.
+ 
+ ```sh
+@@ -2358,7 +2534,4 @@
+ export TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp
+ export CARGO_PROFILE_TEST_OPT_LEVEL=1
+-```
+-
+-```sh
+ cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
+ cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
+@@ -2367,76 +2540,112 @@
+ ```
+ 
+-Development commands use the same manifest/environment: `--test r1_borrow r7_`,
+-`--test cli_xam r7_`, `--lib r7_dyadic`, `--lib r7_root2`,
+-`--test cli_xam r7_cli_bounded`, `--test quantum r7_`,
+-`--test r1_fuzz_discipline generated_r7`, and `--lib r7_epoch`;
+-`-- --nocapture` records diagnostics and family counts.
+-
+-Observed development: RED 0/7 library and 0/7 CLI; GREEN 14 exact pins.
+-First full normal suite 288 passed / 0 failed / 5 ignored. Numeric RED:
+-0/1 dyadic, 0/1 pinned CLI, 0/1 Root2; GREEN 2 unit + 1 CLI.
+-Primitive quantum target: 1 passed / 0 failed. Final deterministic families:
+-3 tests, **93 accepted / 63 rejected**; RNG code and seeds unchanged.
+-An initial CLI RED attempt raced a subsequent executable rebuild and passed
+-(103.67 s); it is not counted as RED evidence. The isolated old-conversion
+-replay failed as required (35.89 s), followed by GREEN (70.78 s). An intermediate
+-scaled conversion failed the new smallest-subnormal assertion and was fixed
+-before commit. Repeated hash pins: 7 passed / 0 failed. Epoch-equivalence unit: 1 passed.
+-The complete debug gates also passed at 295 tests (232.68 s) and 296 tests
+-(206.19 s), each 0 failed / 5 ignored. The final zero-trip RED and 8-test GREEN
+-are above. No interrupted run is included in a completed-suite count.
+-
+-Exploratory huge noncancelling static histories (TH on an interface, swap
+-rotation, and an outstanding-copy variant) were interrupted without a result;
+-none counts as a pass or rejection. Their existing enumerative §6 provenance
+-path is tracked by **b-isa-spec-436**; it is not the new borrow invariant path.
+-The final family keeps huge valid/invalid H/X controls, rotating cases through
+-eight visits and a huge noncycling borrow-fact proof. No semantic bounds were
+-capped and no object was newly rejected to hide this performance limitation.
+-
+-The earlier unoptimized ignored command completed three tests: division
+-**1 passed**, 16.64 s; 17-wire execution **1 passed**, 97.84 s; checked
+-certificate **1 passed**, 492.05 s. Its discipline sweep was stopped without a
+-result after the last zero-trip audit so the complete final sequence could be
+-rerun after all source changes. Those three completed counts remain partial
+-historical evidence, not a five-sweep pass.
+-
+-Final sequential gates after the last source change:
++Development commands used the same prefix/manifest with these filters:
++`r8_unsigned`, `--test r1_linking r8_unsigned`,
++`--test r1_borrow r8_`, `--test cli_xam r8_`,
++`--test r1_borrow r8_zero`, `--test cli_xam r8_cli_zero`,
++`--test r1_borrow r8_action_call`, `--test cli_xam r8_cli_call`,
++`--test r1_borrow sol_r5_b02`,
++`--test r1_fuzz_discipline generated_r8`, and later `generated_r8_nested`,
++all with `-- --nocapture`. RED S replay uses the git archive of 366a711 at
++`.tmp/r8-red-s/reference-interpreter/Cargo.toml`, `--test r8_red_s -- --nocapture`.
++
++Observed development GREEN counts: **6/0** nested/numeric; **10/0** R8
++borrow/CLI after zero-trip fix; **1/0** existing huge permutation regression;
++**12/0** R8 borrow/CLI after call fix; family intermediate **3/0**, **134
++accepted / 25 rejected** (86/6 nested, 33/10 zero, 15/9 call). Initial family
++**0/3** includes two fixture errors (address width; missing explicit call
++adjoint) corrected to comply with §§3.3/6.2, plus the genuine nested-reader
++rejection. The extended joint-reader RED was **0/1**. The separate S witness
++pre-fix replay was **0/1**, with both load surfaces observed before assertion.
++
++First completed full suite: **314 passed / 0 failed / 5 ignored**, 8 unit +
++306 integration, 0 doctests; 36.79 s summed runner time. Initial strict Clippy
++reported one map-entry style violation; after its correction strict Clippy
++passed with zero warnings (9.07 s). Fmt checks passed. One earlier full run
++raced test authoring, observed new zero-trip REDs, and was stopped during
++needless permutation-history expansion; the basis-ANF fast path was corrected
++and its huge regression passed. A later gate attempt was stopped to include
++the final joint-reader RED. Interrupted runs are not reported as passes.
++
++Final source gates after **0b70157**:
+ 
+ | Gate | Observed result |
+ |---|---|
+-| fmt --check | pass, 0 tests executed |
+-| strict all-target Clippy | pass, 0 warnings, 0 tests executed |
+-| normal suite | **297 passed / 0 failed / 5 ignored** (7 unit + 290 integration, 0 doctests), 40.69 s summed runner time |
+-| complete ignored suite | **5 passed / 0 failed**, 143.52 s summed runner time |
+-| owned diff checks | clean |
+-
+-| Ignored sweep | Domain | Observed result | Runner time |
+-|---|---|---|---|
+-| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1 passed / 0 failed | 1.10 s |
+-| 17-wire execution | 131,072 entries | 1 passed / 0 failed | 5.93 s |
+-| checked certificate | 262,144 elements, subject and expected program | 1 passed / 0 failed | 30.31 s |
+-| §6 differential | 200,000 programs: **64,717 accepted (all exactly clean) / 135,283 rejected** | 1 passed / 0 failed | 102.22 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1 passed / 0 failed | 3.96 s |
+-
+-Fresh read-only standalone conformance command:
++| fmt --check | pass; 0 tests executed |
++| strict all-target Clippy | pass; 0 warnings, 0 tests executed; 2.84 s |
++| normal suite | **315 passed / 0 failed / 5 ignored**, 8 unit + 307 integration, 0 doctests; 21.07 s summed runner time |
++| deterministic R8 families | **4 passed / 0 failed**, **139 accepted / 26 rejected** |
++| standalone read-only conformance | **445 pass / 0 fail / 65 unavailable / 510**, exit 2 for explicit staging |
++
++Final family details: **90/6** nested, **33/10** zero trips, **15/9** local
++calls, **1/1** static imports. The earlier joint-only family run was **3/0**,
++**136/25** (88/6 nested). Every accepted executable R8 family subject is
++checked against independently derived I or H maps, including arbitrary and
++entangled borrowed inputs; the unlinked import positive is static-only.
++
++Read-only conformance command (build artifacts confined to the owned crate):
+ 
+ ```sh
+-CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp/r7-conformance-target cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref
++CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp/conformance-target cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref
+ ```
+ 
+-Result after the last fix: **445 pass / 0 fail / 62 unavailable / 507**, exit 2.
+-Earlier in this session the concurrent harness was **445/0/60/505**, also exit 2.
+-Unavailable/staged cases are never passes. Conformance sources and its added
+-contract cases belong to the concurrent agent and were not edited here.
+-
+-Final logs: repository `.tmp/r7-verified-{fmt,clippy,tests,sweeps,conformance}.log`;
+-development logs use the same `.tmp/r7-` prefix. Accepted 0.8 SHA-256 remains
++| Suite | pass | fail | unavailable | total |
++|---|---|---|---|---|
++| A | 21 | 0 | 1 | 22 |
++| B | 35 | 0 | 0 | 35 |
++| C | 339 | 0 | 1 | 340 |
++| D | 7 | 0 | 6 | 13 |
++| E | 0 | 0 | 29 | 29 |
++| F | 33 | 0 | 4 | 37 |
++| G | 10 | 0 | 14 | 24 |
++| H | 0 | 0 | 10 | 10 |
++
++The concurrently maintained harness adds unavailable contract cases compared
++with round 7's 507-case run. No unavailable item is counted as a pass; the
++existing deliverables 8–11 staging is retained. Conformance sources were never
++modified by this implementation. Final logs are repository
++`.tmp/r8-complete-{fmt,clippy,tests,sweeps,conformance}.log`; all RED logs and
++isolated S replay are retained there too.
++
++
++| Ignored sweep | Domain | Observed result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | **1 passed / 0 failed**, 0.70 s |
++| 17-wire borrow | 131,072 entries | **1 passed / 0 failed**, 4.31 s |
++| checked borrow certificate | 262,144 domain elements, subject and expected program | **1 passed / 0 failed**, 22.04 s |
++| §6 differential | 200,000 programs: **70,930 accepted (all exactly clean) / 129,070 rejected** | **1 passed / 0 failed**, 80.30 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | **1 passed / 0 failed**, 2.38 s |
++
++All five ignored sweeps: **5 passed / 0 failed**, 109.73 s summed runner time.
++The higher accepted count than the historical 64,717/135,283 follows the
++version-sensitive cleanup correction with unchanged random code/distribution
++and seeds; every accepted sampled program passed independent exact cleanup.
++
++The unchanged Python seed was also run headlessly:
++`python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/isa_check.py`.
++It verified **2 example objects and 2 printed envelopes**, executing as stated.
++Only a source comment was clarified after the final semantic tests: cached
++call proof templates predicate paired image preparation/unpreparation together,
++using C(P†) C(U) C(P) = C(P† U P); actual execution still prepares images
++unconditionally. Fmt and strict all-target Clippy were rerun and passed
++(0 warnings, 0 tests; Clippy 1.29 s), logged as
++`.tmp/r8-comment-{fmt,clippy}.log`. No semantic Rust changes followed the final
++normal or ignored suites. Owned diff checks pass.
++
++## ISA 0.8 gaps and disposition
++
++No new ISA gap, spec amendment, decline or partial finding. The stack and
++version-prefix rules implement §§5.3/6.2 and existing SPEC-QUESTIONS 25; zero
++trips follow §4.6 and executed lifetimes; call transfer follows §§3.5/4.7/6.1;
++unsigned composition follows §§9.1/9.3/12.3. No scope, trip, wire, multiplicity
++or frame restriction was added. Existing staged deliverables 8–11 and the
++pre-existing performance follow-up b-isa-spec-436 retain their disclosures.
++Accepted ISA 0.8 SHA-256 is unchanged:
+ `90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
+-No semantic Rust changes followed the final sequential gates. Tracking
+-b-isa-spec-lto and b-isa-spec-gui are complete; b-isa-spec-436 remains the
+-explicit performance follow-up. Beads automatically updated its export;
+-that file is outside the owned commit paths and is left for the maintainer.
+-No push; no new ISA gap or specification edit required.
++
++Implementation commits: **366a711**, **b11b43f**, **5ad0555**, **b658ac9**,
++**0b70157**. Final evidence/comment commit: **e15a187**. Only explicit owned paths
++were committed with BEADS_HOOK_TIMEOUT=20; no push. Beads' automatic export is
++left to the maintainer outside owned commit paths.
+ ````
+ 
+@@ -4222,4 +4431,276 @@
+ The Beads CLI automatically exported its tracking update to .beads/issues.jsonl;
+ that export is outside the owned commit paths and is left to the maintainer.
++````
++
++## `council/response-round-7.md` (267 lines)
++
++````markdown
++# Editor response: council round 7
++
++Inputs: full `out-sol.json` and `out-codex.json`, reviewed snapshot 67d1b94.
++All four S0 findings are resolved; no declines or partials. Final verification is recorded below.
++Owned paths: `reference-interpreter/` and this response only. No push, dependency,
++RNG-distribution, accepted-spec, conformance or Python-seed change.
++Tracking: b-isa-spec-lto; cycle-key correction b-isa-spec-gui; performance
++follow-up b-isa-spec-436. Staged deliverables 8–11 retain their disclosures.
++
++## Design
++
++1. A live wire has an ANF basis expression; an unconstrained entry is a variable.
++2. Only allocation supplies zero. Losing information supplies a fresh unknown.
++3. X-family gates transform target expressions; controls remain read-only.
++4. Controlled swaps transform both outputs with the complete condition.
++5. Diagonal gates preserve basis expressions, including known zero/one.
++6. A false predicate disables the gate's fact transfer, not its §5.6 touch guard.
++7. Non-diagonal targets become unknown; an untouched exact inverse restores saved expressions.
++8. Any intervening operand touch invalidates the inverse record, including entangling gates.
++9. Every quantum gate still ends a frame; the full touched set guards borrowed controls/targets.
++10. Every return retains restoration and output-independence equations; certificates cannot waive them.
++11. Zero trips transfer nothing; permutation loops square maps and obligations with the actual bound.
++12. Mixed loops traverse exact entries, skip identical full analysis states, or prove a joined unknown-top invariant.
++
++`src/borrow.rs::Compiler::compile` emits structured Repeat nodes for all loops
++and Quantum nodes carrying gate action separately from the full touched set.
++`Facts::sequence`, `repeat`, `invariant`, `flush` replace prefix replay.
++No `n.min(3)`, frame merging, sampled admission or semantic trip limit remains.
++Inverse records preserve old correlations, and every intervening multi-wire
++touch invalidates them; unknown results cannot resurrect a clean value.
++`Evaluation::apply` retains exact permutation/opaque composition and every
++per-return obligation. The cropped translation-lemma route still requires all
++lifetime equations. Opaque unresolved proofs retain their certificate route.
++Execution's quantum cycle skipping remains separate from analysis.
++
++## SOL-R7-B01 — resolved
++
++RED: `r1_borrow::r7_restored_zero_before_borrow` and
++`cli_xam::r7_cli_restored` rejected the exact H(c); H(c) subject with
++`§5.6: a wire released inside a borrow frame is not clean`.
++
++`borrow.rs::Facts::sequence` now restores the saved zero expression at the
++second untouched H. The following CX(0,b) is I for arbitrary b and an external
++entangled reference. GREEN pins interface = closure =
++`12efae749cb84eec0918c9aa49adb348957eba9e81e0eaa8f2514481a0d9dba0`,
++object = `b2534762bf5eb795efd7ba74195198f0b67e2012b9f3243700e58ee92ee9fc53`.
++Implementation commit: **1caa062**.
++
++CLI hash/check succeed; forward and independently initialized adjoint preserve
++t=0/1 and 0.6|0>+0.8i|1>; reverse reports equals_entry=true with one interface
++wire. Library checks 16 t/pool basis entries, a superposition and a borrowed
++wire entangled with an untouched reference, independently in both directions,
++then exact reversal. The deterministic family adds H/H, Rx/Rx†, Ry/Ry†,
++empty lifetimes, disjoint intervening touches and changed-c negative controls.
++
++## SOL-R7-B02 ≡ codex R7-B01 — resolved
++
++RED library and CLI tests:
++
++| Subject | Test suffix | Observed RED |
++|---|---|---|
++| SOL four-trip bad | r7_reject_loop_bad / r7_cli_reject_loop_bad | parse/hash incorrectly succeeded |
++| SOL four-trip good | r7_nonpermutation_loop_positive / r7_cli_loop_good | released wire not clean, §5.6 |
++| codex four-trip rotation | r7_reject_rotate_4 / r7_cli_reject_rotate_4 | parse/hash incorrectly succeeded |
++| codex eight-trip rotation | r7_reject_rotate_8 / r7_cli_reject_rotate_8 | parse/hash incorrectly succeeded |
++
++The exact compiled trip count now governs every entry and return. SOL's c at
++the borrow is initial_c XOR (n mod 2). Codex's four returns see c[3]=0,0,0,1;
++the fourth return therefore rejects before hash/check emit anything. Eight
++trips reject despite the later global restoration. The positive four-trip
++subject preserves the complete I_t tensor I_bR map in both directions.
++Implementation commit: **1caa062**.
++
++Published pins, including rejected objects' exact stored-H byte hashes:
++
++| Subject | interface = closure | object_hash |
++|---|---|---|
++| SOL bad | 232f157c4fe6c4abdb3ebc384d1b19b01751b68df4949b86d25996e87c300515 | 3e8f134a472e3e31545e6bd3ec22058da463927ea24af3929bf3357a36ca3926 |
++| SOL good | fe26a45f4d75fde7d13f0e915a13d15a6ab9bb6b280dcc302996df1391f899d9 | 7f1312cd66fc88f5819be157a1a5964c27363f8f1bc728a9b21cdb342685b198 |
++| codex 4 | 5dcd11b58f335ac7f301caf4e2773ffbfb172a01330fdb6c7c990c15036b340f | d58420852a90bad7d351d52072827bff5c6a8b592ae25072cffdf3b793e88de3 |
++| codex 8 | 4036a594dfa32ab65353367719970549a2cbe1237e471ff6f43b169e09844112 | bc9ac8d642fe4c4569d81021da302108919d500fda82cde3577a2916b681068c |
++
++`generated_r7_evolving_loops_match_per_return_and_renamed_unrollings`:
++**32 accepted / 38 rejected**, with counts 1/3/4/5/8 and 2^40, initial c=0/1,
++nested 2×2, renamed straight-line expansion, rotation through eight returns,
++and certified/uncertified subjects. Expectations are literal parity and each
++return's one-hot control, never whole-region reversal as a substitute.
++`generated_r7_large_noncycling_loop_proves_unknown_top_invariant`:
++**1 accepted / 1 rejected**, static proofs at 2^40. H X X H is independently
++I, but intervening touches invalidate the saved H in this fact domain, forcing
++the invariant path; c=0 enables every lifetime proof, c=1 fails it.
++
++The large family exposed an adjacent static scalability defect:
++`validation.rs::Discipline::cycle_key` now compares equality/order classes of
++current/saved window epochs instead of absolute ever-increasing clocks.
++The actual counters and all cleanup comparisons stay intact. A dedicated unit
++test distinguishes an open saved window from a closed one after epoch shifts.
++No epoch is discarded from a live cleanup obligation. Family/window/pin commit:
++**6152d25**. A final RED audit pin,
++`r7_zero_trip_is_not_an_intervening_inverse_operand_touch`, found that a zero
++Repeat still invalidated an H inverse via its lexical touched set. The correct
++§4.6 transfer now skips zero Repeat before any dynamic touch/frame/lifetime
++operation. RED: 0 passed / 1 failed, released wire not clean (§5.6); GREEN:
++8 R7 borrow tests passed. Commit **516052b** also corrects the obsolete Repeat
++comment. This adds no exception for executed gates.
++
++## SOL-R7-B03 — resolved
++
++RED: `exact::r7_tests::r7_dyadic_scaled_conversion_boundary_rounding_and_subnormals`
++failed at k=1024 with NaN instead of 1.0; the pinned CLI replay
++`r7_cli_bounded_5000_h_t_reports_finite_amplitudes` failed exit 1, empty stdout,
++`§16.1: non-finite binary64 has no JSON number`.
++`r7_root2_cancellation_does_not_overflow_intermediate_terms` also failed its
++finite-positive assertion for (1−sqrt(2))^810.
++
++`exact.rs::Dyadic::to_f64` rounds a bounded mantissa using guard/sticky bits and
++the net exponent (nearest, ties to even). Subnormals use their exact binary64
++power-of-two encoding, avoiding powi's intermediate underflow. `Root2::to_f64`
++uses `exact/measurement.rs::root2_approximate` when separate terms would
++otherwise overflow or severely cancel, refining dyadic enclosures until both
++endpoints round alike. No NaN clamp, gate/denominator ceiling, or weakened JSON
++non-finite check. Implementation commit: **51d45dc**.
++
++Pins: interface = closure =
++`2b29d4983fd4149572528e684e31ed7802cd7727f628c50058f7d62329ca22e9`,
++object = `8af0b609daca8eb239a88ad3f47fddec0e6e43e9a456bca951887ccd89af0080`.
++Forward coordinates match the member's independent 100-digit matrix product
++within 1e-12, with both support keys, unit norm, mut=[null] and one wire.
++Standalone adjoint coordinates come from the conjugate first row of that
++matrix; reverse equals_entry=true. `quantum::r7_bounded_h_t_exact_support_is_finite_and_reverses`
++independently drives all 5,000 primitive pairs, checks the supplied coordinates,
++and reverses exactly. Unit cases cover k=1023/1024/1056/2000/5000, signed
++values, nearest-even ties, smallest subnormals, underflow and f64::MAX.
++
++## codex R7-B02 — resolved
++
++RED: `r7_diagonal_basis` / `r7_cli_diagonal` failed with
++`§5.6: qreturn does not restore borrowed wire v2_0`;
++`r7_readonly_control` / `r7_cli_control` failed with
++`§5.6: a wire released inside a borrow frame is not clean`.
++
++`borrow.rs::Facts::sequence` preserves diagonal operands and read-only
++controls rather than erasing every touched wire. Both exact actions are I,
++with the same full library/CLI basis, complex-superposition, entangled-reference,
++standalone-adjoint, one-wire and reversal checks as SOL-R7-B01.
++Full touched sets still enforce permutation-only borrowed touches, including
++disabled quantum controls and diagonal inverse pairs. Commit: **1caa062**.
++
++Diagonal interface = closure =
++`0d7a3eccbc3cdd7440ec3c1ad66a12e8650203486b2736f6fe5ea2ddb87a56f6`,
++object = `5b407065c615539c15c7f9381b8fccfebc8e109cae3e8966c05fbd4acd687205`.
++Known-zero controlled-H interface = closure =
++`06b70e4ca0799aac622c280b3f1de5b825888d21c19da5ec3f015c88b4fc1fe6`.
++`generated_r7_diagonal_control_and_inverse_boundaries`: **60 accepted /
++24 rejected**, including S/Sdg, T/Tdg, Rz±, CZ, known-zero/one predicates,
++matched non-diagonal pairs, empty frames and certificate-present negatives.
++
++## Retained negatives and contracts
++
++All existing tests remain, including R4 independent loop-local returns,
++borrowed-output dependence, distinct-name unrollings, spanning lifetimes;
++MUSE-R4 fresh-CX returns and paired-CX positives through 2^40;
++R5 definite X/CX errors with validly bound exhaustive certificates, internal
++return audits, certified CZ phase/control touches, empty certificate indices,
++static translation-frame maximality and full-domain opaque composition;
++R6 dirty c, single X b, single-H dirty control, dirty free, zero-trip/changing
++width lifetimes and public certificate replay. Round-7 X c/single CX,
++changed non-diagonal controls and every non-permutation B touch still reject
++with §5.6/§6.2, exit 1 and empty stdout. Hash/schema/certificate binding, oracle
++step/stack tuples, complete inverse machine snapshots, CC/R history, exact
++support and Born-selection tests remain in the complete gates.
++
++README and PROGRESS describe gate transfer and the actual loop proof, replacing
++the old untouched-wire/prefix-patch description. SPEC-QUESTIONS 20/25/28/30
++remain consistent with this implementation. No new ISA 0.8 ambiguity or exact
++specification change is needed.
++
++## Verification commands and observed counts
++
++Final sequential gates use the following environment and absolute manifest
++(test optimization only; same domains/assertions and overflow checks):
++
++```sh
++unset DISPLAY WAYLAND_DISPLAY DBUS_SESSION_BUS_ADDRESS BROWSER
++export TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp
++export CARGO_PROFILE_TEST_OPT_LEVEL=1
++```
++
++```sh
++cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
++cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
++cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --ignored --nocapture
++```
++
++Development commands use the same manifest/environment: `--test r1_borrow r7_`,
++`--test cli_xam r7_`, `--lib r7_dyadic`, `--lib r7_root2`,
++`--test cli_xam r7_cli_bounded`, `--test quantum r7_`,
++`--test r1_fuzz_discipline generated_r7`, and `--lib r7_epoch`;
++`-- --nocapture` records diagnostics and family counts.
++
++Observed development: RED 0/7 library and 0/7 CLI; GREEN 14 exact pins.
++First full normal suite 288 passed / 0 failed / 5 ignored. Numeric RED:
++0/1 dyadic, 0/1 pinned CLI, 0/1 Root2; GREEN 2 unit + 1 CLI.
++Primitive quantum target: 1 passed / 0 failed. Final deterministic families:
++3 tests, **93 accepted / 63 rejected**; RNG code and seeds unchanged.
++An initial CLI RED attempt raced a subsequent executable rebuild and passed
++(103.67 s); it is not counted as RED evidence. The isolated old-conversion
++replay failed as required (35.89 s), followed by GREEN (70.78 s). An intermediate
++scaled conversion failed the new smallest-subnormal assertion and was fixed
++before commit. Repeated hash pins: 7 passed / 0 failed. Epoch-equivalence unit: 1 passed.
++The complete debug gates also passed at 295 tests (232.68 s) and 296 tests
++(206.19 s), each 0 failed / 5 ignored. The final zero-trip RED and 8-test GREEN
++are above. No interrupted run is included in a completed-suite count.
++
++Exploratory huge noncancelling static histories (TH on an interface, swap
++rotation, and an outstanding-copy variant) were interrupted without a result;
++none counts as a pass or rejection. Their existing enumerative §6 provenance
++path is tracked by **b-isa-spec-436**; it is not the new borrow invariant path.
++The final family keeps huge valid/invalid H/X controls, rotating cases through
++eight visits and a huge noncycling borrow-fact proof. No semantic bounds were
++capped and no object was newly rejected to hide this performance limitation.
++
++The earlier unoptimized ignored command completed three tests: division
++**1 passed**, 16.64 s; 17-wire execution **1 passed**, 97.84 s; checked
++certificate **1 passed**, 492.05 s. Its discipline sweep was stopped without a
++result after the last zero-trip audit so the complete final sequence could be
++rerun after all source changes. Those three completed counts remain partial
++historical evidence, not a five-sweep pass.
++
++Final sequential gates after the last source change:
++
++| Gate | Observed result |
++|---|---|
++| fmt --check | pass, 0 tests executed |
++| strict all-target Clippy | pass, 0 warnings, 0 tests executed |
++| normal suite | **297 passed / 0 failed / 5 ignored** (7 unit + 290 integration, 0 doctests), 40.69 s summed runner time |
++| complete ignored suite | **5 passed / 0 failed**, 143.52 s summed runner time |
++| owned diff checks | clean |
++
++| Ignored sweep | Domain | Observed result | Runner time |
++|---|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1 passed / 0 failed | 1.10 s |
++| 17-wire execution | 131,072 entries | 1 passed / 0 failed | 5.93 s |
++| checked certificate | 262,144 elements, subject and expected program | 1 passed / 0 failed | 30.31 s |
++| §6 differential | 200,000 programs: **64,717 accepted (all exactly clean) / 135,283 rejected** | 1 passed / 0 failed | 102.22 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1 passed / 0 failed | 3.96 s |
++
++Fresh read-only standalone conformance command:
++
++```sh
++CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/.tmp/r7-conformance-target cargo run --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/conformance/Cargo.toml -- --bin /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref
++```
++
++Result after the last fix: **445 pass / 0 fail / 62 unavailable / 507**, exit 2.
++Earlier in this session the concurrent harness was **445/0/60/505**, also exit 2.
++Unavailable/staged cases are never passes. Conformance sources and its added
++contract cases belong to the concurrent agent and were not edited here.
++
++Final logs: repository `.tmp/r7-verified-{fmt,clippy,tests,sweeps,conformance}.log`;
++development logs use the same `.tmp/r7-` prefix. Accepted 0.8 SHA-256 remains
++`90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e`.
++No semantic Rust changes followed the final sequential gates. Tracking
++b-isa-spec-lto and b-isa-spec-gui are complete; b-isa-spec-436 remains the
++explicit performance follow-up. Beads automatically updated its export;
++that file is outside the owned commit paths and is left for the maintainer.
++No push; no new ISA gap or specification edit required.
+ ````
+ 
+@@ -6231,5 +6712,5 @@
+ ````
+ 
+-## `src/borrow.rs` (1537 lines)
++## `src/borrow.rs` (1862 lines)
+ 
+ ````rust
+@@ -6258,5 +6739,9 @@
+     Error, Function, Instruction, Object, Result, Type,
+ };
+-use std::collections::{BTreeMap, BTreeSet};
++use std::{
++    cell::RefCell,
++    collections::{BTreeMap, BTreeSet},
++    rc::Rc,
++};
+ 
+ pub fn validate_translation_lemma(
+@@ -6360,4 +6845,12 @@
+     /// non-permutation call): it ends a frame and may not touch a borrowed wire.
+     Other(Vec<String>),
++    /// A physical non-permutation call boundary, with its full structural touch
++    /// set separate from the role-aware transfer. None is an unresolved import.
++    Call {
++        touched: Vec<String>,
++        controls: Vec<(String, bool)>,
++        modified: Vec<String>,
++        body: Option<Vec<Node>>,
++    },
+     /// Known gate action, separate from its FULL touched set used by §5.6.
+     Quantum {
+@@ -6378,4 +6871,12 @@
+     fn wires(&self, out: &mut BTreeSet<String>) {
+         match self {
++            Self::Call { touched, body, .. } => {
++                out.extend(touched.iter().cloned());
++                if let Some(body) = body {
++                    for n in body {
++                        n.wires(out);
++                    }
++                }
++            }
+             Self::Flip(c, t) => {
+                 out.extend(c.iter().map(|(w, _)| w.clone()));
+@@ -6411,5 +6912,5 @@
+     fn permutation(&self) -> bool {
+         match self {
+-            Self::Other(_) | Self::Quantum { .. } => false,
++            Self::Other(_) | Self::Quantum { .. } | Self::Call { .. } => false,
+             Self::Repeat(n, body) => *n == 0 || body.iter().all(Self::permutation),
+             _ => true,
+@@ -6447,4 +6948,17 @@
+                 diagonal: *diagonal,
+             },
++            Self::Call {
++                touched,
++                controls,
++                modified,
++                body,
++            } => Self::Call {
++                touched: touched.clone(),
++                controls: controls.clone(),
++                modified: modified.clone(),
++                body: body
++                    .as_ref()
++                    .map(|b| b.iter().rev().map(Self::adjoint).collect()),
++            },
+             Self::Alloc(w) => Self::Free(w.clone()),
+             Self::Free(w) => Self::Alloc(w.clone()),
+@@ -6456,4 +6970,89 @@
+ }
+ 
++impl Node {
++    /// Instantiate a cached callee transfer, adding inherited controls only to
++    /// gates. Allocation, borrowing and release stay unconditional. Paired local
++    /// image flips are controlled together in this proof template:
++    /// C(P†) C(U) C(P) = C(P† U P). Execution prepares images unconditionally.
++    fn instantiate(&self, wires: &BTreeMap<String, String>, context: &[(String, bool)]) -> Self {
++        let w = |s: &String| wires[s].clone();
++        let ws = |v: &[String]| v.iter().map(w).collect();
++        let cs = |c: &[(String, bool)]| {
++            let mut out = context.to_vec();
++            for (s, p) in c {
++                let x = (w(s), *p);
++                if !out.contains(&x) {
++                    out.push(x);
++                }
++            }
++            out
++        };
++        match self {
++            Self::Flip(c, t) => Self::Flip(cs(c), w(t)),
++            Self::Swap(c, a, b) => Self::Swap(cs(c), w(a), w(b)),
++            Self::Repeat(n, b) => Self::Repeat(
++                *n,
++                b.iter().map(|n| n.instantiate(wires, context)).collect(),
++            ),
++            Self::Quantum {
++                key,
++                inverse,
++                controls,
++                targets,
++                diagonal,
++            } => Self::Quantum {
++                key: key.clone(),
++                inverse: inverse.clone(),
++                controls: cs(controls),
++                targets: ws(targets),
++                diagonal: *diagonal,
++            },
++            Self::Opaque {
++                key,
++                controls,
++                inputs,
++                outputs,
++                assign,
++            } => Self::Opaque {
++                key: key.clone(),
++                controls: cs(controls),
++                inputs: ws(inputs),
++                outputs: ws(outputs),
++                assign: *assign,
++            },
++            Self::Call {
++                touched,
++                controls,
++                modified,
++                body,
++            } => Self::Call {
++                touched: context
++                    .iter()
++                    .map(|(w, _)| w.clone())
++                    .chain(ws(touched))
++                    .collect(),
++                controls: cs(controls),
++                modified: ws(modified),
++                body: body
++                    .as_ref()
++                    .map(|b| b.iter().map(|n| n.instantiate(wires, context)).collect()),
++            },
++            Self::Other(v) => Self::Other(ws(v)),
++            Self::Alloc(v) => Self::Alloc(ws(v)),
++            Self::Free(v) => Self::Free(ws(v)),
++            Self::Borrow(v) => Self::Borrow(ws(v)),
++            Self::Return(v) => Self::Return(ws(v)),
++        }
++    }
++}
++#[derive(Clone)]
++struct CallTransfer {
++    bundles: BTreeMap<String, Vec<String>>,
++    regions: BTreeMap<String, (u64, Vec<Vec<String>>)>,
++    body: Vec<Node>,
++    borrowed: BTreeSet<String>,
++}
++type CallCache = Rc<RefCell<BTreeMap<(String, Vec<String>), CallTransfer>>>;
++
+ #[derive(Clone)]
+ struct Trace {
+@@ -6463,4 +7062,5 @@
+ }
+ struct Compiler<'a> {
++    calls: CallCache,
+     trace: Option<BTreeMap<usize, Vec<Trace>>>,
+     live_borrowed: BTreeSet<String>,
+@@ -6573,4 +7173,79 @@
+         out.extend(exit);
+         Ok(())
++    }
++    fn call_transfer(
++        &mut self,
++        f: &Function,
++        args: &[String],
++        controls: &[(String, bool)],
++        adjoint: bool,
++    ) -> Result<Vec<Node>> {
++        let classical = list(&args[4])?
++            .iter()
++            .map(|n| self.classical(n))
++            .collect::<Result<Vec<_>>>()?;
++        let key = (f.name.clone(), classical.clone());
++        let cached = self.calls.borrow().get(&key).cloned();
++        let transfer = if let Some(t) = cached {
++            t
++        } else {
++            // §5.1 action cycles have already been excluded by SCC validation.
++            // Compile each callee once per classical specialization, in canonical
++            // wire coordinates, then reuse its per-wire structured transfer.
++            let mut child = self.object.borrow_compiler(f)?;
++            child.calls = self.calls.clone();
++            for (p, v) in f.params[3].iter().zip(classical) {
++                child.classical.insert(p.name.clone(), v);
++            }
++            let bundles = child.bundles.clone();
++            let regions = child.regions.clone();
++            let mut body = Vec::new();
++            child.compile_function(f, &[], &mut body)?;
++            let t = CallTransfer {
++                bundles,
++                regions,
++                body,
++                borrowed: child.borrowed,
++            };
++            self.calls.borrow_mut().insert(key, t.clone());
++            t
++        };
++        let mut wires = BTreeMap::new();
++        for group in [0, 1] {
++            for (p, n) in f.params[group].iter().zip(list(&args[group + 1])?) {
++                for (from, to) in transfer.bundles[&p.name].iter().zip(self.bundle(&n)?) {
++                    wires.insert(from.clone(), to);
++                }
++            }
++        }
++        for (p, n) in f.params[2].iter().zip(list(&args[3])?) {
++            for (from, to) in transfer.regions[&p.name]
++                .1
++                .iter()
++                .flatten()
++                .zip(self.regions[&n].1.iter().flatten())
++            {
++                wires.insert(from.clone(), to.clone());
++            }
++        }
++        let mut all = BTreeSet::new();
++        for n in &transfer.body {
++            n.wires(&mut all);
++        }
++        for from in all {
++            wires.entry(from).or_insert_with(|| self.fresh(1).remove(0));
++        }
++        self.borrowed
++            .extend(transfer.borrowed.iter().map(|w| wires[w].clone()));
++        let body: Vec<_> = transfer
++            .body
++            .iter()
++            .map(|n| n.instantiate(&wires, controls))
++            .collect();
++        Ok(if adjoint {
++            body.iter().rev().map(Node::adjoint).collect()
++        } else {
++            body
++        })
+     }
+     fn compile(
+@@ -6661,4 +7336,11 @@
+                 "qloop" => {
+                     let n = crate::object::host_count(&a[0], "qloop trip count")?;
++                    // The static validator has checked the lexical body already.
++                    // Lower executed lifetimes once for BOTH names and fact nodes,
++                    // as LifetimeWidths does for execution. qregions are hoisted
++                    // by compile_function independently of these dynamic visits.
++                    if n == 0 {
++                        continue;
++                    }
+                     if a.len() == 3 {
+                         // Coherent while: iteration i runs under cond[0..=i] (§4.6),
+@@ -6752,4 +7434,5 @@
+                         let f = &self.object.functions[&callee.name];
+                         let mut child = Compiler {
++                            calls: self.calls.clone(),
+                             trace: None,
+                             live_borrowed: BTreeSet::new(),
+@@ -6797,5 +7480,24 @@
+                             touched.extend(cells.iter().flatten().cloned());
+                         }
+-                        out.push(Node::Other(touched));
++                        let mut modified = Vec::new();
++                        for n in list(&ca[1])? {
++                            modified.extend(self.bundle(&n)?);
++                        }
++                        for (p, n) in callee.params[2].iter().zip(list(&ca[3])?) {
++                            if p.role.as_deref() == Some("mut") {
++                                modified.extend(self.regions[&n].1.iter().flatten().cloned());
++                            }
++                        }
++                        let body = if let Some(f) = self.object.functions.get(&callee.name) {
++                            Some(self.call_transfer(f, ca, &c, call.adjoint)?)
++                        } else {
++                            None
++                        };
++                        out.push(Node::Call {
++                            touched,
++                            controls: c,
++                            modified,
++                            body,
++                        });
+                     }
+                 }
+@@ -7130,5 +7832,5 @@
+                 }
+             }
+-            Node::Other(_) | Node::Quantum { .. } => {
++            Node::Other(_) | Node::Quantum { .. } | Node::Call { .. } => {
+                 return err("§5.6", "non-permutation operation inside a frame")
+             }
+@@ -7141,4 +7843,14 @@
+         if let Node::Repeat(n, body) = node {
+             if *n != 0 {
++                check_permutation_touches(body, borrowed)?;
++            }
++        } else if let Node::Call { touched, body, .. } = node {
++            if touched.iter().any(|w| borrowed.contains(w)) {
++                return err(
++                    "§5.6",
++                    "borrowed wire touched by a non-permutation instruction",
++                );
++            }
++            if let Some(body) = body {
+                 check_permutation_touches(body, borrowed)?;
+             }
+@@ -7223,6 +7935,7 @@
+     }
+ }
+-/// A saved inverse is usable only until any operand is touched. Keeping the
+-/// old polynomial also keeps correlations; an unknown result never invents zero.
++/// One causal operation, present on every operand stack. It cancels only when
++/// it is on top of ALL its operand stacks, preserving outstanding readers.
++/// Saved polynomials preserve correlations; unknown never invents zero.
+ #[derive(Clone, Debug, PartialEq, Eq)]
+ struct InverseFact {
+@@ -7233,5 +7946,5 @@
+     e: Evaluation<'a>,
+     borrowed: &'a BTreeSet<String>,
+-    inverses: Vec<InverseFact>,
++    inverses: BTreeMap<String, Vec<InverseFact>>,
+     frame: Vec<Node>,
+     unresolved: Option<Error>,
+@@ -7244,9 +7957,72 @@
+     }
+     fn forget_inverses(&mut self, touched: &BTreeSet<String>) {
+-        self.inverses.retain(|fact| {
+-            let mut operands = BTreeSet::new();
+-            fact.gate.wires(&mut operands);
+-            operands.is_disjoint(touched)
+-        });
++        // An opaque/lifetime touch is a causal barrier. Invalidate the whole
++        // connected history, including ancestors reached through another operand.
++        let mut affected = touched.clone();
++        loop {
++            let old = affected.len();
++            for w in affected.clone() {
++                if let Some(stack) = self.inverses.get(&w) {
++                    for fact in stack {
++                        fact.gate.wires(&mut affected);
++                    }
++                }
++            }
++            if old == affected.len() {
++                break;
++            }
++        }
++        for w in affected {
++            self.inverses.remove(&w);
++        }
++    }
++    fn reversible(&mut self, node: &Node, touched: &BTreeSet<String>) -> bool {
++        let saved = touched
++            .iter()
++            .next()
++            .and_then(|w| self.inverses.get(w))
++            .and_then(|stack| stack.last())
++            .cloned();
++        if let Some(saved) = saved {
++            if saved.gate.adjoint() == *node
++                && touched
++                    .iter()
++                    .all(|w| self.inverses.get(w).and_then(|s| s.last()) == Some(&saved))
++            {
++                for w in touched {
++                    let stack = self.inverses.get_mut(w).unwrap();
++                    stack.pop();
++                    if stack.is_empty() {
++                        self.inverses.remove(w);
++                    }
++                }
++                self.e.state.extend(saved.before);
++                return true;
++            }
++        }
++        // Basis permutations already retain exact ANFs. Record history only
++        // around a quantum loss of information, or above an existing history.
++        if !matches!(
++            node,
++            Node::Quantum {
++                diagonal: false,
++                ..
++            }
++        ) && !touched.iter().any(|w| self.inverses.contains_key(w))
++        {
++            return false;
++        }
++        let before = touched.iter().map(|w| (w.clone(), self.e.var(w))).collect();
++        let fact = InverseFact {
++            gate: node.clone(),
++            before,
++        };
++        for w in touched {
++            self.inverses
++                .entry(w.clone())
++                .or_default()
++                .push(fact.clone());
++        }
++        false
+     }
+     fn flush(&mut self) -> std::result::Result<(), FrameFailure> {
+@@ -7283,8 +8059,33 @@
+                     continue; // §4.6: no dynamic gate, touch, frame or lifetime.
+                 }
+-                if !node.permutation() {
++                let mut wires = BTreeSet::new();
++                node.wires(&mut wires);
++                if !node.permutation() || wires.iter().any(|w| self.inverses.contains_key(w)) {
+                     self.repeat(*n, body)?;
+                     continue;
+                 }
++            }
++            if let Node::Call {
++                controls,
++                modified,
++                body,
++                touched,
++            } = node
++            {
++                self.flush()?; // preserve the physical call boundary
++                if self.e.condition(controls) != Poly::zero() {
++                    if let Some(body) = body {
++                        self.sequence(body)?;
++                        self.flush()?;
++                    } else {
++                        // Read-only values survive, but opaque entangling readers
++                        // are a barrier to restoring any ancestor quantum history.
++                        self.forget_inverses(&touched.iter().cloned().collect());
++                        for w in modified {
++                            self.unknown(w);
++                        }
++                    }
++                }
++                continue;
+             }
+             let mut touched = BTreeSet::new();
+@@ -7304,22 +8105,11 @@
+                         continue;
+                     }
+-                    if let Some(index) =
+-                        self.inverses.iter().position(|f| f.gate.adjoint() == *node)
+-                    {
+-                        let saved = self.inverses.remove(index);
+-                        self.forget_inverses(&touched);
+-                        self.e.state.extend(saved.before);
++                    if self.reversible(node, &touched) {
+                         continue;
+                     }
+-                    self.forget_inverses(&touched);
+                     if !diagonal {
+-                        let before = targets.iter().map(|w| (w.clone(), self.e.var(w))).collect();
+                         for w in targets {
+                             self.unknown(w);
+                         }
+-                        self.inverses.push(InverseFact {
+-                            gate: node.clone(),
+-                            before,
+-                        });
+                     }
+                 } else {
+@@ -7330,6 +8120,21 @@
+                 }
+             } else {
+-                self.forget_inverses(&touched);
+-                if let Err(error) = self.e.apply(node) {
++                let gate = matches!(node, Node::Flip(..) | Node::Swap(..));
++                if gate
++                    && self.e.condition(match node {
++                        Node::Flip(c, _) | Node::Swap(c, _, _) => c,
++                        _ => unreachable!(),
++                    }) == Poly::zero()
++                {
++                    self.frame.push(node.clone());
++                    continue;
++                }
++                let restored = if gate {
++                    self.reversible(node, &touched)
++                } else {
++                    self.forget_inverses(&touched);
++                    false
++                };
++                if let Err(error) = if restored { Ok(()) } else { self.e.apply(node) } {
+                     if self.e.opaque_seen {
+                         self.unresolved.get_or_insert(error);
+@@ -7452,4 +8257,5 @@
+     fn borrow_compiler<'a>(&'a self, f: &Function) -> Result<Compiler<'a>> {
+         let mut compiler = Compiler {
++            calls: Rc::default(),
+             trace: None,
+             live_borrowed: BTreeSet::new(),
+@@ -7732,5 +8538,5 @@
+             e,
+             borrowed,
+-            inverses: Vec::new(),
++            inverses: BTreeMap::new(),
+             frame: Vec::new(),
+             unresolved: None,
+@@ -11512,5 +12318,5 @@
+ ````
+ 
+-## `src/exact.rs` (788 lines)
++## `src/exact.rs` (814 lines)
+ 
+ ````rust
+@@ -11544,6 +12350,9 @@
+     }
+     pub fn from_i128(v: i128) -> Self {
+-        let negative = v < 0;
+-        let mut m = v.unsigned_abs();
++        let mut result = Self::from_u128(v.unsigned_abs());
++        result.negative = v < 0;
++        result
++    }
++    pub fn from_u128(mut m: u128) -> Self {
+         let mut limbs = Vec::new();
+         while m != 0 {
+@@ -11551,5 +12360,8 @@
+             m >>= 32;
+         }
+-        Self { negative, limbs }
++        Self {
++            negative: false,
++            limbs,
++        }
+     }
+     pub fn is_zero(&self) -> bool {
+@@ -12222,5 +13034,5 @@
+     pub fn mul_int(&self, n: u128) -> Self {
+         Self {
+-            m: self.m.mul(&BigInt::from_i128(n as i128)),
++            m: self.m.mul(&BigInt::from_u128(n)),
+             e: self.e,
+         }
+@@ -12301,4 +13113,24 @@
+         );
+         assert_eq!(dyadic_from_f64(f64::MAX).unwrap().to_f64(), f64::MAX);
++    }
++}
++
++#[cfg(test)]
++mod r8_tests {
++    use super::*;
++    #[test]
++    fn r8_unsigned_decimal_multiplication() {
++        for (n, text) in [
++            (0, "0"),
++            (i128::MAX as u128, "170141183460469231731687303715884105727"),
++            (1u128 << 127, "170141183460469231731687303715884105728"),
++            (u128::MAX, "340282366920938463463374607431768211455"),
++        ] {
++            assert_eq!(Decimal::parse("1").unwrap().mul_int(n).to_text(), text);
++        }
++        assert_eq!(
++            Decimal::parse("0.1").unwrap().mul_int(u128::MAX).to_text(),
++            "34028236692093846346337460743176821145.5"
++        );
+     }
+ }
+@@ -21605,5 +22437,5 @@
+ ````
+ 
+-## `src/validation.rs` (1976 lines)
++## `src/validation.rs` (1989 lines)
+ 
+ ````rust
+@@ -23283,9 +24115,12 @@
+             self.other_versions.insert(complete.clone());
+         }
+-        let reads_group = |v: &String| {
+-            self.reads
+-                .get(v)
+-                .is_some_and(|r| r.iter().any(|(w, _)| wires.contains(w)))
++        // Compare complete captured stack prefixes: repeated gates can share
++        // an operation ID but still be distinct nested computing events.
++        let reads_current = |reads: &[(String, Vec<String>)]| {
++            reads
++                .iter()
++                .any(|(w, log)| wires.contains(w) && self.reads_current(w, log))
+         };
++        let reads_group = |v: &String| self.reads.get(v).is_some_and(|r| reads_current(r));
+         let blocked = other
+             && (self.phases.iter().any(reads_group)
+@@ -23294,8 +24129,5 @@
+                     .iter()
+                     .any(|(w, log)| !wires.contains(w) && log.iter().any(reads_group))
+-                || self
+-                    .created
+-                    .values()
+-                    .any(|c| c.versions.iter().any(|(w, _)| wires.contains(w))));
++                || self.created.values().any(|c| reads_current(&c.versions)));
+         for w in wires {
+             self.update_log(w, &complete, blocked);
+@@ -23334,23 +24166,36 @@
+                 *self.closed.entry(w.clone()).or_default() += 1;
+             }
++            // Older reads of an ancestor cannot block a nested pair. Match
++            // the complete current version prefix, not merely a reused gate ID.
++            let reads_current = |reads: &Vec<(String, Vec<String>)>| {
++                reads
++                    .iter()
++                    .any(|(source, log)| source == &w && self.reads_current(&w, log))
++            };
+             let blocked = needs_adjoint
+-                && (self.phases.iter().any(|v| {
+-                    self.reads
+-                        .get(v)
+-                        .is_some_and(|reads| reads.iter().any(|(source, _)| source == &w))
+-                }) || self.versions.iter().any(|(target, log)| {
+-                    target != &w
+-                        && log.iter().any(|v| {
+-                            self.reads
+-                                .get(v)
+-                                .is_some_and(|reads| reads.iter().any(|(source, _)| source == &w))
+-                        })
+-                }) || self
+-                    .created
+-                    .values()
+-                    .any(|c| c.versions.iter().any(|(source, _)| source == &w)));
++                && (self
++                    .phases
++                    .iter()
++                    .any(|v| self.reads.get(v).is_some_and(reads_current))
++                    || self.versions.iter().any(|(target, log)| {
++                        target != &w
++                            && log
++                                .iter()
++                                .any(|v| self.reads.get(v).is_some_and(reads_current))
++                    })
++                    || self.created.values().any(|c| reads_current(&c.versions)));
+             self.update_log(&w, &version, blocked);
+         }
+         Ok(())
++    }
++    fn reads_current(&self, wire: &str, snapshot: &[String]) -> bool {
++        self.versions.get(wire).is_some_and(|current| {
++            !current.is_empty()
++                && snapshot.len() >= current.len()
++                && current
++                    .iter()
++                    .zip(snapshot)
++                    .all(|(v, id)| self.value_ids.get(v) == Some(id))
++        })
+     }
+     fn update_log(&mut self, wire: &str, version: &str, blocked: bool) {
+@@ -24206,5 +25051,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (1522 lines)
++## `tests/cli_xam.rs` (1593 lines)
+ 
+ ````rust
+@@ -25730,4 +26575,75 @@
+     assert_eq!(field(&v, "equals_entry"), &Json::Bool(true));
+     assert_eq!(uint(&v, "wires"), 1);
++}
++
++#[test]
++fn r8_cli_compound_x() {
++    r8_cli_identity("nested-x");
++}
++#[test]
++fn r8_cli_compound_s() {
++    r8_cli_identity("nested-s");
++}
++fn r8_cli_identity(case: &str) {
++    let (body, h, oh) = support::r8_witness(case);
++    let path = tmp_file(&format!("r8-{case}.bisa"), &body);
++    let hashes = ok(&["hash", &path]);
++    assert!(hashes.canonical().contains(h));
++    if !oh.is_empty() {
++        assert!(hashes.canonical().contains(oh));
++    }
++    ok(&["check", &path]);
++    for (flag, input) in [
++        ("--mut", "0"),
++        ("--mut", "1"),
++        ("--state", "0=0.6,0;1=0,0.8"),
++    ] {
++        for adj in [false, true] {
++            let mut args = vec!["run-action", &path, "a", flag, input];
++            if adj {
++                args.push("--adjoint");
++            }
++            let v = ok(&args);
++            assert_eq!(uint(&v, "wires"), 1);
++            let state = field(&v, "state").object().unwrap();
++            if flag == "--mut" {
++                assert_eq!(
++                    field(&v, "state").canonical(),
++                    format!("{{\"{input}\":[1,0]}}")
++                );
++            } else {
++                assert_eq!(state.len(), 2);
++                r6_amplitude(&state["0"], 0.6, 0.0);
++                r6_amplitude(&state["1"], 0.0, 0.8);
++            }
++        }
++        let v = ok(&["reverse", &path, "a", flag, input]);
++        assert_eq!(field(&v, "equals_entry"), &Json::Bool(true));
++        assert_eq!(uint(&v, "wires"), 1);
++    }
++}
++
++#[test]
++fn r8_cli_zero_wide() {
++    r8_cli_identity("zero-wide");
++}
++#[test]
++fn r8_cli_zero_same() {
++    r8_cli_identity("zero-same");
++}
++#[test]
++fn r8_cli_zero_borrowed_quantum_touches() {
++    for case in ["zero-h", "zero-s"] {
++        let (text, _, _) = support::r8_witness(case);
++        let path = tmp_file(&format!("r8-{case}.bisa"), &text);
++        for cmd in ["hash", "check"] {
++            fails(&[cmd, &path], "§5.6");
++        }
++    }
++}
++
++#[test]
++fn r8_cli_call() {
++    r8_cli_identity("call");
+ }
+ ````
+@@ -28596,5 +29512,5 @@
+ ````
+ 
+-## `tests/r1_borrow.rs` (763 lines)
++## `tests/r1_borrow.rs` (806 lines)
+ 
+ ````rust
+@@ -29361,4 +30277,47 @@
+     let o = Object::parse(&text).unwrap();
+     support::r6_map(&o, false);
++}
++
++#[test]
++fn r8_compound_adjoint_restores_borrow_control() {
++    r8_identity("nested-x");
++}
++#[test]
++fn r8_diagonal_nested_adjoint_restores_borrow_control() {
++    r8_identity("nested-s");
++}
++fn r8_identity(case: &str) {
++    let (text, h, oh) = support::r8_witness(case);
++    let o = Object::parse(&text).unwrap();
++    let id = o.identity().unwrap();
++    assert_eq!(id.interface_hashes["a"], h);
++    assert_eq!(id.closure_hashes["a"].as_deref(), Some(h));
++    assert_eq!(id.object_hash, oh);
++    o.check_hashes().unwrap();
++    support::r6_map(&o, false);
++}
++
++#[test]
++fn r8_zero_trip_lifetime_environment_does_not_escape() {
++    r8_identity("zero-wide");
++}
++#[test]
++fn r8_zero_trip_surviving_fact() {
++    r8_identity("zero-same");
++}
++#[test]
++fn r8_zero_trip_cannot_hide_borrowed_quantum_touches() {
++    for case in ["zero-h", "zero-s"] {
++        let (text, _, _) = support::r8_witness(case);
++        assert!(Object::parse(&text)
++            .unwrap_err()
++            .to_string()
++            .contains("§5.6"));
++    }
++}
++
++#[test]
++fn r8_action_call_preserves_readonly_control() {
++    r8_identity("call");
+ }
+ ````
+@@ -31331,5 +32290,5 @@
+ ````
+ 
+-## `tests/r1_fuzz_discipline.rs` (1173 lines)
++## `tests/r1_fuzz_discipline.rs` (1421 lines)
+ 
+ ````rust
+@@ -32507,4 +33466,252 @@
+     println!("R7 invariant: 1 accepted / 1 rejected (static proof, no execution)");
+ }
++
++#[test]
++fn generated_r8_nested_causal_adjoint_stacks() {
++    let pairs = [
++        ("h c", "h c"),
++        ("x c", "x c"),
++        ("s c", "sdg c"),
++        ("cx c t", "cx c t"),
++        ("swap c t", "swap c t"),
++        ("rx 0.25 c", "rx -0.25 c"),
++        ("ry 0.5 c", "ry -0.5 c"),
++    ];
++    let mut accepted = 0;
++    for depth in 1..=3 {
++        for start in 0..pairs.len() {
++            let computation: Vec<_> = std::iter::once(("h c", "h c"))
++                .chain((0..depth).map(|k| pairs[(start + k) % pairs.len()]))
++                .collect();
++            let sequence = computation
++                .iter()
++                .map(|p| p.0)
++                .chain(computation.iter().rev().map(|p| p.1))
++                .collect::<Vec<_>>()
++                .join("\n");
++            for wrapped in [false, true] {
++                let gates = if wrapped {
++                    format!("qloop 3 {{\n{sequence}\n}}")
++                } else {
++                    sequence.clone()
++                };
++                for certified in [false, true] {
++                    let body = format!(
++                        "c = qalloc any 1\n{gates}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c"
++                    );
++                    r7_case(&body, if wrapped { &[3] } else { &[] }, true, certified);
++                    accepted += 1;
++                }
++            }
++        }
++    }
++    // Independent stacks interleave; every sequence is literally U followed by U†.
++    for certified in [false, true] {
++        r7_case("c = qalloc any 1\nd = qalloc any 1\nh c\nrx 0.25 d\ns c\nx d\nsdg c\nx d\nh c\nrx -0.25 d\nb = qborrow any 1\ncx c b\ncx d b\nqreturn b\nqfree d\nqfree c", &[], true, certified);
++        accepted += 1;
++    }
++    for certified in [false, true] {
++        r7_case("c = qalloc any 1\nd = qalloc any 1\nh c\nswap c t\nswap c d\nswap c d\nswap c t\nh c\nb = qborrow any 1\ncx c b\ncx d b\nqreturn b\nqfree d\nqfree c", &[], true, certified);
++        accepted += 1;
++    }
++    for certified in [false, true] {
++        r7_case("c = qalloc any 1\nh c\nswap c t\nh c\nh c\nswap c t\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c", &[], true, certified);
++        accepted += 1;
++    }
++    let mut rejected = 0;
++    for inner in ["s c", "cx c t", "swap c t"] {
++        let inverse = if inner == "s c" { "sdg c" } else { inner };
++        for certified in [false, true] {
++            // Overall cleanup is matched, but the borrow occurs BEFORE it. An
++            // outstanding reader must prevent H from inventing a zero at that return.
++            let body = format!("c = qalloc any 1\nh c\n{inner}\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nh c\n{inverse}\nh c\nqfree c");
++            r7_case(&body, &[], false, certified);
++            rejected += 1;
++        }
++    }
++    eprintln!("R8 nested stacks: {accepted} accepted / {rejected} rejected");
++}
++
++#[test]
++fn generated_r8_zero_trip_rebindings_share_executed_structure() {
++    let mut accepted = 0;
++    for dead in [
++        "qfree c\nc = qalloc any 2",
++        "qfree c\nc = qborrow any 2",
++        "qfree c\nc = qcopy t",
++        "qfree c\nc = qload r a0",
++    ] {
++        for nested in [false, true] {
++            for renamed in [false, true] {
++                for certified in [false, true] {
++                    let (dead, bounds) = if nested {
++                        (format!("qloop 0 {{\n{dead}\n}}"), vec![0, 0])
++                    } else {
++                        (dead.into(), vec![0])
++                    };
++                    let mut body = format!("qregion r 1 1\na0 = qalloc any 1\nc = qalloc any 1\nqloop 0 {{\n{dead}\n}}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c\nqfree a0");
++                    if renamed {
++                        body = body
++                            .replace("c =", "clean =")
++                            .replace(" c ", " clean ")
++                            .replace(" c\n", " clean\n");
++                    }
++                    r7_case(&body, &bounds, true, certified);
++                    accepted += 1;
++                }
++            }
++        }
++    }
++    // A declaration in a dead body still has function scope and entry lifetime.
++    r7_case("qloop 0 {\nqregion r 1 1\n}\na0 = qalloc any 1\nc = qload r a0\nb = qborrow any 1\ncx c b\nqreturn b\nqunload r a0 c\nqfree a0", &[0], true, false);
++    accepted += 1;
++    let mut rejected = 0;
++    for gate in ["h", "s"] {
++        for nested in [false, true] {
++            for certified in [false, true] {
++                let dead = "qreturn b\nb = qalloc any 1";
++                let (dead, bounds) = if nested {
++                    (format!("qloop 0 {{\n{dead}\n}}"), vec![0, 0])
++                } else {
++                    (dead.into(), vec![0])
++                };
++                let body =
++                    format!("b = qborrow any 1\nqloop 0 {{\n{dead}\n}}\n{gate} b\nqreturn b");
++                r7_case(&body, &bounds, false, certified);
++                rejected += 1;
++            }
++        }
++    }
++    for (body,bounds) in [
++        ("c = qalloc any 1\nqloop 0 {\nc = qalloc any 2\n}\nqfree c",vec![0]),
++        ("c = qalloc any 1\nqloop 1 {\nqfree c\nc = qalloc any 2\n}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c",vec![1]),
++    ] {
++        let text = support::borrow_lifetime_object(body,&bounds).replace("perm_action","action");
++        assert!(Object::parse(&text).unwrap_err().to_string().contains("§3.3"));
++        rejected += 1;
++    }
++    eprintln!("R8 zero trips: {accepted} accepted / {rejected} rejected");
++}
++
++fn r8_call_family(depth: usize, readonly: bool, operation: &str, body: &str) -> String {
++    let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let child_sig = if readonly {
++        sig.replace("\"in\":[]", "\"in\":[1]")
++    } else {
++        sig.into()
++    };
++    let mut declarations = Vec::new();
++    for k in 0..depth {
++        let name = format!("u{k}");
++        let inputs = if readonly { "p:wire in" } else { "" };
++        let ins = if readonly { "p" } else { "" };
++        let op = if k == 0 {
++            if readonly {
++                format!("qpred p\n{operation}\nqunpred p")
++            } else {
++                operation.into()
++            }
++        } else {
++            format!("action_call @u{} (v) ({ins}) () ()", k - 1)
++        };
++        declarations.push((
++            name,
++            child_sig.clone(),
++            format!("action @u{k} (v:wire mut) ({inputs}) () () ()\n^entry():\n{op}"),
++        ));
++    }
++    declarations.push((
++        "a".into(),
++        sig.into(),
++        format!(
++            "action @a (t:wire mut) () () () ()\n^entry():\n{}",
++            body.replace("@LAST", &format!("@u{}", depth - 1))
++        ),
++    ));
++    support::object(
++        &declarations
++            .iter()
++            .map(|(n, s, b)| (n.as_str(), s.as_str(), b.as_str()))
++            .collect::<Vec<_>>(),
++        "{}",
++        "",
++    )
++}
++
++#[test]
++fn generated_r8_calls_transfer_per_wire_through_callee_chains() {
++    let mut accepted = 0;
++    let mut rejected = 0;
++    for depth in 1..=3 {
++        for readonly in [false, true] {
++            for one in [false, true] {
++                let init = if one { "x c\n" } else { "" };
++                let call = if readonly {
++                    "action_call @LAST (t) (c) () ()"
++                } else {
++                    "ctl c action_call @LAST (t) () () ()"
++                };
++                let body = format!("c = qalloc any 1\n{init}{call}\n{init}b = qborrow any 1\ncx c b\nqreturn b\nqfree c");
++                let text = r8_call_family(depth, readonly, "h v", &body);
++                let o = Object::parse(&text).unwrap();
++                support::r6_map(&o, one); // literal controlled-H: I for zero, H for one
++                accepted += 1;
++            }
++        }
++        // Callee analysed net effect, rather than its action kind, preserves d=0.
++        let body = "d = qalloc any 1\naction_call @LAST (d) () () ()\nb = qborrow any 1\ncx d b\nqreturn b\nadj action_call @LAST (d) () () ()\nqfree d";
++        let o = Object::parse(&r8_call_family(depth, false, "h v\nx v\nx v\nh v", body)).unwrap();
++        support::r6_map(&o, false);
++        accepted += 1;
++        // Unknown interface t controls a genuine H on clean d: d may be 1,
++        // so borrowing through d is invalid despite matched cleanup afterward.
++        let body = "d = qalloc any 1\nctl t action_call @LAST (d) () () ()\nb = qborrow any 1\ncx d b\nqreturn b\nctl t adj action_call @LAST (d) () () ()\nqfree d";
++        let e = Object::parse(&r8_call_family(depth, false, "h v", body))
++            .unwrap_err()
++            .to_string();
++        assert!(e.contains("§5.6"), "{e}");
++        rejected += 1;
++        // Both effective controls and direct operands remain structural touches.
++        for call in [
++            "ctl b action_call @LAST (t) () () ()",
++            "action_call @LAST (b) () () ()",
++        ] {
++            let body = format!("b = qborrow any 1\n{call}\nqreturn b");
++            let e = Object::parse(&r8_call_family(depth, false, "h v", &body))
++                .unwrap_err()
++                .to_string();
++            assert!(e.contains("§5.6"), "{e}");
++            rejected += 1;
++        }
++    }
++    eprintln!("R8 call transfer: {accepted} accepted / {rejected} rejected");
++}
++
++#[test]
++fn generated_r8_import_transfer_keeps_readonly_facts_but_blocks_history() {
++    let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++    let imports = format!(
++        r#"{{"u":{{"pinned_closure_hash":"{}","signature":{sig}}}}}"#,
++        "1".repeat(64)
++    );
++    let build = |body: &str| {
++        support::object(
++            &[(
++                "a",
++                sig,
++                &format!("action @a (t:wire mut) () () () ()\n^entry():\n{body}"),
++            )],
++            &imports,
++            "",
++        )
++    };
++    // Static only: imports have no executable definition yet. A disabled call
++    // preserves c=0. An opaque reader of an unknown c cannot preserve its H
++    // restoration history, even though c itself is a read-only call control.
++    Object::parse(&build("c = qalloc any 1\nctl c action_call @u (t) () () ()\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c")).unwrap();
++    let e = Object::parse(&build("c = qalloc any 1\nh c\nctl c action_call @u (t) () () ()\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nh c\nctl c adj action_call @u (t) () () ()\nh c\nqfree c")).unwrap_err().to_string();
++    assert!(e.contains("§5.6"), "{e}");
++    eprintln!("R8 import transfer (static): 1 accepted / 1 rejected");
++}
+ ````
+ 
+@@ -32636,5 +33843,5 @@
+ ````
+ 
+-## `tests/r1_linking.rs` (130 lines)
++## `tests/r1_linking.rs` (174 lines)
+ 
+ ````rust
+@@ -32768,4 +33975,48 @@
+     let e = Object::parse(&text).unwrap_err().to_string();
+     assert!(e.contains("§9.2"), "{e}");
++}
++
++#[test]
++fn r8_unsigned_multiplicity_composition() {
++    let callee = certify(
++        INC,
++        "inc8",
++        &format!(
++            r#""ROOT":{}"#,
++            region(
++                INC_SIG,
++                r#"{"forward:0":{"local":{"diamond":1},"inclusive":{"diamond":1}}}"#
++            )
++        ),
++        "",
++        "test.1",
++    );
++    let client = certify(
++        &client_text(),
++        "client",
++        &format!(
++            r#""ROOT":{}"#,
++            region(
++                CLIENT_SIG,
++                r#"{"forward:0":{"local":{"diamond":1},"inclusive":{"diamond":"340282366920938463463374607431768211456"}}}"#
++            )
++        ),
++        &format!(r#""{INC_HASH}:forward:0":"340282366920938463463374607431768211455""#),
++        "test.1",
++    );
++    let linked = Object::link(&[client, callee]).unwrap();
++    assert_eq!(
++        linked
++            .section("certificate")
++            .unwrap()
++            .get("composition")
++            .unwrap()
++            .get("epsilon_total")
++            .unwrap()
++            .get("diamond")
++            .unwrap(),
++        &Json::String("340282366920938463463374607431768211456".into())
++    );
++    linked.check_hashes().unwrap();
+ }
+ ````
+@@ -34624,5 +35875,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (359 lines)
++## `tests/support/mod.rs` (402 lines)
+ 
+ ````rust
+@@ -34986,4 +36237,47 @@
+     (text, h, oh)
+ }
++
++/// Exact round-8 member objects. Pins are independently supplied council hashes.
++pub fn r8_witness(case: &str) -> (String, &'static str, &'static str) {
++    let (body, bounds, h, oh): (&str, &[u64], &str, &str) = match case {
++        "nested-x" => ("c = qalloc any 1\nh c\nx c\nx c\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c", &[], "0fd6d6eadcb219457ce3d9aa091a2176d38ce9f81551235799dae7cabe6e0e2f", "5eff1283a8f71dcce612e1802e510fdcae30c609395686311962bd630f01461c"),
++        "nested-s" => ("c = qalloc any 1\nh c\ns c\nsdg c\nh c\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c", &[], "a8a4f90c95a1995df9a28afe4369f3455239ae54b6c22b5c8133df7a60253401", "535f274d3c7328e13cfd99e8785751ec3874e4d3090da3544e781855ca35439f"),
++        "zero-wide" => ("c = qalloc any 1\nqloop 0 {\nqfree c\nc = qalloc any 2\n}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c", &[0], "c9cbc01c190e4454e37b553e1d7e8e9eeea856631a6ab397029577447b053b87", "708531c08cb63447ea2bbaa966c69562300ab1bc89e07efb9c3278799c54922d"),
++        "zero-same" => ("c = qalloc any 1\nqloop 0 {\nqfree c\nc = qalloc any 1\n}\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c", &[0], "d607c1df25e3a4d8f4e730501cf13a04a62cfa6adbeae5c36133a4f140f406bd", "568f2a4ee6c4cb927cafe4bd54414def5e91257186832704e6be7abfe99fd1bc"),
++        "zero-h" => ("b = qborrow any 1\nqloop 0 {\nqreturn b\nb = qalloc any 1\n}\nh b\nqreturn b", &[0], "90cbbcb904bff3ae413e3aaa3ec398173654dc1690354777bcb3837881098080", "60865de88a18adc53e2ecb23ab54d86f44836e4895cb7fb54e3ac78c0c879280"),
++        "zero-s" => ("b = qborrow any 1\nqloop 0 {\nqreturn b\nb = qalloc any 1\n}\ns b\nqreturn b", &[0], "1c0599e2f06674ccbc34f0017d5d158af1588d7d54982aa1adfebddc4262fa58", "fd5167fefabbbc72d9cd486e6cf036119f2ba5088558cccb155f898eaa7285ec"),
++        "call" => ("c = qalloc any 1\nctl c action_call @u (t) () () ()\nb = qborrow any 1\ncx c b\nqreturn b\nqfree c", &[], "63ae90bc9af75ebe3e958956282567f52129b0097651a445c08f7c5f2845ac79", "c4a3c1adad250d856a334556766f0cc398a71b6c65df3ce5f81adf86d07f968e"),
++        _ => panic!("unknown round-8 witness"),
++    };
++    let text = if case == "call" {
++        let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++        object(
++            &[
++                (
++                    "u",
++                    sig,
++                    "action @u (v:wire mut) () () () ()\n^entry():\nh v",
++                ),
++                (
++                    "a",
++                    sig,
++                    &format!("action @a (t:wire mut) () () () ()\n^entry():\n{body}"),
++                ),
++            ],
++            "{}",
++            "",
++        )
++        .replacen(
++            &"0".repeat(64),
++            "c0c51a4bf1e9713e237601daaf342134f91eae5fd7143f8638595157d33db5b6",
++            1,
++        )
++    } else {
++        borrow_lifetime_object(body, bounds).replace("perm_action", "action")
++    };
++    let text = text.replace(&"0".repeat(64), h);
++    assert_eq!(bennett_isa_ref::sha256_hex(text.as_bytes()), oh);
++    (text, h, oh)
++}
+ ````
+ 

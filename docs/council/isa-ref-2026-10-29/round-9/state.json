@@ -1,0 +1,20 @@
+{
+ "run": "isa-ref-2026-10-29",
+ "round": 9,
+ "doc": "docs/council/isa-ref-2026-10-29/packet-round-9.md",
+ "doc_sha256": "25ea895d76b213679226a3e201659b9f2ab98e11b6d880fc3a0de0241fa68e21",
+ "prepared": "2026-10-30T12:25:20+00:00",
+ "members": {},
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "the Rust reference interpreter bennett-isa-ref (snapshot at commit 4796970, round 9: all four round-8 blockers answered in council/response-round-8.md, embedded first: per-wire LIFO adjoint stacks, zero-trip bodies with no binding/borrow/fact effect, memoised callee fact transfers, full unsigned multiplicity; muse's seat is held this round; 315 tests + 5 sweeps green; conformance crate 445 pass / 0 fail, remaining cases unavailable on staged deliverables 8-11, the unpublished \u00a711 library and pending-0.9 witnesses) against the accepted ISA specification draft 0.8",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review"
+}
