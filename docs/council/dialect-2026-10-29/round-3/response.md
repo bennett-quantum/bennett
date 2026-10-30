@@ -114,3 +114,129 @@ and has recogniser-derived N(s)=1. State executes its original LLVM through nati
 generation-tag marker dispatch on clang 18/23: old!=new, first old gate traps 4,
 second register stays 0, fault cleanup leaves no live slot. The second gate never
 executes. Red absent adapter, then green result-mutation test. No decline or partial.
+
+
+## R3-CODEX-03 — resolved (theme G)
+
+Sections: §8.2, §8.6, §16.2. Hand derivation: no payload slices does not
+mean no invocation. A clean hidden bit XORed with constant zero stays clean,
+while one call XORs the fault code into the caller's non-null four-wire fault
+register. A second call would erase that code. W_empty therefore executes
+exactly once, with the ordinary prologue, body and unwind check, then charged
+`p0 = lift.const.i1 0; lift.retval p0` on success. The call is controlled;
+allocation/free are unconditional. Null CONSOLE registers contribute no output.
+Discarding a non-void return introduces no dropped-bit check.
+
+oracle-empty-marker verifies acceptance of the null-target, zero-binding descriptor
+with its four-wire fault register. Witnesses oracle-empty-output, oracle-empty-fault
+and oracle-discard-return map source LLVM independently to the checked ISA object and run through Rust
+run-oracle. Empty success takes four rows; budget 3 returns code 1, budget 4
+returns code 0; explicit fault returns code 4 and zero budget returns code 1.
+All synthetic payloads are zero. The state witness also executes actual CC
+allocation/call/clean-free, verifies a trace count of one oracle call and the
+fault measurement, and tests controls 0/1. The inherited test failed red on
+null-target parsing; the mapper and execution adapter now pass it, including
+mutated fault, budget, cleanliness and call-count expectations. No new ISA
+requirement, decline or partial resolution.
+
+
+## Complete disposition
+
+| ID | Theme | Status |
+|---|---|---|
+| SOL-R3-01 | A | resolved |
+| R3-CODEX-01 | A | resolved |
+| BD3-R3-1 | A | resolved |
+| R3-CODEX-02 | B | resolved |
+| BD3-R3-2 | B | resolved |
+| BD3-R3-3 | C | resolved |
+| BD3-R3-4 | D | resolved |
+| SOL-R3-02 | E | resolved |
+| SOL-R3-03 | F | resolved |
+| R3-CODEX-03 | G | resolved |
+| REG-SOL-R3-TDL7 (sol regressions[0]) | A | resolved |
+| REG-CODEX-R3-COUNT (codex regressions[0]) | A | resolved |
+
+All ten S0 items and both regressions are resolved. Theme A chooses exactly one
+reading: restored control workspace and adjoint = U† on the declared bijective
+interface; compute retains its actual trajectory only until matching uncomputation.
+The impossible data-only inverse of B2 is not silently redefined as an instrument.
+The existing out-of-place and compute capabilities remain. No item is declined
+or partially resolved; the named external ISA dependencies retain their explicit
+passing blocker verdicts and are not claimed implemented by dialect fixes.
+
+
+## Round-3 final freeze — 2026-10-30
+
+**2466/2466 passed; 0 failed; 0 blocked/unavailable.** Full version
+`0.2.4` (`dialect-0.2.4;isa-0.8`); ISA grading target remains 0.8.
+Theme G and resumption fixes: 8d1517a6586a506488c4af7a9c35800c7053b508; A–F commits remain 8e56d56,
+5e13596, 3303a5b, 1a511c5, 90fa101 and 111e889.
+Spec SHA-256: `2ba040956ac8e22d11ff2bd4655d908b08de9d44564913a8b4f12c8a522fa156`.
+Independent Rust interpreter: `92c26af045b816f5ef1e283a7b734aa244d8f320`;
+immutable source fingerprint: `2dd454deeb8352a0b0e64ac1e61ddcc346ae5e2bdea59bd60440d35654946050`.
+ISA HEAD remained at this revision throughout the successful freeze.
+Machine-readable receipt: `scripts/dialect_check.LAST-RUN.json`.
+
+| Family | Passed | Failed | Blocked |
+|---|---:|---:|---:|
+| asm | 1 | 0 | 0 |
+| blocker | 16 | 0 | 0 |
+| cc-run | 8 | 0 | 0 |
+| check | 18 | 0 | 0 |
+| coverage | 125 | 0 | 0 |
+| driver | 1 | 0 | 0 |
+| events | 3 | 0 | 0 |
+| frontend | 21 | 0 | 0 |
+| hash | 5 | 0 | 0 |
+| header | 1 | 0 | 0 |
+| map | 17 | 0 | 0 |
+| native | 19 | 0 | 0 |
+| normalise | 29 | 0 | 0 |
+| parse | 624 | 0 | 0 |
+| recognise | 130 | 0 | 0 |
+| run-oracle | 18 | 0 | 0 |
+| run-program | 5 | 0 | 0 |
+| seeds | 1 | 0 | 0 |
+| state | 52 | 0 | 0 |
+| step-check | 6 | 0 | 0 |
+| tdl | 10 | 0 | 0 |
+| trace | 3 | 0 | 0 |
+| xrefs | 1353 | 0 | 0 |
+| **Total** | **2466** | **0** | **0** |
+
+
+| Theme | Executed state witness | Status |
+|---|---|---|
+| A | co-loop-identity | passed |
+| A | co-loop-adj-overwritten | passed |
+| B | deferred-channel-adj-place | passed |
+| C | co-observe-write-observe | passed |
+| D | handle-setjmp-interproc | passed |
+| E | shadow-stack-liveness | passed |
+| F | handle-stale-generation | passed |
+| G | oracle-empty-output | passed |
+
+
+The G map/check/run families also execute oracle-empty-fault and
+oracle-discard-return; oracle-empty-marker passes parse and recognition.
+A–F witnesses are actual passing state rows in this receipt, not index-only
+claims. The original co-loop-adjoint, deferred-channel-adj and other round-2
+vectors remain executed. Named ISA dependency examples pass their specified
+blocker verdicts; zero gate blockers does not claim those capabilities have
+been added to ISA 0.8. No expectation was weakened and no ISA source was edited.
+
+Exact freeze command:
+
+```sh
+env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-dialect-spec/scripts/.tmp python3 /home/tobias/Projects/bennett-workspace/bennett-dialect-spec/scripts/dialect_check_v02.py --json /home/tobias/Projects/bennett-workspace/bennett-dialect-spec/scripts/.tmp/round3-fixes-freeze.json
+```
+
+44 checker unit tests and 4 legacy runtime unit tests pass headless. Full
+version, SPEC_VERSIONS.toml and current/stale module-flag parsing agree on 0.2.4.
+The deliberate-fault probe disables core dumps only; expected -4/132 exits
+remain checked. The earlier stale-version test, ambiguous cross-reference,
+concurrent ISA snapshot race and core-dump timeout were reproduced and fixed
+or rerun; none is hidden in this receipt. All ten S0 findings and both regressions
+are resolved, with theme A's single clean-workspace/U† reading stated above.
+No decline, partial resolution, scope narrowing or push.
