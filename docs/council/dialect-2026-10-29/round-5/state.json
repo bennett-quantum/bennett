@@ -1,0 +1,22 @@
+{
+ "run": "dialect-2026-10-29",
+ "round": 5,
+ "doc": "../bennett-dialect-spec/spec/Bennett-Dialect-Spec.md",
+ "doc_sha256": "c19dc84c476fe9a3c6ebb9cb621efd540a04aad05dd675a8ca78f3fd7f452d9a",
+ "prepared": "2026-10-30T06:01:18+00:00",
+ "members": {},
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "the Bennett LLVM dialect specification draft 0.2.5 (the bennett-dialect-spec contract of the north star, section 3 and 6.1), round 5: all 5 round-4 blockers resolved in place (round-4/response.md, embedded); graded against ISA 0.8 with blocked verdicts for the named ISA gaps (BLK-1..5); the pre-flight checker executes every example (2514/2514)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-dialect-spec/spec/Bennett-Dialect-Spec-0.2.PROGRESS.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-dialect-spec"
+}
