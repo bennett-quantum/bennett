@@ -1,0 +1,97 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "\u00a718.1 gives materialised LLVM execution, while \u00a75.2 PT3 copies a geometry-changing vector bitcast lane by lane. The resulting abstract domain can exclude the concrete scalar value; SOL-R8-01 gives a defined width-257 execution missing from the compiled width domain.",
+   "change": "In \u00a75.2 replace PT3's bitcast copy rule with the finite-width packing/resegmentation rule in SOL-R8-01; require S2 domains to cover \u00a712.6's materialised values."
+  },
+  {
+   "id": "C2",
+   "score": 3,
+   "evidence": "\u00a712.6 correctly defines vector bitcast packing, and N15 now covers constant and dynamic unsigned indices. PT3 does not implement the same bitcast operation during reference analysis, despite \u00a73.4 using that analysis to enumerate allocation widths.",
+   "change": "Apply SOL-R8-01 before candidate and dispatch domains freeze, and add its O0 and instcombine forms to DB/DN/DS with VS(bits)=VS(n)={257} and successful access to wire 256."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "\u00a78.6 preserves a common fault boundary across wide projections, including zero-output invocations; TDL-7\u2013TDL-10 require clean trajectory workspace, success-gated consumers and retained fault outcomes; \u00a718.2 specifies deterministic deferred-record placement. The explicit ISA dependencies are distinguished from successful executions.",
+   "change": "In \u00a721.3 DS add: 'For a controlled width-257 witness, execute control 0 and 1, undo the control preparation, and require both the control and allocation workspace to be clean; no analysis-derived dispatch fault is permitted.' Use SOL-R8-01's body as the witness."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "\u00a73.4 fixes class-name resolution and finite dispatch; \u00a7\u00a79.2\u20139.5 specify capacity freezing, once-only identity overlays and exact token budgets. Resource accounting, target matching and scheduling remain explicitly owned by ISA \u00a7\u00a78\u201311.",
+   "change": "In \u00a721.3 DD add: 'Run budget-stage with a second unmatched identity entry that raises a layout capacity; provisional and final objects must share that raised capacity, while the unmatched entry must not override the shape's resolved token budget.' Publish the resulting two identities as an additional staged-lookup vector."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "\u00a716 specifies reference objects and canonical names; \u00a719 specifies driver outputs and version bindings; \u00a725 names exact ISA changes rather than silently extending ISA 0.8. The addendum's G1 correction is consistent with the regenerated atomic-nand and staged-budget identities, and the ABI 0.2 harness retains historical v0 cases.",
+   "change": "In \u00a721.3 DM add: 'Canonical naming tests include a closure with at least eleven globals; assign G1 through G11 in link order, serialise layout keys in JCS order, and check the emitted data and symbol-section order against \u00a716.2.' This makes the numerical-name/JCS-order boundary independently testable."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "\u00a718.7 states observational and quantum conformance, \u00a721 separates analysis/normalisation/mapping/runtime suites, and P-3 separates expected artefact production from independent execution. The new bitcast counterexample demonstrates that the published example gate is not a universal soundness argument. No additional mechanisation or proof format is required for this phase. Independently reran the complete pre-flight: 2732/2732 passed, zero failed or blocked; the new witness is outside that suite.",
+   "change": "In \u00a721.3 DB add: 'For each tested bitcast geometry, compare every represented concrete materialised result against the S2 destination domain; finite examples must contain the exact result and must retain all explicit handle provenance subject to \u00a76.2.' Include SOL-R8-01 and a scalar-to-vector inverse geometry."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The draft retains the north-star demo routes, all seven FP formats, runtime budgets, pointer-rich memory, virtual effects and explicit missing-ISA mechanisms. Direct own-format libm carriers resolve R7-CODEX-04 without reducing source precision through host long double. SOL-R8-01 nevertheless loses a defined controlled-anything execution through an unsound dispatch domain.",
+   "change": "Resolve SOL-R8-01 without an input precondition, new rejection or new ISA dependency: state that the finite packed value 257 remains an admitted allocation alternative under every supported envelope pipeline."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The complete snapshot and historical validation record are readable and identify what each fixture actually executes. Rules and versioned defaults are sufficient to begin implementation, apart from the analysis inconsistency. \u00a712.1 and Appendix A A23 still explain N33 ordering using fpext/fptrunc pairs removed by this round's own-format repair.",
+   "change": "In \u00a712.1 and Appendix A A23 replace the obsolete rationale with: 'N33 runs immediately before N32 so that any floating-point instructions introduced by its expansions are processed by N32; own-format carrier calls and bit-exact reconstruction remain as specified in \u00a713.4.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R8-01",
+   "section": "\u00a75.2 PT3/PT4 and the definition of 'copies'; \u00a73.4 width dispatch; consistency with \u00a712.6 and \u00a718.1",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "PT3 includes 'bitcast' in the rule 'copies (union)', and \u00a75.2 defines copies as 'AV(result) \u2287 AV(operand) lane by lane'. This is false for a bitcast that changes lane geometry. Witness (implicit marker declarations as permitted by \u00a71.5):\n\ntarget datalayout = \"e-p:64:64\"\ndefine void @top() {\n  %v0 = insertelement <2 x i8> zeroinitializer, i8 1, i32 0\n  %v1 = insertelement <2 x i8> %v0, i8 1, i32 1\n  %bits = bitcast <2 x i8> %v1 to i16\n  %n = zext i16 %bits to i64\n  %h = call ptr @__bennett_qalloc(i64 0, i64 %n)\n  call void @__bennett_gate(i32 1, ptr %h, i64 256)\n  call void @__bennett_gate(i32 1, ptr %h, i64 256)\n  call void @__bennett_qfree(ptr %h)\n  ret void\n}\n\nOn the supported little-endian layout, packing the two bytes gives 1 | (1 << 8) = 257. \u00a712.6 emits exactly that packing, then zext preserves 257. The invocation allocates 257 wires, flips wire 256 twice and frees cleanly. LLVM 18 and 23 verify and retain the full witness under default<O0>; instcombine on both folds the allocation operand to 257. Independent native marker harnesses on both majors, for both O0 and instcombine forms, report width=257, gates=2, frees=1, final bit=0 and exit 0. The supplied recogniser instead accepts the O0 witness with AV(bits) and AV(n) containing separate lane-0/lane-1 INT(1) entries and VS(n)={1}. Its normaliser independently emits the correct packed value 257. \u00a73.4 therefore compiles only the width-1 alternative for a materialised width-257 execution. A missing dispatch alternative or allocating one wire and trapping on index 256 violates \u00a718.7. This is a pre-existing PT3 transfer defect, not a regression of the repaired PT10 or PT4 rules.",
+   "fix": "In \u00a75.2 remove bitcast from PT3's unconditional lane-copy list and insert this rule:\n\n'PT3 bitcast: A scalar-to-scalar bitcast of equal representation width, or a vector bitcast with equal lane count and equal per-lane representation widths, copies corresponding bit-pattern domains. Every other bitcast uses the DataLayout bit-string packing and resegmentation of \u00a712.6 during S2, before candidate sets, shapes and dispatch domains freeze. Form each source bit string from the represented source-lane bit patterns in DataLayout order, then extract each destination lane or scalar at its destination representation width. For finite integer lane domains, take the Cartesian product of the source domains, pack and extract each result, and apply K to the resulting destination INT sets. Never copy a source-lane INT atom as the value of a packed destination scalar. If a non-handle destination bit-pattern domain cannot be represented by these rules, use non-handle top for that destination; preserve explicit ROOT provenance and apply \u00a76.2's existing restrictions on handle representations. Apply the same rule to constant expressions. This may be implemented by analysing a virtual \u00a712.6 expansion without requiring LLVM optimisation.'\n\nPT4 then applies the actual zext to the packed scalar domain. Add the full witness to DB/DN/DS: verdict=accept; AV(bits)={INT(257)} as one i16 scalar domain, VS(n)={257}; allocated width=257; two successful X gates at index 256; clean free; fault code 0. Verify source, materialised output and instcombine form on LLVM 18/23, and execute a native marker harness that checks the received width and gate index. Add a scalar-to-vector or different-vector-geometry witness to prevent the inverse transfer from remaining a lane-copy rule. A fixed top fallback for all geometry-changing non-handle bitcasts would be sound numerically but would unnecessarily turn this finite width case into BLK-1; use the precise finite packing rule."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R7-01",
+   "status": "resolved",
+   "note": "PT5 now retains modular displacements and provenance, and PT6 propagates address top; pt5-int-wrap and pt6-unknown-address specify one successful body invocation without code 4."
+  },
+  {
+   "id": "R7-CODEX-01",
+   "status": "resolved",
+   "note": "PT4 uses actual representation-width conversions and PT5 modular arithmetic, including the i128 +2^64 / inttoptr truncation witness pt4-wide-wrap; numerical uncertainty is distinguished from host escape."
+  },
+  {
+   "id": "R7-CODEX-02",
+   "status": "resolved",
+   "note": "PT10 includes N15's zero alternative exactly when unsigned extraction may be out of range; pt10-lane-zero gives lane {0,1,3}, widths {1,2,4}, and clean widths 2,4,1,1 for indices 0,1,2,-1."
+  },
+  {
+   "id": "R7-CODEX-03",
+   "status": "resolved",
+   "note": "N15 now covers every integer index and \u00a712.6 limits lane renaming to in-range constants; n-constant-lane returns 0 for both invalid extractions and 5 after unchanged-vector insertion."
+  },
+  {
+   "id": "R7-CODEX-04",
+   "status": "resolved",
+   "note": "\u00a713.4 chooses the permitted own-format carrier-library alternative, covering all seven formats and all supported triples without invalid cross-format fpext; powi and pair-result ABIs are specified separately."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1/editorial, \u00a712.1 and Appendix A A23: replace the explanation about N33-created fpext/fptrunc libm pairs with: 'N33 runs immediately before N32 so that any floating-point instructions introduced by its expansions are processed by N32; own-format carrier calls and bit-exact reconstruction remain as specified in \u00a713.4.' Keep the current order and all seven-format carrier routes."
+ ],
+ "verdict_core": "revise",
+ "verdict": "revise",
+ "path_to_accept": "1. Replace PT3's geometry-changing bitcast copy rule with the precise S2 packing/resegmentation rule in SOL-R8-01, keeping existing handle restrictions and the finite width-257 case admitted. 2. Update the recogniser and add paired O0/materialised/instcombine regression witnesses requiring VS(n)={257}, two valid accesses to wire 256 and clean code-0 completion on LLVM 18/23. 3. Rerun the existing pre-flight gate without weakening any expectations. No ISA change or new rejection is needed.",
+ "summary": "Read the complete 16,282-line packet, including the diff, prior blockers, editor response, validation history, north star, ISA 0.8 and full draft; separately read the referenced response addendum. The reviewed snapshot equals the repository specification (SHA-256 9cb4cb9e7a2480b5acfb06da1b744a3d7b1379b8adde1f0ae5b00d7739eb45d9). SOL-R7-01 and R7-CODEX-01 through R7-CODEX-04 are resolved. Both addendum changes are consistent: globals start at G1 with regenerated dependent hashes and staged identities; the trace harness selects ABI 0.2 for unchanged spec-sem2 programs while preserving historical v0 cases. One new core S0 remains: PT3's vector bitcast lane-copy analysis excludes the packed value used by the materialised program. Independent LLVM 18/23 and native harness probes establish the width-257 witness. No regression or separate contract-scoped S0 was established. Independently reran scripts/dialect_check_v02.py headlessly: 2732/2732 passed, zero failed or blocked. Four focused legality-harness tests passed: actual spec-sem2 ctrl/adj/compute baselines and llc O3 on LLVM 18/23, ABI 0.2 budget/environment records, signature-based ABI selection, and historical v0 trace behaviour. These passing existing checks do not cover the new bitcast witness."
+}
