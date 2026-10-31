@@ -1,0 +1,80 @@
+exit 0 in 225s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "object.rs, schema.rs, validation.rs and metadata_schema.rs implement textual admission, tier/arity checks and the closed recursive metadata grammar. The full parser, schema-path and malformed-input tests pass. No newly missing production or incorrectly admitted object was established.",
+      "change": "Add a clause-to-admission index to README.md linking every \u00a716.2 production and \u00a79.1 metadata field family to its validator and an independently specified positive/negative fixture; include the optional \u00a717 default branches."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "identity.rs retains structured layout leaves, exact oracle ownership, SCC member/reference ordering and the specified 0.8 bytes. I independently constructed the 261-byte inc8 envelope and obtained the published 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 hash. Identity/linking tests and all eight R23 artifact pins pass. The INV-4 1.5.3 serialization limitation is recorded in SPEC-QUESTIONS 31 and is not an implementation deviation.",
+      "change": "No acceptance repair. Preserve the 0.8 envelopes and the cross-object collision fixture when documenting a separate 0.9 path encoding; do not change identity.rs to impose an unapproved name restriction."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "oracle.rs::run_oracle_vectors dispatches every \u00a74.2 family, including inherent range checks, nested oracle calls and permutation calls. Independent tight-budget results agree: inc8(255), B=2 gives (payload=0,code=1,steps=2), B=3 gives (0,0,3); sdiv(128,255), B=1 gives (0,6,1). sum_db(0) needs ten rows and sixteen stack cells; fifteen cells faults 3 on row three.",
+      "change": "In README.md add one \u00a74.2 row/fault matrix linking each interpreter branch, its independent expected-value fixture and the corresponding machine branch; include literal boundary arithmetic for all four budget components."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "machine.rs::{forward_step,inverse_step,inverse_call,inverse_ret} follows the printed exchange/slot ordering. My public probe inverted and replayed each of the ten sum_db(0) rows, including call at step 3 and ret at step 9, with complete snapshot equality, then restored entry with all frames clean. Existing recursive and full-small-domain tests pass.",
+      "change": "Extend tests/step_machine.rs with a small literal pre/post call-and-return record fixture, naming capture/delivery slots and saved stack cells, so the expected C5-to-C1 and R5-to-R1 inverse states can be checked directly without consulting the forward machine output."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "classical.rs::transaction restores pre-step owners by assignment and truncation, without undo_record or fallible sparse preparation. The exact SOL store witness is denied twice at 128 MiB with identical HostResource errors, full snapshot equality and four history frames; at 256 MiB the retry is store.i8/index 4, writes byte zero and pushes frame five, then completes in six frames and reverses to entry. The injector also passes load.i8 and clock.read stages, and my nested call/ret/uncall reproduction leaves clock and tape at zero and reverses fully.",
+      "change": "Extend src/r23_transaction.rs with an observer-rejected uncall whose segment contains a reversible Q region call and a multi-result return. Deny each reached stage twice, then require the same uncall, the literal expected quantum state, frame flags consistent with single reversal, and successful full entry restoration."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "action.rs, quantum.rs, borrow.rs and validation.rs retain controlled gate semantics, explicit lifetime cleanup, borrow audits and matched inverses. The Q, borrow, discipline and exact-measurement tests pass in the full run. The INV-1/INV-3 qif and other-value limitations have explicit recorded readings; no new counterexample to the implemented readings was established.",
+      "change": "Add to README.md a dependency/cleanup audit table linking each \u00a76.1 transfer and \u00a76.2 window-closing event to its validator, runtime cleanliness check and a pinned positive/negative example, with separate rows for interface mut wires, region cells and inherited controls."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "I independently ran the full offline suite: 461 passed, zero failed, five ignored, 37 result blocks, 233.75 seconds summed runner time. The instruction injector rerun covers 64 scenarios/340 indexed stages, with two denials and a successful retry per stage; the full suite also runs reply, observer, certificate and concrete CLI builders. R23 pins pass. The five ignored release sweeps have retained editor evidence; I did not rerun them in this vote.",
+      "change": "In src/r23_transaction.rs::check_step add literal successful device expectations as well as comparison with an unfailed execution: initial clock bytes/counter, entropy bytes/position, console bytes and block-sector presence. Keep preparation-boundary counts distinct from physical allocator counts."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "All 33 SPEC-QUESTIONS entries were checked against their determining spec sections and the supplied INV-1..6 limitations. README accurately limits the transactional guarantee to returned Result errors; PROGRESS records staged target/launch/schedule/interval work rather than claiming it verified. No new false label, unjustified ISA cap or silent success was established.",
+      "change": "Extend SPEC-QUESTIONS.md with a compact cross-reference from each adopted reading to the exact INV proof step and its implementation/test. Explicitly distinguish proved-under-reading statements, refuted literal statements and staged consumers; retain the existing proposed 0.9 wording."
+    }
+  ],
+  "blocking": [],
+  "previous_status": [
+    {
+      "id": "SOL-R23-B01",
+      "status": "resolved",
+      "note": "The exact pinned 1.5 MiB witness now preserves the complete prefix on two same-limit denials; raising the soft limit executes store.i8 at index 4 with its write/frame, and six-frame completion reverses to entry."
+    },
+    {
+      "id": "CODEX-R23-B01",
+      "status": "resolved",
+      "note": "The equivalent regression is covered by the same owner-restoration repair; the supplied exact-object regression passes its 128/256 MiB retry, result=2 and entry-reversal assertions."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1, auditability: add the README clause/row/field-to-handler-and-fixture index described in C1/C3/C6, including all fault codes and \u00a77.4 frame kinds. It should make every supported row and every staged consumer traceable without reverse-engineering several modules.",
+    "S1, test independence: in src/r23_transaction.rs::check_step add literal device success expectations, and add the Q-containing uncall/multi-result observer-rejection scenario described in C5. This extends the finite family; no current wrong state or result was reproduced.",
+    "S1, reporting: in SPEC-QUESTIONS.md cross-reference the existing readings to INV-1..6 proof steps as described in C8. Known spec-level gaps remain spec-owner work; this vote adds no new spec-gap finding."
+  ],
+  "path_to_accept": "No changes are required for this acceptance vote: the S0 list is empty. To raise a lowest-scoring criterion by one point, raise C8 from 4 to 5 by adding the precise reading-to-proof-step-to-handler/test cross-reference in SPEC-QUESTIONS.md, explicitly preserving the recorded 0.8 limitations and staged boundaries. The other criterion change fields describe further nonblocking evidence improvements.",
+  "verdict_core": "accept",
+  "verdict": "accept",
+  "summary": "Acceptance vote on ad84e75e10ecbfc582d7fdc50f821ac2a618c1a0. Both R23 IDs are resolved and no new S0 was established. Blocking=0, new spec-gap=0, suggestions=3. There is no blocker to classify as either correctness or host-resource reporting. The reproduced resource denials are honest refusals preserving the prefix, not wrong-result, wrong-state or false-label outcomes. Acceptance covers this snapshot under the recorded ISA 0.8 readings and the rubric's disclosed staging; it does not assert that staged deliverables are implemented or that arbitrary process OOM is recoverable.\n\nReview inputs: rubric/task, both supplied R23 arguments, editor response, the changes since 5e9fa30, ISA 0.8 and INV-1..6. All 208 embedded packet files were compared with the detached worktree and match; HEAD is the named snapshot. No other member's round-24 output was consulted. No tracked file was modified.\n\nMandatory first reproduction: .tmp/r24-sol/probe.rs runs the unchanged tests/fixtures/r23/sol-store-cow.bisa (SHA-256 e94c5cbbbdfdfeb32d4101cf6a6033172afcea1c6f6b9cc1bd1df80ad541ece5). After the real 1572864-byte 0xa5 reply and z=0, RLIMIT_AS=128 MiB, hard=256 MiB, RLIMIT_CORE=0, MALLOC_ARENA_MAX=1 denies sparse retention. Two attempts return identical HostResource errors and leave the full ClassicalSnapshot equal, including ip, memory, console and pending, with four history frames and byte 0xa5. Raising only the soft limit executes store.i8 at index 4, changes byte 1 to zero and adds frame five. Ret makes six frames; reversal restores the held entry snapshot. Log: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-sol/store-cow.log. Reproduce with the required headless prefix and python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-sol/reproduce-store-cow.py (probe binary/source retained beside it).\n\nTwo other instruction kinds were spot-checked through cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/Cargo.toml --lib r23_transaction::transactionality_instruction_stages -- --exact --nocapture. load.i8 reaches history/load-buffer/bit-vector/definition stages; clock.read reaches history/tape/tape-entry/undo-bytes/bit-vector/sparse/final-tape stages. Each indexed denial is repeated, asserts exact snapshot/history/tape/transcript preservation, then retries the same point and reverses; reverse itself checks equality with the machine's initial tuple. The entire 64-scenario/340-stage family passes. Log: .tmp/r24-sol/injector.log.\n\nRubric method 1: before comparing outputs, derived inc8(255): B=2 yields (0,1,2), B=3 yields (0,0,3); signed i8 MIN/-1 faults 6 on the first division row; sum_db(0) executes three root setup/call rows, six callee rows and retval, hence ten rows, with R_sum=16, stack=15 faulting 3 on row three and stack=16 succeeding. All match. Independently assembled the exact 261-byte inc8 envelope, including its final LF, and matched the published hash; literal envelope and output records are in .tmp/r24-sol/{inc8.envelope,hand-results.json}.\n\nMethod 2: traced generic pc/successor inversion and C5,C4,C3,C2,C1 / R5,R4,R3,R2,R1 against machine.rs. In sum_db(0), the call at step three changes sp to 16 and depth to 1; ret at step nine leaves monotonic sp=16 and restores depth=0. The probe independently inverts/replays every row with complete snapshot equality, then clears every frame and restores entry. For \u00a77.4, traced nested -> f -> g, g's clock.read/ret, inner uncall g, ret f, pure load and outer uncall f: g's already-reversed frames are skipped, clock/tape remain zero, result is zero, and whole reversal restores entry. Evidence: .tmp/r24-sol/{inverse.rs,inverse.log}.\n\nMethod 3: audited all 33 recorded readings; known INV-1 qif lifetime, INV-3 other-value, INV-4 dotted-path, INV-5 scheduling/default and INV-6 domain/host-outcome gaps remain recorded qualifications, not newly discovered implementation blockers. No finding violates a stated theorem because there is no new finding. In particular the repaired CC transaction defect fits no INV-1..6 theorem: INV-6 1.7.6 is about checker host outcomes, while T4 assumes a valid retained trace.\n\nMethod 4: searched the crate for the required panic/stub/unsupported/assumption/approximation terms. The 1909 matching lines were classified in .tmp/r24-sol/hit-inventory.json: test/evidence code, checked internal invariants, fallible JSON parser calls named expect, display-only conversions/symbolic accuracy recipes, explicit model-version rejection and host-reporting hardening boundaries. No executable todo!/unimplemented! stub or newly witnessed semantic fallback was established.\n\nMethod 5: cross-checked \u00a74.1/4.2/4.8 opcode families against schema/validation and classical/oracle/machine/action dispatch; \u00a75.4 codes against fault generation and CLI names; \u00a77.4 frames against Undo/HistoryFrame/segment traversal; \u00a79/11/12/13 metadata fields against the recursive schema; and BRIEF/README commands against main.rs. Disclosed target/expansion/launch/interval staging remains explicit.\n\nValidation: the exact-object regression, all eight independent pins and full offline cargo test pass (461/0/5 across 37 blocks, 233.75 seconds summed runner time). Full log: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-sol/full-test.log. The five ignored release sweeps were not rerun here; their retained editor evidence is distinguished from my runs."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r24-sol.json

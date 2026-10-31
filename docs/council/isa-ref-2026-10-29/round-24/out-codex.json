@@ -1,0 +1,74 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "\u00a7\u00a73.3, 4.8, 9.1, 16: schema.rs, object.rs::validate_row, validation.rs and metadata_schema.rs cover the listed opcode families and productions. Parser, schema-tree and R10\u2013R14 admission pins pass. No admission divergence found; arity, tier and width dispatch remain split across modules.",
+   "change": "Add a developer-facing clause/opcode index beside src/schema.rs mapping every \u00a74.8 family to its arity, tier/width validator and positive/negative tests; check index completeness without duplicating semantics."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a79.2 code is unchanged. Independently constructed the 261-byte inc8 envelope and reproduced 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. Published-example, linking, structural-owner/dotted-leaf and R20\u2013R23 pins pass. INV-4 1.5.3 remains an acknowledged ISA serialization limitation.",
+   "change": "No acceptance repair required. Preserve tests/identity.rs and independent literal envelopes when changing identity.rs, including structural ownership and coincident-leaf ordering."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "\u00a7\u00a74.2, 5.4, 14.1: inc8(255) gives (payload,code,rows)=(0,1,0)/(0,1,2)/(0,0,3)/(0,0,3) at B=0/2/3/4. sum_db(0), B=10, heap=4080, depth=1 gives (0,3,3) at stack=15 and (0,0,10) at stack=16. Wide-vector, fault and exhaustive division tests pass.",
+   "change": "No acceptance repair required. Extend tests/oracle.rs with independent boundary derivations when rows change; keep payload, first fault and executed-row count assertions separate."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "\u00a7\u00a73.6\u20133.7: traced machine.rs::inverse_step, inverse_call and inverse_ret against C5\u2192C1 and R5\u2192R1. Independent public probe checks every forward/inverse prefix of the two sum_db cases, including call, ret, fault and HALT idle, then restores entry and clean frames. Recursive-prefix release sweep passes.",
+   "change": "No acceptance repair required. Preserve literal inverse ordering and recursive call/ret prefix tests, especially restored sp/fp before record addressing and delivery."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "R23 correctness blocker resolved: real denied COW preserves the full prefix on two retries; raising the limit executes store.i8/index 4, adds frame five and completes Int(64,2). Independent load.i16 and entropy.read injection checks preserve history contents and literal bytes. transaction restores owners directly, with existing history/segment backups for uncall/ret. Repeated boolean checkpoint selection is a maintenance weakness, not a correctness finding.",
+   "change": "Centralize edits_history/edits_segments selection in src/classical.rs::{step,step_once_observed,transaction} using a named helper/enum. Document its mutable-field inventory and retain all denial/retry, observer, nested-uncall and measurement tests."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Q semantics, matched opaque pairs, effective-control sets, handles, borrow and cleanup pins remain green, including R9\u2013R11 and the 200,000-program discipline sweep. INV-1\u2013INV-3 hypotheses and known spec refutations remain distinguished from implementation guarantees. Matching/window rules still require cross-module tracing.",
+   "change": "Add a proof-to-code index in README.md linking INV-1 matching/control steps, INV-2 handle transitions and INV-3 window/borrow steps to functions and positive/negative tests; explicitly mark ASSUMED and refuted spec steps."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Independent run: 461 passed, 0 failed, 5 ignored; all five ignored release sweeps pass. R23 family/CLI tests pass. Separate load.i16/entropy.read probes reject all 4/7 stages twice, then check literal semantics, history/undo bytes, transcript/tape and entry reversal. All 208 embedded files match checkout and published digest prefixes. Most family totals are printed rather than enforced together.",
+   "change": "In src/r23_transaction.rs and src/main.rs::r23_cli, assert a scenario/stage manifest yielding the advertised 70 scenarios, 533 cases and 31 tags. Add literal device/nested-history expectations alongside baseline comparison, so lost coverage or a wrong common baseline cannot pass unnoticed."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The 33 SPEC-QUESTIONS readings were compared with the ISA and proof qualifications; no new unjustified reading found. README distinguishes returned-error transactionality, host limits, ISA faults and staged/Unverified claims. INV-6(C) 1.7.6 concerns checker-resource reporting, not arbitrary CC/R allocator recovery. The R23 rollback defect fits no stated INV-1..6 theorem.",
+   "change": "Cross-reference SPEC-QUESTIONS.md entries to INV proof steps and retained tests, particularly 21, 25, 28, 31 and 33. Keep staged target/schedule/interval functionality and infallible bookkeeping allocations explicitly outside the finite injector guarantee."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "CODEX-R23-B01",
+   "status": "resolved",
+   "note": "Original object succeeds at 128/256 MiB. Real COW denial at 96 MiB after successful reply retains every snapshot field, four frames and transcript on two identical errors; same-process 256 MiB retry executes store, returns Int(64,2) and reverses. The original issue was correctness, not merely host-resource reporting."
+  },
+  {
+   "id": "SOL-R23-B01",
+   "status": "resolved",
+   "note": "Same transaction/rollback cause. Both pinned objects and integrated RLIMIT_AS controls pass tests/r23_transaction.rs; independent CODEX probe confirms the repaired boundary. No allocating undo runs on step rejection."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1: In src/classical.rs::{step,step_once_observed,transaction}, centralize repeated boolean checkpoint selection in a named transaction-policy helper/enum and document the mutable-field inventory. Preserve exact returned-error prefix restoration, including edited history/segments and measurement state. Validate with the R23 stage family, especially nested uncall/ret observer failures.",
+  "S1: In src/r23_transaction.rs and src/main.rs::r23_cli, assert coverage categories and totals (70 scenarios/533 indexed cases/31 tags) and add literal successful device and nested-history expectations alongside baseline comparisons. Removing a scenario/stage should fail a coverage assertion. The independent load/entropy tests at /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex/injector/independent-test.rs illustrate literal values, undo bytes, transcript and reversal checks."
+ ],
+ "verdict": "accept",
+ "verdict_core": "accept",
+ "path_to_accept": "No blocking changes remain. Accept ad84e75 within the recorded staging. To raise the lowest scores from 4 to 5, first enforce the C7 coverage manifest and literal successful history/device expectations; then centralize C5 transaction policy and add the C1/C6/C8 clause/proof indexes. These are nonblocking auditability improvements. No maintainer exception for a newly found host-resource issue is needed.",
+ "summary": "Snapshot ad84e75e10ecbfc582d7fdc50f821ac2a618c1a0, diff base 5e9fa30. Both prior S0 findings are resolved. No new correctness blocker, host-resource-reporting blocker, spec-gap finding or regression established. All 208 packet files match checkout content and published hash prefixes; five non-LF-terminated artifacts receive a presentation LF in the packet. Semantic review covered the production diff, ISA and INV-1..6, recorded readings, and whole-crate dispatch/diagnostic audit. No other round-24 seat output consulted.\n\nRequired store witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex/store-retry.rs and /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex/store-results.json. The exact CODEX object/envelope retain their pins. The improved replacement allocation fits at 128 MiB, as the regression contract permits. For real refusal without filler allocation, perform request/reply setup at 128 MiB, lower only the soft limit to 96 MiB before store, and hold before=m.snapshot(). Both attempts return the identical sparse-memory HostResource error. Fieldwise derived snapshot equality covers instances, memory/allocation, devices, control/next_id, fault/finished/pending and quantum state; separately assert four history frames, unchanged byte 1 and unchanged tape/transcript. Raising the soft limit to 256 MiB in that same process retries store.i8/index 4, adds frame five, writes byte 2 and completes Int(64,2), no fault, eight total frames. Reversal restores entry with the old observer held. Fresh 128/256 MiB controls also succeed. Children use RLIMIT_CORE=0 and MALLOC_ARENA_MAX=1.\n\nTwo further instruction kinds: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex/injector/independent-test.rs, appended only to an untracked source copy using the actual test-only injector. load.i16 reads [0x34,0x12] as 0x1234 after a host reply, preserving request [0,0,0] and full reply [0x34,0x12,0]. entropy.read copies [9,8,7], advances its cursor to 3, records those tape bytes and undo bytes [(1,0),(2,0),(3,0)]. Each of four load and seven effect preparation stages rejects twice, preserves snapshot, history contents and transcript, then retries to the expected StepPoint/state/history/tape. Both reverse to entry.\n\nRubric method 1: Hand-derived and ran inc8(255) at B=0/2/3/4 and sum_db(0) with B=10, heap=4080, depth=1 at stack=15/16; exact tuples/counts are listed in C3. Constructed the literal 261-byte LF-terminated inc8 envelope and checked the published SHA-256. Method 2: Traced generic inverse and call C5..C1/ret R5..R1 with complete pre-step equality and clean frames. For classical nested, g clock.read/ret followed by inner uncall restores clock/memory/tape; outer f uncall skips those reversed frames and the inner marker, preserving the pure load. Result Int(64,0), clock=0, tape empty; whole reversal restores entry, with 11 frames forward (/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex/nested-reverse.json). Method 3: Audited the 33 recorded readings; qif/other-value/dotted-path/nested-token limitations remain existing spec qualifications. Method 4: Requested-pattern scan found 233 source hits, classified in /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex/audit-classification.json, plus 1,659 Rust test/helper hits. Categories are assertions/helpers, guarded invariants, fallible parser methods named expect, explicit rejecting diagnostics, display approximations and finite-host assumptions. No new supported-path panic or silent fallback witness established; this is not universal OOM recovery. Method 5: Compared \u00a74 families with schema/object validation and classical/oracle/machine/action dispatch, \u00a75.4 codes 0\u201310 with execution/reporting, \u00a77.4 frames with Undo/HistoryFrame, \u00a79/\u00a711/\u00a712/\u00a713 fields with metadata_schema, and documented commands with main.rs. Staged launch/target/schedule/interval work remains disclosed and Unverified as applicable.\n\nIndependent validation: cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/Cargo.toml: 461 passed, 0 failed, 5 ignored, 37 result blocks, 261.10 seconds runner sum. Release --ignored: all five sweeps passed, 0 failed, 120.76 seconds runner sum. No R9\u2013R23 regression pin failed: matched pairs/control, grammar, structural identity, metadata/default/specificity/nested budgets, extreme widths/resources, coverage roles, retained transfers and store retry. Independent R20/R21/R22/R23 pin scripts pass. Logs and probes are under /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r24-codex. Tracked files unchanged; no commit or push. The R23 defect was wrong forward state/result and fits no stated INV-1..6 theorem; T4 assumes a valid retained trace. Successful reversal alone never justified a skipped store. Acceptance does not strengthen proof hypotheses or claim recovery from arbitrary infallible Rust allocations."
+}
