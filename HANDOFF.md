@@ -7,22 +7,26 @@ clean). Bennett.jl v1 at `~/Projects/Bennett.jl` is the deprecated
 reference implementation and differential oracle; its worklog chunks
 121–123 hold the reboot's history up to this point.
 
-**Orchestrator session block (RESUMED 2026-10-30 21:00Z, running at 2026-10-31 22:26Z; read this one first).** Rules
+**Orchestrator session block (RESUMED 2026-10-30 21:00Z; state at 2026-10-31 01:10Z; read this one first).** Rules
 added tonight: Fable drains the Claude weekly budget 2x faster than Opus, so Claude-side children go to Opus and Fable
 turns stay lean; concurrency cap two xhigh codex jobs; never launch when Codex would pass +3% of linear (`quota`); log
-each child's cost as a meter delta (reviewers ~1 point, tonight's editor passes <1 point each). Muse: the quota app
-cannot read its allowance (server_sent_no_usage) since ~22:30Z; its seat untouched; maintainer decides when it votes.
+each child's cost as a meter delta. Observed tonight: sol/astra reviewers mostly ~1 point, but **astra's round-12
+review cost 3 points** (41% -> 44%, pace +2.6% -> +5.3% ahead), so launches are paused until the pace is back under
++2.5% (a background wait polls `quota` every 5 min; re-arm it if the session restarts). Muse: the quota app cannot
+read its allowance (server_sent_no_usage) since ~22:30Z; its seat untouched; maintainer decides when it votes.
 
-Done tonight: **interpreter** rounds 9 and 10 closed (astra collected, aggregated, one sol editor each; 315 -> 327 ->
-338 tests; briefs in bennett-isa-spec/docs/briefs/2026-10-30-isa-ref-round-{9,10}-fixes.md); **round 11 prepared** on
-45475a1 with sol reviewing (output bennett/.tmp/isa-ref-r11-sol.json); next: `collect` sol, launch astra with the same
-task text (round-11 prompt.md/schema.json, cwd ../bennett-isa-spec-review, output .tmp/isa-ref-r11-codex.json),
-`aggregate`; if both accept, muse's seat on the acceptance candidate; else one sol editor. **Dialect** round 8 closed and
-fixed (0.2.10, d0a160d, main pushed); **round 9: sol + astra accept, 0 blockers**; next: muse's acceptance vote (round-9
-prompt/schema, cwd bennett-dialect-spec, output .tmp/dialect-r9-muse.json). **Held for pace**: ref-library resume (brief
-bennett-isa-spec/docs/briefs/2026-10-30-ref-library-contract-completion.md, progress spec/ref-0.9-draft.PROGRESS.md,
-checkpoint fcea698, six open contract beads afi/1a4/3xe/lph/1oa/82x), circuits M4, plugin M1 third pass. Open
-maintainer item unchanged: targets gate policy.
+**Interpreter**: rounds 9, 10, 11 closed and fixed by one sol editor each (315 -> 327 -> 338 -> 353 tests; briefs
+bennett-isa-spec/docs/briefs/2026-10-3*-isa-ref-round-{9,10,11}-fixes.md); **round 12 on 09fc712 closed: sol core
+ACCEPT** (overall revise, one contract blocker), astra revise (same contract blocker + one core); report
+docs/council/isa-ref-2026-10-29/round-12/report.md. Next (when pace allows): one sol editor on
+bennett-isa-spec/docs/briefs/2026-10-31-isa-ref-round-12-fixes.md (lossless layout leaves with the tie-order
+SPEC-QUESTIONS entry; interface names shared with function symbols), then embed response-round-12 in the crate, fresh
+review worktree, packet-round-13, prepare, sol then astra; an accept from both makes the crate the acceptance candidate
+for muse's seat. **Dialect**: 0.2.10 (d0a160d, main pushed); round 9 sol + astra accept, 0 blockers; next: muse's
+acceptance vote (round-9 prompt/schema, cwd bennett-dialect-spec, output .tmp/dialect-r9-muse.json). **Held for
+pace**: ref-library resume (brief bennett-isa-spec/docs/briefs/2026-10-30-ref-library-contract-completion.md, progress
+spec/ref-0.9-draft.PROGRESS.md, checkpoint fcea698, open contract beads afi/1a4/3xe/lph/1oa/82x), circuits M4, plugin
+M1 third pass. Open maintainer item unchanged: targets gate policy.
 
 **Orchestrator session block (PAUSED by the maintainer 2026-10-30 ~14:30Z; read this one first).** Rules of the day:
 codex `gpt-6.1-sol` xhigh does the work via T3 `delegate_task` (briefs in each repo's `docs/briefs/`, progress files,
