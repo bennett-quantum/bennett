@@ -15,3 +15,19 @@
 - Quota pacing with each child's cost logged: it caught the 3-point astra R12 review and paused launches (HANDOFF, 03:24Z).
 
 **Trend:** first entry, so no baseline yet. Recording is growing faster than defects are found: 3,183 lines of PROGRESS files in bennett-isa-spec against 3 blockers in round 12.
+
+## 2026-10-31 ~18:00Z (second run, skim-level, 15 tool calls)
+
+1. **Statement layer: keep the IDs, stop maintaining the output files.** The IDs earn their place: proofs cite 230, isa-09 R1 steps 42 and `[deps:]` 264, and all resolve. The rest does not. `clauses/` holds 6.9 MB of committed output. The 2,840 dialect statements are cited nowhere. The `.dot` files have no reader because Graphviz is absent. "Strong coverage 150" feeds no gate. Classifier rules K12–K16 and a retag served only the tool. Generate on demand and pause classifier tuning.
+2. **Cut `bennett-isa-spec/spec/isa-0.9.PROGRESS.md` (1,380 lines) to its resume block.** Today's six sections repeat the K29–K61 commits, the same problem as the 0.8 file.
+3. **Cut the committed `isa-0.8-to-0.9.diff` and its byte-compare.** Its only reader is the test that keeps it current, and it broke the gate on paths and mtimes. Shrink the `propos(al|ed|es)` ban (`draft_witnesses.py:239`) to the actual placeholder; it fired on the ordinary phrase "proposed inverse".
+4. **isa-09 round 2: one seat.** In R1, sol and astra returned the same two spec gaps (G01, G02).
+5. **Rule 12 `[deps:]`: shrink to new requirement sentences.** 101 markers have caught nothing, and placing the rule took three commits. The tool infers the other edges. Cut it if the next pass still finds no catch.
+6. **Council `steps`: shrink to step-1 citation, `kind`, witness and fix.** R13–R17 blockers already opened with a reproduction. The `<1>n` numbering, the 3–6 step count and `step:` chaining only change the layout.
+
+**Keep, it earned it**
+- Proofs, which are used rather than admired. INV-5 1.4.3 withdrew the R18 remedy (R19 report) and drove spec commits f78a759, 91c60dd and 3981258. K29–K61 closed every refuted or ASSUMED step except two.
+- ASSUMED step 1 → `kind: spec-gap`. In isa-09 R1 it routed 4 of 6 items to the editor instead of to an interpreter patch.
+- One reviewer on fix rounds. R13–R19 reached an accept single-seat, saving seven sol reads of ~2.5 MB.
+
+**Trend:** last entry's cuts held: HANDOFF is 38 lines and fix rounds run single-seat. Five proofs refuted 8 steps; council rounds find 1–2 blockers. The new growth is generated output without readers: dialect statements, `.dot` files, coverage counts and the committed diff.
