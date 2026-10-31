@@ -192,3 +192,18 @@ proofs are spec gaps and are filed as beads in the owning spec repo, not as edit
 - **Watcher items 5 and 6** (declared `[deps:]` markers; structured `steps`): held one more pass; cut if the
   next watcher pass finds no catch. **Item 1**: dialect statement files and `.dot` outputs are no longer
   committed (generated on demand); ISA statement files stay because proofs and reviews cite them.
+
+## Rulings of 2026-10-31 (watcher pass 3; maintainer delegated the choice to the orchestrator)
+
+- **Declared `[deps:]` markers (rule 12 in the spec repos): withdrawn.** They caught errors only in themselves.
+- **Structured `steps`: no longer required.** A blocking item may be `steps` or free-text `problem`; `kind`
+  (`implementation` | `spec-gap`) stays, and a spec gap still routes to the spec owner, not the editor.
+- **Sweep before revote.** At the second blocker of one host-resource class, the editor builds the class
+  sweep (failure injection across every stage) before the next vote; no acceptance vote is cast on a
+  class with a known second instance.
+- **Proof → K rows: check existing text first; a consumer chooses the next pass.** No further 0.9 editorial
+  pass until an implementer (VM, plugin) names the gap it hits; proofs file beads, editors do not act on
+  them unprompted.
+- **HANDOFF: one Running/Next/Waiting block, rewritten at session end only.** Mid-session state lives in
+  the chat and the worklog; `isa-0.9.PROGRESS.md` is cut to its latest block plus a resume list, like the
+  interpreter's.

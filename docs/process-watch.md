@@ -47,3 +47,5 @@
 - Outline with numbered rulings: D01–D22 became 0.2.11 in one pass; R10 had 0 blockers from both seats.
 
 **Trend:** pass-1 cuts held (interpreter PROGRESS 1,874→100 lines). Half of pass 2's cuts landed. The councils converge (0 blockers across five spec rounds) and the records do not: churn moved from PROGRESS into a HANDOFF that is now less accurate.
+
+**Maintainer decision (2026-10-31):** all six verdicts adopted as recommended by the orchestrator (item 2 as "session-end only"); recorded in docs/council/README.md.
