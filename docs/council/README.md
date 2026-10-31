@@ -137,3 +137,18 @@ Between rounds the editor revises the document on the blocking issues
 (and on suggestions it agrees with), records what changed and what was
 declined in `docs/council/<run>/round-<N>/response.md`, and prepares the
 next round with `--precheck "python3 tools/isa_check.py"`.
+
+## Fix-round policy (maintainer, 2026-10-31, on the process watcher's first entry)
+
+- **Fix rounds use one reviewer**: the `codex` seat (astra) re-grades after the editor's
+  fixes. `sol` sits only on acceptance votes (every blocker reported resolved) and on new
+  material. Every sol blocker in isa-ref rounds 9-12 and dialect round 8 was also raised by
+  astra; the second seat on fix rounds bought no finding.
+- **One commit per round**: `prepare`, `collect` and `aggregate` artefacts land in a single
+  `council:` commit when the round is aggregated, not three or four.
+- **Severity field**: blocking means S0 by the rubric's definition; S1 belongs in
+  suggestions. The per-item `severity` field is redundant and is being removed from the
+  schema after isa-ref round 13 is collected (its reviewers were launched on the old schema).
+- **A recurring blocker family gets a generated test, not another round**: when two rounds
+  patch instances of one defect (R11-B02 and R12-B01, dotted-name layout leaves), the editor
+  adds a deterministic family over the whole input class before any further review.
