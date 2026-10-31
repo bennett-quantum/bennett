@@ -147,8 +147,8 @@ next round with `--precheck "python3 tools/isa_check.py"`.
 - **One commit per round**: `prepare`, `collect` and `aggregate` artefacts land in a single
   `council:` commit when the round is aggregated, not three or four.
 - **Severity field**: blocking means S0 by the rubric's definition; S1 belongs in
-  suggestions. The per-item `severity` field is redundant and is being removed from the
-  schema after isa-ref round 13 is collected (its reviewers were launched on the old schema).
+  suggestions. The per-item `severity` field was redundant and was removed on 2026-10-31
+  (isa-ref round 13 reviewers were launched on the old schema; old-style JSON still validates).
 - **A recurring blocker family gets a generated test, not another round**: when two rounds
   patch instances of one defect (R11-B02 and R12-B01, dotted-name layout leaves), the editor
   adds a deterministic family over the whole input class before any further review.

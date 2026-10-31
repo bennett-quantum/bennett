@@ -50,10 +50,9 @@ def schema():
              "properties": {"id": {"type": "string"},
                             "section": {"type": "string"},
                             "scope": {"type": "string", "enum": ["core", "contract"]},
-                            "severity": {"type": "string", "enum": ["S0", "S1"]},
                             "problem": {"type": "string"},
                             "fix": {"type": "string"}},
-             "required": ["id", "section", "scope", "severity", "problem", "fix"]}
+             "required": ["id", "section", "scope", "problem", "fix"]}
     prev = {"type": "object", "additionalProperties": False,
             "properties": {"id": {"type": "string"},
                            "status": {"type": "string",
@@ -247,8 +246,8 @@ CONVERGENCE = (
     "blocking issue with "
     "`scope` (`core` = machine model, instruction set, regions, validity, memory, formal model, "
     "examples; `contract` = targets, objects/identity, launch, scheduling, certificate, coverage, "
-    "grammar) and `severity` (`S0` as defined; `S1` = an implementer would have to choose, but "
-    "any choice yields a conformant machine). S1 items belong in `suggestions`, not `blocking`, "
+    "grammar). S1 = an implementer would have to choose, but "
+    "any choice yields a conformant machine; S1 items belong in `suggestions`, not `blocking`, "
     "unless the document fails to state a default for them.\n"
     "2. Implementation will expose frictions; that is expected and acceptable. Do not block on "
     "field-level completeness of C headers, JSON schemas, numerical procedures or encodings "
@@ -620,7 +619,7 @@ def aggregate_cmd(a):
               "", "Blocking by scope/severity: " + ", ".join(
                   f"{m}: core {sum(1 for b in blocking[m] if b.get('scope') == 'core')} / "
                   f"contract {sum(1 for b in blocking[m] if b.get('scope') == 'contract')}"
-                  f" (S0 {sum(1 for b in blocking[m] if b.get('severity') == 'S0')})" for m in names), ""]
+                  f" (S0 {len(blocking[m])})" for m in names), ""]
     regs = {m: outs[m].get("regressions") or [] for m in names}
     if any(regs.values()):
         lines += ["## Regressions reported", ""] + [f"- **[{m}]** {r}" for m in names for r in regs[m]] + [""]
@@ -636,7 +635,7 @@ def aggregate_cmd(a):
     for m in names:
         for b in blocking[m]:
             n += 1
-            lines.append(f"- **[{m}] {b['id']}** ({b['section']}; {b.get('scope', '?')}/{b.get('severity', '?')}): "
+            lines.append(f"- **[{m}] {b['id']}** ({b['section']}; {b.get('scope', '?')}): "
                          f"{b['problem']} *Fix:* {b['fix']}")
     if n == 0:
         lines.append("- none")
