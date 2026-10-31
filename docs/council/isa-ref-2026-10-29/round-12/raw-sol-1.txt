@@ -1,0 +1,105 @@
+exit 0 in 28s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "object.rs::validate_header now rejects nonempty action/perm_action regs before building the type environment; oracle/lproc regs remain reg[N]-only and CC/R remain SSA. validation.rs requires named rotation angles in f.params[3] as f64. The six-kind register matrix, empty-regs/bounds controls, producer and argument fixtures pass; no remaining parser/well-formedness S0 found.",
+      "change": "No correction required for this criterion. Retain parser::r11_register_types_follow_function_kind and the CLI phantom-wire/angle negatives: only oracle/lproc reg[N] files and empty files are admitted; qalloc producers and entry f64 angles still execute."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "The round-11 exact-owner oracle envelopes and their deeper dotted-name controls pass. SCC/reference replacement and the four §16.3 pins remain correct in the reviewed tests. One independent §9.2 witness remains: identity.rs::layout_leaves overwrites colliding dotted interface-region paths in CC/R closures (SOL-R12-B01), leaving main identity invariant when a required leaf changes.",
+      "change": "In identity.rs::layout_leaves/Object::envelope retain every structured leaf and apply the explicit tie rule in SOL-R12-B01. The literal CC main envelope must include both base-16 and base-32 lines and hash to 84b403e0032cfdc98e4c33e628c9662043833876045378f733aaaba7d311679e; add the independently pinned CC/R and CLI tests specified there."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "oracle.rs::Object::run_oracle_vectors implements the §4.2 dispatcher with separate dynamic activations and exact BitVectors. Hand-derived inc8(255) at B=3/2 gives (0,0,3)/(0,1,2); sum_db(2), db=1..16, B=38/37 gives (3,0,38)/(0,1,37); stack 47 faults (0,3,29). All reproduced in the prebuilt binary. Arithmetic, explicit faults 0..10, inherent bounds, allocation and nested calls pass the normal suite.",
+      "change": "No correction required for this criterion. Preserve oracle::council_r4_sum_db_literal_step_and_stack_cutoffs with its five literal tuples and the independently derived arithmetic/heap/nested expectations."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "machine.rs::OracleVectorMachine retains printed assignment/capture/delivery semantics and derived widths. Traced successful recursive lift.call C5^-1 through C1^-1, with pc exchanges and successor clearing, and checked lift.ret R5^-1 through R1^-1 at the restored callee fp. tests/step_machine.rs checks each recursive forward/inverse pre-step tuple, every small prefix, idle HALT, memory and nonzero commit targets/faults. No incomplete reversal found.",
+      "change": "No correction required for this criterion. Retain recursive_call_and_ret_each_invert_the_complete_pre_step_tuple and the small normal-suite prefix gate; every inverse must restore the full tuple and clean every frame, including stack/depth faults."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "classical.rs::ClassicalMachine::{step,undo_record,undo_frame,reverse} and register undo cover SSA instances, calls, uncall markers, tapes, device models and handles. Hand-traced nested -> f -> g: inner clock frame undone by uncall g, outer uncall f skips it, preserving copied result 0; actual forward output is 11 rows, clock 0, empty tape, and reverse equals_entry=true with matching entry memory digest. Atomic alias/trap, host reply and measurement exclusion tests pass.",
+      "change": "No correction required for this criterion. Preserve classical::nested_uncall_and_effects_are_reversed_exactly_once and the CLI nested reversal assertion: the clock effect is undone exactly once and the complete entry tuple is restored."
+    },
+    {
+      "id": "C6",
+      "score": 5,
+      "evidence": "Reviewed action lifetimes/adjoints, exact gate and Born semantics, §6 windows/cell versions, and borrow.rs::Facts::reversible all-operand histories. EffectiveControls canonicalizes resolved scalar literals with polarity; lexical push/pop remains LIFO. Matched opaque inverses, token/ABI/control/version distinctions, unmatched readers and per-return obligations remain guarded by the round-9/10 families. Six discrete gates implement -I exactly; the rounded-angle probe retains two exact-support keys. No new core S0 found.",
+      "change": "No correction required for this criterion. Retain the round-9/10 negative reader/token/polarity/version families and the round-11 exact-support assertions: the discrete probe must be exactly {\"01\":[1,0]}, while the rounded probe must retain both \"00\" and \"01\"."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "All 16 sidecars were checked against their literal instructions, spec equations and executable expectations. The qinplace B=0 comment and exact-versus-rounded phase claims are now correct, including the generator. Fresh cargo test --offline completed 353 passed, 0 failed, 5 ignored. The packet records all five full ignored sweeps after the last semantic changes; I did not rerun those sweeps. Existing dotted-owner goldens cover oracle isolation but miss the CC/R all-leaf collision.",
+      "change": "Extend tests/identity.rs and tests/cli_xam.rs with SOL-R12-B01 using literal full envelopes and independent stored pins, without support::rehash. Require both coincident-path leaf lines and different hashes after the base-16-to-17 mutation; retain the existing oracle-isolation cases."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Audited all 30 SPEC-QUESTIONS entries against the accepted spec; their recorded choices remain defensible, and staged deliverables 8–11 are explicit rather than silently counted as complete. Diagnostics and README match the exercised CLI paths. The new coincident-path tie case has no recorded ordering rule, alongside the concrete identity omission.",
+      "change": "Add SPEC-QUESTIONS entry 31 for §9.2 coincident dotted renderings, recording retention of every structured leaf and bytewise original-component tie order using the exact proposed wording in SOL-R12-B01; add its literal CC/R pins to the round-12 evidence. Do not alter the accepted spec in this fix."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R12-B01",
+      "section": "§§9.2, 16.1; reference-interpreter/src/identity.rs::layout_leaves and Object::envelope",
+      "scope": "contract",
+      "severity": "S0",
+      "problem": "Distinct legal structured layout leaves are silently coalesced in CC/R envelopes. layout_leaves inserts both interface_regions[\"a\"][\"c.db\"] and interface_regions[\"a.c\"][\"db\"] under the same BTreeMap key \"interface_regions.a.c.db\"; the latter overwrites the former. Round 11 correctly selects each oracle by its exact owner before flattening, but CC/R must retain both owners and still lose the first leaf. The following complete LF-terminated object is the existing deep-a-32 case plus an independent no-argument CC function. Its main pin uses both leaves in structured-component order:\n\nbennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"d7b1663ea88edb0facd7401f8dc732a03facf5f9005901844b37f567a9f60afe\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"3c360ffb446a6418133d64bd4dddef00368d1f4c8f3b4723cb46f79262fd6f2a\",\"kind\":\"oracle\",\"name\":\"a.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"2\":{\"interface_hash\":\"84b403e0032cfdc98e4c33e628c9662043833876045378f733aaaba7d311679e\",\"kind\":\"cc\",\"name\":\"main\",\"signature\":{\"abi\":\"0.8\",\"kind\":\"cc\",\"params\":[],\"results\":[],\"tier\":\"cc\"}}}\n\nsection functions\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nfn cc @main () () () () ()\n^entry():\nret\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a\":{\"c.db\":{\"base\":16}},\"a.c\":{\"db\":{\"base\":32}}},\"null_size\":1,\"ptr_width\":32}\n\nActual prebuilt CLI hash exits 0/status ok, giving @main interface=closure 451a5e3d63f38b5fb25039e5ed7bd4e9b8d46119bc9c0250012bcd3d9200a756; its envelope contains only the base-32 line. check exits 1 with empty stdout and §9.2 interface_hash mismatch for @main. The exact stored-H object hash is c7a1750c6e3415cb18ae1d699ba36067f0a382a93b6e409252df9bf0f1ee7f5d.\nChanging only a/c.db base 16 to 17 and independently repinning @a to 47b5d9e3495a9bae55e6e1b6211f6f52fc9fc7ca1e3cbe21de8592b9083e3b74 leaves actual @main interface AND closure unchanged at 451a5e3d…; a required closure component has disappeared. Replacing main's kind/tier/header by R reproduces the same omission: actual interface=closure 4ba55d087d60f8c3f58ac9f98b1971f24a11a7a083e50fa10889e88e856005b0 at both bases. This is an identity omission, independent of how equal rendered paths are ordered. No input or execution budget is needed to trigger it.",
+      "fix": "Change reference-interpreter/src/identity.rs::layout_leaves and Object::envelope to retain a lossless collection of structured leaves, including original key components, through selection and serialization. Do not key the collection solely by the non-injective dotted rendering. Preserve the round-11 exact-owner oracle selection; emit every selected leaf once, including both colliding rendered paths for CC/R. Adapt lproc global lookup/image collection to the lossless representation without changing their closure selection.\nDetermining specification: §9.2 says \"CC / R function: all `layout` leaves, every data image they name\"; part (5b) says \"for every layout leaf in the closure set, sorted by dotted path bytewise\". It identifies \"interface_regions.<oracle>.<region>\" as leaves; §16.1 NAME permits dots. Neither dropping a leaf nor rejecting these names implements those sentences.\nThere is a genuine tie-order gap: stable structured-key traversal and sorting equal-path lines by their JCS values are both defensible because §9.2 specifies no ordering within a dotted-path tie. Neither reading permits overwriting. Choose stable bytewise original-component order as the tie breaker: it preserves structural ownership and is independent of the values being hashed. Add a SPEC-QUESTIONS entry with this proposed wording: \"Emit one line for every structured layout leaf, including leaves with coincident dotted renderings. Sort by the rendered dotted path bytewise; break ties bytewise by the sequence of original JSON key components.\" No accepted-spec edit or ban on dotted names is needed for this review fix.\nAdd tests/identity.rs::r12_cc_r_layout_paths_preserve_colliding_leaves and tests/cli_xam.rs::r12_cli_checks_lossless_layout_envelopes. Use the literal object above (or extend r11_case(\"deep-a-32\") without support::rehash), with this exact main envelope, final LF included:\n\nisa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"kind\":\"cc\",\"params\":[],\"results\":[],\"tier\":\"cc\"}\nfn cc @main () () () () ()\n^entry():\nret\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.c.db {\"base\":16}\nlayout interface_regions.a.c.db {\"base\":32}\nlayout null_size 1\nlayout ptr_width 32\n\nExpected @main interface=closure SHA-256 is 84b403e0032cfdc98e4c33e628c9662043833876045378f733aaaba7d311679e. At base 17 it is 69d94d8f25dae1444c6ac6b3f46fe0e9bec110393405e778a84415913ee47bff; repin only @a as above and @main to this value, leaving @a.c unchanged. Expected object hashes are c7a1750c6e3415cb18ae1d699ba36067f0a382a93b6e409252df9bf0f1ee7f5d and 483ad27610edeecc63993cb5891df642ec36f035920250f3ddcadefe7e6d814e respectively. Repeat with fn r and signature kind/tier r: expected main hashes are 68943b7ebec4b123a9b0aed04af75e1e037545794a3dee8a3aaceb7b623d421a at 16 and 54af133bf40f7db2ca5da434db35f34f2157ae1808b46ed80137481e4a9efc17 at 17. Both envelope lines must survive, changing either leaf must change the CC/R hash, oracle pins must remain independently correct, and CLI check on all four correctly pinned objects must exit 0/status ok. Current code fails those envelope/hash/check assertions; a lossless implementation with the stated tie rule passes. Retain a noncolliding dotted-global/lproc case and the existing action/data closure exclusions so the representation change cannot broaden their closure sets."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R11-B01",
+      "status": "resolved",
+      "note": "Resolved: nonempty action/perm_action regs reject §3.3, including indexed phantom wires; the qalloc/CX/qfree positive remains admitted and correct."
+    },
+    {
+      "id": "SOL-R11-B02",
+      "status": "resolved",
+      "note": "Resolved: oracle interface_regions ownership is selected by exact JSON key before flattening; the supplied a/a.b and deeper dotted-owner/region pins check successfully. SOL-R12-B01 is a separate remaining CC/R all-leaf omission."
+    },
+    {
+      "id": "SOL-R11-B03",
+      "status": "resolved",
+      "note": "Resolved: committed qinplace sidecar and r9_pins.py distinguish B>=1 identity from B=0 §4.5 rejection; both outcomes were reproduced."
+    },
+    {
+      "id": "R11-B01",
+      "status": "resolved",
+      "note": "Resolved: kind-specific regs validation and f.params[3] f64 angle validation prevent phantom bindings; legal entry-angle and empty-regs/bounds controls pass."
+    },
+    {
+      "id": "R11-B02",
+      "status": "resolved",
+      "note": "Resolved: both independently pinned base-32/base-48 oracle ownership witnesses now check, with @a invariant under another owner's base change."
+    },
+    {
+      "id": "R11-B03",
+      "status": "resolved",
+      "note": "Resolved: controlled_phase calls exact six-gate minus_i; rounded phase remains unchanged with two exact-support branches. Exact and rounded probes and qinplace B=0/B=1 were independently replayed; all 16 sidecar claims were audited."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [],
+  "verdict": "revise",
+  "path_to_accept": "1. Replace the lossy dotted-path map in identity.rs with structured, lossless leaf selection/serialization while preserving exact oracle ownership and existing closure exclusions. 2. Record the §9.2 tie rule in SPEC-QUESTIONS as specified in SOL-R12-B01. 3. Add and pass the independently pinned base-16/base-17 CC/R envelope and CLI regressions, then run the existing offline normal suite and affected identity/linking checks. With those assertions green and no regression, I would return overall accept; core is already accepted.",
+  "summary": "No blocking core issue remains: verdict_core=accept. The whole-crate verdict is revise for one constructive S0 contract issue, SOL-R12-B01: CC/R §9.2 envelopes silently omit one of two structured layout leaves with equal dotted renderings. No regression from round 11 was identified; all six previous IDs are resolved. The diff was checked first, followed by the frozen crate/spec/fixture audit, revisiting truncated output in smaller slices. The new finding preserves the successful round-11 oracle-owner fix.\nMethod 1: derived expected results before comparing the execution answers: inc8(255), B=3 -> (0,0,3), B=2 -> (0,1,2); recursive sum_db(2), db=1..16, frame size 16, stack 48, depth 3, B=38 -> (3,0,38), B=37 -> (0,1,37), stack 47 -> (0,3,29). Reproductions match. Independently assembled LF envelope bytes for oracle ownership and for the new CC/R collision; standard-library SHA-256 of the lossless CC envelope is 84b403e0…, while the interpreter returns 451a5e3d….\nMethod 2: traced the entire inverse of recursive call row k=16 with old (sp,fp,depth)=(16,0,1), captured args=(1,2,4096), record=(17,0,id(sum.r)), and forward counters=(32,16,2). Inverse pc exchanges restore pc=16; successor XOR clears pc'; reverse C5 exchanges restore old counters before uncomputing 2,32,16; C4 clears bound params; C3 clears the record at restored sp/fp; C2 restores all 13 callee locations; C1 clears captures from those restored recursive operands. Frame old_pc/slots/flag/succ are clean. Also checked R5-to-R1 inverse ordering with delivery at restored callee fp. For §7.4 traced nested/f/g call-ret segments: undo g's clock effect once, mark it reversed, skip it while uncalling f; preserve the pure copied result, then whole reversal removes remaining instances/allocation and restores entry. Actual output: result 0, 11 rows, clock=0, tape length=0; reverse equals_entry=true.\nMethod 3: compared every SPEC-QUESTIONS entry 1–30 with the corresponding accepted-spec rules, including counter widths, SCC order, operand suffixes, fault widths, dynamic SSA, borrow/certificate boundaries, qinplace token checks, complete qif expansion and measurement draw order. No existing recorded reading is a new blocker. Equal dotted-path tie ordering needs the explicit entry proposed with SOL-R12-B01; dropping either leaf is wrong under either defensible ordering.\nMethod 4: rg scan of the requested patterns across the crate yielded 57 source-line hits, 1,148 test/support-line hits and 12 documentation/seed-line hits. Classified source hits as validated structural invariants (including Tarjan/queue/history/map membership, positive bit width, checked suffix/hex/UTF-8 and constructed signature arrays), fallible Json::Parser::expect calls, test-only assertions, exact-state diagnostic approximation, or explicit rejection of unsupported model/sampler/cleanup choices. Test hits are assertion/setup paths; docs/seed hits are historical/staged disclosures or the seed's loud unsupported-row error. No todo!/unimplemented! runtime stub or newly reachable reported-outcome panic was found; the Python seed was not treated as an oracle.\nMethod 5: checked each §4.2 row family against oracle/machine validation and dispatch, all §4.1 and §4.3–4.7 opcode families, fault codes 0–10, assignment/capture/delivery/direct and CC/R history frame rules, nine object sections, seven version bindings, signature/schema fields, and the eight implemented CLI commands. Existing launch/target/schedule/interval machinery is explicitly staged in deliverables 8–11; it was not counted as delivered or penalized as an undisclosed omission. Canonical effective-control sets remain separate from ordered lexical stacks; all-operand inverse histories and lifetime barriers remain enforced.\nChecked all 16 fixture sidecars against their actual rows and executable outcomes, including wide arithmetic, recursion/stack bounds, arithmetic/fault paths, memory, nested fault propagation, CC effects/host replies, registers/measurement, R9 borrowing and both phase probes. Fresh offline normal suite: 353 passed / 0 failed / 5 ignored. Separately replayed the 16 round-11 literal check objects: 14 accepted and the two phantom-regs objects rejected §3.3; exact probe is {\"01\":[1,0]}, rounded probe has both \"00\"/\"01\"; qinplace B=0 rejects §4.5 and B=1 is identity. The five exhaustive sweep results cited above are the packet's recorded runs, not fresh runs by this reviewer.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-r12-sol.json

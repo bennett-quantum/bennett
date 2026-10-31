@@ -4,7 +4,17 @@
  "doc": "docs/council/isa-ref-2026-10-29/packet-round-12.md",
  "doc_sha256": "346c9c59779abf8d9599cc5432311497f4dc2aae84706fc4f7223909be954663",
  "prepared": "2026-10-31T00:33:44+00:00",
- "members": {},
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T00:49:20+00:00",
+   "exit": 0,
+   "seconds": 28,
+   "errors": [],
+   "updated": "2026-10-31T00:49:47+00:00"
+  }
+ },
  "rubric": "docs/council/rubric-impl.md",
  "subject": "Bennett ISA reference interpreter, round 12 (round-11 fixes: kind-specific regs typing; layout ownership by exact name; fixture evidence audit)",
  "context": [
