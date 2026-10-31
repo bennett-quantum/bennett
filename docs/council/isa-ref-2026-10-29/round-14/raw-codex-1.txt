@@ -1,0 +1,98 @@
+exit 0 in 17s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "The metadata preflight precedes identity and binding consumers. Service versions and action-only block_image metadata now reject all supplied malformed variants; defined complete-sector images remain valid. Two nested certificate schema gaps remain: numeric Y endpoints and untyped exhaustive table rows/components (R14-B01/B02).",
+      "change": "In src/metadata_types.rs::claim and src/certificate.rs::Object::validate_claim, enforce the endpoint representation and recursively type exhaustive table rows/components as specified in R14-B01/B02; add admission regressions to tests/metadata.rs and tests/cli_xam.rs."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "Reproduced all eight R13 witness envelope/object pins and regenerated all three R13 corpora byte-identically without interpreter-derived expectations. The normal suite passes published §16.3 hashes, SHA-256 vectors, SCC/reference ordering, dotted-leaf retention and linking tests. SPEC-QUESTIONS 31 correctly distinguishes the specified dotted-path serialization defect from an implementation hash error.",
+      "change": "No acceptance change required in src/identity.rs or src/linking.rs. Preserve the literal envelopes and the cross-object limitation test; changing ISA 0.8 hashing to remove the recorded collision would violate the settled contract."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "Hand-derived inc8(255): B=2 gives payload/code/steps=(0,1,2), B=3 gives (0,0,3). Hand-derived sum_db(0), db=1..16: B=9/stack=16/depth=1 gives (0,1,9), B=10 gives (0,0,10), stack=15 gives (0,3,3). All reproduced by CLI. Both maximum-exponent objects retain B=0 (0,1,0). Row and fault dispatch, including explicit FAULT_CALLEE propagation, remain represented in oracle/machine/classical tests.",
+      "change": "No acceptance change required in src/oracle.rs; retain these exact step/fault boundary controls and the separate vector and sequential execution paths."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Traced machine.rs::inverse_call and inverse_ret against C5..C1 and R5..R1, including restoring sp/fp before record addressing, delivery before popping callee locations, and argument/result capture uncomputation last. Normal recursive complete-tuple/prefix tests pass. The checked Sc/Ac additions resolve both supplied panics; the 507-case family reproduces 159 constructed, 286 layout-rejected and 62 diagnostic outcomes.",
+      "change": "No acceptance change required in src/machine.rs. For stronger future regression detection, strengthen tests/r1_widths.rs as described in suggestion S1; do not cap legal layout exponents."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "Traced classical.rs call/ret segment boundaries, uncall validation, undo_record and undo_frame against §7.4. For the committed nested fixture, g writes clock 0 and increments it, inner uncall restores bytes/clock/tape, and outer uncall skips the marked g frames and marker. Normal nested effects, atomic fault, host reply, dynamic-instance and register-history tests pass. The block-image constructor now uses a checked lookup, including the post-parse-mutated Object regression.",
+      "change": "No acceptance change required in src/classical.rs; preserve the nested call/ret/uncall and complete-snapshot reversal assertions."
+    },
+    {
+      "id": "C6",
+      "score": 5,
+      "evidence": "The normal suite retains passing exact-state, controlled-call, borrowed-frame, cross-arm lifetime, coherent-loop, qinplace, local-image and matched opaque-inverse tests. Compared the §4.3–4.7 families and §6 obligations with schema/action/borrow/validation dispatch. The R13 production changes do not change Q execution or cleanup semantics; no additional witnessed Q divergence was found.",
+      "change": "No acceptance change required in src/action.rs, src/borrow.rs or the Q cleanup validators. Preserve the existing negative fixtures and exact complete-state inverse checks."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "The seven R13 blocker regressions and both generated families pass; full normal cargo test exits 0 (375 passed, 5 ignored). Schema counts reproduce exactly: 25 positive objects, 2268 node visits, 12849 mutations. All seven sections and all seven defined/import signature kinds are present. However, Y endpoints use an incorrect number|string union and expected.table is empty in the exemplar, so its row/component types receive no mutations. This disproves the claimed complete nested schema-type coverage. Width classes/counts reproduce, with the assertion-strength limitation in S1.",
+      "change": "Correct tests/metadata.rs::r13_types for Y endpoints and add a nonempty correctly typed table exemplar in tests/support/r13_pins.py; regenerate the corpus and mutation counts. Add row and component mutations and assert they fail Object::parse, independently of claim execution."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Reviewed SPEC-QUESTIONS 1–32 against the corresponding spec clauses; the documented index-space, counter-width, qif lifetime, table encoding and dotted-path readings are defensible. Numerical/channel execution remains explicitly staged and is not the admission defect reported here. The generated-family completeness statement is too broad, and no recorded reading justifies admitting JSON numbers where §12.1 explicitly specifies Y decimal strings.",
+      "change": "After R14-B01/B02, update PROGRESS.md and council/response-round-13.md coverage claims/counts to describe the actual populated recursive schema paths. Retain the staged-verifier disclosure and SPEC-QUESTIONS 21 encoding; no spec amendment is needed for these two admission fixes."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R14-B01",
+      "section": "§12.1 channel encoding; §9.1; §15 suite F — src/metadata_types.rs::signed_decimal/claim, src/certificate.rs::Object::validate_claim, tests/metadata.rs::r13_types",
+      "scope": "core",
+      "problem": "Channel Y interval endpoints admit JSON numbers although §12.1 explicitly requires decimal strings. Reproduction from the committed R13 corpus: select the record named certificate in tests/support/r13_schema_cases.json, decode its certificate section, and set regions[8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93].claims[8].dual[0].Y to [[0,0,0,0]]; JCS-serialize that section and leave every other byte/field unchanged. CLI check exits 0 with status ok, object_hash 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 and the unchanged inc8 interface/closure pin. The saved witness is /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r14-Y-number.bisa (full-file SHA-256 578c913bb276d1446e2e038af0ab0a77017d9abe5ec351e3e20b69c307068e11). Both validators accept Number as well as String; the generated family also explicitly permits both, so it cannot catch this schema divergence. No execution input or budget is required.",
+      "fix": "In src/metadata_types.rs::claim, use a channel-endpoint checker that first requires Json::String and then validates a signed finite decimal; in src/certificate.rs::Object::validate_claim apply the same representation requirement when validating Y entries. Do not restrict ordinary decimal fields or §8.1 expression numbers, which have different schemas. Determining §12.1 sentence: \"Encoding: Y is a row-major array of entries [re_lo, re_hi, im_lo, im_hi] (decimal strings).\" §15 suite F includes \"schemas\". Expected: the supplied numeric-endpoint object is rejected by Object::parse and CLI check/hash (exit 1, empty stdout, cited §9.1/§12.1 diagnostic); the otherwise identical [[\"0\",\"0\",\"0\",\"0\"]] control is admitted, while claim execution may remain explicitly Unverified under the staged interval verifier. Add metadata and CLI regressions replacing each of the four endpoint positions with a number, bool, null, array and object. Correct tests/metadata.rs::r13_types so Y leaf endpoints are string-only and rerun the generated family. The general word decimal elsewhere could suggest a number|string union, but the explicit Y encoding overrides that generalization; no SPEC-QUESTIONS exception is warranted."
+    },
+    {
+      "id": "R14-B02",
+      "section": "§§9.1, 12.1–12.2, 15 suite F; SPEC-QUESTIONS 21 — src/metadata_types.rs::claim, src/certificate.rs::Object::validate_claim, tests/support/r13_pins.py",
+      "scope": "core",
+      "problem": "The exhaustive expected.table branch checks only its outer array; neither admission validator checks row arrays or their integer components. On the same committed certificate exemplar, replacing claims[0].expected.table with [false], [\"wrong\"] or [[false]] all produces check exit 0/status ok with unchanged object_hash 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9. A smaller independently pinned action control removes any dependency on staged oracle/schedule verification: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r14-table-positive.bisa uses the R13 block-absent X action, a singleton t=0 domain, and expected.table=[[1]]. It checks and Object::verify_claim returns Evidence { elements: 1 }. Changing only that table to [false], [[false]] or [[{}]] (the adjacent r14-table-row-bool.bisa, r14-table-cell-bool.bisa and r14-table-cell-object.bisa witnesses) still makes both check and hash exit 0/status ok, object_hash ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0, action interface/closure 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be. Only an explicit later verify_claim notices the malformed row or compares the malformed component as a false result. The generated family visits no table row or component because its sole table exemplar is [].",
+      "fix": "In src/metadata_types.rs::claim::expected, replace the list-only table check with recursive array-of-array-of-canonical-unsigned-integer admission, using uint_text rather than a bounded host integer for components. Apply or share that validation in src/certificate.rs::Object::validate_claim. §12.1 specifies exhaustive expected tables and the obligation to \"compare full tuples\"; §12.2 fixes \"enumeration order as listed, last component fastest\". The tuple encoding is underdetermined in the spec itself, but the defensible existing SPEC-QUESTIONS 21 reading resolves it: \"expected.table lists one tuple per element in enumeration order, each component a §9.1 integer\"; src/claims.rs documents and consumes precisely that representation. Arbitrary JSON rows/components are not an alternative recorded reading. Expected: malformed structural rows/components fail Object::parse, check and hash before any claim execution (exit 1, empty stdout, §9.1/§12 diagnostic); the singleton X-action [[1]] control still parses, checks and verifies as one evidence element. Add that populated table exemplar to tests/support/r13_pins.py and admission tests mutating rows to number/string/bool/null/object and components to bool/null/array/object/noninteger or invalid integer string; include a canonical large decimal-string integer component schema control to avoid a new width cap. Keep truth, domain cardinality and full-result comparison in the verifier; this blocker requires schema typing, not evaluating claims at load."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R13-B01",
+      "status": "resolved",
+      "note": "All five non-string service-version witnesses reject at admission/CLI; string 0.8 preserves object pin 3bc26d46…6b11 and arbitrary vendor strings remain accepted."
+    },
+    {
+      "id": "SOL-R13-B02",
+      "status": "resolved",
+      "note": "Both exact u64-max layouts reproduce their pins and remain checkable; B=0 returns (0,1,0), derive/new return errors without unwinding, and reverse exits 1 with a cited host-limit diagnostic."
+    },
+    {
+      "id": "R13-B01",
+      "status": "resolved",
+      "note": "Action-only malformed block_image variants reject; absent/512-byte disk controls retain action identity and execute X. Parser and mutated-public-Object constructor regressions pass without panic."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1: Strengthen tests/r1_widths.rs::r13_generated_derived_width_extremes_family with independently specified expected admission/resource classes for each path/value and explicit P, Did, W_max and slot-width assertions on representative closures. Currently any parse error containing § increments rejected and any later cited error increments host_limits; only the total 507 is asserted, so rejecting all legal layouts or misclassifying execution errors can leave the test green. Keep the current 12-value layout matrix, 15-depth matrix and exact R13 witnesses; assert representative legal cases construct and representative usize/limb/depth limits return their intended diagnostic class. This is a future-regression-strength improvement, not evidence that the currently reproduced 159/286/62 outcomes are wrong."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Enforce string-only signed decimal Y endpoints and correct the generated-family union (R14-B01). 2. Recursively type nonempty exhaustive-table rows/components and populate that branch in the independent corpus (R14-B02). 3. Run the new admission/CLI regressions, both generated families and the normal suite; update the reported family coverage/counts. Retain all three resolved R13 fixes, legal maximum-exponent admission, independent identity pins and the explicit staged interval-verifier boundary. S1 is not required for acceptance.",
+  "summary": "Reviewed the e3ae1afd1c0ded5a6165abac05e3d1454ba3b8c3 packet and the interpreter changes since 932f19b; all 125 embedded files match the detached checkout byte-for-byte. All three previous blockers are resolved. Reproduced their literal pins and CLI results first, ran all seven blocker regressions, and regenerated the eight witness, 25 schema and four limitation records byte-identically in scratch space. Both generated families execute with the reported counts. The metadata family covers all seven sections and all seven defined/import signature kinds, but does not cover the complete claimed nested schema classes: its Y union contradicts the explicit encoding and its empty table hides row/component admission holes. The width family actually reaches the advertised scalar/depth boundary classes, with the nonblocking assertion-strength limitation recorded in S1. Full normal cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/Cargo.toml --no-fail-fast passes (375 passed, 5 ignored); the five ignored sweeps were not rerun in this review, and their recorded editor outcomes are not presented as my executions. Required method (1): hand-derived inc8 wrap/tight budget, sum_db(0) 10-row completion versus B=9 and 15-cell first-call stack fault, and the LF-terminated inc8/action envelopes plus seven sorted scalar layout lines for the maximum exponents; every reproduced outcome/pin matched. (2): traced complete call/ret inverse operations, restored-address ordering and frame clearing against §§3.6–3.7, and the nested g/f clock-effect segment reversal against §7.4; passing complete-tuple tests support those traces. (3): audited SPEC-QUESTIONS 1–32 against their determining clauses; retained the recorded ISA 0.8 dotted-path limitation and the explicit staged deliverables, without demanding a 0.8 identity change. The table encoding reading is defensible but incompletely enforced at admission. (4): searched the crate for all rubric markers: no todo!/unimplemented! hits; 57 source hits are checked/internal invariants, test-only assertions, parser expect methods, explicit unsupported-enum errors, or diagnostic amplitude approximations; 1268 test hits are test expectations, and ten documentation/seed hits do not introduce an additional witnessed executable fallback. (5): compared lifted/classical/Q opcode families, fault codes 0–10, inverse/history frame kinds, the seven metadata schemas and all eight CLI commands with dispatch/validation; the new witnessed failures are the two nested certificate schema cases, not missing staged target/launch/interval execution. No tracked files were modified and no commit or push was made. The two newly exposed admission gaps predate the R13 edits; no regression from a previously correct behavior was established."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r14-codex.json

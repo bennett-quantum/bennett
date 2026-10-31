@@ -1,0 +1,41 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "codex": "revise"
+ },
+ "blocking": {
+  "codex": [
+   {
+    "id": "R14-B01",
+    "section": "\u00a712.1 channel encoding; \u00a79.1; \u00a715 suite F \u2014 src/metadata_types.rs::signed_decimal/claim, src/certificate.rs::Object::validate_claim, tests/metadata.rs::r13_types",
+    "scope": "core",
+    "problem": "Channel Y interval endpoints admit JSON numbers although \u00a712.1 explicitly requires decimal strings. Reproduction from the committed R13 corpus: select the record named certificate in tests/support/r13_schema_cases.json, decode its certificate section, and set regions[8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93].claims[8].dual[0].Y to [[0,0,0,0]]; JCS-serialize that section and leave every other byte/field unchanged. CLI check exits 0 with status ok, object_hash 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 and the unchanged inc8 interface/closure pin. The saved witness is /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r14-Y-number.bisa (full-file SHA-256 578c913bb276d1446e2e038af0ab0a77017d9abe5ec351e3e20b69c307068e11). Both validators accept Number as well as String; the generated family also explicitly permits both, so it cannot catch this schema divergence. No execution input or budget is required.",
+    "fix": "In src/metadata_types.rs::claim, use a channel-endpoint checker that first requires Json::String and then validates a signed finite decimal; in src/certificate.rs::Object::validate_claim apply the same representation requirement when validating Y entries. Do not restrict ordinary decimal fields or \u00a78.1 expression numbers, which have different schemas. Determining \u00a712.1 sentence: \"Encoding: Y is a row-major array of entries [re_lo, re_hi, im_lo, im_hi] (decimal strings).\" \u00a715 suite F includes \"schemas\". Expected: the supplied numeric-endpoint object is rejected by Object::parse and CLI check/hash (exit 1, empty stdout, cited \u00a79.1/\u00a712.1 diagnostic); the otherwise identical [[\"0\",\"0\",\"0\",\"0\"]] control is admitted, while claim execution may remain explicitly Unverified under the staged interval verifier. Add metadata and CLI regressions replacing each of the four endpoint positions with a number, bool, null, array and object. Correct tests/metadata.rs::r13_types so Y leaf endpoints are string-only and rerun the generated family. The general word decimal elsewhere could suggest a number|string union, but the explicit Y encoding overrides that generalization; no SPEC-QUESTIONS exception is warranted."
+   },
+   {
+    "id": "R14-B02",
+    "section": "\u00a7\u00a79.1, 12.1\u201312.2, 15 suite F; SPEC-QUESTIONS 21 \u2014 src/metadata_types.rs::claim, src/certificate.rs::Object::validate_claim, tests/support/r13_pins.py",
+    "scope": "core",
+    "problem": "The exhaustive expected.table branch checks only its outer array; neither admission validator checks row arrays or their integer components. On the same committed certificate exemplar, replacing claims[0].expected.table with [false], [\"wrong\"] or [[false]] all produces check exit 0/status ok with unchanged object_hash 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9. A smaller independently pinned action control removes any dependency on staged oracle/schedule verification: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r14-table-positive.bisa uses the R13 block-absent X action, a singleton t=0 domain, and expected.table=[[1]]. It checks and Object::verify_claim returns Evidence { elements: 1 }. Changing only that table to [false], [[false]] or [[{}]] (the adjacent r14-table-row-bool.bisa, r14-table-cell-bool.bisa and r14-table-cell-object.bisa witnesses) still makes both check and hash exit 0/status ok, object_hash ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0, action interface/closure 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be. Only an explicit later verify_claim notices the malformed row or compares the malformed component as a false result. The generated family visits no table row or component because its sole table exemplar is [].",
+    "fix": "In src/metadata_types.rs::claim::expected, replace the list-only table check with recursive array-of-array-of-canonical-unsigned-integer admission, using uint_text rather than a bounded host integer for components. Apply or share that validation in src/certificate.rs::Object::validate_claim. \u00a712.1 specifies exhaustive expected tables and the obligation to \"compare full tuples\"; \u00a712.2 fixes \"enumeration order as listed, last component fastest\". The tuple encoding is underdetermined in the spec itself, but the defensible existing SPEC-QUESTIONS 21 reading resolves it: \"expected.table lists one tuple per element in enumeration order, each component a \u00a79.1 integer\"; src/claims.rs documents and consumes precisely that representation. Arbitrary JSON rows/components are not an alternative recorded reading. Expected: malformed structural rows/components fail Object::parse, check and hash before any claim execution (exit 1, empty stdout, \u00a79.1/\u00a712 diagnostic); the singleton X-action [[1]] control still parses, checks and verifies as one evidence element. Add that populated table exemplar to tests/support/r13_pins.py and admission tests mutating rows to number/string/bool/null/object and components to bool/null/array/object/noninteger or invalid integer string; include a canonical large decimal-string integer component schema control to avoid a new width cap. Keep truth, domain cardinality and full-result comparison in the verifier; this blocker requires schema typing, not evaluating claims at load."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 5.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "codex"
+ ]
+}
