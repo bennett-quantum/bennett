@@ -1,0 +1,28 @@
+{
+ "run": "isa-ref-2026-10-29",
+ "round": 17,
+ "doc": "docs/council/isa-ref-2026-10-29/packet-round-17.md",
+ "doc_sha256": "64549b85ac78fcaaaa975158ea7c77d9b38d5680a4417b0fdf584c73ee8c2840",
+ "prepared": "2026-10-31T08:32:05+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T08:39:07+00:00",
+   "exit": 0,
+   "seconds": 359,
+   "errors": [],
+   "updated": "2026-10-31T08:45:06+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "Bennett ISA 0.8 reference interpreter, round 17: re-grade after round-16 fix (optional schedule expansion with \u00a717 item 7 default)",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review"
+}

@@ -1,0 +1,41 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "codex": "revise"
+ },
+ "blocking": {
+  "codex": [
+   {
+    "id": "R17-B01",
+    "section": "\u00a717 item 9; \u00a78.1 requested versus achieved accuracy; \u00a711 schedule schema; src/metadata_schema.rs::TABLE(gate_payload)",
+    "scope": "core",
+    "problem": "A schedule selecting a gate realisation while leaving its accuracy share to the normative default is rejected at admission. Start with schedule-gateFalse in tests/support/r13_schema_cases.json and delete only entries[0].gate.epsilon_share; retain realisation=\"native\" and every other field, then JCS-serialize the schedule line. The explicit-zero control passes check/hash; the omission exits 1 with empty stdout and a \u00a79.1/\u00a711 diagnostic ending \"missing field epsilon_share\" under both commands. Witness /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r17-default-epsilon-share.bisa has file SHA-256 8af833c21de5d94c6684b36cf115c46f5080f528fc898ece2bdda9091b9fb2a5 and schedule hash d9025ef24bfd8db01e4e3e0f5b28be776c4e5585b000fd5bd2333122c0d4845d. Object hash remains 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9; interface=closure remains 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. TABLE requires epsilon_share. This is an admission narrowing, not a request to finish the staged target/schedule executor.",
+    "fix": "In src/metadata_schema.rs::TABLE change gate_payload from \"epsilon_share\":\"decimal\" to \"epsilon_share?\":\"decimal\", retaining required realisation and decimal validation whenever the share is supplied. Determining \u00a717 item 9 text: \"Default epsilon_share (\u00a78.1, \u00a711) when a schedule assigns none. Default: the region\u2019s epsilon divided equally among its \u03b5 > 0 operations.\" \u00a78.1 independently states the default share. The \u00a711 sketch alone can suggest a required field, or the default could be read as applying only when there is no gate entry at all; the explicit unqualified omitted-assignment rule does not require that restriction. A realisation-only entry assigns no share and must admit the default. Preserve omission in the canonical document; do not invent a numeric share at admission, which lacks the expanded approximate-operation count. Document its later resolution under \u00a7\u00a78.1/17.9 and keep exact operations exact. Add a literal validate(\"gate_payload\", {\"realisation\":\"native\"}) positive independent of TABLE generation, plus Object::parse/check_hashes and CLI check/hash positives using the pinned witness (exit 0/status ok and unchanged identity). Add present null, object, negative numeric and invalid decimal-string negatives, and a missing-realisation negative; all must still reject with cited diagnostics and CLI empty stdout. No run input is needed and budget [3,0,0,0] stays unchanged. Assert raw schedule preservation and the stated schedule hash. Update derived family counts and retain all R16 controls."
+   },
+   {
+    "id": "R17-B02",
+    "section": "\u00a711 Matching/specificity; src/metadata.rs::Object::validate_schedule_details, specificity, overlaps, Object::resolve_schedule",
+    "scope": "core",
+    "problem": "The validator rejects two equal-specificity overlapping entries without checking whether either can actually be maximal. From schedule-cleanupFalse in tests/support/r13_schema_cases.json form three entries A/B/C, all with the original one-element path (inc8 interface hash, point entry:0), step=1, phase=\"fwd\", generated=0 and kind=\"cleanup\". A: iteration=\"*\", realisation=\"reverse\". B: iteration=\"*\", realisation=\"recompute\". C: iteration=[], realisation=\"reverse\". The point is outside every loop, so every operation matching A or B has iteration=[] and also matches C. A/B specificity is (1,0,1,1,1); C specificity is (1,1,1,1,1). C is the unique maximum throughout their overlap; unrelated operations use defaults. Nevertheless check/hash exit 1, empty stdout, \"\u00a711: \u00a711: multiple maximal matching schedule entries\". All six document-order permutations reject. A/C passes; removing C correctly rejects A/B. Witness /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r17-shadowed-tie.bisa has file SHA-256 9fc08dca3c5697d9fcad31bf82f4a4a566d0fda6959d10675859d748696c1aff and schedule hash e13ea989795d205fcf983b033f24bf1945d8be197c241b3a440a67b2489c287f. Object hash remains 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9; interface=closure remains 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93.",
+    "fix": "Change src/metadata.rs::Object::validate_schedule_details so conflict detection follows \u00a711: \"among matching entries the unique maximal one applies\" and \"two incomparable maximal matching entries make the schedule invalid\"; document order is never significant. Equal-specificity overlap is only a candidate conflict. Reject it only where its realizable intersection has no strictly more-specific matching entry of the same kind. Account for coverage by the union of higher-specificity selectors and the object\u2019s legal invocation/iteration domains; do not merely accept a tie whenever some higher entry overlaps part of it, and do not silently pick document order. This can be implemented as selector-domain intersection/subtraction during admission, without implementing target execution. In tests/metadata.rs add this literal three-entry schedule: parse/check_hashes must succeed and resolve_schedule for {path:[{symbol:inc8_hash,point:\"entry:0\",iteration:[]}],step:1,phase:\"fwd\",generated:0}, kind cleanup, must select C. Assert all six order permutations produce that same maximum. Retain a negative with C removed, and a negative with two copies of C so that the maximum itself ties; both must reject. Add pinned check/hash positives in tests/cli_xam.rs with exit 0/status ok, unchanged object/interface/closure pins and unchanged supplied schedule bytes/hash. No run input or execution budget change is needed; [3,0,0,0] is retained."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "codex"
+ ]
+}
