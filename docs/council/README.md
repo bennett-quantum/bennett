@@ -207,3 +207,17 @@ proofs are spec gaps and are filed as beads in the owning spec repo, not as edit
 - **HANDOFF: one Running/Next/Waiting block, rewritten at session end only.** Mid-session state lives in
   the chat and the worklog; `isa-0.9.PROGRESS.md` is cut to its latest block plus a resume list, like the
   interpreter's.
+
+## Rulings of 2026-10-31 (watcher pass 4; maintainer delegated the choice to the orchestrator)
+
+- **Milestones mean what the plan says.** Work that a repo's PLAN assigns to a later milestone is not pulled
+  into the current one under rule 10; rule 10 forbids dropping capability, not deferring mechanics to the
+  milestone that owns them. Plugin M1 is declared on the plan's definition (scalar reference objects
+  checked/hash/run); bp-dw4's remainder, bp-piq and bp-o7f move to M2/M3/M4; bp-95o is closed (§17.4 makes
+  CC lowering plugin-defined, so no published golden is owed).
+- **One pass per bead, until it closes, with one gate.** No "before" gate re-running the previous head.
+- **Records in implementation repos**: PROGRESS is a resume block plus five lines per pass; obligations live
+  only in bd; verification.json keeps the latest pass; HANDOFF is rewritten at session end only.
+- **Gate**: the pre-push hook itself checks out the pushed sha in a clean worktree and gates that, so the
+  orchestrator pushes normally and `--no-verify` is retired for code pushes.
+- **Watcher cadence**: once a day (maintainer 2026-10-31), plus by-hand passes at milestones.

@@ -64,3 +64,5 @@
 - A determining sentence on each bead: these sentences are the evidence for verdict 1 (bp-95o, bp-o7f).
 
 **Trend:** the spec records shrank as adopted. The same growth came back in the plugin within two hours, as per-pass record sections and as rule-10 caution that keeps M2–M4 work inside M1.
+
+**Maintainer decision (2026-10-31, pass 4):** all six verdicts adopted; watcher cadence set to daily. Recorded in docs/council/README.md.
