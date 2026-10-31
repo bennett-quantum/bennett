@@ -3,12 +3,12 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-10-31, ~17:00Z
+## 2026-10-31, ~19:00Z
 
-**Running**: isa-ref round 19 (astra alone; re-grade of the R18 fix under INV-5 1.4.3: nested ties
-deferred to resolution, SPEC-QUESTIONS 33); **isa-09 round 1** (sol + astra; first council round on
-draft 0.9, K1-K61, proofs INV-1..5 and the statement view as context); ISA main gate push
-(background). Process watcher every 8 h.
+**Running**: isa-ref round-20 fix (sol editor: const_literal at u64-extreme widths + extreme-width sweep
+of every parser path); isa-09 round 2 (astra alone; re-grade of K62-K67, K64/K65 drafted for
+maintainer ratification). Process watcher scheduled every 8 h (the 14:50Z run never fired while the
+thread was busy; the second pass was run by hand at 18:00Z).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
@@ -25,7 +25,15 @@ statements; JCS-array envelope paths); INV-5 (schedule selection; 4 refuted step
 arbitrated the R18 fix); statement layer (ISA-0.9-draft 1,537 statements, 91 declared markers);
 proofs cite statement IDs (strong coverage 150/541 on 0.8).
 
-**Next**: collect isa-09 round 1 and isa-ref round 19 (astra alone; first round on the structured schema, add
+**Since 17:00Z**: isa-ref round 19 ACCEPT (astra, core accept); round 20 sol acceptance vote returned one
+new S0 (const_literal allocates N+1 bits; fix running); isa-09 round 1 both seats core accept, one
+blocker each (K62 canonical action adjoint, K63 invocation-edge identity), spec gaps 8ka/23g
+drafted as K64/K65 **pending maintainer ratification**, library hash rebound to 5de4e499…d197
+(219 recipes, Rust = Python); watcher pass 2 (6 verdicts; orchestrator view: take 2, 3, 4 and part
+of 1; hold 5 and 6 one round); ISA main pushed through its gate (f59cb86 + docs); draft diff
+witness now uses stable labels.
+
+**Next**: collect isa-09 round 2 and isa-ref round 21 (sol re-vote after the round-20 fix) (astra alone; first round on the structured schema, add
 `--context ../bennett-conformance/proofs/INDEX.md` and `proofs/INV-*.md`); if accept -> sol
 acceptance vote -> interpreter leaves the loop; then re-import suite cases from the accepted
 snapshot. Verify the §11.1 completion (library hash Rust = Python; §11.1 marker written). Dialect:
