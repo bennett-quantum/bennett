@@ -168,7 +168,8 @@ severity S0, problem with its witness, and the concrete fix),
 you did and their results). Consensus is reached when every member
 returns `accept` with an empty blocking list.
 
-**Shape of a blocking item.** Give `steps`, not `problem`: 3 to 6 numbered steps
+**Shape of a blocking item.** `steps` are optional (a free-text `problem` is also accepted; steps are preferred for
+implementation findings with a reproducible witness). When given they are 3 to 6 numbered steps
 `{"n": "<1>1", "claim": "...", "by": "..."}`. Step 1 is what the spec requires (`by`
 starts with `clause:<ID>`, a clause or section id from the clause graph, or with
 `ASSUMED: <why the spec is silent>`); then what the code does, with a `witness:<path or

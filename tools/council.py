@@ -84,6 +84,19 @@ def steps_errors(b):
     return errs
 
 
+def problem_kind_errors(b):
+    """kind routing for a free-text item: a `problem` beginning `ASSUMED:` is a spec gap."""
+    who = f"blocking {b.get('id')!r}"
+    assumed = b["problem"].strip().startswith("ASSUMED:")
+    kind = b.get("kind", "implementation")
+    if assumed and kind != "spec-gap":
+        return [f"{who}: problem begins with ASSUMED (the spec is silent), so the item must carry "
+                '"kind": "spec-gap"']
+    if kind == "spec-gap" and not assumed:
+        return [f"{who}: kind spec-gap requires `problem` to begin with `ASSUMED:`"]
+    return []
+
+
 # ---------------------------------------------------------------- schema
 
 def schema():
@@ -98,19 +111,19 @@ def schema():
             "properties": {"n": {"type": "string"}, "claim": {"type": "string"},
                            "by": {"type": "string"}},
             "required": ["n", "claim", "by"]}
-    # New rounds: a blocking item is a structured argument (`steps`); `problem` is gone from
-    # the schema (old rounds keep their saved schema.json and still validate). `kind` is
-    # required here only because strict output schemas want every property required; a missing
-    # `kind` in older JSON means "implementation" (see validate()).
+    # New rounds: a blocking item carries structured `steps` or a free-text `problem`. Strict
+    # output schemas want every property required, so both are required here and either may be
+    # empty; validate() demands at least one non-empty (and 3-6 well-formed steps if `steps` is
+    # non-empty). A missing `kind` in older JSON means "implementation" (see validate()).
     issue = {"type": "object", "additionalProperties": False,
              "properties": {"id": {"type": "string"},
                             "section": {"type": "string"},
                             "scope": {"type": "string", "enum": ["core", "contract"]},
                             "kind": {"type": "string", "enum": list(KINDS)},
-                            "steps": {"type": "array", "minItems": MIN_STEPS,
-                                      "maxItems": MAX_STEPS, "items": step},
+                            "steps": {"type": "array", "maxItems": MAX_STEPS, "items": step},
+                            "problem": {"type": "string"},
                             "fix": {"type": "string"}},
-             "required": ["id", "section", "scope", "kind", "steps", "fix"]}
+             "required": ["id", "section", "scope", "kind", "steps", "problem", "fix"]}
     prev = {"type": "object", "additionalProperties": False,
             "properties": {"id": {"type": "string"},
                            "status": {"type": "string",
@@ -156,15 +169,19 @@ def validate(r):
         errs.append("blocking missing")
     else:
         for b in bl:
-            # Legacy items carry `problem`; structured items carry `steps` instead.
-            need = ("id", "section", "fix") if isinstance(b, dict) and "steps" in b \
-                else ("id", "section", "problem", "fix")
-            if not isinstance(b, dict) or not all(isinstance(b.get(k), str) for k in need):
+            # An item carries structured `steps` or a free-text `problem` (either may be
+            # empty in a new-round item, but not both).
+            if not isinstance(b, dict) or not all(isinstance(b.get(k), str) for k in ("id", "section", "fix")) \
+                    or not isinstance(b.get("problem", ""), str):
                 errs.append(f"blocking entry malformed: {b!r}"[:200])
-            elif "steps" in b:
+            elif b.get("steps"):
                 errs.extend(steps_errors(b))
-            elif "kind" in b and b["kind"] != "implementation":
-                errs.append(f"blocking {b.get('id')!r}: kind {b['kind']!r} requires `steps`")
+            elif b.get("steps") not in (None, []):
+                errs.append(f"blocking {b.get('id')!r}: steps must be a list of {MIN_STEPS}-{MAX_STEPS} steps")
+            elif not b.get("problem", "").strip():
+                errs.append(f"blocking {b.get('id')!r}: needs non-empty `steps` or `problem`")
+            else:
+                errs.extend(problem_kind_errors(b))
             if isinstance(b, dict) and b.get("kind", "implementation") not in KINDS:
                 errs.append(f"blocking {b.get('id')!r}: kind {b['kind']!r} not in {KINDS}")
     if r.get("verdict") == "accept" and any(not is_spec_gap(b) for b in (bl if isinstance(bl, list) else [])):
@@ -342,15 +359,12 @@ CONVERGENCE = (
 
 
 STRUCTURED = (
-    "Blocking items are structured arguments, not free text: omit `problem`; give `steps`, 3 to 6 objects "
-    '{"n": "<1>1", "claim": "...", "by": "..."}.\n'
-    "Shape: <1>1 what the spec requires; <1>2 what the implementation does, with a reproducible witness; "
-    "<1>3 an input on which they differ; last step: conclusion (the fix goes in `fix`).\n"
-    "`by` is `clause:<ID>` (a clause id such as ISA-17-P9, or a section such as ISA-17), "
-    "`witness:<path or command>`, `step:<1>1` (an earlier step),\n"
-    "`ASSUMED: <why the spec is silent>` or `OPEN: <what is missing>`; separate several with `; `.\n"
-    "Step 1 starts with `clause:` or `ASSUMED:`; some step has `witness:`; the last step cites earlier steps with `step:`.\n"
-    "If step 1 is `ASSUMED:` the spec is silent: set `kind` to `spec-gap` (otherwise `implementation`); "
+    "Blocking items: `steps` are optional; use them (3 to 6 objects {\"n\": \"<1>1\", \"claim\": \"...\", \"by\": \"...\"}) "
+    "for implementation findings with a reproducible witness, else give a free-text `problem`; leave the other empty.\n"
+    "Steps: <1>1 what the spec requires (`by`: `clause:<ID>` or `ASSUMED: <why the spec is silent>`); <1>2 what the "
+    "implementation does (`witness:<path or command>`); <1>3 an input where they differ; last step cites earlier ones (`step:<1>1`).\n"
+    "`OPEN: <what is missing>` marks an unjustified step; several `by` parts are separated by `; `.\n"
+    "If the spec is silent (step 1 or `problem` begins `ASSUMED:`) set `kind` to `spec-gap` (otherwise `implementation`); "
     "a spec gap goes to the spec owner,\n"
     "is not an editor blocker and does not count against `accept`.\n")
 
