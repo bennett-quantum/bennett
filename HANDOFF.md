@@ -3,12 +3,13 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-10-31, ~19:00Z
+## 2026-10-31, ~20:30Z
 
-**Running**: isa-ref round-20 fix (sol editor: const_literal at u64-extreme widths + extreme-width sweep
-of every parser path); isa-09 round 2 (astra alone; re-grade of K62-K67, K64/K65 drafted for
-maintainer ratification). Process watcher scheduled every 8 h (the 14:50Z run never fired while the
-thread was busy; the second pass was run by hand at 18:00Z).
+**Running**: isa-ref round-21 fix (sol editor: claims.rs::domain cells=all, hostcall/console.write
+transfer lengths; class sweep over exponent-derived counts and lengths under RLIMIT_AS); dialect
+`outline-0.3` editor (sol: the 0.1-narrowing epic b-dialect-spec-8wf as an outline for maintainer
+ruling, per the dialect's convention). Process watcher every 8 h (fires only when idle; run by hand
+if overdue).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
@@ -33,7 +34,12 @@ drafted as K64/K65 **pending maintainer ratification**, library hash rebound to 
 of 1; hold 5 and 6 one round); ISA main pushed through its gate (f59cb86 + docs); draft diff
 witness now uses stable labels.
 
-**Next**: collect isa-09 round 2 and isa-ref round 21 (sol re-vote after the round-20 fix) (astra alone; first round on the structured schema, add
+**Draft 0.9 ACCEPTED by sol (r3) and codex (r2)** on snapshot 59eee9ad0d96, 0 blocking; **K64/K65 await
+maintainer ratification**; muse seat held. Interpreter round 21: both seats found host-resource
+aborts (same class as R20); fix running; round 22 = two-seat acceptance vote.
+
+**Next**: collect the round-21 fix -> round 22; collect the dialect outline-0.3 -> maintainer rulings ->
+0.3 drafting (astra alone; first round on the structured schema, add
 `--context ../bennett-conformance/proofs/INDEX.md` and `proofs/INV-*.md`); if accept -> sol
 acceptance vote -> interpreter leaves the loop; then re-import suite cases from the accepted
 snapshot. Verify the §11.1 completion (library hash Rust = Python; §11.1 marker written). Dialect:
