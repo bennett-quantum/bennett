@@ -49,3 +49,18 @@
 **Trend:** pass-1 cuts held (interpreter PROGRESS 1,874→100 lines). Half of pass 2's cuts landed. The councils converge (0 blockers across five spec rounds) and the records do not: churn moved from PROGRESS into a HANDOFF that is now less accurate.
 
 **Maintainer decision (2026-10-31):** all six verdicts adopted as recommended by the orchestrator (item 2 as "session-end only"); recorded in docs/council/README.md.
+
+## 2026-10-31 14:50Z (fourth run, scheduled; skim-level, 14 tool calls)
+
+1. **Move the four open beads to the milestones the plan already assigns, and declare M1 by the plan's own definition.** `bennett-plugin/docs/PLAN.md` defines M1 as "scalar integer reference objects checked/hash/run". M2 is "descriptors/shapes, entry-state replay, shadow-stack", M3 is "handle register files … budgets", M4 is "certificates/coverage/build records", and the §8 row says "M2 descriptors/replay/wide/in-place". So bp-dw4 goes to M2/M3. bp-piq goes to M2 under bp-311, and the gate already prints "milestone 2" for it. bp-o7f goes to M4 and is blocked upstream anyway (8r4/47t). Close bp-95o, because its own sentence (§17.4: lowering "is plugin-defined") means no published golden is owed. Rule 10 allows deferring mechanics, and brief 1b item 5 asked "what moved to M2". The editor's "pull forward … from M3" (PLAN:116) is what pulled M3 work into M1.
+2. **One pass per bead, run until the bead closes, with one gate.** Passes 4–8 so far took 97 minutes and produced 9 code commits plus 4 "Record … pass" commits. Each pass runs two full dual-major gates, and the "before" gate retests the previous pass's head (seventh pass base 32427ed).
+3. **PROGRESS: shrink to a resume block plus five lines per pass, and keep obligations only in bd.** It grew from 161 to 906 lines since 07f942c, and 14 of 19 commits touch it. The same four-bead paragraph appears in PROGRESS, HANDOFF, PLAN and `remaining_M1`. Every section repeats "no North-Star capability excluded / Grover remains core / no deferrals added", and nothing reads it.
+4. **verification.json: keep the latest pass only.** It is 475 KB, with 10k lines added. Its only readers are its writer and two tests that load probe sources from `seventh_pass`; move those sources into `tests/`.
+5. **Run the clean worktree inside `scripts/pre-push` (check out the pushed sha it reads from stdin) and retire `--no-verify`.** A clean checkout is a stronger test than the in-tree hook, which tests the dirty tree. It is a defense only while the pushed sha equals the gated sha, and I did not check that. This turns two steps into one.
+6. **Plugin HANDOFF: rewrite at session end only (pass-3 verdict 2).** It has had 10 rewrites in 19 commits. It also says "never push" while the orchestrator pushes.
+
+**Keep, it earned it**
+- `plugin_sha256` digest check: it invalidated a fifth-pass gate whose plugin binary changed during the corpus run (`record-verification.py:84`).
+- A determining sentence on each bead: these sentences are the evidence for verdict 1 (bp-95o, bp-o7f).
+
+**Trend:** the spec records shrank as adopted. The same growth came back in the plugin within two hours, as per-pass record sections and as rule-10 caution that keeps M2–M4 work inside M1.
