@@ -180,3 +180,15 @@ Every interpreter round and every 0.9 spec round passes the Lamport-style invari
 task text asks each reviewer to cite the theorem step a finding violates, or to say that it fits
 no stated theorem, which is the signal that a theorem is missing. Refuted or ASSUMED steps in the
 proofs are spec gaps and are filed as beads in the owning spec repo, not as editor blockers.
+
+## Rulings of 2026-10-31 (evening)
+
+- **Muse seat**: advisory for patch releases already in use (dialect 0.2.10); required for new contracts
+  (ISA 0.9). A new contract publishes only with the muse vote.
+- **Implementation acceptance tail**: when successive acceptance votes each find one more instance of a
+  host-resource class (allocation chains, extreme sizes) and the proven invariants hold, the maintainer may
+  declare the implementation accepted on the proven core and move the class to the conformance suite as
+  generated cases; the council stops reviewing that class.
+- **Watcher items 5 and 6** (declared `[deps:]` markers; structured `steps`): held one more pass; cut if the
+  next watcher pass finds no catch. **Item 1**: dialect statement files and `.dot` outputs are no longer
+  committed (generated on demand); ISA statement files stay because proofs and reviews cite them.
