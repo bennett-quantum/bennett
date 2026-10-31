@@ -1,0 +1,56 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R20-B01",
+    "section": "S0; ISA \u00a7\u00a73.3, 4.2, 16.2; src/object.rs::const_literal (lines 1571\u20131580)",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "\u00a73.3 defines reg[N] as a location and bounds only iN to 128; \u00a74.2 admits w = lift.const.iN c into that location. The existing SPEC-QUESTIONS 12/15 readings admit any positive lifted width and require -2^(N-1) <= c < 2^N. Thus c=1 is in range for N=18446744073709551615 and N=18446744073709551614. Both are within the crate's documented u64 descriptor range; neither may be diagnosed as an invalid literal. A host storage limitation is distinct from an ISA range violation.",
+      "by": "clause:ISA-3.3; clause:ISA-4.2; clause:ISA-16.2"
+     },
+     {
+      "n": "2",
+      "claim": "Independent pinned object: signature {\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[],\"tgt\":8,\"tier\":\"q\"}; body is \"oracle @o (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\\nregs { huge:reg[18446744073709551615] }\\n^entry():\\nhuge = lift.const.i18446744073709551615 1\\nlift.retval x\\n\". Its 269-byte \u00a79.2 envelope hashes to 97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1; whole object SHA-256 is 94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344. Running target/debug/bennett-isa-ref check on the witness exits 101, stdout empty: object.rs:1571:65, attempt to add with overflow. const_literal evaluates unchecked w + 1 before BitVector can report its storage limit. No input or execution budget is needed to trigger it (input 8/B=0 is already blocked at admission).",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r20-sol-const-width-18446744073709551615.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/object.rs:1571"
+     },
+     {
+      "n": "3",
+      "claim": "The adjacent N=18446744073709551614 object has interface=closure 9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318 and whole-object SHA-256 254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367. check exits 1 with \"\u00a73.3: const literal 1 is outside [-2^(N-1), 2^N)\". Here BitVector::zero catches its width+63 overflow, but const_literal converts every Err from parse_unsigned_exact to false. Removing only the constant row from the N=max object and independently repinning it checks successfully (interface=closure 1eb6334cdc97e60b30ae2853f9e5e084161a2338b857430687239ad19a5b2e8e), so the declaration itself is admitted.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r20-sol-const-width-18446744073709551614.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r20-sol-const-width-unused-control.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/bits.rs:12; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/object.rs:1571"
+     },
+     {
+      "n": "4",
+      "claim": "The loader panics or reports a false ISA range violation for the legal literal 1. This is a core S0 admission/reporting failure, separate from the repaired DerivedWidths path. It fits no stated theorem of INV-1\u2013INV-5: those proofs do not model constant-parser host-resource handling; no additional spec assumption is needed to establish that 1 fits these positive widths.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "fix": "Change src/object.rs::const_literal. The determining text is \u00a73.3 \"reg[N] ... a location (oracle bodies, lprocs); not linear\" together with \u00a74.2 \"w = lift.const.iN c\" and the already recorded SPEC-QUESTIONS 12/15 range/width readings. Validate a literal using storage proportional to its magnitude spelling and compare its bit length/magnitude to N; do not allocate N+1 bits just to validate a small literal, do not compute unchecked w+1, and do not collapse representation/storage errors into out-of-range. For positive 1 at either supplied N, admission must succeed and retain the exact pins above. Add library tests under catch_unwind requiring Object::parse plus check_hashes to succeed for both complete witness objects; add CLI check/hash controls requiring exit 0/status ok and those identities. Keep ordinary out-of-range literals rejected (e.g. i8 256 and i8 -129), and include negative/zero controls at the extreme widths. Actual execution needing an unrepresentable location may return a cited host-resource Result error, never panic or claim literal 1 is out of range. No arbitrary ISA width cap and no spec amendment."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 5.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol"
+ ]
+}
