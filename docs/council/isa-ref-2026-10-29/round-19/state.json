@@ -1,0 +1,34 @@
+{
+ "run": "isa-ref-2026-10-29",
+ "round": 19,
+ "doc": "docs/council/isa-ref-2026-10-29/packet-round-19.md",
+ "doc_sha256": "43c5bb5644cf6b1fb9f55f44b18ba4633fc19e88d28cbd258de8e12819837083",
+ "prepared": "2026-10-31T10:03:40+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T10:10:26+00:00",
+   "exit": 0,
+   "seconds": 29,
+   "errors": [],
+   "updated": "2026-10-31T10:10:55+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "Bennett ISA 0.8 reference interpreter, round 19: re-grade after round-18 fix (per-invocation step domains; nested ties deferred to resolution per INV-5 1.4.3; SPEC-QUESTIONS 33)",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review"
+}

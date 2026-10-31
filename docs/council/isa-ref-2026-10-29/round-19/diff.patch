@@ -1,0 +1,2889 @@
+--- round-18/doc.md
++++ round-19/doc.md
+@@ -1,12 +1,13 @@
+-# Bennett ISA reference interpreter, council round 18 (re-grade after round-17 fixes; codex seat only; structured blockers)
+-
+-Snapshot of `reference-interpreter/` at commit `be9e6d1301761a289e4abaa11e7fa6e9a1a9106d`. 152 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 516 lines, sha256 52347a19352d
+-- `PROGRESS.md` 126 lines, sha256 9e81e0044229
+-- `SPEC-QUESTIONS.md` 296 lines, sha256 c5d6d6eb56e0
++# Bennett ISA reference interpreter, council round 19 (re-grade after round-18 fix; codex seat only; structured blockers; INV-5 context)
++
++Snapshot of `reference-interpreter/` at commit `85241b8355fe608c90f29b44463c1568664ae83e`. 158 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 538 lines, sha256 5383962a93f2
++- `PROGRESS.md` 135 lines, sha256 b62c4d20055a
++- `SPEC-QUESTIONS.md` 332 lines, sha256 f9d92d1588ac
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-17.md` 267 lines, sha256 4bee624be1d7
++- `council/response-round-18.md` 211 lines, sha256 331ef032ec52
+ - `src/metadata_schema.rs` 353 lines, sha256 3a691d09a0b0
++- `src/metadata/schedule_domains.rs` 477 lines, sha256 65c3e9badbab
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+@@ -19,4 +20,5 @@
+ - `council/response-round-15.md` 182 lines, sha256 b3d829e5cf53
+ - `council/response-round-16.md` 189 lines, sha256 9f12691508df
++- `council/response-round-17.md` 267 lines, sha256 4bee624be1d7
+ - `council/response-round-2.md` 260 lines, sha256 ad3b4b794b86
+ - `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+@@ -28,5 +30,5 @@
+ - `council/response-round-9.md` 242 lines, sha256 cca9d01464b6
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+-- `src/action.rs` 1059 lines, sha256 6179cce7d47f
++- `src/action.rs` 1066 lines, sha256 1467f754ab50
+ - `src/bits.rs` 384 lines, sha256 b7c11790ac89
+ - `src/borrow.rs` 1990 lines, sha256 a7e4e8e0c997
+@@ -43,12 +45,11 @@
+ - `src/lib.rs` 62 lines, sha256 7f25dcecf133
+ - `src/linking.rs` 403 lines, sha256 b773eff53f8d
+-- `src/machine.rs` 1293 lines, sha256 a3692f5e18a6
++- `src/machine.rs` 1294 lines, sha256 527e0bce9c0c
+ - `src/main.rs` 2001 lines, sha256 2d378567ac42
+-- `src/metadata/schedule_domains.rs` 212 lines, sha256 8aa0aef498ce
+-- `src/metadata.rs` 415 lines, sha256 1fc2ae4b6e52
++- `src/metadata.rs` 421 lines, sha256 2d0d7d7d0676
+ - `src/metadata_schema/tests.rs` 564 lines, sha256 ac67f6a9ad6c
+ - `src/metadata_types.rs` 7 lines, sha256 2aef2d060fa5
+ - `src/object.rs` 1774 lines, sha256 c99a4ca0d870
+-- `src/oracle.rs` 860 lines, sha256 c852a0c5d82c
++- `src/oracle.rs` 861 lines, sha256 e29aa9ffb215
+ - `src/quantum.rs` 893 lines, sha256 9ac2ba04ab35
+ - `src/registers.rs` 258 lines, sha256 d0e263c64ed6
+@@ -60,5 +61,5 @@
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 2230 lines, sha256 e1545d540c1f
++- `tests/cli_xam.rs` 2355 lines, sha256 ec956c81e012
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -96,6 +97,6 @@
+ - `tests/identity.rs` 614 lines, sha256 119066ed630d
+ - `tests/linking.rs` 133 lines, sha256 ca9f81880cc9
+-- `tests/metadata.rs` 805 lines, sha256 65560f56b319
+-- `tests/oracle.rs` 301 lines, sha256 a441482548ea
++- `tests/metadata.rs` 1284 lines, sha256 a3eb913a63e1
++- `tests/oracle.rs` 312 lines, sha256 b150c109a1c6
+ - `tests/parser.rs` 434 lines, sha256 8449dc9e827d
+ - `tests/quantum.rs` 442 lines, sha256 fdf7eb90ace9
+@@ -117,5 +118,5 @@
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 781 lines, sha256 7034558d8c48
++- `tests/support/mod.rs` 783 lines, sha256 b30b7cc9e29e
+ - `tests/support/r10_cases.json` 1 lines, sha256 ac147d3409d3
+ - `tests/support/r10_pins.py` 66 lines, sha256 f9753b4c0606
+@@ -153,10 +154,15 @@
+ - `tests/support/r17.rs` 42 lines, sha256 07e5a1b1deb7
+ - `tests/support/r17_pins.py` 38 lines, sha256 a5b6ad7b5712
++- `tests/support/r18-nested-budget-2.bisa` 34 lines, sha256 07c617a312f2
++- `tests/support/r18-nested-budget-3.bisa` 34 lines, sha256 0584dc9a6dbe
++- `tests/support/r18-review-probe.rs` 21 lines, sha256 0dc1c86bbdb6
++- `tests/support/r18.rs` 168 lines, sha256 3ca4a41d420e
++- `tests/support/r18_pins.py` 32 lines, sha256 5c45e1513435
+ - `tests/support/r9_pins.py` 47 lines, sha256 46a27f6d9112
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 42541 lines.
+-
+-## `README.md` (516 lines)
++Total embedded: 44005 lines.
++
++## `README.md` (538 lines)
+ 
+ ````markdown
+@@ -641,20 +647,42 @@
+ without a metadata field and staged target/interval consumers.
+ 
+-**Design (schedule matching).** Specificity is the §11 lexicographic tuple;
+-only ties at the actual maximum invalidate a schedule. Admission intersects
+-equal-specificity selectors with the object's legal invocation/loop domains
+-and oracle step budget, then subtracts the union of all strictly higher
+-matching domains of the same kind. A nonempty remainder witnesses ambiguity.
+-Domains are boxes with selector boundaries; loop/step counts are never
+-expanded or capped. The shortest chains in a prefix suffice: each instruction
+-(including a call) has its own generated operations, so a longer path cannot
+-cover those operations; covering their whole domain with prefixes covers
+-extensions too. Empty paths are split over real root instructions. Generated
+-ordinal ranges remain symbolic for the bound expansion library.
+-`Object::resolve_schedule` counts maxima after inspecting every match and
+-reports a genuine tie instead of selecting document order. The independent
+-1,200-schedule specificity family checks all 54 concrete selector partitions
+-per case and reversed document orders; union/partial coverage and zero/large
+-loop domains have separate controls.
++**Design (schedule matching, round 18).** Specificity is the §11 lexicographic
++tuple; only ties at the actual maximum invalidate a schedule. Admission
++intersects equal-specificity selectors with known invocation/loop domains,
++then subtracts the union of all strictly higher matching domains of that kind.
++A nonempty remainder is a concrete maximal-tie witness. Step bounds follow
++the owning invocation: the root oracle uses bindings.budget[0]; lift.call and
++lifted action gates stay in that machine. lift.oracle_call/uncall and normalized
++oracle_call enter a new token-governed invocation, never bounded by root B.
++ISA 0.8 has no object-level token constant: every nested budget is a classical
++parameter, unavailable from params_hash. The derivable-nested-budget branch
++therefore cannot fire at admission in 0.8; whether 0.9 adds one is a spec
++decision (b-isa-spec-6hs). Admission checks root-owned domains exactly and
++**defers** unknown nested domains. Neither root clipping nor a symbolic
++"any budget" nested rejection is sound (INV-5 1.4.3; SPEC-QUESTIONS 33).
++`Object::check_schedule_matches_for_run` binds the actual tokens, including
++callee parameter forwarding, and uses their own budgets in the same domain
++algorithm. For each concrete ambiguity it calls `Object::resolve_schedule`,
++which counts final maxima independently of document order and raises the §11
++diagnostic before any realisation. This matching preflight runs before either
++oracle engine or action execution mutates state; it is not full target/timing
++execution. A valid token-B=2 run is never rejected for a tie only at step 3.
++Domains split at selector boundaries; step/loop bounds are never expanded or
++capped. Known finite step domains require checking call extensions that can
++enter a larger invocation. Suffix states (including bound arguments and budget)
++are memoized beyond the longest selector path, so recursive lprocs terminate
++without a depth cap. Empty paths split over real root instructions; zero-trip
++loops, root B=0 and zero-budget nested ancestors stay empty. Generated ordinal
++ranges remain symbolic for the staged expansion library.
++The retained R17 family checks 1,200 schedules and reversed orders against 54
++concrete selector partitions each. The R18 family adds 7,500 schedules and
++reversed orders over depth 1–3 oracle/lproc chains and action roots. It covers
++1,532 distinct concrete budget assignments, enumerating 569,910 operation
++partitions. Its oracle checks root-only admission separately from tie
++reachability under **each actual run's budgets**, and compares bound matching
++and concrete resolver results, including deferred errors: 100% agreement.
++These finite selector families do not claim full schedule/target execution.
++Union/partial coverage, parameter forwarding, and zero/large loop bounds have
++separate controls.
+ 
+ `DerivedWidths::from_program` checks H+2, A_tab+1 and S_cells+1; a legal layout
+@@ -679,5 +707,5 @@
+ ````
+ 
+-## `PROGRESS.md` (126 lines)
++## `PROGRESS.md` (135 lines)
+ 
+ ````markdown
+@@ -686,94 +714,103 @@
+ Resume here. The whole accepted ISA 0.8 remains in scope; staged deliverables
+ are not complete. Sole implementation sub-agent; owned interpreter and external
+-round-17 response only. Never push. Every cargo invocation uses the headless
++round-18 response only. Never push. Every cargo invocation uses the headless
+ prefix and TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
+ 
+-## Round-17 fixes (2026-10-31)
+-
+-Baseline **390 passed / 0 failed / 5 ignored**, summed over all 33 binaries
+-(including 0-test main/doctests), 22.35 s runner sum. Initial witness RED:
+-**2 passed / 4 failed**, missing epsilon_share and pairwise nonmaximal-tie
+-rejection. Audit RED for sampler.count: **0 passed / 1 failed**, missing count.
+-All round 4–17 positive and negative tests are retained.
++## Round-18 fixes (2026-10-31)
++
++Baseline **403 passed / 0 failed / 5 ignored**, summed over all 33 binaries
++(including 0-test main/doctests), **22.51 s** runner sum. Original reviewer RED:
++**1 passed / 2 failed**, root-B clipping admits the nested tie. Initial local
++commit 9f7ea64 implemented the reviewer's symbolic-range remedy; superseded by
++the orchestrator's INV-5 addendum because that remedy over-rejects token B=2.
++Addendum RED: **0 passed / 1 failed**, literal deferred-admission test rejects
++under that symbolic-range commit. Both directions are repaired below.
+ 
+ | Blocker | RED tests | Status | Commit |
+ |---|---|---|---|
+-| R17-B01 | metadata_schema::tests::r17_gate_payload_omission_is_literal_clause_control; metadata::r17_default_share_and_shadowed_witness_preserve_identity; cli_xam::r17_cli_default_share_and_shadowed_tie_check_hash_pins; audit r17_sampler_count_default_is_optional | GREEN | e72df8c |
+-| R17-B02 | metadata::r17_shadowed_tie_all_orders_and_genuine_maximum_ties | GREEN | e72df8c |
+-
+-Design: TABLE gate_payload uses epsilon_share?:decimal (§17.9). The
+-schedule_epsilon_share consumer returns an exact equal-share recipe once the
+-expanded approximate-operation count is known, or preserves an explicit
+-assignment; exact operations remain exact. No canonical bytes are rewritten.
+-The class audit also found sampler.count wrongly required (§17.13); TABLE
+-now makes it optional and claim replay defaults to 65,536, with actual replay
+-and malformed-present controls. Item 7 was previously wrong and repaired in
+-R16; it remains covered. The independent table-driven
+-r17_section17_defaults_are_optional_and_applied enumerates all 14 items,
+-checking omitted-field admission plus consumer observations where implemented.
+-Nonsemantic decisions/C layout and staged target/interval choices are
+-explicitly identified, never counted as implemented consumers. §§8.1, 9.1,
+-11 and 12 audit: no additional incorrectly required default field found;
+-block_image and pinned_closure_hash remain optional, with empty-block-map
+-and unpinned-link consumers already present. Precision/seed/algorithm and
+-present kind payloads still have no omission default and remain required.
+-
+-Schedule ambiguity uses intersection/subtraction of selector boxes within
+-legal invocation/iteration domains and the oracle's 1..B step range. Only a
+-nonempty equal-maximum remainder after subtracting the UNION of all higher
+-entries rejects. The resolver counts final maxima independent of order.
+-Shortest real chains suffice, including each call instruction's own generated
+-operations; empty prefixes split over all root instructions. No loop bound
+-or generated-ordinal sampling cap is imposed. All six witness orders admit
+-and resolve C; A/B and duplicate C reject, A/C admits. Union/partial coverage,
+-step-domain and loop bounds 0, 2, 3 and 2^40 are covered. The independent
+-specificity family observes **1,200 schedules + 1,200 reversed orders**,
+-**1,168 admitted / 32 rejected**, 54 concrete operation patterns each,
+-**100% oracle agreement**; every admitted resolver result is compared too.
+-
+-Both read-only reviewer witnesses were copied byte-for-byte. r17_pins.py
+-independently reconstructs them from the R13 corpus and literal 261-byte
+-inc8 envelope (no interpreter/rehash). File SHA-256 8af833c2…2a5 and
+-9fc08dca…1aff; schedule hashes d9025ef2…4845d and e13ea989…287f;
+-object 8093da48…ec5d9, interface=closure 8ce5e64f…5be93 remain unchanged.
+-Raw schedule bytes, source text and budget [3,0,0,0] are preserved.
+-Null/object/negative/invalid decimal-string shares and missing realisation
+-reject in both library and CLI (check/hash exit 1, empty stdout, cited
+-§9.1/§11). Present malformed counts also reject; absent sampled count
+-actually replays 65,536 elements; explicit 0 and 3 remain 0 and 3.
+-
+-Derived schema family: **163 productions, 9,897 positives, 1,653 unique typed
+-paths, 26,746 grammar negatives**; **1,992** negatives also pass through BOTH
+-admission validators (subset). **26 pinned objects, 2,393 parse visits,
+-17,173 full-parse negatives**; total negatives **43,919**. The derived family
+-proves enforcement of TABLE; the independent §17 table catches wrongly
+-required defaults. Width family and all previous controls are retained.
+-
+-First full suite: **403 passed / 0 failed / 5 ignored**, 37.84 s runner sum.
+-Final full suite: **403 passed / 0 failed / 5 ignored**, 34.62 s runner sum,
+-**14 unit + 389 integration**, 0 doctests. Fmt/fmt --check and strict
+-all-target Clippy pass, 0 warnings. An initial Clippy finding concerned only
+-hex digit grouping in the unchanged RNG seed; final Clippy and full suite
+-reran after the spelling fix. Production and all sweep inputs/assertions
+-were unchanged after sweep start.
+-
+-All **5 ignored sweeps passed / 0 failed**, **135.70 s** runner sum across
+-all 33 binaries.
+-
+-| Sweep | Full domain | Observed result / runner time |
++| R18-B01 | metadata::r18_literal_nested_budget_ties_defer_until_run (original admission-negative witness, revised by addendum); cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject | GREEN | 42d4049 |
++
++Design: `metadata.rs::validate_schedule_details` supplies a bound only for an
++oracle root. `metadata/schedule_domains.rs::InvocationSteps` tracks root,
++nested-token and action domains. lift.call/lift.perm_call stay in the same
++machine; lifted oracle call/uncall and normalized oracle_call enter a new
++invocation. A nested step is NEVER clipped by root B. ISA 0.8 has no object-
++level token constant, only classical parameters: the derivable-budget branch
++cannot fire at admission. Unknown nested domains are DEFERRED, never taken as
++empty or universally quantified. Root domains still use exact union subtraction.
++
++INV-5 steps 1.1.5, 1.4.2, 1.4.3 and Spec gaps item 10 determine the addendum:
++check/hash cannot decide actual nested-budget ties from object + params_hash.
++SPEC-QUESTIONS 33 records the 0.9 gap and both unsound alternatives; the
++orchestrator owns bead b-isa-spec-6hs. No token encoding or 0.8 amendment is
++invented. The bound Some branch is shared with admission so a future derivable
++budget can use it, if 0.9 defines one.
++
++`Object::check_schedule_matches_for_run` binds actual token arguments, forwards
++them by callee parameter (including permutations), and uses each invocation's
++own budget. It sends concrete uncovered selector-box witnesses to
++resolve_schedule, which errors §11 multiple maximal matching schedule entries
++before any realisation. Hooks precede mutation in both oracle engines and
++action execution. This is a matching preflight, not full target/timing/expansion
++execution. Known finite domains inspect call extensions; suffix states include
++bound arguments and budgets and terminate recursive lprocs without a depth cap.
++Zero-trip loops, root B=0 and zero-budget nested ancestors stay empty.
++
++Literal reviewer files and probe copied verbatim into tests/support/. Both
++root B=2 and B=3 witnesses now pass check/hash with their original identities
++and bytes, and reject at run-oracle with token B=3 (exit 1, empty stdout,
++§11 diagnostic). Token B=2 runs clean: payload=0/code=0/steps=2; inc8 has not
++reached retval, and ignore intentionally does not propagate the nested fault.
++The unscheduled token-B=3 reference still gives payload=9/code=0/steps=2.
++Root step 3 is dead at B=2 and rejects a true root tie at B=3. Machine creation
++and action execution reject bound ties before mutation; the action's complete
++QuantumState remains equal. Single-entry positives and genuinely covering
++A/B/C entries admit, preserve object/closure pins and resolve C in all six
++orders. The literal duplicates are fully specific except generated="*";
++covering controls broaden A/B's iterations, not one generated ordinal.
++
++`r18_nested_specificity_family_matches_brute_force`: **7,500 schedules + 7,500
++reversed orders**, **6,894 admitted / 606 root-rejected**, **319 deferred ties
++materialise at binding / 6,575 bound-clean**. **100% oracle agreement** for
++root-only admission, actual-budget bound matching and concrete resolver results,
++including errors. Fifteen shapes cover depth 1–3 oracle prefixes/lproc suffixes,
++action roots, root B in {0,1,2,4}, and every independent token assignment 0..4:
++**1,532 distinct assignments**, **569,910 concrete operation partitions**.
++The oracle derives owning machines from O/L edges before calling production;
++steps 1..3 and residual 4, both phases, generated 0,1 and residual 2 exhaust
++this finite family's selector distinctions. It models EACH actual budget map,
++never their union. This does not claim a complete expansion-library executor.
++The original R17 1,200-schedule family/distribution and all six literal orders,
++union/partial coverage, zero/large loops, all defaults and pins remain green.
++All round 4–17 assertions are retained; R18 admission expectations follow the
++explicit addendum. r18_pins.py and r17_pins.py and all three reviewer cmp checks
++pass; no reference body, token budget or canonical witness byte was altered.
++
++Final full suite after the addendum: **412 passed / 0 failed / 5 ignored**,
++**31.66 s** runner sum, **14 unit + 398 integration**, 0 doctests, over all
++33 binaries. Focused final R18: **9 passed / 0 failed**, family 10.47 s.
++Fmt/fmt --check and strict all-target Clippy pass with 0 warnings. The earlier
++411-test full runs/sweeps preceded the addendum and are not final evidence.
++All **5 ignored sweeps passed / 0 failed**, **96.71 s** runner sum across all
++33 binaries, rerun on final bound-matching code. Production, test inputs and
++assertions were unchanged from their start.
++
++| Sweep | Full domain | Result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 1.24 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 5.51 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 28.56 s |
+-| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 96.16 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 4.23 s |
+-
+-Logs: .tmp/r17-{before,red,red-count,regressions-final,loop,schema-family,
+-full,final,clippy,clippy-final,sweeps}.log. Independent reconstruction and
+-both cmp checks pass. Owned diffs pass --check. No foreign tests, non-owned
+-path edits, dependencies, Beads mutation/export, push or Dolt sync. Concurrent
+-spec and conformance work is untouched. Historical round evidence is in
+-council/response-round-N.md, external council responses and git history.
+-Implementation commit e72df8c; this block records the final evidence.
++| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.86 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.80 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.14 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.40 s |
++
++Implementation commit 42d404924e68d4a40524f6c35accdcc7c60cfc73; this block
++records final evidence. No user decision is needed for this repair; the 0.9
++spec decision remains tracked by b-isa-spec-6hs.
++
++Logs: interpreter .tmp/r18-{before,red,addendum-red,addendum-green,bound-full,
++bound-clippy,bound-final,bound-sweeps}.log. Only owned interpreter paths and
++external response; no foreign tests, dependency changes, push or Dolt sync.
++Concurrent spec/conformance/Beads changes are untouched. Full-ISA bead
++b-isa-spec-zq2 remains active for staged work.
+ 
+ ## Resume here: outstanding work, in priority order
+@@ -810,5 +847,5 @@
+ ````
+ 
+-## `SPEC-QUESTIONS.md` (296 lines)
++## `SPEC-QUESTIONS.md` (332 lines)
+ 
+ ````markdown
+@@ -1109,4 +1146,40 @@
+     The old global-collision negative remains in r1_linking; the unambiguous
+     self-named positive is r12_interface_region_may_share_function_name.
++
++33. **Nested schedule budgets and validation time (§11, §9.2)** *new (round 18;
++    0.9 spec gap, bead b-isa-spec-6hs)*. Question: how can object-only admission
++    decide maximal matching ties when nested invocation budgets are supplied
++    by run-time tokens, while the schedule contains only params_hash?
++    [INV-5-schedule-selection.md](../../bennett-conformance/proofs/INV-5-schedule-selection.md),
++    steps **1.1.5**, **1.4.2** and **1.4.3** (and Spec gaps item 10), shows
++    that exact matching depends on the actual token-budget map. The R18 nested
++    step-3 tie exists with token B=3 and is dead with token B=2. Root-B clipping
++    under-rejects the former (and can over-reject smaller-token runs); a symbolic
++    "any budget" nested range over-rejects the latter. params_hash does not
++    recover a token's budget; §9.2 also does not define its JCS interchange value.
++
++    ISA 0.8 has **no object-level encoding of a token constant**: oracle-call
++    tokens are classical parameters. Thus the derivable-nested-budget branch
++    cannot fire at admission under 0.8. Whether 0.9 adds such an encoding is a
++    spec decision; none is invented here. Reading directed for this round:
++    admission checks root-owned domains exactly (including same-machine
++    lift.call rows), and defers every unknown nested domain without treating
++    it as either empty or universally quantified over budgets. The bound
++    matching gate uses actual token arguments and forwarding, checks each
++    invocation's own budget, and sends a concrete maximal-tie witness to
++    resolve_schedule before any realisation is applied. The resolver errors
++    loudly with §11 multiple maximal matching schedule entries; it never
++    chooses document order. Known bounds use the same domain/union-subtraction
++    path, so a future derivable bound could be checked at admission.
++
++    *Proposed 0.9 decision:* explicitly permit deferred matching until token
++    binding, or require independently recoverable per-invocation token budgets
++    in schedule bindings; define the JCS token value and when validation must
++    finish. Neither proposed encoding nor an ISA 0.8 amendment is imposed here.
++    Full target/timing/expansion execution remains staged. Pins:
++    metadata::r18_literal_nested_budget_ties_defer_until_run,
++    cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject,
++    metadata::r18_nested_specificity_family_matches_brute_force. The orchestrator
++    owns bead b-isa-spec-6hs; the interpreter's full-ISA bead remains active.
+ ````
+ 
+@@ -1176,274 +1249,218 @@
+ ````
+ 
+-## `council/response-round-17.md` (267 lines)
++## `council/response-round-18.md` (211 lines)
+ 
+ ````markdown
+-# Editor response: council round 17
+-
+-Both S0 blockers, **R17-B01** and **R17-B02**, are resolved; none declined or
+-partial. Sole implementation sub-agent; repo instructions, binding round-7–16
+-briefs/responses, full round-17 report and reviewer JSON read. Implementation
+-commit **e72df8cf78aca2b0516e20496b2f4f631df2e504**. Final evidence commit:
+-**3458961098c5cc4745092b5ccd923d8c038cbc70**. Only owned interpreter paths and this response are committed.
+-No push. Concurrent spec/conformance work is untouched.
++# Editor response: council round 18
++
++**R18-B01 is resolved under the orchestrator's INV-5 addendum**; none declined
++or partial. Root-only admission cannot decide nested-budget ties from
++params_hash. The literal witness therefore **admits at check/hash and rejects
++at run-oracle with token B=3**; token B=2 runs clean. This intentionally
++supersedes the reviewer's request for unconditional admission rejection.
++Determining proof: INV-5 **1.1.5, 1.4.2, 1.4.3**, Spec gaps item 10.
++
++Implementation commit: **42d404924e68d4a40524f6c35accdcc7c60cfc73**.
++The initial local **9f7ea64e364a4564d09cba311c171a9eab0039ea** implemented the
++reviewer's symbolic-range remedy; the addendum demonstrates its over-rejection
++and the implementation commit supersedes it. Final evidence commit: **fed0d19a026ae35ea175a4c97edba2d1f2e7f68a**.
++Only owned interpreter paths and this response are committed. No push.
++Concurrent spec/conformance/Beads changes are untouched.
+ 
+ ## Design
+ 
+-1. `src/metadata_schema.rs::TABLE` remains the sole recursive structural
+-   admission grammar, 163 named productions. `gate_payload` declares
+-   `epsilon_share?:decimal`, with §§11/17 item 9 cited. `realisation` remains
+-   required. Present malformed values are never converted to defaults.
+-2. `Object::schedule_epsilon_share` returns an explicit assigned share, or
+-   the exact recipe `region epsilon / approximate_operations`; expansion
+-   must supply the latter count. Exact operations return `Exact`. No binary64
+-   division, synthetic admission-time share or canonical-document mutation.
+-   The recipe represents nonterminating rational shares without rounding.
+-3. The requested class audit found one more incorrectly required default:
+-   `sampler.count` (§17 item 13). TABLE now marks it optional;
+-   `claims::sample_count` defaults to 65,536 in the actual replay consumer.
+-   Explicit counts including 0 are preserved and present values use TABLE.
+-4. `r17_section17_defaults_are_optional_and_applied` is a literal,
+-   clause-derived table over every numbered §17 item. Where an item has a
+-   metadata field, the test asserts the optional TABLE key AND admits the
+-   independent omitted form. It tests implemented consumer observations and
+-   records the staged/non-metadata boundaries honestly; target aggregation,
+-   enclosure procedures and hardware/C-layout choices are not silently
+-   counted as completed object-metadata consumers.
+-5. Specificity is the literal §11 lexicographic tuple. Equal-score overlap
+-   is only a candidate tie. `metadata/schedule_domains.rs` intersects both
+-   entries with legal invocation/iteration domains and oracle steps 1..B,
+-   then subtracts the UNION of every strictly higher selector of that kind.
+-   Ambiguity exists exactly when some selector-domain remainder survives.
+-6. Domains use interval boxes split only at selector boundaries. Zero-trip
+-   loop bodies are empty; `[]` outside loops is a singleton. Loop and step
+-   counts are never expanded or capped. Generated ordinals stay symbolic for
+-   the bound expansion library; this is admission, not target execution.
+-7. Shortest real invocation chains suffice: every instruction, including a
+-   call, has its own generated operations (§11). Longer paths cannot cover
+-   those operations. Covering them with prefixes covers their extensions too.
+-   An empty selector path is partitioned over real root instructions, never
+-   a fictitious empty operation chain. Existing path validation checks every
+-   symbol/program point/call edge and explicit iteration vector.
+-8. `resolve_schedule` counts maxima only after inspecting all matches, so
+-   shadowed ties are harmless regardless of document order, and an actual
+-   final tie errors rather than selecting the first entry.
+-9. README Design and PROGRESS document the algorithm, defaults and observed
+-   evidence. No ISA amendment or new narrowing reading is needed. Existing
+-   target/schedule-execution and rigorous interval-checking stages remain
+-   staged/Unverified; neither blocker requires claiming those stages finished.
+-
+-## R17-B01 — resolved
+-
+-Determining clauses: §17 item 9 and §8.1 define the equal-share default when
+-no share is assigned, including a realisation-only gate entry. §11's sketch
+-must not make that omission invalid.
+-
+-RED tests:
+-
+-- `metadata_schema::tests::r17_gate_payload_omission_is_literal_clause_control`
+-  calls literal `validate("gate_payload", {"realisation":"native"})`,
+-  independently of TABLE sample generation.
+-- `metadata::r17_default_share_and_shadowed_witness_preserve_identity`
+-- `cli_xam::r17_cli_default_share_and_shadowed_tie_check_hash_pins`
+-
+-The initial combined witness run observed **2 passed / 4 failed**: the three
+-omission positives fail with missing field epsilon_share; the separate
+-shadowed-witness test fails with the pairwise §11 diagnostic. Existing
+-malformed-present behavior passes. The class audit's additional
+-`r17_sampler_count_default_is_optional` fails **0 passed / 1 failed** with
+-missing count before that production is repaired.
+-
+-Fix locations: `metadata_schema.rs::TABLE(gate_payload, sampler)`,
+-`metadata.rs::Object::schedule_epsilon_share`,
+-`claims.rs::sample_count` and its replay call site.
+-
+-GREEN: copied omission witness parses, check_hashes succeeds, CLI check/hash
+-both exit 0 (check status ok), and the exact supplied raw schedule/source,
+-object/interface/closure identities and budget [3,0,0,0] are retained.
+-`r17_equal_share_consumer_keeps_exact_and_explicit_assignments` checks
+-counts 1, 3 and 1,000, exact-operation preservation, explicit shares and
+-no-schedule behavior. The approximate-operation/count-zero combination is
+-an explicit consumer misuse error, not an admission restriction.
+-
+-Five supplied malformed gate controls reject: null, object, negative numeric,
+-invalid decimal string, missing realisation. Library and CLI check/hash
+-assert §9.1/§11; CLI asserts exit 1 and empty stdout. The required
+-realisation production and decimal grammar remain strict. New sampler
+-consumer controls actually replay 65,536 samples when omitted, preserve
+-explicit 0 and 3, reject null/object/negative/invalid-string counts and retain
+-original certificate bytes.
+-
+-## §17 default audit (all numbered items)
+-
+-The executable table is
+-`src/metadata_schema/tests.rs::r17_section17_defaults_are_optional_and_applied`.
+-N/A means no corresponding object metadata field, not a default silently
+-implemented by an unrelated field. A default for an uncovered operation does
+-not make the payload of a present entry of that kind optional semantically.
+-
+-| Item | Field / decision | Normative default | Where applied / consumer observation |
++1. §11 steps belong to their invocation. `InvocationSteps` distinguishes the
++   known root bound, a nested invocation with an optional resolved bound, and
++   action-level operations. `lift.call` and lifted action gates stay within
++   the enclosing oracle machine. Lifted oracle call/uncall and normalized
++   oracle_call enter token-governed invocations. Root B never bounds them.
++2. ISA 0.8 has **no object-level token constant**. Tokens are classical
++   parameters, so the derivable-nested-budget branch **cannot fire at admission**.
++   Whether 0.9 adds such an encoding is a spec decision; no encoding or test
++   fabricating one was added. A resolved bound uses the same domain path, ready
++   for a future derivable bound if the spec defines one.
++3. Admission checks root-owned domains exactly, including lprocs sharing that
++   root machine, and **defers** unknown nested domains. Deferred is neither a
++   proof of emptiness nor universal quantification over possible budgets.
++   INV-5 1.4.3 shows why both alternatives fail: root clipping admits the
++   token-B=3 witness, while an "any budget" range rejects its valid B=2 run.
++4. `Object::check_schedule_matches_for_run` binds the actual classical token
++   arguments, follows forwarding by callee parameter, and checks each nested
++   invocation against its own resolved budget. A zero-budget ancestor has no
++   descendant operations. No token-budget inference from params_hash occurs.
++5. The bound matching preflight constructs a concrete uncovered selector-box
++   witness and passes it to `Object::resolve_schedule`. At that concrete
++   ambiguity the resolver raises `§11: multiple maximal matching schedule
++   entries`, before any realisation. Both oracle engines and action execution
++   invoke this gate before mutation. No silent first-entry choice is possible.
++6. Equal-specificity overlap is still only a candidate. Intersection followed
++   by subtraction of the UNION of all strictly higher entries determines
++   whether any equal-maximum remainder exists. R17 shadowed ties stay admitted
++   in all six orders. The resolver's order-independent final-maxima rule stays.
++7. Step/loop counts are not expanded or capped. Known finite domains also visit
++   call extensions whose invocation budgets can differ; suffix states include
++   bound arguments and budgets beyond the longest selector path. Recursive
++   lprocs terminate without a depth cap. Empty paths split over real points;
++   zero-trip loops and root B=0 stay empty.
++8. Generated ordinal ranges still belong to the staged expansion library.
++   This is schedule **matching** verification over selector partitions, not
++   completion of target selection, timing, expansion execution or numerical
++   claims. Those deliverables remain staged/Unverified. Other INV-5 readings
++   are not silently imposed by this budget repair.
++9. SPEC-QUESTIONS **33** records the 0.9 budget-binding/check-timing gap, both
++   unsound alternatives, the absence of object token constants and the needed
++   spec decision. The orchestrator owns **b-isa-spec-6hs**. Possible 0.9 choices
++   are explicit deferred matching until token binding, or recoverable nested
++   budgets in bindings; token JCS interchange must also be defined. No 0.8
++   normative bytes or new object fields were changed.
++
++## R18-B01 — resolved
++
++Determining clauses: §11 Matching (ISA-11-P4), §5.2, §4.2. INV-5 1.1.5 establishes
++per-invocation budgets; 1.4.2 establishes exact bound matching and harmless
++shadowed ties; **1.4.3 refutes exact unbound admission** from object + params_hash.
++
++| Blocker | RED tests | Final fix locations | Commit |
+ |---|---|---|---|
+-| 1 | Binary encoding (no metadata field) | none; §16 text | Text parse/check_hashes; binary encoding is not introduced |
+-| 2 | Gate-name registry (no metadata field) | §4.4 names only | Unknown opcode load rejection; existing gate dispatch unchanged |
+-| 3 | Device registry (no metadata field) | four §7.3 models | Existing unknown-device execution faults 8 (`FAULT_EFFECT_UNMODELLED`) |
+-| 4 | Mechanisation (no metadata field) | none; interpreter is oracle | Actual inc8(255), B=3 yields payload=0/code=0/steps=3 |
+-| 5 | Opaque C object layout (no metadata field) | opaque | Outside text metadata; no C-layout field is required |
+-| 6 | Uncovered cleanup; target capabilities.mbu | reverse; false | `schedule_cleanup` returns reverse; supplied cleanup payload still needs realisation; target mbu execution staged |
+-| 7 | schedule.bindings.expansion | ref at ISA version | Optional in TABLE; schedule_expansion resolves ref/0.8 without mutation (retained R16 repair) |
+-| 8 | Enclosure procedure (not precision_bits) | Taylor/Lagrange remainder < 2^-(precision_bits+2), modulo outward-enclosed 2π | Interval checker staged; numerical claim explicitly remains Unverified; precision_bits still required |
+-| 9 | schedule.entries[].gate.epsilon_share | region epsilon / number of ε>0 operations | **Was wrong this round**: optional TABLE field plus exact recipe consumer; exact operations stay exact |
+-| 10 | any-class resolution (target choice) | first JCS class with capacity | Target capacity matching staged; present schedule alloc class remains concrete |
+-| 11 | target.resources.*.rate.<class> | 1 | Target aggregation staged; no target production in object TABLE |
+-| 12 | Uncovered start times / classical timing | classical_step_time each, sequential | Start payload optional structurally; timing execution staged; no fabricated admission-time start |
+-| 13 | sampler.count; suite selection outside metadata | exhaustive ≤16 interface bits, 2^16 samples above | **Also wrong at audit**: optional count; explicit sampled claims default to 65,536 in replay. No claim kind/seed/algorithm is invented |
+-| 14 | Hardware unclean qreg.free (no metadata field) | FAILED, FAULT_UB_TRAP at instruction | Existing interpreter unclean-free fixture faults 4 and retained reversal tests pass |
+-
+-Previously wrong items: **7** (fixed in R16; still covered), **9** and **13**
+-(fixed here). Other numbered decisions were not wrongly required TABLE fields.
+-Items 1–5, 8 and 14 do not imply new optional metadata keys. Items 10–12
+-involve staged target consumers; no completion claim is made for them.
+-
+-The additional sentence audit covered §§8.1, 9.1, 11 and 12 in full. §8.1's
+-share rule maps to item 9. §9.1's optional pinned_closure_hash and block_image
+-are already optional and have unpinned-link and empty-block-map consumers.
+-§11's uncovered cleanup/gate/class/start defaults are distinct from required
+-payloads of present entries: cleanup reverse now has a consumer helper;
+-gate matching, capacity and timing still need staged target execution.
+-§12 does not default precision_bits, sampler seed/algorithm or expected/domain;
+-its suite/sample-size choice maps to item 13. No other incorrectly required
+-default field was found. Present malformed values keep rejecting.
+-
+-## R17-B02 — resolved
+-
+-Determining clause: §11 applies the unique maximum among matching entries,
+-independently per kind and independently of document order. A/B that never
+-attain the maximum together are not an ambiguity.
+-
+-RED: `metadata::r17_shadowed_tie_all_orders_and_genuine_maximum_ties` rejects
+-the reviewer's three-entry witness before the fix with
+-`§11: §11: multiple maximal matching schedule entries`.
+-
+-Fix locations: `metadata.rs::Object::validate_schedule_details`,
+-`metadata/schedule_domains.rs::{has_uncovered_tie, entry_domain, chain_domain,
+-subtract}`, `metadata.rs::Object::resolve_schedule`.
+-
+-GREEN: all six A/B/C orders parse/check_hashes and resolve the literal
+-operation `{path:[{symbol:inc8_hash,point:"entry:0",iteration:[]}],step:1,
+-phase:"fwd",generated:0}` to C. A/B alone rejects; duplicated C rejects;
+-A/C admits. The exact copied witness also passes pinned CLI check/hash.
+-Raw schedule/hash and all identity pins are preserved. No run input or
+-budget change was added.
+-
+-`r17_union_coverage_partial_coverage_and_budget_domains` admits coverage by
+-separate higher fwd/rev entries, rejects the partially covered variant and
+-checks that step 4 is outside the oracle budget 3. The loop-domain controls
+-admit the union covering both iterations of bound 2, reject the partial union
+-at bound 3 and 2^40, and admit wildcard ties inside a zero-trip body (no
+-matchable operation). No loop expansion is used.
+-
+-`r17_specificity_lattice_family_matches_brute_force` generates **1,200**
+-schedules with **2–4 entries** and deterministic random wildcard/specific
+-path, iteration, step, phase and generated dimensions. It independently
+-enumerates **54 concrete patterns per schedule** (three real inc8 points,
+-three budget steps, both phases and two named generated values plus a
+-residual value). These finite partitions exhaust distinctions made by the
+-family's selectors. It computes the literal tuple maximum without calling
+-production specificity/overlap/domain helpers. Observed **1,168 admitted /
+-32 rejected**, **100% oracle agreement**; all **1,200 reversed orders** agree
+-too. Every admitted resolver result is also compared to the oracle, including
+-uncovered operations. The literal permutation/union/loop tests supplement
+-the family rather than changing its random distribution.
++| R18-B01 | metadata::r18_literal_nested_budget_ties_defer_until_run (initial admission-negative witness, revised by addendum); cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject | metadata.rs::validate_schedule_details; metadata/schedule_domains.rs::{InvocationSteps,chain_domain,tie_witness,concrete_witness,check_schedule_matches_for_run}; oracle.rs::run_oracle_vectors; machine.rs::OracleVectorMachine::new; action.rs::action_internal | 42d4049 |
++
++Original reviewer RED: **1 passed / 2 failed**. Library and CLI admission
++accept the genuinely ambiguous nested witness under root-B clipping; the
++independent execution derivation already passes. The first symbolic-range fix
++was subsequently tested against the addendum: the revised literal test is
++RED **0 passed / 1 failed**, because that remedy rejects at admission.
++The final implementation repairs both the under- and over-rejection.
++
++Final literal controls, for both supplied root budgets 2 and 3:
++
++- `check` and `hash`: exit 0; object hash unchanged, check status ok.
++- `run-oracle ... ignore --input 8 --budget B --arg token:3,0,0,0`:
++  exit 1, empty stdout, §11 multiple maximal matching schedule entries.
++- Same run with token:2,0,0,0: exit 0, **payload=0, code=0, steps=2**.
++  inc8 has not reached its retval; ignore intentionally does not propagate
++  the nested fault. This is not a three-step call clipped by the outer budget.
++- The unchanged unscheduled fixture with root B=2 and token B=3 still gives
++  **payload=9, code=0, steps=2**. No execution budget or body was changed.
++- A true root-owned step-3 tie rejects at admission with root B=3, but is dead
++  at root B=2. A same-machine lproc step 3 at B=2 stays dead; nested-oracle/lproc
++  and action-root ties defer, then reject under their actual token B=3.
++- Reversible-machine creation rejects the bound tie. The action-root control
++  checks complete QuantumState equality before/after the error: no mutation.
++
++Single-entry positives preserve identity and resolve uniquely. Covering-entry
++controls admit and resolve C in all six orders, including CLI check/hash at
++both root budgets. The literal duplicate entries are fully specific except
++for generated="*"; one concrete generated ordinal cannot cover that wildcard.
++The genuine covering control broadens A/B's iteration selectors to "*" and
++uses literal C with [] iterations to cover ALL generated ordinals. Resolver
++controls include generated 0, 1 and u128::MAX.
++
++`r18_bound_tokens_forward_by_parameter_and_zero_ancestor_is_empty` permutes the
++forwarded token arguments, uses distinct budgets at each nested invocation,
++and checks both the materialised tie and the dead step-3 control. A zero-budget
++ancestor prevents a larger descendant token from manufacturing operations.
++`r18_recursive_lproc_keeps_root_budget_without_depth_cap` retains the same
++root bound through recursive sum_db lprocs and terminates without truncation.
+ 
+ ## Independent byte and identity evidence
+ 
+-`tests/support/r17_pins.py` reconstructs both witnesses from the R13 corpus,
+-independently JCS-serializes the modified schedule, checks exact file bytes,
+-and hashes the literal 261-byte LF inc8 envelope using hashlib. It does not
+-call the interpreter or rehash helper. Both copied files compare equal to
+-the read-only reviewer originals. Library/CLI assertions independently
+-check the literal pins.
+-
+-| Pin | Omitted epsilon_share | Shadowed tie |
++Both literal .bisa files and r18-review-probe.rs were copied verbatim from the
++read-only review directory into tests/support/; all three cmp checks pass.
++The probe's concrete generated=0 resolution is exercised in the library
++controls. `r18_pins.py` independently checks original nested fixture bytes,
++canonical schedules, both file hashes and the reviewer's token-preimage hash
++construction using hashlib/json, without the interpreter or rehash helper.
++That construction pins this fixture; it does not declare a normative token
++JCS interchange encoding (the latter is part of the recorded spec gap).
++
++| Pin | Root B=2 | Root B=3 |
+ |---|---|---|
+-| File SHA-256 | 8af833c21de5d94c6684b36cf115c46f5080f528fc898ece2bdda9091b9fb2a5 | 9fc08dca3c5697d9fcad31bf82f4a4a566d0fda6959d10675859d748696c1aff |
+-| Schedule §9.2 SHA-256 | d9025ef24bfd8db01e4e3e0f5b28be776c4e5585b000fd5bd2333122c0d4845d | e13ea989795d205fcf983b033f24bf1945d8be197c241b3a440a67b2489c287f |
+-
+-Common object hash: `8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9`.
+-Common interface=closure hash:
+-`8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93`.
+-
+-## Retained gates and observed verification
+-
+-All round 4–17 tests are retained. This includes literal R16 omitted and
+-malformed expansion controls, exact epsilon-value/frame cardinality tests,
+-T3 borrow/frame/certificate negatives, nested opaque pairs and causal-reader
+-controls, zero-trip/carried-binding controls, literal identity pins and
+-fixture corrections, oracle tight budgets/first faults, complete recursive
+-step inverses and CC/R nested-uncall whole snapshots. Neither oracle/machine
+-execution nor borrow/width implementation was modified.
+-
+-Schema family: **163 productions, 9,897 generated positives, 1,653 unique
+-typed paths, 26,746 grammar negatives**, with **1,992** negatives also through
+-both admission validators (subset). **26 pinned objects, 2,393 full-parse
+-path visits, 17,173 full-parse negatives**. Total negatives without counting
+-dual assertions twice: **43,919**. This proves TABLE enforcement; independent
+-§17 literal controls detect a wrongly required default. The retained width
+-family still spans 507 cases. The nonblocking independent width-outcome
+-classification follow-up remains deferred for the same allocator-vs-host-
+-representation distinction recorded in R16; no width domain or assertion
+-was weakened here.
+-
+-| Gate | Observed result |
++| File SHA-256 | 07c617a312f2b1f333689d95b474ccf9b7dea4a570c43ced87a92c089b66d9e7 | 0584dc9a6dbe02b138e516caca59168a4dbbf577185e9d96504f58d5a5fcf4ae |
++| Schedule SHA-256 | 197452169a33d0ced5dce10dbe2949dc42d1b96bcf62a089718ce7534b98c077 | 7e66e4320a43b0d93a2302a71c926f70c9dc37407ca15605a3c898c74a44492b |
++
++Common object hash:
++`8e6e852c4717ad55763ec2162b0582896a948c073b649c40002a8aa64dd0f815`.
++Ignore interface=closure:
++`9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012`.
++The supplied canonical schedules, reference bodies and token-budget pins are
++unchanged. `r17_pins.py` also passes with every R17 file/schedule/identity pin.
++
++## Nested specificity family and retained gates
++
++`r18_nested_specificity_family_matches_brute_force` independently derives
++operations from O/L edges and concrete budgets before admission or resolver
++calls. Fifteen valid shapes cover depth 1–3, all oracle-prefix/lproc-suffix
++mixes permitted by §4.2, and action roots. Root B is 0,1,2,4; each nested token
++independently ranges 0..4. Steps 1,2,3 plus residual 4, both phases and generated
++0,1 plus residual 2 exhaust the distinctions the family's selectors make.
++No production overlap/domain/specificity helper computes the oracle maximum.
++
++Observed: **7,500 schedules + 7,500 reversed orders**, **1,532 distinct concrete
++budget assignments**, **569,910 concrete operation partitions**. Admission
++rejects **606 root ties** and admits **6,894** schedules with any nested check
++deferred. Under their actual run-time budgets, **319** deferred ties materialise
++and **6,575** are bound-clean. Admission, bound matching and every concrete
++resolver result (including the error on a true maximum tie) have **100% oracle
++agreement**. This oracle does not take a union over possible token budgets.
++It is a finite selector-domain family, not a claim to verify every expansion
++library operation or full schedule execution.
++
++All round 4–17 tests/assertions are retained; R18 admission expectations follow
++the explicit addendum. All six R17 witness orders, 1,200 schedules plus reversed
++orders, union/partial coverage, zero/large loops, all 14 defaults and byte pins
++remain green. Earlier borrow/discipline, derived-width, schema, complete inverse
++and CC/R nested-uncall tests remain. The nonblocking independent width-outcome
++classification follow-up remains staged as in R17; no widths/assertions were
++weakened. No foreign conformance tests were run.
++
++## Observed verification
++
++| Gate | Result |
+ |---|---|
+-| Baseline full suite, summed over 33 binaries | 390 passed / 0 failed / 5 ignored; 22.35 s |
+-| First full suite | 403 passed / 0 failed / 5 ignored; 37.84 s |
+-| Final full suite after test-only hex-digit grouping | 403 passed / 0 failed / 5 ignored; 34.62 s |
+-| Clause-derived §17 test | all 14 items enumerated; omission/consumer or explicit staged/N/A observation |
+-| Specificity oracle | 1,200 schedules + reversed orders; 100% agreement |
+-| Derived schema family rerun | 1 passed; 13.61 s |
++| Baseline, summed over 33 binaries including main/doctests | 403 passed / 0 failed / 5 ignored; 22.51 s |
++| Final full suite after addendum | 412 passed / 0 failed / 5 ignored; 31.66 s; 14 unit + 398 integration, 0 doctests |
++| Final focused R18 | 9 passed / 0 failed; nested family 10.47 s |
+ | Fmt and fmt --check | pass |
+ | Strict all-target Clippy | pass, 0 warnings |
+-| Independent pin reconstruction / witness comparisons | pass |
+-
+-All **5 ignored sweeps passed / 0 failed**, **135.70 s** runner sum across
+-all 33 binaries.
+-
+-| Sweep | Full domain | Observed result / runner time |
++| Independent R17/R18 pin scripts and three reviewer cmp checks | pass |
++
++All **5 ignored sweeps passed / 0 failed**, **96.71 s** runner sum across all
++33 binaries, rerun after the addendum on final code and unchanged sweep inputs.
++
++| Sweep | Full domain | Result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 1.24 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 5.51 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 28.56 s |
+-| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 96.16 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 4.23 s |
+-
+-
+-Every cargo call uses the headless prefix below, absolute manifest and only
+-the interpreter crate. Test optimization 1 keeps assertions/overflow checks
+-and the complete sweep domains. Exact commands:
++| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.86 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.80 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.14 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.40 s |
++
++Exact final commands (all cargo calls headless, offline where applicable, with
++absolute interpreter manifest; test opt-level 1 retains assertions/overflow
++checks and complete sweep domains):
+ 
+ ~~~sh
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test metadata --test cli_xam r17_ --no-fail-fast -- --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib r17_sampler -- --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test metadata --test cli_xam --test r1_certificates r17_ --no-fail-fast -- --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --test metadata r17_loop_iteration -- --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib r14_generated_metadata_schema_type_family -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --test metadata --test cli_xam --test oracle r18_ --no-fail-fast -- --nocapture
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast -- --ignored --nocapture
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
++python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18_pins.py
+ python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17_pins.py
+-cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r17-default-epsilon-share.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17-default-epsilon-share.bisa
+-cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r17-shadowed-tie.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17-shadowed-tie.bisa
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-nested-budget-2.bisa
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-3.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-nested-budget-3.bisa
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-review-probe.rs /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-review-probe.rs
+ ~~~
+ 
+-Logs: interpreter `.tmp/r17-{before,red,red-count,regressions-final,loop,
+-schema-family,full,final,clippy,clippy-final,sweeps}.log`. The initial Clippy
+-finding was only unusual grouping in an unchanged RNG seed literal; final
+-Clippy and suite reran after fixing its spelling. All five sweep binaries
+-use unchanged implementation/inputs/assertions throughout. Owned diffs pass
+---check. No spec/conformance/include/Python-seed edits, foreign test execution,
+-dependencies, Beads mutation/export, push or Dolt sync. Explicit owned path
+-commits use absolute git -C and BEADS_HOOK_TIMEOUT=20.
++Final logs: interpreter `.tmp/r18-{before,red,addendum-red,addendum-green,
++bound-full,bound-clippy,bound-final,bound-sweeps}.log`. Earlier 411-test runs
++and the first sweep run preceded the addendum and are not final evidence.
++Production, test inputs and assertions were unchanged throughout the final
++sweeps. Owned diffs pass --check. Full-ISA bead b-isa-spec-zq2 stays active for
++staged work; b-isa-spec-6hs belongs to the orchestrator. No dependency, normative
++spec, conformance, include, Python-seed or foreign-source changes; no push or
++Dolt sync. Commits use explicit owned paths, absolute git -C and
++BEADS_HOOK_TIMEOUT=20.
+ ````
+ 
+@@ -1806,4 +1823,486 @@
+ ````
+ 
++## `src/metadata/schedule_domains.rs` (477 lines)
++
++````rust
++//! §11 maximal-match admission over selector domains, without loop expansion.
++use super::*;
++
++type Domain = Vec<(u128, u128)>;
++
++#[derive(Clone, Copy)]
++enum InvocationSteps {
++    Root(u128),
++    // None is deferred, never an empty domain or an "any budget" proof.
++    // ISA 0.8 has no object-level constant token; Some is populated at binding.
++    Nested(Option<u128>),
++    Action,
++}
++impl InvocationSteps {
++    fn upper(self) -> Option<u128> {
++        match self {
++            Self::Root(budget) => Some(budget),
++            Self::Nested(budget) => budget,
++            Self::Action => Some(u128::MAX),
++        }
++    }
++}
++
++fn intersection(a: &Domain, b: &Domain) -> Option<Domain> {
++    let out: Domain = a
++        .iter()
++        .zip(b)
++        .map(|(x, y)| (x.0.max(y.0), x.1.min(y.1)))
++        .collect();
++    out.iter().all(|(lo, hi)| lo <= hi).then_some(out)
++}
++
++/// Partition A \ B into disjoint boxes. Boundaries come only from selectors;
++/// cost is independent of numeric loop/step bounds. Repeating subtraction
++/// checks coverage by the UNION of all higher entries, not one overlapping C.
++fn subtract(mut a: Domain, b: &Domain) -> Vec<Domain> {
++    let Some(common) = intersection(&a, b) else {
++        return vec![a];
++    };
++    let mut out = Vec::new();
++    for (i, &(lo, hi)) in common.iter().enumerate() {
++        if a[i].0 < lo {
++            let mut part = a.clone();
++            part[i].1 = lo - 1;
++            out.push(part);
++            a[i].0 = lo;
++        }
++        if hi < a[i].1 {
++            let mut part = a.clone();
++            part[i].0 = hi + 1;
++            out.push(part);
++            a[i].1 = hi;
++        }
++    }
++    out
++}
++
++impl Object {
++    /// Each point has its own generated operations (§11), including call/loop
++    /// rows. Start at the shortest chains; a new oracle invocation can broaden
++    /// their step domain, so has_uncovered_tie also visits those extensions.
++    /// The empty prefix is split over every root instruction (not a fictitious
++    /// operation with an empty chain). validate_path already checked call edges.
++    fn shortest_chains(&self, path: &Json, region: &str) -> Result<Vec<Vec<Json>>> {
++        if !path.array()?.is_empty() {
++            return Ok(vec![path.array()?.to_vec()]);
++        }
++        fn points(seq: &[Instruction], ordinal: &mut u128, out: &mut Vec<u128>) {
++            for i in seq {
++                out.push(*ordinal);
++                *ordinal += 1;
++                for body in &i.bodies {
++                    points(body, ordinal, out);
++                }
++            }
++        }
++        let symbol = &self.identity()?.interface_hashes[region];
++        let mut chains = Vec::new();
++        for block in &self.functions[region].blocks {
++            let mut ordinals = Vec::new();
++            points(&block.instructions, &mut 0, &mut ordinals);
++            for ordinal in ordinals {
++                chains.push(vec![Json::Object(std::collections::BTreeMap::from([
++                    ("symbol".into(), Json::String(symbol.clone())),
++                    (
++                        "point".into(),
++                        Json::String(format!("{}:{ordinal}", block.name)),
++                    ),
++                    ("iteration".into(), Json::String("*".into())),
++                ]))]);
++            }
++        }
++        Ok(chains)
++    }
++
++    fn chain_domain(
++        &self,
++        chain: &[Json],
++        root_budget: Option<u128>,
++        arguments: Option<&std::collections::BTreeMap<String, crate::Argument>>,
++    ) -> Result<Option<(Domain, InvocationSteps, String)>> {
++        let mut domain = Vec::new();
++        // The step owner persists through lift.call and lifted action gates.
++        // Only an oracle call opens a new token-governed invocation (§11).
++        let mut steps = root_budget.map_or(InvocationSteps::Action, InvocationSteps::Root);
++        let mut arguments = arguments.cloned();
++        if root_budget == Some(0) {
++            return Ok(None);
++        }
++        for (index, element) in chain.iter().enumerate() {
++            let (block, ordinal) = element
++                .get("point")?
++                .string()?
++                .rsplit_once(':')
++                .ok_or_else(|| Error("§11: invalid point".into()))?;
++            let point = self.point(
++                element.get("symbol")?.string()?,
++                block,
++                ordinal
++                    .parse()
++                    .map_err(|_| Error("§11: invalid point ordinal".into()))?,
++            )?;
++            if index + 1 < chain.len() {
++                // lift.call stays in the same oracle/argument environment.
++                let call = if matches!(
++                    point.instruction.op.as_str(),
++                    "lift.oracle_call" | "lift.oracle_uncall" | "lift.perm_call"
++                ) {
++                    Some(point.instruction.clone())
++                } else {
++                    normalize_call(point.instruction)
++                        .ok()
++                        .map(|c| c.instruction)
++                };
++                if let Some(call) = call {
++                    let oracle = matches!(
++                        call.op.as_str(),
++                        "lift.oracle_call" | "lift.oracle_uncall" | "oracle_call"
++                    );
++                    if oracle {
++                        steps = InvocationSteps::Nested(arguments.as_ref().and_then(|a| {
++                            match a.get(&call.operands[1]) {
++                                Some(crate::Argument::Token(budget)) => {
++                                    Some(u128::from(budget.steps))
++                                }
++                                _ => None,
++                            }
++                        }));
++                    }
++                    if steps.upper() == Some(0) {
++                        return Ok(None);
++                    }
++                    if let Some(old) = arguments.take() {
++                        let callee = &self.functions[call.operands[0].trim_start_matches('@')];
++                        let group = if oracle { 4 } else { 3 };
++                        let operands =
++                            crate::object::list(&call.operands[if oracle { 6 } else { 4 }])?;
++                        arguments = Some(
++                            callee.params[group]
++                                .iter()
++                                .zip(operands)
++                                .map(|(p, n)| {
++                                    old.get(&n)
++                                        .cloned()
++                                        .map(|v| (p.name.clone(), v))
++                                        .ok_or_else(|| {
++                                            Error(format!("§11: unresolved classical argument {n}"))
++                                        })
++                                })
++                                .collect::<Result<_>>()?,
++                        );
++                    }
++                }
++            }
++            for bound in point.loops {
++                if bound == 0 {
++                    return Ok(None);
++                }
++                domain.push((0, u128::from(bound) - 1));
++            }
++        }
++        // Generated ordinals belong to the bound expansion library. Admission
++        // does not execute it; retain the whole ordinal selector domain.
++        // Unknown is DEFERRED under INV-5 1.4.3, not a proof of emptiness.
++        // A future object-derived token bound can use the same Some branch.
++        let Some(upper) = steps.upper() else {
++            return Ok(None);
++        };
++        if upper == 0 {
++            return Ok(None);
++        }
++        domain.extend([(1, upper), (0, 1), (0, u128::MAX)]);
++        Ok(Some((domain, steps, format!("{arguments:?}"))))
++    }
++
++    fn entry_domain(&self, entry: &Json, chain: &[Json], base: &Domain) -> Result<Option<Domain>> {
++        let path = entry.get("path")?.array()?;
++        if path.len() > chain.len() {
++            return Ok(None);
++        }
++        let mut domain = base.clone();
++        let mut offset = 0;
++        for (i, element) in chain.iter().enumerate() {
++            let (block, ordinal) = element
++                .get("point")?
++                .string()?
++                .rsplit_once(':')
++                .ok_or_else(|| Error("§11: invalid point".into()))?;
++            let depth = self
++                .point(
++                    element.get("symbol")?.string()?,
++                    block,
++                    ordinal
++                        .parse()
++                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
++                )?
++                .loops
++                .len();
++            if let Some(selector) = path.get(i) {
++                if selector.get("symbol")? != element.get("symbol")?
++                    || selector.get("point")? != element.get("point")?
++                {
++                    return Ok(None);
++                }
++                let iterations = selector.get("iteration")?;
++                if !wildcard(iterations) {
++                    for (j, value) in iterations.array()?.iter().enumerate() {
++                        let value = value.uint()?;
++                        domain[offset + j] = (value, value);
++                    }
++                }
++            }
++            offset += depth;
++        }
++        for (i, key) in ["step", "phase", "generated"].iter().enumerate() {
++            let value = entry.get(key)?;
++            if !wildcard(value) {
++                let n = if *key == "phase" {
++                    u128::from(value.string()? == "rev")
++                } else {
++                    value.uint()?
++                };
++                domain[offset + i] = (n, n);
++            }
++        }
++        Ok(intersection(&domain, base))
++    }
++
++    pub(super) fn has_uncovered_tie(
++        &self,
++        a: &Json,
++        b: &Json,
++        entries: &[Json],
++        region: &str,
++        root_budget: Option<u128>,
++    ) -> Result<bool> {
++        Ok(self
++            .tie_witness(a, b, entries, region, root_budget, None)?
++            .is_some())
++    }
++
++    fn tie_witness(
++        &self,
++        a: &Json,
++        b: &Json,
++        entries: &[Json],
++        region: &str,
++        root_budget: Option<u128>,
++        arguments: Option<&std::collections::BTreeMap<String, crate::Argument>>,
++    ) -> Result<Option<Json>> {
++        let mut chains = self.shortest_chains(a.get("path")?, region)?;
++        let max_path = entries
++            .iter()
++            .map(|e| e.get("path")?.array().map(<[Json]>::len))
++            .collect::<Result<Vec<_>>>()?
++            .into_iter()
++            .max()
++            .unwrap_or(0);
++        // Beyond every selector's path, only the reachable call graph matters.
++        // Memoizing suffix points per boundary chain terminates recursive
++        // lprocs without a call-depth, step, or loop expansion cap.
++        let mut suffixes = std::collections::BTreeSet::new();
++        while let Some(chain) = chains.pop() {
++            let Some((base, steps, bound_arguments)) =
++                self.chain_domain(&chain, root_budget, arguments)?
++            else {
++                continue;
++            };
++            if !matches!(steps, InvocationSteps::Action) {
++                let last = chain
++                    .last()
++                    .ok_or_else(|| Error("§11: empty operation chain".into()))?;
++                let (block, ordinal) = last
++                    .get("point")?
++                    .string()?
++                    .rsplit_once(':')
++                    .ok_or_else(|| Error("§11: invalid point".into()))?;
++                let point = self.point(
++                    last.get("symbol")?.string()?,
++                    block,
++                    ordinal
++                        .parse()
++                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
++                )?;
++                let callee = if matches!(
++                    point.instruction.op.as_str(),
++                    "lift.call" | "lift.oracle_call" | "lift.oracle_uncall" | "lift.perm_call"
++                ) {
++                    Some(
++                        point.instruction.operands[0]
++                            .trim_start_matches('@')
++                            .to_string(),
++                    )
++                } else {
++                    normalize_call(point.instruction).ok().map(|call| {
++                        call.instruction.operands[0]
++                            .trim_start_matches('@')
++                            .to_string()
++                    })
++                };
++                let boundary = chain[..chain.len().min(max_path)].to_vec();
++                let key = (
++                    Json::Array(boundary).canonical(),
++                    last.canonical(),
++                    steps.upper(),
++                    bound_arguments,
++                );
++                if chain.len() < max_path || suffixes.insert(key) {
++                    if let Some(callee) = callee.filter(|name| self.functions.contains_key(name)) {
++                        for suffix in self.shortest_chains(&Json::Array(vec![]), &callee)? {
++                            let mut extension = chain.clone();
++                            extension.extend(suffix);
++                            chains.push(extension);
++                        }
++                    }
++                }
++            }
++            let Some(ad) = self.entry_domain(a, &chain, &base)? else {
++                continue;
++            };
++            let Some(bd) = self.entry_domain(b, &chain, &base)? else {
++                continue;
++            };
++            let Some(common) = intersection(&ad, &bd) else {
++                continue;
++            };
++            let mut remaining = vec![common];
++            for higher in entries {
++                if higher.get("kind")? != a.get("kind")? || specificity(higher)? <= specificity(a)?
++                {
++                    continue;
++                }
++                if let Some(cover) = self.entry_domain(higher, &chain, &base)? {
++                    remaining = remaining
++                        .into_iter()
++                        .flat_map(|box_| subtract(box_, &cover))
++                        .collect();
++                    if remaining.is_empty() {
++                        break;
++                    }
++                }
++            }
++            if let Some(uncovered) = remaining.first() {
++                return Ok(Some(self.concrete_witness(&chain, uncovered)?));
++            }
++        }
++        Ok(None)
++    }
++
++    fn concrete_witness(&self, chain: &[Json], domain: &Domain) -> Result<Json> {
++        let mut path = chain.to_vec();
++        let mut offset = 0;
++        for element in &mut path {
++            let (block, ordinal) = element
++                .get("point")?
++                .string()?
++                .rsplit_once(':')
++                .ok_or_else(|| Error("§11: invalid point".into()))?;
++            let depth = self
++                .point(
++                    element.get("symbol")?.string()?,
++                    block,
++                    ordinal
++                        .parse()
++                        .map_err(|_| Error("§11: invalid ordinal".into()))?,
++                )?
++                .loops
++                .len();
++            let iterations = domain[offset..offset + depth]
++                .iter()
++                .map(|d| Json::Number(d.0.to_string()))
++                .collect();
++            if let Json::Object(fields) = element {
++                fields.insert("iteration".into(), Json::Array(iterations));
++            }
++            offset += depth;
++        }
++        Ok(Json::Object(std::collections::BTreeMap::from([
++            ("path".into(), Json::Array(path)),
++            ("step".into(), Json::Number(domain[offset].0.to_string())),
++            (
++                "phase".into(),
++                Json::String(
++                    if domain[offset + 1].0 == 0 {
++                        "fwd"
++                    } else {
++                        "rev"
++                    }
++                    .into(),
++                ),
++            ),
++            (
++                "generated".into(),
++                Json::Number(domain[offset + 2].0.to_string()),
++            ),
++        ])))
++    }
++
++    /// Check matching with the actual run's tokens, before any realisation.
++    /// This is the §11 matching gate, not staged target/timing execution.
++    /// Unbound admission defers nested domains (SPEC-QUESTIONS 33 / INV-5 1.4.3).
++    pub fn check_schedule_matches_for_run(
++        &self,
++        region: &str,
++        budget: crate::Budget,
++        args: &[crate::Argument],
++    ) -> Result<()> {
++        let Some(schedule) = self.section("schedule") else {
++            return Ok(());
++        };
++        if schedule
++            .get("bindings")?
++            .get("region")?
++            .string()?
++            .trim_start_matches('@')
++            != region
++        {
++            return Ok(());
++        }
++        let function = &self.functions[region];
++        let parameters = &function.params[if function.kind == "oracle" { 4 } else { 3 }];
++        if parameters.len() != args.len() {
++            return err("§11", "schedule argument count mismatch");
++        }
++        let arguments = parameters
++            .iter()
++            .zip(args)
++            .map(|(p, v)| {
++                crate::oracle::check_argument(self, &p.ty, v)?;
++                Ok((p.name.clone(), v.clone()))
++            })
++            .collect::<Result<std::collections::BTreeMap<_, _>>>()?;
++        let entries = schedule.get("entries")?.array()?;
++        let root_budget = (function.kind == "oracle").then_some(u128::from(budget.steps));
++        for (i, a) in entries.iter().enumerate() {
++            for b in &entries[i + 1..] {
++                if a.get("kind")? == b.get("kind")?
++                    && specificity(a)? == specificity(b)?
++                    && overlaps(a, b)?
++                {
++                    if let Some(operation) =
++                        self.tie_witness(a, b, entries, region, root_budget, Some(&arguments))?
++                    {
++                        // Never choose or apply a realisation on an ambiguous
++                        // concrete operation. The resolver owns the diagnostic.
++                        self.resolve_schedule(&operation, a.get("kind")?.string()?)?;
++                        return err(
++                            "§11",
++                            "internal maximal-tie witness did not resolve to a tie",
++                        );
++                    }
++                }
++            }
++        }
++        Ok(())
++    }
++}
++````
++
+ ## `.gitignore` (1 lines)
+ 
+@@ -3934,4 +4433,276 @@
+ execution, dependency, Beads mutation/export, push or Dolt sync. Commits use
+ explicit owned paths, absolute git -C and BEADS_HOOK_TIMEOUT=20.
++````
++
++## `council/response-round-17.md` (267 lines)
++
++````markdown
++# Editor response: council round 17
++
++Both S0 blockers, **R17-B01** and **R17-B02**, are resolved; none declined or
++partial. Sole implementation sub-agent; repo instructions, binding round-7–16
++briefs/responses, full round-17 report and reviewer JSON read. Implementation
++commit **e72df8cf78aca2b0516e20496b2f4f631df2e504**. Final evidence commit:
++**3458961098c5cc4745092b5ccd923d8c038cbc70**. Only owned interpreter paths and this response are committed.
++No push. Concurrent spec/conformance work is untouched.
++
++## Design
++
++1. `src/metadata_schema.rs::TABLE` remains the sole recursive structural
++   admission grammar, 163 named productions. `gate_payload` declares
++   `epsilon_share?:decimal`, with §§11/17 item 9 cited. `realisation` remains
++   required. Present malformed values are never converted to defaults.
++2. `Object::schedule_epsilon_share` returns an explicit assigned share, or
++   the exact recipe `region epsilon / approximate_operations`; expansion
++   must supply the latter count. Exact operations return `Exact`. No binary64
++   division, synthetic admission-time share or canonical-document mutation.
++   The recipe represents nonterminating rational shares without rounding.
++3. The requested class audit found one more incorrectly required default:
++   `sampler.count` (§17 item 13). TABLE now marks it optional;
++   `claims::sample_count` defaults to 65,536 in the actual replay consumer.
++   Explicit counts including 0 are preserved and present values use TABLE.
++4. `r17_section17_defaults_are_optional_and_applied` is a literal,
++   clause-derived table over every numbered §17 item. Where an item has a
++   metadata field, the test asserts the optional TABLE key AND admits the
++   independent omitted form. It tests implemented consumer observations and
++   records the staged/non-metadata boundaries honestly; target aggregation,
++   enclosure procedures and hardware/C-layout choices are not silently
++   counted as completed object-metadata consumers.
++5. Specificity is the literal §11 lexicographic tuple. Equal-score overlap
++   is only a candidate tie. `metadata/schedule_domains.rs` intersects both
++   entries with legal invocation/iteration domains and oracle steps 1..B,
++   then subtracts the UNION of every strictly higher selector of that kind.
++   Ambiguity exists exactly when some selector-domain remainder survives.
++6. Domains use interval boxes split only at selector boundaries. Zero-trip
++   loop bodies are empty; `[]` outside loops is a singleton. Loop and step
++   counts are never expanded or capped. Generated ordinals stay symbolic for
++   the bound expansion library; this is admission, not target execution.
++7. Shortest real invocation chains suffice: every instruction, including a
++   call, has its own generated operations (§11). Longer paths cannot cover
++   those operations. Covering them with prefixes covers their extensions too.
++   An empty selector path is partitioned over real root instructions, never
++   a fictitious empty operation chain. Existing path validation checks every
++   symbol/program point/call edge and explicit iteration vector.
++8. `resolve_schedule` counts maxima only after inspecting all matches, so
++   shadowed ties are harmless regardless of document order, and an actual
++   final tie errors rather than selecting the first entry.
++9. README Design and PROGRESS document the algorithm, defaults and observed
++   evidence. No ISA amendment or new narrowing reading is needed. Existing
++   target/schedule-execution and rigorous interval-checking stages remain
++   staged/Unverified; neither blocker requires claiming those stages finished.
++
++## R17-B01 — resolved
++
++Determining clauses: §17 item 9 and §8.1 define the equal-share default when
++no share is assigned, including a realisation-only gate entry. §11's sketch
++must not make that omission invalid.
++
++RED tests:
++
++- `metadata_schema::tests::r17_gate_payload_omission_is_literal_clause_control`
++  calls literal `validate("gate_payload", {"realisation":"native"})`,
++  independently of TABLE sample generation.
++- `metadata::r17_default_share_and_shadowed_witness_preserve_identity`
++- `cli_xam::r17_cli_default_share_and_shadowed_tie_check_hash_pins`
++
++The initial combined witness run observed **2 passed / 4 failed**: the three
++omission positives fail with missing field epsilon_share; the separate
++shadowed-witness test fails with the pairwise §11 diagnostic. Existing
++malformed-present behavior passes. The class audit's additional
++`r17_sampler_count_default_is_optional` fails **0 passed / 1 failed** with
++missing count before that production is repaired.
++
++Fix locations: `metadata_schema.rs::TABLE(gate_payload, sampler)`,
++`metadata.rs::Object::schedule_epsilon_share`,
++`claims.rs::sample_count` and its replay call site.
++
++GREEN: copied omission witness parses, check_hashes succeeds, CLI check/hash
++both exit 0 (check status ok), and the exact supplied raw schedule/source,
++object/interface/closure identities and budget [3,0,0,0] are retained.
++`r17_equal_share_consumer_keeps_exact_and_explicit_assignments` checks
++counts 1, 3 and 1,000, exact-operation preservation, explicit shares and
++no-schedule behavior. The approximate-operation/count-zero combination is
++an explicit consumer misuse error, not an admission restriction.
++
++Five supplied malformed gate controls reject: null, object, negative numeric,
++invalid decimal string, missing realisation. Library and CLI check/hash
++assert §9.1/§11; CLI asserts exit 1 and empty stdout. The required
++realisation production and decimal grammar remain strict. New sampler
++consumer controls actually replay 65,536 samples when omitted, preserve
++explicit 0 and 3, reject null/object/negative/invalid-string counts and retain
++original certificate bytes.
++
++## §17 default audit (all numbered items)
++
++The executable table is
++`src/metadata_schema/tests.rs::r17_section17_defaults_are_optional_and_applied`.
++N/A means no corresponding object metadata field, not a default silently
++implemented by an unrelated field. A default for an uncovered operation does
++not make the payload of a present entry of that kind optional semantically.
++
++| Item | Field / decision | Normative default | Where applied / consumer observation |
++|---|---|---|---|
++| 1 | Binary encoding (no metadata field) | none; §16 text | Text parse/check_hashes; binary encoding is not introduced |
++| 2 | Gate-name registry (no metadata field) | §4.4 names only | Unknown opcode load rejection; existing gate dispatch unchanged |
++| 3 | Device registry (no metadata field) | four §7.3 models | Existing unknown-device execution faults 8 (`FAULT_EFFECT_UNMODELLED`) |
++| 4 | Mechanisation (no metadata field) | none; interpreter is oracle | Actual inc8(255), B=3 yields payload=0/code=0/steps=3 |
++| 5 | Opaque C object layout (no metadata field) | opaque | Outside text metadata; no C-layout field is required |
++| 6 | Uncovered cleanup; target capabilities.mbu | reverse; false | `schedule_cleanup` returns reverse; supplied cleanup payload still needs realisation; target mbu execution staged |
++| 7 | schedule.bindings.expansion | ref at ISA version | Optional in TABLE; schedule_expansion resolves ref/0.8 without mutation (retained R16 repair) |
++| 8 | Enclosure procedure (not precision_bits) | Taylor/Lagrange remainder < 2^-(precision_bits+2), modulo outward-enclosed 2π | Interval checker staged; numerical claim explicitly remains Unverified; precision_bits still required |
++| 9 | schedule.entries[].gate.epsilon_share | region epsilon / number of ε>0 operations | **Was wrong this round**: optional TABLE field plus exact recipe consumer; exact operations stay exact |
++| 10 | any-class resolution (target choice) | first JCS class with capacity | Target capacity matching staged; present schedule alloc class remains concrete |
++| 11 | target.resources.*.rate.<class> | 1 | Target aggregation staged; no target production in object TABLE |
++| 12 | Uncovered start times / classical timing | classical_step_time each, sequential | Start payload optional structurally; timing execution staged; no fabricated admission-time start |
++| 13 | sampler.count; suite selection outside metadata | exhaustive ≤16 interface bits, 2^16 samples above | **Also wrong at audit**: optional count; explicit sampled claims default to 65,536 in replay. No claim kind/seed/algorithm is invented |
++| 14 | Hardware unclean qreg.free (no metadata field) | FAILED, FAULT_UB_TRAP at instruction | Existing interpreter unclean-free fixture faults 4 and retained reversal tests pass |
++
++Previously wrong items: **7** (fixed in R16; still covered), **9** and **13**
++(fixed here). Other numbered decisions were not wrongly required TABLE fields.
++Items 1–5, 8 and 14 do not imply new optional metadata keys. Items 10–12
++involve staged target consumers; no completion claim is made for them.
++
++The additional sentence audit covered §§8.1, 9.1, 11 and 12 in full. §8.1's
++share rule maps to item 9. §9.1's optional pinned_closure_hash and block_image
++are already optional and have unpinned-link and empty-block-map consumers.
++§11's uncovered cleanup/gate/class/start defaults are distinct from required
++payloads of present entries: cleanup reverse now has a consumer helper;
++gate matching, capacity and timing still need staged target execution.
++§12 does not default precision_bits, sampler seed/algorithm or expected/domain;
++its suite/sample-size choice maps to item 13. No other incorrectly required
++default field was found. Present malformed values keep rejecting.
++
++## R17-B02 — resolved
++
++Determining clause: §11 applies the unique maximum among matching entries,
++independently per kind and independently of document order. A/B that never
++attain the maximum together are not an ambiguity.
++
++RED: `metadata::r17_shadowed_tie_all_orders_and_genuine_maximum_ties` rejects
++the reviewer's three-entry witness before the fix with
++`§11: §11: multiple maximal matching schedule entries`.
++
++Fix locations: `metadata.rs::Object::validate_schedule_details`,
++`metadata/schedule_domains.rs::{has_uncovered_tie, entry_domain, chain_domain,
++subtract}`, `metadata.rs::Object::resolve_schedule`.
++
++GREEN: all six A/B/C orders parse/check_hashes and resolve the literal
++operation `{path:[{symbol:inc8_hash,point:"entry:0",iteration:[]}],step:1,
++phase:"fwd",generated:0}` to C. A/B alone rejects; duplicated C rejects;
++A/C admits. The exact copied witness also passes pinned CLI check/hash.
++Raw schedule/hash and all identity pins are preserved. No run input or
++budget change was added.
++
++`r17_union_coverage_partial_coverage_and_budget_domains` admits coverage by
++separate higher fwd/rev entries, rejects the partially covered variant and
++checks that step 4 is outside the oracle budget 3. The loop-domain controls
++admit the union covering both iterations of bound 2, reject the partial union
++at bound 3 and 2^40, and admit wildcard ties inside a zero-trip body (no
++matchable operation). No loop expansion is used.
++
++`r17_specificity_lattice_family_matches_brute_force` generates **1,200**
++schedules with **2–4 entries** and deterministic random wildcard/specific
++path, iteration, step, phase and generated dimensions. It independently
++enumerates **54 concrete patterns per schedule** (three real inc8 points,
++three budget steps, both phases and two named generated values plus a
++residual value). These finite partitions exhaust distinctions made by the
++family's selectors. It computes the literal tuple maximum without calling
++production specificity/overlap/domain helpers. Observed **1,168 admitted /
++32 rejected**, **100% oracle agreement**; all **1,200 reversed orders** agree
++too. Every admitted resolver result is also compared to the oracle, including
++uncovered operations. The literal permutation/union/loop tests supplement
++the family rather than changing its random distribution.
++
++## Independent byte and identity evidence
++
++`tests/support/r17_pins.py` reconstructs both witnesses from the R13 corpus,
++independently JCS-serializes the modified schedule, checks exact file bytes,
++and hashes the literal 261-byte LF inc8 envelope using hashlib. It does not
++call the interpreter or rehash helper. Both copied files compare equal to
++the read-only reviewer originals. Library/CLI assertions independently
++check the literal pins.
++
++| Pin | Omitted epsilon_share | Shadowed tie |
++|---|---|---|
++| File SHA-256 | 8af833c21de5d94c6684b36cf115c46f5080f528fc898ece2bdda9091b9fb2a5 | 9fc08dca3c5697d9fcad31bf82f4a4a566d0fda6959d10675859d748696c1aff |
++| Schedule §9.2 SHA-256 | d9025ef24bfd8db01e4e3e0f5b28be776c4e5585b000fd5bd2333122c0d4845d | e13ea989795d205fcf983b033f24bf1945d8be197c241b3a440a67b2489c287f |
++
++Common object hash: `8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9`.
++Common interface=closure hash:
++`8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93`.
++
++## Retained gates and observed verification
++
++All round 4–17 tests are retained. This includes literal R16 omitted and
++malformed expansion controls, exact epsilon-value/frame cardinality tests,
++T3 borrow/frame/certificate negatives, nested opaque pairs and causal-reader
++controls, zero-trip/carried-binding controls, literal identity pins and
++fixture corrections, oracle tight budgets/first faults, complete recursive
++step inverses and CC/R nested-uncall whole snapshots. Neither oracle/machine
++execution nor borrow/width implementation was modified.
++
++Schema family: **163 productions, 9,897 generated positives, 1,653 unique
++typed paths, 26,746 grammar negatives**, with **1,992** negatives also through
++both admission validators (subset). **26 pinned objects, 2,393 full-parse
++path visits, 17,173 full-parse negatives**. Total negatives without counting
++dual assertions twice: **43,919**. This proves TABLE enforcement; independent
++§17 literal controls detect a wrongly required default. The retained width
++family still spans 507 cases. The nonblocking independent width-outcome
++classification follow-up remains deferred for the same allocator-vs-host-
++representation distinction recorded in R16; no width domain or assertion
++was weakened here.
++
++| Gate | Observed result |
++|---|---|
++| Baseline full suite, summed over 33 binaries | 390 passed / 0 failed / 5 ignored; 22.35 s |
++| First full suite | 403 passed / 0 failed / 5 ignored; 37.84 s |
++| Final full suite after test-only hex-digit grouping | 403 passed / 0 failed / 5 ignored; 34.62 s |
++| Clause-derived §17 test | all 14 items enumerated; omission/consumer or explicit staged/N/A observation |
++| Specificity oracle | 1,200 schedules + reversed orders; 100% agreement |
++| Derived schema family rerun | 1 passed; 13.61 s |
++| Fmt and fmt --check | pass |
++| Strict all-target Clippy | pass, 0 warnings |
++| Independent pin reconstruction / witness comparisons | pass |
++
++All **5 ignored sweeps passed / 0 failed**, **135.70 s** runner sum across
++all 33 binaries.
++
++| Sweep | Full domain | Observed result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 1.24 s |
++| 17-wire borrow | 131,072 entries | 1/0; 5.51 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 28.56 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 96.16 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 4.23 s |
++
++
++Every cargo call uses the headless prefix below, absolute manifest and only
++the interpreter crate. Test optimization 1 keeps assertions/overflow checks
++and the complete sweep domains. Exact commands:
++
++~~~sh
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test metadata --test cli_xam r17_ --no-fail-fast -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib r17_sampler -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test metadata --test cli_xam --test r1_certificates r17_ --no-fail-fast -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --test metadata r17_loop_iteration -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib r14_generated_metadata_schema_type_family -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast -- --ignored --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
++python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17_pins.py
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r17-default-epsilon-share.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17-default-epsilon-share.bisa
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r17-shadowed-tie.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17-shadowed-tie.bisa
++~~~
++
++Logs: interpreter `.tmp/r17-{before,red,red-count,regressions-final,loop,
++schema-family,full,final,clippy,clippy-final,sweeps}.log`. The initial Clippy
++finding was only unusual grouping in an unchanged RNG seed literal; final
++Clippy and suite reran after fixing its spelling. All five sweep binaries
++use unchanged implementation/inputs/assertions throughout. Owned diffs pass
++--check. No spec/conformance/include/Python-seed edits, foreign test execution,
++dependencies, Beads mutation/export, push or Dolt sync. Explicit owned path
++commits use absolute git -C and BEADS_HOOK_TIMEOUT=20.
+ ````
+ 
+@@ -6694,5 +7465,5 @@
+ ````
+ 
+-## `src/action.rs` (1059 lines)
++## `src/action.rs` (1066 lines)
+ 
+ ````rust
+@@ -6956,4 +7727,11 @@
+             // §3.3 classical types, ptr included (ptr_width bits).
+             crate::oracle::check_argument(self, &p.ty, arg)?;
++        }
++        if self.section("schedule").is_some() {
++            let arguments = f.params[3]
++                .iter()
++                .map(|p| bindings.args[&p.name].clone())
++                .collect::<Vec<_>>();
++            self.check_schedule_matches_for_run(name, crate::Budget::steps(0), &arguments)?;
+         }
+         let mut env = Environment {
+@@ -15984,5 +16762,5 @@
+ ````
+ 
+-## `src/machine.rs` (1293 lines)
++## `src/machine.rs` (1294 lines)
+ 
+ ````rust
+@@ -16340,4 +17118,5 @@
+     ) -> Result<Self> {
+         object.validate_budget(budget)?;
++        object.check_schedule_matches_for_run(name, budget, &input.args)?;
+         let program = Program::new(object, name)?;
+         let widths = DerivedWidths::from_program(object, &program, budget)?;
+@@ -19288,222 +20067,5 @@
+ ````
+ 
+-## `src/metadata/schedule_domains.rs` (212 lines)
+-
+-````rust
+-//! §11 maximal-match admission over selector domains, without loop expansion.
+-use super::*;
+-
+-type Domain = Vec<(u128, u128)>;
+-
+-fn intersection(a: &Domain, b: &Domain) -> Option<Domain> {
+-    let out: Domain = a
+-        .iter()
+-        .zip(b)
+-        .map(|(x, y)| (x.0.max(y.0), x.1.min(y.1)))
+-        .collect();
+-    out.iter().all(|(lo, hi)| lo <= hi).then_some(out)
+-}
+-
+-/// Partition A \ B into disjoint boxes. Boundaries come only from selectors;
+-/// cost is independent of numeric loop/step bounds. Repeating subtraction
+-/// checks coverage by the UNION of all higher entries, not one overlapping C.
+-fn subtract(mut a: Domain, b: &Domain) -> Vec<Domain> {
+-    let Some(common) = intersection(&a, b) else {
+-        return vec![a];
+-    };
+-    let mut out = Vec::new();
+-    for (i, &(lo, hi)) in common.iter().enumerate() {
+-        if a[i].0 < lo {
+-            let mut part = a.clone();
+-            part[i].1 = lo - 1;
+-            out.push(part);
+-            a[i].0 = lo;
+-        }
+-        if hi < a[i].1 {
+-            let mut part = a.clone();
+-            part[i].0 = hi + 1;
+-            out.push(part);
+-            a[i].1 = hi;
+-        }
+-    }
+-    out
+-}
+-
+-impl Object {
+-    /// The shortest invocation chains in a prefix are sufficient: each point
+-    /// has its own generated operations (§11), including call/loop rows. A
+-    /// longer path cannot cover those operations. If these shortest chains
+-    /// are covered, every extension is covered by the same covering prefixes.
+-    /// The empty prefix is split over every root instruction (not a fictitious
+-    /// operation with an empty chain). validate_path already checked call edges.
+-    fn shortest_chains(&self, path: &Json, region: &str) -> Result<Vec<Vec<Json>>> {
+-        if !path.array()?.is_empty() {
+-            return Ok(vec![path.array()?.to_vec()]);
+-        }
+-        fn points(seq: &[Instruction], ordinal: &mut u128, out: &mut Vec<u128>) {
+-            for i in seq {
+-                out.push(*ordinal);
+-                *ordinal += 1;
+-                for body in &i.bodies {
+-                    points(body, ordinal, out);
+-                }
+-            }
+-        }
+-        let symbol = &self.identity()?.interface_hashes[region];
+-        let mut chains = Vec::new();
+-        for block in &self.functions[region].blocks {
+-            let mut ordinals = Vec::new();
+-            points(&block.instructions, &mut 0, &mut ordinals);
+-            for ordinal in ordinals {
+-                chains.push(vec![Json::Object(std::collections::BTreeMap::from([
+-                    ("symbol".into(), Json::String(symbol.clone())),
+-                    (
+-                        "point".into(),
+-                        Json::String(format!("{}:{ordinal}", block.name)),
+-                    ),
+-                    ("iteration".into(), Json::String("*".into())),
+-                ]))]);
+-            }
+-        }
+-        Ok(chains)
+-    }
+-
+-    fn chain_domain(&self, chain: &[Json], budget: u128) -> Result<Option<Domain>> {
+-        let mut domain = Vec::new();
+-        let mut oracle = false;
+-        for element in chain {
+-            let (block, ordinal) = element
+-                .get("point")?
+-                .string()?
+-                .rsplit_once(':')
+-                .ok_or_else(|| Error("§11: invalid point".into()))?;
+-            let point = self.point(
+-                element.get("symbol")?.string()?,
+-                block,
+-                ordinal
+-                    .parse()
+-                    .map_err(|_| Error("§11: invalid point ordinal".into()))?,
+-            )?;
+-            oracle |= point.function.kind == "oracle";
+-            for bound in point.loops {
+-                if bound == 0 {
+-                    return Ok(None);
+-                }
+-                domain.push((0, u128::from(bound) - 1));
+-            }
+-        }
+-        if oracle && budget == 0 {
+-            return Ok(None);
+-        }
+-        // Generated ordinals belong to the bound expansion library. Admission
+-        // does not execute it; retain the whole ordinal selector domain.
+-        domain.extend([
+-            (1, if oracle { budget } else { u128::MAX }),
+-            (0, 1),
+-            (0, u128::MAX),
+-        ]);
+-        Ok(Some(domain))
+-    }
+-
+-    fn entry_domain(&self, entry: &Json, chain: &[Json], base: &Domain) -> Result<Option<Domain>> {
+-        let path = entry.get("path")?.array()?;
+-        if path.len() > chain.len() {
+-            return Ok(None);
+-        }
+-        let mut domain = base.clone();
+-        let mut offset = 0;
+-        for (i, element) in chain.iter().enumerate() {
+-            let (block, ordinal) = element
+-                .get("point")?
+-                .string()?
+-                .rsplit_once(':')
+-                .ok_or_else(|| Error("§11: invalid point".into()))?;
+-            let depth = self
+-                .point(
+-                    element.get("symbol")?.string()?,
+-                    block,
+-                    ordinal
+-                        .parse()
+-                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
+-                )?
+-                .loops
+-                .len();
+-            if let Some(selector) = path.get(i) {
+-                if selector.get("symbol")? != element.get("symbol")?
+-                    || selector.get("point")? != element.get("point")?
+-                {
+-                    return Ok(None);
+-                }
+-                let iterations = selector.get("iteration")?;
+-                if !wildcard(iterations) {
+-                    for (j, value) in iterations.array()?.iter().enumerate() {
+-                        let value = value.uint()?;
+-                        domain[offset + j] = (value, value);
+-                    }
+-                }
+-            }
+-            offset += depth;
+-        }
+-        for (i, key) in ["step", "phase", "generated"].iter().enumerate() {
+-            let value = entry.get(key)?;
+-            if !wildcard(value) {
+-                let n = if *key == "phase" {
+-                    u128::from(value.string()? == "rev")
+-                } else {
+-                    value.uint()?
+-                };
+-                domain[offset + i] = (n, n);
+-            }
+-        }
+-        Ok(intersection(&domain, base))
+-    }
+-
+-    pub(super) fn has_uncovered_tie(
+-        &self,
+-        a: &Json,
+-        b: &Json,
+-        entries: &[Json],
+-        region: &str,
+-        budget: u128,
+-    ) -> Result<bool> {
+-        for chain in self.shortest_chains(a.get("path")?, region)? {
+-            let Some(base) = self.chain_domain(&chain, budget)? else {
+-                continue;
+-            };
+-            let Some(ad) = self.entry_domain(a, &chain, &base)? else {
+-                continue;
+-            };
+-            let Some(bd) = self.entry_domain(b, &chain, &base)? else {
+-                continue;
+-            };
+-            let Some(common) = intersection(&ad, &bd) else {
+-                continue;
+-            };
+-            let mut remaining = vec![common];
+-            for higher in entries {
+-                if higher.get("kind")? != a.get("kind")? || specificity(higher)? <= specificity(a)?
+-                {
+-                    continue;
+-                }
+-                if let Some(cover) = self.entry_domain(higher, &chain, &base)? {
+-                    remaining = remaining
+-                        .into_iter()
+-                        .flat_map(|box_| subtract(box_, &cover))
+-                        .collect();
+-                    if remaining.is_empty() {
+-                        break;
+-                    }
+-                }
+-            }
+-            if !remaining.is_empty() {
+-                return Ok(true);
+-            }
+-        }
+-        Ok(false)
+-    }
+-}
+-````
+-
+-## `src/metadata.rs` (415 lines)
++## `src/metadata.rs` (421 lines)
+ 
+ ````rust
+@@ -19814,5 +20376,11 @@
+                         && specificity(a)? == specificity(other)?
+                         && overlaps(a, other)?
+-                        && self.has_uncovered_tie(a, other, entries, region, values[0])?
++                        && self.has_uncovered_tie(
++                            a,
++                            other,
++                            entries,
++                            region,
++                            (f.kind == "oracle").then_some(values[0]),
++                        )?
+                     {
+                         return err("§11", "multiple maximal matching schedule entries");
+@@ -22285,5 +22853,5 @@
+ ````
+ 
+-## `src/oracle.rs` (860 lines)
++## `src/oracle.rs` (861 lines)
+ 
+ ````rust
+@@ -22816,4 +23384,5 @@
+     ) -> Result<OracleVectorOutcome> {
+         self.validate_budget(budget)?;
++        self.check_schedule_matches_for_run(name, budget, &input.args)?;
+         let program = Program::new(self, name)?;
+         let root = &self.functions[name];
+@@ -27170,5 +27739,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (2230 lines)
++## `tests/cli_xam.rs` (2355 lines)
+ 
+ ````rust
+@@ -29400,4 +29969,129 @@
+         for command in ["check", "hash"] {
+             fails(&[command, &path], "§9.1: §11");
++        }
++    }
++}
++
++#[test]
++fn r18_cli_literal_nested_budget_check_hash_defer_and_run_reject() {
++    for (budget, source, pin) in [
++        (
++            2,
++            include_str!("support/r18-nested-budget-2.bisa"),
++            "07c617a312f2b1f333689d95b474ccf9b7dea4a570c43ced87a92c089b66d9e7",
++        ),
++        (
++            3,
++            include_str!("support/r18-nested-budget-3.bisa"),
++            "0584dc9a6dbe02b138e516caca59168a4dbbf577185e9d96504f58d5a5fcf4ae",
++        ),
++    ] {
++        assert_eq!(bennett_isa_ref::sha256_hex(source.as_bytes()), pin);
++        let path = tmp_file(&format!("r18-nested-{budget}.bisa"), source);
++        for command in ["check", "hash"] {
++            let result = ok(&[command, &path]);
++            assert_eq!(text(&result, "object_hash"), support::r18::OH);
++        }
++        fails(
++            &[
++                "run-oracle",
++                &path,
++                "ignore",
++                "--input",
++                "8",
++                "--budget",
++                &budget.to_string(),
++                "--arg",
++                "token:3,0,0,0",
++            ],
++            "§11: multiple maximal matching schedule entries",
++        );
++        let result = ok(&[
++            "run-oracle",
++            &path,
++            "ignore",
++            "--input",
++            "8",
++            "--budget",
++            &budget.to_string(),
++            "--arg",
++            "token:2,0,0,0",
++        ]);
++        assert_eq!(uint(&result, "code"), 0);
++        assert_eq!(uint(&result, "payload"), 0);
++        assert_eq!(uint(&result, "steps"), 2);
++    }
++}
++
++#[test]
++fn r18_cli_single_covering_and_context_controls() {
++    use support::{
++        r17::{document, schedule},
++        r18::*,
++    };
++    for (budget, source) in [(2, TWO), (3, THREE)] {
++        let mut s = schedule(source);
++        let literal = s.get("entries").unwrap().array().unwrap()[0].clone();
++        let mut broad = literal.clone();
++        let path = broad
++            .get("path")
++            .unwrap()
++            .array()
++            .unwrap()
++            .iter()
++            .map(|p| {
++                let mut p = p.clone();
++                set(&mut p, "iteration", support::json(r#""*""#));
++                p
++            })
++            .collect();
++        set(&mut broad, "path", Json::Array(path));
++        let entries = [broad.clone(), broad, literal.clone()];
++        let mut variants = vec![vec![literal]];
++        variants.extend(ORDERS.map(|order| order.map(|i| entries[i].clone()).to_vec()));
++        for (i, entries) in variants.into_iter().enumerate() {
++            set(&mut s, "entries", Json::Array(entries));
++            let path = tmp_file(
++                &format!("r18-positive-{budget}-{i}.bisa"),
++                &document(source, &s),
++            );
++            for command in ["check", "hash"] {
++                let result = ok(&[command, &path]);
++                assert_eq!(text(&result, "object_hash"), OH);
++                if command == "hash" {
++                    let ignore = field(&result, "symbols").get("ignore").unwrap();
++                    assert_eq!(text(ignore, "interface_hash"), IH);
++                    assert_eq!(text(ignore, "closure_hash"), IH);
++                }
++            }
++        }
++    }
++    for (i, (edges, action)) in [
++        (vec!['L'], false),
++        (vec!['O', 'L'], false),
++        (vec!['O'], true),
++    ]
++    .into_iter()
++    .enumerate()
++    {
++        let o = chain(&edges, action);
++        let hashes = o.identity().unwrap().interface_hashes;
++        let points: Vec<_> = (0..=edges.len())
++            .map(|i| {
++                point(
++                    &hashes[&format!("n{i}")],
++                    if i == edges.len() { 2 } else { 0 },
++                )
++            })
++            .collect();
++        let e = gate(&points, support::json("3"));
++        let mut s = support::r18::schedule(&o, 2, &[3]);
++        set(&mut s, "entries", Json::Array(vec![e.clone(), e]));
++        let path = tmp_file(
++            &format!("r18-context-{i}.bisa"),
++            &support::r18::document(&o, &s),
++        );
++        for command in ["check", "hash"] {
++            ok(&[command, &path]);
+         }
+     }
+@@ -31394,5 +32088,5 @@
+ ````
+ 
+-## `tests/metadata.rs` (805 lines)
++## `tests/metadata.rs` (1284 lines)
+ 
+ ````rust
+@@ -32202,7 +32896,486 @@
+     }
+ }
++
++#[test]
++fn r18_literal_nested_budget_ties_defer_until_run() {
++    use bennett_isa_ref::{Argument, Budget, OracleInput};
++    for (root, source) in [(2, support::r18::TWO), (3, support::r18::THREE)] {
++        let o = Object::parse(source).expect("token budgets are unknown at admission");
++        o.check_hashes().unwrap();
++        assert_eq!(o.identity().unwrap().object_hash, support::r18::OH);
++        let mut input = OracleInput::bits(&[8]);
++        input.args.push(Argument::Token(Budget::steps(3)));
++        let e = o
++            .run_oracle("ignore", &input, Budget::steps(root))
++            .unwrap_err();
++        assert!(
++            e.to_string()
++                .contains("§11: multiple maximal matching schedule entries"),
++            "{e}"
++        );
++        assert!(
++            bennett_isa_ref::OracleMachine::new(&o, "ignore", &input, Budget::steps(root))
++                .err()
++                .unwrap()
++                .to_string()
++                .contains("§11: multiple maximal")
++        );
++        input.args[0] = Argument::Token(Budget::steps(2));
++        let r = o.run_oracle("ignore", &input, Budget::steps(root)).unwrap();
++        assert_eq!((r.payload, r.code, r.steps), (0, 0, 2));
++    }
++    // Root-owned ties remain exact at admission, independent of the unknown
++    // nested token: step 3 is outside B=2 and inside B=3.
++    for (root, source) in [(2, support::r18::TWO), (3, support::r18::THREE)] {
++        let mut s = support::r17::schedule(source);
++        let mut a = s.get("entries").unwrap().array().unwrap()[0].clone();
++        let path = a.get("path").unwrap().array().unwrap()[..1].to_vec();
++        set(&mut a, "path", Json::Array(path));
++        set(&mut s, "entries", Json::Array(vec![a.clone(), a]));
++        assert_eq!(
++            Object::parse(&support::r17::document(source, &s)).is_err(),
++            root == 3
++        );
++    }
++}
++
++#[test]
++fn r18_single_and_shadowed_nested_entries_preserve_identity_and_resolve_all_orders() {
++    use support::{
++        r17::{document, schedule},
++        r18::*,
++    };
++    let mut s = schedule(TWO);
++    let literal = s.get("entries").unwrap().array().unwrap()[0].clone();
++    let mut op = literal.clone();
++    set(&mut op, "generated", json("0")); // review probe's concrete operation
++    set(&mut s, "entries", Json::Array(vec![literal.clone()]));
++    let o = Object::parse(&document(TWO, &s)).unwrap();
++    o.check_hashes().unwrap();
++    assert_eq!(o.identity().unwrap().object_hash, OH);
++    assert_eq!(
++        o.identity().unwrap().closure_hashes["ignore"].as_deref(),
++        Some(IH)
++    );
++    assert_eq!(o.resolve_schedule(&op, "gate").unwrap(), Some(&literal));
++    // Literal duplicates are fully specific except generated="*"; one more
++    // generated ordinal cannot cover that entire domain. Broaden iterations
++    // for A/B; the literal C then genuinely covers their tie on ALL ordinals.
++    let mut broad = literal.clone();
++    let mut path = broad.get("path").unwrap().array().unwrap().to_vec();
++    for p in &mut path {
++        set(p, "iteration", json(r#""*""#));
++    }
++    set(&mut broad, "path", Json::Array(path));
++    let entries = [broad.clone(), broad, literal.clone()];
++    for order in ORDERS {
++        set(
++            &mut s,
++            "entries",
++            Json::Array(order.map(|i| entries[i].clone()).to_vec()),
++        );
++        let o = Object::parse(&document(TWO, &s)).unwrap();
++        o.check_hashes().unwrap();
++        assert_eq!(o.identity().unwrap().object_hash, OH);
++        for g in [0, 1, u128::MAX] {
++            set(&mut op, "generated", Json::Number(g.to_string()));
++            assert_eq!(o.resolve_schedule(&op, "gate").unwrap(), Some(&literal));
++        }
++    }
++}
++
++#[test]
++fn r18_lproc_action_root_and_prefix_domain_controls() {
++    use support::r18::*;
++    for (edges, action) in [
++        (vec!['L'], false),
++        (vec!['O', 'L'], false),
++        (vec!['O'], true),
++    ] {
++        let o = chain(&edges, action);
++        let hashes = o.identity().unwrap().interface_hashes;
++        let path: Vec<_> = (0..=edges.len())
++            .map(|i| {
++                point(
++                    &hashes[&format!("n{i}")],
++                    if i == edges.len() { 2 } else { 0 },
++                )
++            })
++            .collect();
++        let mut s = support::r18::schedule(&o, 2, &[3]);
++        let e = gate(&path, json("3"));
++        set(&mut s, "entries", Json::Array(vec![e.clone(), e]));
++        let parsed = Object::parse(&document(&o, &s)).unwrap();
++        let budget = bennett_isa_ref::Budget {
++            steps: 2,
++            heap: 0,
++            stack: 256,
++            depth: 16,
++        };
++        let args: Vec<_> = edges
++            .iter()
++            .filter(|&&edge| edge == 'O')
++            .map(|_| {
++                bennett_isa_ref::Argument::Token(bennett_isa_ref::Budget { steps: 3, ..budget })
++            })
++            .collect();
++        if action {
++            let mut q = bennett_isa_ref::QuantumState::new();
++            let mut bindings = bennett_isa_ref::QuantumBindings::default();
++            for (name, width) in [("t", 8), ("f", 4), ("x", 8)] {
++                bindings
++                    .bundles
++                    .insert(name.into(), q.allocate(width).unwrap());
++            }
++            bindings.args.insert("tk0".into(), args[0].clone());
++            let before = q.clone();
++            let e = parsed
++                .execute_action("n0", &mut q, &bindings, false, &[])
++                .unwrap_err();
++            assert!(e.to_string().contains("§11: multiple maximal"));
++            assert_eq!(
++                q, before,
++                "schedule tie must reject before any action realisation"
++            );
++        }
++        let bound = parsed.check_schedule_matches_for_run("n0", budget, &args);
++        if edges == ['L'] {
++            bound.unwrap();
++        } else {
++            assert!(bound
++                .unwrap_err()
++                .to_string()
++                .contains("§11: multiple maximal"));
++        }
++    }
++    // A prefix is not confined to the root's domain when it matches nested
++    // operations. Covers for root steps 1,2 leave nested step 3 uncovered.
++    let o = chain(&['O'], false);
++    let mut s = support::r18::schedule(&o, 2, &[3]);
++    let a = gate(&[], json(r#""*""#));
++    let entries = vec![a.clone(), a, gate(&[], json("1")), gate(&[], json("2"))];
++    set(&mut s, "entries", Json::Array(entries));
++    let parsed = Object::parse(&document(&o, &s)).unwrap();
++    let budget = bennett_isa_ref::Budget {
++        steps: 2,
++        heap: 0,
++        stack: 256,
++        depth: 16,
++    };
++    let args = [bennett_isa_ref::Argument::Token(bennett_isa_ref::Budget {
++        steps: 3,
++        ..budget
++    })];
++    assert!(parsed
++        .check_schedule_matches_for_run("n0", budget, &args)
++        .unwrap_err()
++        .to_string()
++        .contains("§11: multiple maximal"));
++    // Root B=0 has no nested invocation; no token preimage is inferred.
++    let mut bindings = s.get("bindings").unwrap().clone();
++    set(&mut bindings, "budget", json("[0,0,256,16]"));
++    set(&mut s, "bindings", bindings);
++    Object::parse(&document(&o, &s)).unwrap();
++}
++
++#[test]
++fn r18_nested_specificity_family_matches_brute_force() {
++    use support::r18::*;
++    // Derive operations from explicit O/L shapes and concrete budgets BEFORE
++    // admission. Every oracle dispatch expands each static row at t=1..B,
++    // including gated-off rows; L shares that dispatch, O starts its own.
++    // Tokens are not recoverable from params_hash: admission sees only root
++    // domains; bound matching and the concrete resolver use EACH actual token
++    // assignment, never the union over possible token values (INV-5 1.4.3).
++    fn enumerate(edges: &[char], action: bool, hashes: &[String], budgets: &[u64]) -> Vec<Json> {
++        let mut out = Vec::new();
++        let mut prefix = Vec::new();
++        let mut owner = if action { None } else { Some(0) };
++        let mut next_token = 1;
++        for (depth, symbol) in hashes.iter().enumerate() {
++            let bound = owner.map_or(4, |i| budgets[i]);
++            if bound == 0 {
++                break;
++            }
++            let points = if depth == 0 && action {
++                1
++            } else if depth == edges.len() {
++                3
++            } else {
++                2
++            };
++            for ordinal in 0..points {
++                let mut path = prefix.clone();
++                path.push(point(symbol, ordinal));
++                for t in 1..=bound {
++                    for phase in ["fwd", "rev"] {
++                        for generated in 0..=2 {
++                            let mut op = gate(&path, Json::Number(t.to_string()));
++                            set(&mut op, "phase", Json::String(phase.into()));
++                            set(&mut op, "generated", Json::Number(generated.to_string()));
++                            out.push(op);
++                        }
++                    }
++                }
++            }
++            if let Some(&edge) = edges.get(depth) {
++                prefix.push(point(symbol, 0));
++                if edge == 'O' {
++                    owner = Some(next_token);
++                    next_token += 1;
++                }
++            }
++        }
++        out
++    }
++    let mut seed = 0x1819_cafe_u64;
++    let mut draw = |n: u64| {
++        seed ^= seed << 13;
++        seed ^= seed >> 7;
++        seed ^= seed << 17;
++        seed % n
++    };
++    let (mut cases, mut admitted, mut assignments, mut operations) = (0, 0, 0, 0);
++    let mut bound_ties = 0;
++    for depth in 1..=3 {
++        for oracles in 0..=depth {
++            let edges: Vec<_> = (0..depth)
++                .map(|i| if i < oracles { 'O' } else { 'L' })
++                .collect();
++            for action in [false, true] {
++                if action && oracles == 0 {
++                    continue;
++                }
++                let o = chain(&edges, action);
++                let id = o.identity().unwrap();
++                let hashes: Vec<_> = (0..=depth)
++                    .map(|i| id.interface_hashes[&format!("n{i}")].clone())
++                    .collect();
++                for root in [0, 1, 2, 4] {
++                    assignments += 5usize.pow(oracles as u32);
++                    let mut root_budgets = vec![root];
++                    root_budgets.extend(vec![0; oracles]);
++                    let root_operations = enumerate(&edges, action, &hashes, &root_budgets);
++                    // Even with B=0 there are no root oracle operations. Build
++                    // selectors independently so empty domains are exercised.
++                    let leaf: Vec<_> = (0..=depth)
++                        .map(|i| point(&hashes[i], if i == depth { 2 } else { 0 }))
++                        .collect();
++                    for case in 0..125 {
++                        let mut entries = Vec::new();
++                        for _ in 0..(2 + draw(3)) {
++                            let mut path = leaf[..draw((depth + 2) as u64) as usize].to_vec();
++                            for p in &mut path {
++                                if draw(2) == 0 {
++                                    set(p, "iteration", json(r#""*""#));
++                                }
++                            }
++                            let mut e = gate(
++                                &path,
++                                if draw(3) == 0 {
++                                    json(r#""*""#)
++                                } else {
++                                    Json::Number((1 + draw(3)).to_string())
++                                },
++                            );
++                            set(
++                                &mut e,
++                                "phase",
++                                json([r#""*""#, r#""fwd""#, r#""rev""#][draw(3) as usize]),
++                            );
++                            set(
++                                &mut e,
++                                "generated",
++                                if draw(3) == 0 {
++                                    json(r#""*""#)
++                                } else {
++                                    Json::Number(draw(2).to_string())
++                                },
++                            );
++                            entries.push(e);
++                        }
++                        // Deterministic exact ties, shadowed ties, and UNION
++                        // coverage supplement (without replacing) the RNG.
++                        if case % 8 == 0 {
++                            let a = gate(&leaf, json("3"));
++                            entries = vec![a.clone(), a];
++                        } else if case % 8 == 1 {
++                            let a = gate(&[], json(r#""*""#));
++                            entries =
++                                vec![a.clone(), a, gate(&[], json("1")), gate(&[], json("2"))];
++                        } else if case % 8 == 2 {
++                            let mut a = gate(&leaf, json(r#""*""#));
++                            set(
++                                &mut a,
++                                "path",
++                                Json::Array(
++                                    leaf.iter()
++                                        .map(|p| {
++                                            let mut p = p.clone();
++                                            set(&mut p, "iteration", json(r#""*""#));
++                                            p
++                                        })
++                                        .collect(),
++                                ),
++                            );
++                            entries = vec![a.clone(), a, gate(&leaf, json(r#""*""#))];
++                        }
++                        let mut encoded = case % 5usize.pow(oracles as u32);
++                        let tokens: Vec<_> = (0..oracles)
++                            .map(|_| {
++                                let value = (encoded % 5) as u64;
++                                encoded /= 5;
++                                value
++                            })
++                            .collect();
++                        let mut budgets = vec![root];
++                        budgets.extend(&tokens);
++                        let concrete = enumerate(&edges, action, &hashes, &budgets);
++                        operations += concrete.len();
++                        let expected: Vec<_> =
++                            concrete.iter().map(|op| winners(&entries, op)).collect();
++                        let ambiguous = expected.iter().any(|w| w.len() > 1);
++                        let root_ambiguous = root_operations
++                            .iter()
++                            .any(|op| winners(&entries, op).len() > 1);
++                        let limits = bennett_isa_ref::Budget {
++                            steps: root,
++                            heap: 0,
++                            stack: 256,
++                            depth: 16,
++                        };
++                        let args: Vec<_> = tokens
++                            .iter()
++                            .map(|&steps| {
++                                bennett_isa_ref::Argument::Token(bennett_isa_ref::Budget {
++                                    steps,
++                                    ..limits
++                                })
++                            })
++                            .collect();
++                        let mut s = support::r18::schedule(&o, root, &tokens);
++                        for reverse in [false, true] {
++                            let mut ordered = entries.clone();
++                            if reverse {
++                                ordered.reverse();
++                            }
++                            set(&mut s, "entries", Json::Array(ordered));
++                            let parsed = Object::parse(&document(&o, &s));
++                            assert_eq!(parsed.is_err(), root_ambiguous, "edges={edges:?}, action={action}, root={root}, case={case}, reverse={reverse}: {}", s.canonical());
++                            if let Ok(parsed) = parsed {
++                                if !reverse {
++                                    admitted += 1;
++                                    if ambiguous {
++                                        bound_ties += 1;
++                                    }
++                                }
++                                let bound =
++                                    parsed.check_schedule_matches_for_run("n0", limits, &args);
++                                assert_eq!(bound.is_err(),ambiguous,"bound edges={edges:?}, action={action}, budgets={budgets:?}, case={case}: {}",s.canonical());
++                                if let Err(e) = bound {
++                                    assert!(e.to_string().contains("§11: multiple maximal"), "{e}");
++                                }
++                                for (op, w) in concrete.iter().zip(&expected) {
++                                    let resolution = parsed.resolve_schedule(op, "gate");
++                                    if w.len() > 1 {
++                                        assert!(resolution
++                                            .unwrap_err()
++                                            .to_string()
++                                            .contains("§11: multiple maximal"));
++                                    } else {
++                                        assert_eq!(
++                                            resolution.unwrap(),
++                                            w.first().map(|i| &entries[*i])
++                                        );
++                                    }
++                                }
++                            } else {
++                                assert!(parsed
++                                    .unwrap_err()
++                                    .to_string()
++                                    .contains("§11: multiple maximal"));
++                            }
++                        }
++                        cases += 1;
++                    }
++                }
++            }
++        }
++    }
++    assert_eq!(cases, 7500);
++    eprintln!("R18 nested family: {cases} schedules + {cases} reversed orders, {admitted} admitted / {} root-rejected, {bound_ties} deferred ties materialise at binding; {assignments} distinct concrete budget assignments, {operations} concrete operations; root admission, actual-budget bound matching and all concrete resolver results: oracle agreement 100%",cases-admitted);
++}
++
++#[test]
++fn r18_recursive_lproc_keeps_root_budget_without_depth_cap() {
++    use support::r18::{document, gate, point, set};
++    let o = Object::parse(include_str!("fixtures/sum_db.bisa")).unwrap();
++    let id = o.identity().unwrap();
++    let mut s = schedule();
++    let mut b = s.get("bindings").unwrap().clone();
++    set(&mut b, "region", Json::String("sum_db".into()));
++    set(
++        &mut b,
++        "closure_hash",
++        Json::String(id.closure_hashes["sum_db"].clone().unwrap()),
++    );
++    set(&mut b, "budget", json("[2,4080,16,64]"));
++    set(&mut s, "bindings", b);
++    let a = gate(&[point(&id.interface_hashes["sum_db"], 2)], json("3"));
++    set(&mut s, "entries", Json::Array(vec![a.clone(), a]));
++    // Exploring extensions must terminate at a call-graph fixpoint; recursive
++    // lift.call does not create a token-governed machine or a fresh step range.
++    Object::parse(&document(&o, &s)).unwrap();
++}
++
++#[test]
++fn r18_bound_tokens_forward_by_parameter_and_zero_ancestor_is_empty() {
++    use bennett_isa_ref::{Argument, Budget, OracleInput};
++    use support::r18::*;
++    let o = chain(&['O', 'O'], false);
++    let reversed = o.text.replace(
++        "lift.oracle_call @n1 tk0 (x) r fr () (tk0, tk1)",
++        "lift.oracle_call @n1 tk0 (x) r fr () (tk1, tk0)",
++    );
++    assert_ne!(reversed, o.text);
++    let swapped = support::rehash(&reversed);
++    for (o, tokens, tie) in [
++        (&swapped, [4, 2], true),
++        (&swapped, [2, 4], false),
++        (&o, [0, 4], false),
++    ] {
++        let id = o.identity().unwrap();
++        let path: Vec<_> = (0..=2)
++            .map(|i| {
++                point(
++                    &id.interface_hashes[&format!("n{i}")],
++                    if i == 2 { 2 } else { 0 },
++                )
++            })
++            .collect();
++        let e = gate(&path, json("3"));
++        let mut s = support::r18::schedule(o, 2, &tokens);
++        set(&mut s, "entries", Json::Array(vec![e.clone(), e]));
++        let parsed = Object::parse(&document(o, &s)).unwrap();
++        let limits = Budget {
++            steps: 2,
++            heap: 0,
++            stack: 256,
++            depth: 16,
++        };
++        let mut input = OracleInput::bits(&[8]);
++        input.args = tokens
++            .map(|steps| Argument::Token(Budget { steps, ..limits }))
++            .to_vec();
++        let result = parsed.run_oracle("n0", &input, limits);
++        assert_eq!(result.is_err(), tie);
++        if let Err(e) = result {
++            assert!(e.to_string().contains("§11: multiple maximal"));
++        }
++    }
++}
+ ````
+ 
+-## `tests/oracle.rs` (301 lines)
++## `tests/oracle.rs` (312 lines)
+ 
+ ````rust
+@@ -32507,4 +33680,15 @@
+         assert_eq!((r.payload, r.code, r.steps), expected);
+     }
++}
++
++#[test]
++fn r18_outer_two_steps_and_nested_three_steps_are_independent() {
++    // Literal §4.2/§5.2 derivation: inc8 has const/add/retval = 3 rows;
++    // ignore has call/retval = 2 rows. Neither budget is changed by admission.
++    let o = Object::parse(include_str!("fixtures/nested.bisa")).unwrap();
++    let mut input = OracleInput::bits(&[8]);
++    input.args.push(Argument::Token(Budget::steps(3)));
++    let r = o.run_oracle("ignore", &input, Budget::steps(2)).unwrap();
++    assert_eq!((r.payload, r.code, r.steps), (9, 0, 2));
+ }
+ ````
+@@ -40884,5 +42068,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (781 lines)
++## `tests/support/mod.rs` (783 lines)
+ 
+ ````rust
+@@ -41668,4 +42852,6 @@
+ 
+ pub mod r17;
++
++pub mod r18;
+ ````
+ 
+@@ -43152,4 +44338,318 @@
+ ````
+ 
++## `tests/support/r18-nested-budget-2.bisa` (34 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","kind":"oracle","name":"inc8","signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}},"1":{"interface_hash":"562ad89a1befd9629409f21362684d92dc9d57b93968b1d6d5a868e6e2bc6afd","kind":"oracle","name":"nested","signature":{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}},"2":{"interface_hash":"c98f82615ce05c7f82ee89d9106ae0655f3396332ad2a6616f63266c03043c34","kind":"oracle","name":"cancel","signature":{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}},"3":{"interface_hash":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012","kind":"oracle","name":"ignore","signature":{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}}
++
++section functions
++oracle @inc8 (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()
++regs { one:reg[8], r:reg[8] }
++^entry():
++one = lift.const.i8 1
++r = lift.add x one
++lift.retval r
++oracle @nested (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)
++regs { r:reg[8], fr:reg[4], zero:reg[4], p:reg[1] }
++^entry():
++lift.oracle_call @inc8 tk (x) r fr () ()
++zero = lift.const.i4 0
++p = lift.icmp.ne fr zero
++lift.faultif p 9
++lift.retval r
++oracle @cancel (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)
++regs { r:reg[8], fr:reg[4], zero:reg[4], p:reg[1] }
++^entry():
++lift.oracle_call @inc8 tk (x) r fr () ()
++lift.oracle_uncall @inc8 tk (x) r fr () ()
++lift.retval r
++oracle @ignore (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)
++regs { r:reg[8], fr:reg[4], zero:reg[4], p:reg[1] }
++^entry():
++lift.oracle_call @inc8 tk (x) r fr () ()
++lift.retval r
++
++section schedule
++{"bindings":{"budget":[2,0,0,0],"closure_hash":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012","epsilon":0,"expansion":{"hash":"1111111111111111111111111111111111111111111111111111111111111111","name":"ref","version":"0.8"},"inherited_controls":0,"params_hash":"9ad98ad844416479fffd565ff8948ae35c1b61e4637a31dc39cab1a2221dd999","region":"ignore","scheduler":{"name":"test","version":"1"},"target_hash":"3333333333333333333333333333333333333333333333333333333333333333","variant":"forward"},"entries":[{"gate":{"realisation":"native"},"generated":"*","kind":"gate","path":[{"iteration":[],"point":"entry:0","symbol":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012"},{"iteration":[],"point":"entry:2","symbol":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"phase":"fwd","step":3},{"gate":{"realisation":"native"},"generated":"*","kind":"gate","path":[{"iteration":[],"point":"entry:0","symbol":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012"},{"iteration":[],"point":"entry:2","symbol":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"phase":"fwd","step":3}]}
++````
++
++## `tests/support/r18-nested-budget-3.bisa` (34 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","kind":"oracle","name":"inc8","signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}},"1":{"interface_hash":"562ad89a1befd9629409f21362684d92dc9d57b93968b1d6d5a868e6e2bc6afd","kind":"oracle","name":"nested","signature":{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}},"2":{"interface_hash":"c98f82615ce05c7f82ee89d9106ae0655f3396332ad2a6616f63266c03043c34","kind":"oracle","name":"cancel","signature":{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}},"3":{"interface_hash":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012","kind":"oracle","name":"ignore","signature":{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}}
++
++section functions
++oracle @inc8 (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()
++regs { one:reg[8], r:reg[8] }
++^entry():
++one = lift.const.i8 1
++r = lift.add x one
++lift.retval r
++oracle @nested (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)
++regs { r:reg[8], fr:reg[4], zero:reg[4], p:reg[1] }
++^entry():
++lift.oracle_call @inc8 tk (x) r fr () ()
++zero = lift.const.i4 0
++p = lift.icmp.ne fr zero
++lift.faultif p 9
++lift.retval r
++oracle @cancel (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)
++regs { r:reg[8], fr:reg[4], zero:reg[4], p:reg[1] }
++^entry():
++lift.oracle_call @inc8 tk (x) r fr () ()
++lift.oracle_uncall @inc8 tk (x) r fr () ()
++lift.retval r
++oracle @ignore (x:wire[8] in) (t:wire[8]) (f:wire[4]) () (tk:token)
++regs { r:reg[8], fr:reg[4], zero:reg[4], p:reg[1] }
++^entry():
++lift.oracle_call @inc8 tk (x) r fr () ()
++lift.retval r
++
++section schedule
++{"bindings":{"budget":[3,0,0,0],"closure_hash":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012","epsilon":0,"expansion":{"hash":"1111111111111111111111111111111111111111111111111111111111111111","name":"ref","version":"0.8"},"inherited_controls":0,"params_hash":"9ad98ad844416479fffd565ff8948ae35c1b61e4637a31dc39cab1a2221dd999","region":"ignore","scheduler":{"name":"test","version":"1"},"target_hash":"3333333333333333333333333333333333333333333333333333333333333333","variant":"forward"},"entries":[{"gate":{"realisation":"native"},"generated":"*","kind":"gate","path":[{"iteration":[],"point":"entry:0","symbol":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012"},{"iteration":[],"point":"entry:2","symbol":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"phase":"fwd","step":3},{"gate":{"realisation":"native"},"generated":"*","kind":"gate","path":[{"iteration":[],"point":"entry:0","symbol":"9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012"},{"iteration":[],"point":"entry:2","symbol":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"phase":"fwd","step":3}]}
++````
++
++## `tests/support/r18-review-probe.rs` (21 lines)
++
++````rust
++use bennett_isa_ref::{Object, OracleMachine, OracleInput, Budget, json::Json};
++fn main() {
++ let args:Vec<_>=std::env::args().collect();
++ let o=Object::parse(&std::fs::read_to_string(&args[1]).unwrap()).unwrap();
++ let s=o.section("schedule").unwrap();
++ let op=s.get("entries").unwrap().array().unwrap()[0].clone();
++ let mut op=op.object().unwrap().clone(); op.insert("generated".into(),Json::Number("0".into()));
++ println!("admitted but concrete resolution: {:?}",o.resolve_schedule(&Json::Object(op),"gate"));
++ let o=Object::parse(&std::fs::read_to_string(&args[2]).unwrap()).unwrap();
++ let mut input=OracleInput::bits(&[0]);input.regions.insert("db".into(),vec![0;16]);
++ let mut m=OracleMachine::new(&o,"sum_db",&input,Budget{steps:10,heap:4080,stack:16,depth:64}).unwrap();
++ for t in 1..=10 {
++  let before=m.snapshot();m.forward_step().unwrap();let after=m.snapshot();
++  m.inverse_step().unwrap();assert_eq!(m.snapshot(),before);
++  if t==3 || t==9 {
++   println!("step {t}: pc {} -> {}, counters {:?} -> {:?}; inverse restored full tuple",before.pc,after.pc,before.counter_values().map(|v|v.to_decimal()),after.counter_values().map(|v|v.to_decimal()));
++  }
++  m.forward_step().unwrap();assert_eq!(m.snapshot(),after);
++ }
++ for _ in 0..10 {m.inverse_step().unwrap();} assert!(m.frames_clean());println!("all ten inverse frames clean");
++}
++````
++
++## `tests/support/r18.rs` (168 lines)
++
++````rust
++//! Independent invocation shapes and §11 oracle; no production domain helpers.
++use super::{json, object, rehash};
++use bennett_isa_ref::{json::Json, Object};
++
++pub const TWO: &str = include_str!("r18-nested-budget-2.bisa");
++pub const THREE: &str = include_str!("r18-nested-budget-3.bisa");
++pub const OH: &str = "8e6e852c4717ad55763ec2162b0582896a948c073b649c40002a8aa64dd0f815";
++pub const IH: &str = "9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012";
++pub const ORDERS: [[usize; 3]; 6] = [
++    [0, 1, 2],
++    [0, 2, 1],
++    [1, 0, 2],
++    [1, 2, 0],
++    [2, 0, 1],
++    [2, 1, 0],
++];
++pub fn set(v: &mut Json, k: &str, next: Json) {
++    let Json::Object(m) = v else {
++        panic!("expected object")
++    };
++    m.insert(k.into(), next);
++}
++pub fn point(symbol: &str, ordinal: usize) -> Json {
++    json(&format!(
++        r#"{{"symbol":"{symbol}","point":"entry:{ordinal}","iteration":[]}}"#
++    ))
++}
++pub fn gate(path: &[Json], step: Json) -> Json {
++    let mut e = json(
++        r#"{"path":[],"step":"*","phase":"*","generated":"*","kind":"gate","gate":{"realisation":"native"}}"#,
++    );
++    set(&mut e, "path", Json::Array(path.to_vec()));
++    set(&mut e, "step", step);
++    e
++}
++pub fn score(e: &Json) -> (usize, usize, bool, bool, bool) {
++    let p = e.get("path").unwrap().array().unwrap();
++    let specific = |v: &Json| v != &json(r#""*""#);
++    (
++        p.len(),
++        p.iter()
++            .filter(|p| specific(p.get("iteration").unwrap()))
++            .count(),
++        specific(e.get("step").unwrap()),
++        specific(e.get("phase").unwrap()),
++        specific(e.get("generated").unwrap()),
++    )
++}
++pub fn winners(entries: &[Json], op: &Json) -> Vec<usize> {
++    let path = op.get("path").unwrap().array().unwrap();
++    let matching: Vec<_> = entries
++        .iter()
++        .enumerate()
++        .filter(|(_, e)| {
++            let ep = e.get("path").unwrap().array().unwrap();
++            ep.len() <= path.len()
++                && ep.iter().zip(path).all(|(a, b)| {
++                    ["symbol", "point"]
++                        .iter()
++                        .all(|k| a.get(k).unwrap() == b.get(k).unwrap())
++                        && (a.get("iteration").unwrap() == &json(r#""*""#)
++                            || a.get("iteration").unwrap() == b.get("iteration").unwrap())
++                })
++                && ["step", "phase", "generated"].iter().all(|k| {
++                    e.get(k).unwrap() == &json(r#""*""#) || e.get(k).unwrap() == op.get(k).unwrap()
++                })
++        })
++        .collect();
++    let best = matching.iter().map(|(_, e)| score(e)).max();
++    matching
++        .into_iter()
++        .filter(|(_, e)| Some(score(e)) == best)
++        .map(|(i, _)| i)
++        .collect()
++}
++
++/// O edges start a token-governed machine; L edges share the current machine.
++/// Valid mixed chains have an oracle prefix and lproc suffix (lprocs have no
++/// token parameters). The leaf has const/add/ret; all other nodes call/ret.
++pub fn chain(edges: &[char], action: bool) -> Object {
++    let mut owned = Vec::new();
++    let tokens = edges.iter().filter(|&&edge| edge == 'O').count();
++    let parameters = (0..tokens)
++        .map(|i| format!("tk{i}:token"))
++        .collect::<Vec<_>>()
++        .join(", ");
++    let arguments = (0..tokens)
++        .map(|i| format!("tk{i}"))
++        .collect::<Vec<_>>()
++        .join(", ");
++    let types = Json::Array((0..tokens).map(|_| Json::String("token".into())).collect());
++    for index in 0..=edges.len() {
++        let name = format!("n{index}");
++        let callee = format!("n{}", index + 1);
++        let lproc = index > 0 && edges[index - 1] == 'L';
++        let sig = if index == 0 && action {
++            r#"{"abi":"0.8","args":["token"],"bounds":[],"in":[8],"kind":"action","mem":[],"mut":[8,4],"tier":"q"}"#
++        } else if lproc {
++            r#"{"abi":"0.8","kind":"lproc","params":[8],"result":8,"tier":"q"}"#
++        } else {
++            r#"{"abi":"0.8","args":["token"],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#
++        };
++        let mut signature = json(sig);
++        if !lproc {
++            set(&mut signature, "args", types.clone());
++        }
++        let token = format!(
++            "tk{}",
++            edges[..index].iter().filter(|&&edge| edge == 'O').count()
++        );
++        let body = if index == 0 && action {
++            assert_eq!(edges[0], 'O');
++            format!("action @{name} (t:wire[8] mut, f:wire[4] mut) (x:wire[8] in) () ({parameters}) ()\n^entry():\noracle_call @{callee} {token} (x) t f () ({arguments})")
++        } else {
++            let header = if lproc {
++                format!("lproc @{name} (x:reg[8]) (r:reg[8]) () () ()")
++            } else {
++                format!("oracle @{name} (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ({parameters})")
++            };
++            let ret = if lproc { "lift.ret" } else { "lift.retval" };
++            let rows = if index == edges.len() {
++                format!("one = lift.const.i8 1\nr = lift.add x one\n{ret} r")
++            } else if edges[index] == 'O' {
++                format!("lift.oracle_call @{callee} {token} (x) r fr () ({arguments})\n{ret} r")
++            } else {
++                format!("r = lift.call @{callee} (x)\n{ret} r")
++            };
++            // r is already a declared result location in an lproc.
++            let regs = if lproc {
++                "one:reg[8]"
++            } else {
++                "one:reg[8], r:reg[8], fr:reg[4]"
++            };
++            format!("{header}\nregs {{ {regs} }}\n^entry():\n{rows}")
++        };
++        owned.push((name, signature.canonical(), body));
++    }
++    let refs: Vec<_> = owned
++        .iter()
++        .map(|(n, s, b)| (n.as_str(), s.as_str(), b.as_str()))
++        .collect();
++    rehash(&object(&refs, "{}", "\nsection layout\n{\"A_tab\":2,\"H\":5,\"S_cells\":8,\"globals\":{},\"heap_base\":16,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":16,\"ptr_width\":32}\n"))
++}
++
++pub fn schedule(o: &Object, budget: u64, token_budgets: &[u64]) -> Json {
++    let id = o.identity().unwrap();
++    // Hash the supplied concrete tokens independently as JCS values. Production
++    // admission sees ONLY this hash, so it cannot recover their step bounds.
++    let params = Json::Array(
++        token_budgets
++            .iter()
++            .map(|b| {
++                json(&format!(
++                    r#"{{"steps":{b},"heap":0,"stack":256,"depth":16}}"#
++                ))
++            })
++            .collect(),
++    );
++    json(&format!(
++        r#"{{"bindings":{{"budget":[{budget},0,256,16],"closure_hash":"{}","epsilon":0,"inherited_controls":0,"params_hash":"{}","region":"n0","scheduler":{{"name":"test","version":"1"}},"target_hash":"{}","variant":"forward"}},"entries":[]}}"#,
++        id.closure_hashes["n0"].as_ref().unwrap(),
++        bennett_isa_ref::sha256_hex(params.canonical().as_bytes()),
++        "3".repeat(64)
++    ))
++}
++pub fn document(o: &Object, s: &Json) -> String {
++    format!("{}\nsection schedule\n{}\n", o.text, s.canonical())
++}
++````
++
++## `tests/support/r18_pins.py` (32 lines)
++
++````python
++"""Independent literal R18 pins, no interpreter or rehash helper."""
++import hashlib
++import json
++from pathlib import Path
++
++HERE = Path(__file__).resolve().parent
++fixture = (HERE.parent / "fixtures/nested.bisa").read_text()
++pins = {
++    2: "07c617a312f2b1f333689d95b474ccf9b7dea4a570c43ced87a92c089b66d9e7",
++    3: "0584dc9a6dbe02b138e516caca59168a4dbbf577185e9d96504f58d5a5fcf4ae",
++}
++base = None
++for budget, pin in pins.items():
++    data = (HERE / f"r18-nested-budget-{budget}.bisa").read_bytes()
++    assert hashlib.sha256(data).hexdigest() == pin
++    body, raw = data.decode().split("\nsection schedule\n")
++    assert body == fixture
++    schedule = json.loads(raw)
++    canonical = json.dumps(schedule, sort_keys=True, separators=(",", ":"))
++    assert raw == canonical + "\n"
++    assert schedule["bindings"]["budget"] == [budget, 0, 0, 0]
++    params = b'[{"depth":0,"heap":0,"stack":0,"steps":3}]'
++    assert hashlib.sha256(params).hexdigest() == schedule["bindings"]["params_hash"]
++    assert len(schedule["entries"]) == 2
++    assert schedule["entries"][0] == schedule["entries"][1]
++    if base is None:
++        base = schedule
++    else:
++        base["bindings"]["budget"][0] = budget
++        assert base == schedule
++    print(f"R18 B={budget}: file={pin}, schedule={hashlib.sha256(canonical.encode()).hexdigest()}")
++print("Nested fixture bytes, canonical schedules and token preimage pins agree.")
++````
++
+ ## `tests/support/r9_pins.py` (47 lines)
+ 
