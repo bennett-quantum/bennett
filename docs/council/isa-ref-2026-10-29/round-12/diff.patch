@@ -1,0 +1,2033 @@
+--- round-11/doc.md
++++ round-12/doc.md
+@@ -1,14 +1,15 @@
+-# Bennett ISA reference interpreter, council round 11
+-
+-Snapshot of `reference-interpreter/` at commit `45475a1`. 108 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 406 lines, sha256 19954a27ae97
+-- `PROGRESS.md` 1702 lines, sha256 d6ebc216ab41
++# Bennett ISA reference interpreter, council round 12
++
++Snapshot of `reference-interpreter/` at commit `09fc712`. 113 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 426 lines, sha256 048380f04dbb
++- `PROGRESS.md` 1789 lines, sha256 8c5597053482
+ - `SPEC-QUESTIONS.md` 252 lines, sha256 5f3eac093fd0
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-10.md` 281 lines, sha256 50ad7bd17fb4
++- `council/response-round-11.md` 314 lines, sha256 23c58238189f
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+ - `council/response-round-1.md` 398 lines, sha256 0aa2f796e5d7
++- `council/response-round-10.md` 281 lines, sha256 50ad7bd17fb4
+ - `council/response-round-2.md` 260 lines, sha256 ec60481cde56
+ - `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+@@ -31,5 +32,5 @@
+ - `src/exact.rs` 814 lines, sha256 2322cf555473
+ - `src/handle_validation.rs` 99 lines, sha256 6b1e868a7572
+-- `src/identity.rs` 434 lines, sha256 df6ff131275b
++- `src/identity.rs` 439 lines, sha256 5a04cf0c8b6e
+ - `src/json.rs` 411 lines, sha256 22f03bcb2698
+ - `src/lib.rs` 59 lines, sha256 3ed0599dc200
+@@ -38,5 +39,5 @@
+ - `src/main.rs` 2001 lines, sha256 2d378567ac42
+ - `src/metadata.rs` 401 lines, sha256 6fc964405210
+-- `src/object.rs` 1816 lines, sha256 3ae9d75da085
++- `src/object.rs` 1821 lines, sha256 d579211995b4
+ - `src/oracle.rs` 860 lines, sha256 c852a0c5d82c
+ - `src/quantum.rs` 893 lines, sha256 9ac2ba04ab35
+@@ -44,10 +45,10 @@
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+-- `src/validation.rs` 2014 lines, sha256 8fe6c2f11b92
++- `src/validation.rs` 2016 lines, sha256 e2792df7a15c
+ - `tests/bitvectors.rs` 117 lines, sha256 dcb60f20f4da
+ - `tests/borrow.rs` 195 lines, sha256 40d8a3a4b61e
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 1807 lines, sha256 812e1ddce358
++- `tests/cli_xam.rs` 1944 lines, sha256 b148dde1eaf4
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -57,6 +58,6 @@
+ - `tests/fixtures/classical.bisa` 105 lines, sha256 b8d9aab471f0
+ - `tests/fixtures/classical.comments` 2 lines, sha256 0d7e708118ff
+-- `tests/fixtures/control_flow.bisa` 48 lines, sha256 ebca8410b908
+-- `tests/fixtures/control_flow.comments` 14 lines, sha256 121a89f0096b
++- `tests/fixtures/control_flow.bisa` 56 lines, sha256 e7e0acadaebf
++- `tests/fixtures/control_flow.comments` 22 lines, sha256 6e1077917369
+ - `tests/fixtures/heap.bisa` 73 lines, sha256 253a11b5bbe9
+ - `tests/fixtures/heap.comments` 1 lines, sha256 cad175f056b5
+@@ -74,5 +75,5 @@
+ - `tests/fixtures/r9-sol-oracle.comments` 1 lines, sha256 7d8924a4a92b
+ - `tests/fixtures/r9-sol-qinplace.bisa` 20 lines, sha256 77664ac9392a
+-- `tests/fixtures/r9-sol-qinplace.comments` 1 lines, sha256 7d8924a4a92b
++- `tests/fixtures/r9-sol-qinplace.comments` 1 lines, sha256 93603605563b
+ - `tests/fixtures/registers.bisa` 50 lines, sha256 469feb77cf76
+ - `tests/fixtures/registers.comments` 1 lines, sha256 37444a124a46
+@@ -83,16 +84,16 @@
+ - `tests/fixtures/wide.bisa` 33 lines, sha256 0e7a614e989d
+ - `tests/fixtures/wide.comments` 12 lines, sha256 14b823a490e2
+-- `tests/identity.rs` 233 lines, sha256 08df57d302b1
++- `tests/identity.rs` 309 lines, sha256 a251a88c4362
+ - `tests/linking.rs` 133 lines, sha256 ca9f81880cc9
+ - `tests/metadata.rs` 264 lines, sha256 210e360205ec
+ - `tests/oracle.rs` 301 lines, sha256 a441482548ea
+-- `tests/parser.rs` 259 lines, sha256 cb6ba1d03ad0
+-- `tests/quantum.rs` 439 lines, sha256 aa99e93ffd96
+-- `tests/quantum_control.rs` 160 lines, sha256 9df540d23e68
++- `tests/parser.rs` 362 lines, sha256 30a6aa17c3d6
++- `tests/quantum.rs` 442 lines, sha256 fdf7eb90ace9
++- `tests/quantum_control.rs` 208 lines, sha256 06666f88a14c
+ - `tests/r1_borrow.rs` 923 lines, sha256 c5cbdf3ffc7a
+ - `tests/r1_certificates.rs` 845 lines, sha256 bea1d30abcc7
+ - `tests/r1_discipline.rs` 385 lines, sha256 44c512ebe8c8
+ - `tests/r1_exact.rs` 123 lines, sha256 cff297dd4925
+-- `tests/r1_fixtures.rs` 653 lines, sha256 fc63c190428c
++- `tests/r1_fixtures.rs` 733 lines, sha256 68dc67c2e822
+ - `tests/r1_fuzz_discipline.rs` 1782 lines, sha256 c9215913826a
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+@@ -106,13 +107,17 @@
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 648 lines, sha256 b7803849f02a
++- `tests/support/mod.rs` 685 lines, sha256 9b4de1cb59e8
+ - `tests/support/r10_cases.json` 1 lines, sha256 ac147d3409d3
+ - `tests/support/r10_pins.py` 66 lines, sha256 f9753b4c0606
+-- `tests/support/r9_pins.py` 42 lines, sha256 12e12921d9d2
++- `tests/support/r11-comment-audit.md` 37 lines, sha256 4dc282fe299b
++- `tests/support/r11_cases.json` 1 lines, sha256 598c05a809d6
++- `tests/support/r11_control_flow_pins.json` 1 lines, sha256 9f4caf6da943
++- `tests/support/r11_pins.py` 118 lines, sha256 883e565a05ba
++- `tests/support/r9_pins.py` 47 lines, sha256 46a27f6d9112
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 38131 lines.
+-
+-## `README.md` (406 lines)
++Total embedded: 39226 lines.
++
++## `README.md` (426 lines)
+ 
+ ````markdown
+@@ -523,7 +528,27 @@
+ combined symbolic angle exceeds binary64. Numerical/channel certificate claims
+ still report the staged rigorous interval checker as deliverable 11.
++
++
++## Design: kind, ownership and fixture evidence
++
++Register files are kind-specific at load: oracle/lproc locations are reg[N],
++CC/R use dynamic SSA, and action/perm_action workspace comes from Q producers.
++An empty regs line remains legal and carries loop bounds. A named rotation
++angle must be an f64 classical argument fixed at region entry (§3.1).
++
++Oracle identity selects interface_regions by exact structured JSON owner key
++before flattening layout leaves (§9.2); dots remain legal in owner and region
++names. Every non-interface leaf remains in the oracle envelope.
++
++Fixture hand derivations must distinguish exact semantic support, rounded
++diagnostic amplitudes and token preconditions. A finite binary64 angle is
++never symbolic pi. Probability-one interference uses an exact discrete
++minus-I action; the rounded-angle probe must retain both support keys.
++qinplace identity requires a fault-free token; B=0 is a §4.5 rejection.
++Literal envelopes and independent hashlib pins precede interpreter checks.
++The complete round-11 sidecar audit is in tests/support/r11-comment-audit.md.
+ ````
+ 
+-## `PROGRESS.md` (1702 lines)
++## `PROGRESS.md` (1789 lines)
+ 
+ ````markdown
+@@ -535,4 +560,91 @@
+ (`git add -A -- reference-interpreter && git commit -- reference-interpreter`),
+ never push. Run headless with `TMPDIR=$PWD/reference-interpreter/.tmp`.
++
++## Round-11 fixes (2026-10-31)
++
++Tracking b-isa-spec-x02; sole implementer; owned interpreter and external
++round-11 response only. Baseline 338 passed / 0 failed / 5 ignored.
++Independent support/r11_pins.py reproduces both members' exact H/object pins,
++including malformed objects, without interpreter calls or pin corrections.
++
++| Blocker | RED tests | Status | Commit |
++|---|---|---|---|
++| SOL-R11-B01 ≡ R11-B01 | parser::r11_action_regs_do_not_produce_wires / r11_action_regs_cannot_invent_angles; CLI wire/angle counterparts | GREEN, 6 targeted pass; full suite 344/0/5 | d3e3c21 |
++| SOL-R11-B02 ≡ R11-B02 | identity::r11_oracle_layout_ownership_uses_exact_names / r11_dotted_oracle_layout_ownership; CLI counterpart | GREEN; full suite 348/0/5 | fc6ab68 |
++| SOL-R11-B03 ≡ R11-B03 | r1_fixtures::r11_qinplace_comment_matches_budget_contract; quantum_control::qif_and_nested_control_preserve_interference | GREEN; full suite 353/0/5 | 352e8f5 |
++
++B01 RED: parser 0 passed / 3 failed, CLI 1 passed / 1 failed;
++separate exact angle CLI 0 passed / 1 failed. Initial test-source quoting
++error was corrected before semantic RED and is not counted as a witness.
++GREEN: 6/0; regs family 8 accepted / 52 rejected across six kinds and nine
++types, plus empty regs and loop-bounds controls. CLI negatives exercise 32
++commands (hash/check/run-action, both action kinds, scalar/indexed, t=0/1).
++Both supplied positive controls check independently pinned H/object bytes
++and run forward/adjoint on both t basis entries.
++
++Design: register-file legality is decided by function kind at load: oracle
++and lproc locations are reg[N], CC/R use SSA, actions use Q producers.
++Empty regs may carry bounds. Named rotation angles resolve specifically to
++f64 classical arguments fixed at entry, never to a general type-map entry.
++No runtime default, count cap or scope reduction.
++
++Logs: .tmp/r11-{baseline,b01-red,b01-angle-cli-red,b01-green,b01-full,pins}.log.
++Only crate tests with absolute offline manifest; no conformance execution.
++B02 RED: 3 identity failures (both literal envelopes plus family), CLI 3 passed /
++1 failed (§9.2 mismatch). GREEN: 7/0 including 3 retained B01 CLI tests.
++Exact structured key selection precedes flattening; all non-interface leaves
++remain. Six dotted-name positives plus three own-base sensitivity controls
++include colliding rendered paths. Both member pin sets match without correction.
++Initial test build used the wrong OracleInput field; fixed before semantic RED.
++Logs: .tmp/r11-b02-{red,green,full}.log.
++B03 RED: 8 passed / 2 failed (3/1 quantum_control, 5/1 fixture target).
++The strict basis assertion rejected the old rounded-angle circuit and the
++qinplace sidecar equality failed; retained rounded probe already passed.
++First GREEN: 74/0 (63 CLI, 4 quantum_control, 7 fixtures); added exact minus-I
++both-basis/direction coverage and corrected the same misleading inline TAU
++comment in quantum.rs afterward. Final full suite: 353 passed / 0 failed / 5 ignored (15.36 s runner sum).
++
++All 16 fixture sidecars and generated comments were audited against literal
++rows and ISA rules. Details: tests/support/r11-comment-audit.md. Only the two
++reported sidecars needed semantic corrections; control_flow's data-symbol
++wording was clarified. The r9 generator branches on sol-qinplace, preserving
++valid direct-oracle B=0 cancellation. All four r9 .bisa byte hashes remain.
++The original @phase retains its literal bytes/hash. @minus_i uses S S X S S X;
++controlled_phase now calls it. Independent literal envelope derivation repins
++only this dependency plus the new symbol. Both codex standalone rounded/exact
++probe H/object triples reproduce exactly; no member pin correction.
++Design: exact structured owner selection precedes dotted rendering, and
++fixture evidence distinguishes exact support from diagnostic rounding and
++checks token preconditions. README now records all three round-11 rules.
++No runtime quantum or qinplace semantics changed for B03.
++Normal/fmt/strict all-target Clippy gates pass; 0 warnings (Clippy 1.12 s).
++Owned diff --check is clean. New control_flow object hash:
++e7e0acadaebf638a1adb34adb61efc2c79b43f0ec90b786582d2fdb6db7634d8.
++Final sweeps: 5 passed / 0 failed, 94.46 s summed runner time.
++| Sweep | Domain | Observed result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.74 s |
++| checked certificate | 262,144 domain elements, subject and expected | 1/0; 14.76 s |
++| §6 differential | 200,000 programs; 70,931 accepted, all clean / 129,069 rejected | 1/0; 73.97 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.48 s |
++
++Implementation commits d3e3c21 / fc6ab68 / 352e8f5. All round-11 blockers
++resolved; 15 new tests, normal 338→344→348→353, 0 failed, 5 ignored.
++Final suite 8 unit + 345 integration; 0 doctests. Baseline/full runner sums:
++15.02 / 15.28 / 15.13 / 15.36 s. Fmt clean; strict all-target Clippy clean,
++0 warnings (1.12 s). No semantic source changed after the normal gate or
++sweep start. All round 4–10 positives/negatives retained.
++Independent regeneration is idempotent: 16 R11 corpus records, every member
++pin correct, four R9 .bisa bytes unchanged, control_flow envelope pins stable.
++Owned diff --check clean. Tracking b-isa-spec-x02 closed at final handoff.
++External response: ../bennett/docs/council/isa-ref-2026-10-29/round-11/response.md.
++All work is complete for this round; staged whole-ISA deliverables remain.
++Logs: .tmp/r11-final-{fmt,clippy,sweeps}.log and all per-step logs above.
++No conformance test or foreign source was edited/executed; no push.
++Beads auto-export and the pre-existing untracked repository .tmp remain
++outside owned commits. Accepted spec hash remains
++90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e.
++ISA 0.8 gap/amendment: none. Existing staging and SPEC-QUESTIONS unchanged.
+ 
+ ## Round-10 fixes (2026-10-30)
+@@ -2554,288 +2666,321 @@
+ ````
+ 
+-## `council/response-round-10.md` (281 lines)
++## `council/response-round-11.md` (314 lines)
+ 
+ ````markdown
+-# Editor response: council round 10
+-
+-Both distinct S0 core blockers are resolved. Inputs: the round-10 brief,
+-binding round-9/8/7 briefs, both members' full blocker text and exact objects
+-in report.md/out-sol.json/out-codex.json, accepted ISA 0.8, interpreter
+-README/PROGRESS/SPEC-QUESTIONS/BRIEF and round-9 response. Sole interpreter
+-implementer; tracking b-isa-spec-eka is closed. Implementation **4ba57f9**;
+-final verification evidence **a9f9261**. Only explicit interpreter paths and
+-this response are committed. No push. Spec/conformance/include/Python seed,
+-dependencies, RNG distribution and seeds are unchanged. The intentionally
+-red concurrent conformance test was not run. This response does not claim
+-completion of staged deliverables 8–11 or an independent council-wide audit.
++# Editor response: council round 11
++
++All three S0 blockers, each reported by both members, are resolved; none
++declined or partial. Read: round-11 and binding round-10/9/8/7 briefs, both
++full member reports and exact witnesses/pins, accepted ISA 0.8, interpreter
++README/PROGRESS/SPEC-QUESTIONS/BRIEF and round-10 response.
++Sole interpreter implementer; tracking b-isa-spec-x02. Commits:
++**d3e3c21** B01, **fc6ab68** B02, **352e8f5** B03/audit/design; **7da045f** final verification evidence.
++Only explicit owned interpreter paths and this response are committed.
++No push. Spec/conformance/include/Python seed, dependencies and RNG/seeds
++remain unchanged. The intentionally red concurrent conformance test was
++not run. Every Rust test used only the interpreter manifest.
+ 
+ ## Design
+ 
+-1. The §16.2 fhead recognizer couples fn exclusively to cc/r; Q kinds are bare.
+-2. Function boundaries use that same recognizer; malformed later headers fail grammar before semantic validation.
+-3. Present bounds and explicit LHS productions require at least one element; empty operands and omitted bounds remain legal.
+-4. Legal header-like SSA names remain legal; exact object/function bytes are never normalized before hashing.
+-5. Lexical predicate stacks retain ordering, duplicates, push/pop matching and expansion-owned floors.
+-6. EffectiveControls resolves scalar physical wire literals, retains polarity, sorts, and deduplicates equal literals.
+-7. Every §6 context-bearing key uses that semantic set with complete current version-stack snapshots and dependency metadata.
+-8. Copy/load creation records, oracle/action/gate/memory/phase keys and single/joint changes obey the same rule.
+-9. Borrow compilation canonicalizes after physical resolution, including direct qpred, and canonicalizes again after callee/loop instantiation.
+-10. Inverse events still require the same event atop ALL operand histories; those histories retain changes to control versions.
+-11. ABI operands remain ordered; callee(s), token/classical specialization, polarity and explicit qinplace g/ginv inverse identities remain significant.
+-12. Physical frames, full borrowed-touch guards, lifetime barriers and every return's restoration/independence obligations remain mandatory. No cap or frame waiver.
+-
+-## SOL-R10-B01 + SOL-R10-B02 ≡ codex R10-B01 — resolved
+-
+-Sections: §§16.1–16.2, suite F. These are explicit grammar productions,
+-requiring no SPEC-QUESTIONS exception.
+-
+-Hand derivation: fhead has exactly two prefixed alternatives (fn cc, fn r)
+-and four bare Q kinds. Its optional bounds suffix contains a mandatory first
+-INT. Its optional assignment contains a mandatory first NAME. By contrast,
+-operand lists can be empty. Therefore bare cc/r, all four fn-prefixed Q
+-kinds, bounds {}, and () = are grammar errors before ret/lift.retval executes.
+-Canonical fn cc @a with a single ret completes in exactly one row and returns
+-[]; adding an empty regs declaration without bounds has the same execution.
+-The one-trip action applies X once, and inc8's tuple-LHS control computes
+-255+1 modulo 256 = 0 in const/add/retval, three rows.
+-
+-RED before production edits:
+-- tests/parser.rs: **0 passed / 3 failed**.
+-- tests/cli_xam.rs grammar subset: **1 passed / 1 failed**; legal controls pass.
+-- Aggregate reproduction retained all **12** header-position cases, three
+-  literal inc8 mutations, the empty-bounds CC and zero-result () = ret.
+-  The CLI test exercised **152 commands** across **19 objects**.
+-  Some malformed later Q headers already failed §16.2; these are retained
+-  negatives, not claimed new admissions. Bare headers and malformed first
+-  definitions either loaded or reached a later semantic error instead of
+-  the mandatory grammar diagnostic. The aggregate log names every case.
+-- All three pinned inc8 mutations were independently observed as accepted.
+-  Their parser rejection assertions were red, independently of hash checking.
+-
+-Changes: object.rs::fhead_prefix is shared by parse_functions and is_head.
+-is_head distinguishes actual definition starts from legal SSA names such as
+-fn, r, action and oracle. Malformed later prefixes return §16.2 directly.
+-parse_functions rejects empty contents of a present bounds clause.
+-instruction rejects empty or non-NAME result lists, without changing operand
+-list parsing or rewriting source bytes.
++1. Header validation enforces register-file legality before execution or hashing.
++2. Oracle/lproc locations remain reg[N]; CC/R retain dynamic SSA.
++3. Action/perm_action workspace requires Q producers; nonempty regs rejects §3.3.
++4. Empty regs remains legal, including an action's loop-bounds clause.
++5. Named rotation angles resolve specifically to f.params[3] f64 arguments (§3.1).
++6. No phantom angle is defaulted; finite binary64 literals retain their values.
++7. Oracle layout selection uses exact interface_regions JSON owner keys.
++8. Filtering precedes flattening, even when dotted owner/region renderings collide.
++9. Every non-interface layout leaf remains; own leaves retain §9.2 rendering/sorting.
++10. Legal dotted names are never restricted or normalized.
++11. Fixture evidence distinguishes exact support, diagnostic rounding and token preconditions.
++12. Exact interference uses discrete minus-I; rounded residuals and qinplace B=0 rejection remain tested.
++
++The borrow engine, physical frame boundaries, full effective-control/version
++identities, all-operand inverse histories and every-return obligations are
++unchanged. No count cap, sampled admission, frame waiver or scope reduction.
++
++## SOL-R11-B01 ≡ codex R11-B01 — resolved
++
++Sections §§2, 3.1, 3.3, 3.7, 5.3, 16.2.
++
++Hand derivation: regs declares locations only for oracle/lproc. Neither
++d:wire nor angle:f64 in the exact malformed objects has a structured Q
++producer or entry argument binding. Thus reject at load under §3.3.
++In the producer control, qalloc d starts at 0, CX(0,t)=I, qfree d is clean.
++In the argument control, angle:f64 is the fourth parameter group and
++Rx(0.0)=I. Empty regs creates no location and may carry loop bounds.
++
++RED before production edits: parser **0 passed / 3 failed** (both exact
++objects and the kind/type family); initial CLI **1 passed / 1 failed**
++(wire hash erroneously emitted status ok, legal controls already passed).
++Separate exact angle CLI RED: **0 passed / 1 failed**, hash erroneously
++emitted status ok at the member's exact pins. Combined initial RED: **1/4**.
++
++Changes: object.rs::validate_header rejects nonempty action/perm_action regs
++before seeding the structured environment. validation.rs::validate_action_sequence
++requires named angles to match an f64 classical argument, not the type map.
+ 
+ Witness tests:
+-- parser::r10_function_header_prefix_matches_kind
+-- parser::r10_present_bounds_requires_an_integer
+-- parser::r10_exact_fhead_and_nonempty_optional_productions
+-- cli_xam::r10_cli_rejects_exact_grammar_witnesses_before_execution
+-- cli_xam::r10_cli_pinned_grammar_positive_controls
+-
+-CLI negatives require exit 1, empty stdout and §16.2 for hash/check/run-cc;
+-run-oracle is checked too, at budgets 0/1/3 and inc8 input 255. Nothing
+-executes before the grammar diagnostic, even for a nonexistent entry in the
+-malformed object. The exact malformed pins remain byte-for-byte fixtures in
+-support/r10_cases.json, outside the audit of well-formed .bisa files.
+-Positive controls independently pin fn cc, fn r, omitted bounds, one-trip
+-bounds {1}, and tuple LHS, including check/hash and execution/reversal as
+-appropriate. All existing bare canonical Q fixtures still pass.
+-
+-Deterministic grammar family: **7 accepted / 16 rejected**. Every forbidden
+-header occurs first and later; seven header-like NAMEs are accepted as
+-workspace names, preventing a new grammar restriction. The two-operand tuple
+-LHS in arithmetic.bisa's lift.parmov remains covered by the unchanged suite.
+-
+-## codex R10-B02 — resolved
+-
+-Sections: §§2, 3.5, 4.7, 5.2, 5.3, 5.6, 6.2, 14.2.
+-
+-Hand derivation: conjunction is commutative and idempotent. Both oracle calls
+-therefore execute under p*q in the exact witness, or under p in the duplicate
+-variant. At B=1 each XORs that same controlled c into d with f unchanged.
+-At B=0 each XORs the same controlled FAULT_BUDGET_STEPS into f. Either pair is
+-identity. H² restores c=0; CX(0,b)=I on every borrowed b and arbitrary
+-entangled reference R. All workspace is clean, and the action is identity on
+-t,p,q,bR. The qinplace cases use the explicit swapped g/ginv adjoint at B=1;
+-existing B=0 runtime §4.5 rejections remain mandatory and passing.
+-
+-Exact witness H_a=closure:
+-386dce74595f0e05ed2b7eb9218fc22fece3fafe7ad6fd206aed542ad8b7deef.
+-H_o=closure:
+-cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926.
+-Object:
+-7b1153bae80cc041447870eaa9623f73e6cb6df5085365a1efcbac99789076ad.
+-
+-RED: r1_borrow::r10_equivalent_control_sets_preserve_opaque_inverse was
+-**0/1** and explicitly collected both exact and duplicate rejections:
+-§6.2: released value has not been uncomputed.
+-cli_xam::r10_cli_equivalent_control_sets_preserve_opaque_inverse was **0/1**,
+-exit 1, empty stdout, the same diagnostic at hash/check.
+-Aggregate exact RED (all three targets): **1 passed / 6 failed**.
+-
+-Changes: controls.rs::EffectiveControls is the shared semantic constructor.
+-validation.rs::Discipline::effective_controls resolves positive/negative
+-lexical predicates to physical scalar literals and pairs them with their full
+-current interned version stacks (collision-free IDs referencing full keys,
+-not hashes or truncated histories). Creation.controls and all operation,
+-phase, memory, oracle/action, change/joint_change context keys use it.
+-Phase dependency snapshots are sorted/deduplicated through read_snapshot.
+-Lexical push/pop and protected floors are untouched.
+-borrow.rs::Compiler::compile constructs canonical controls separately from
+-the lexical predicate stack, including direct qpred duplicates.
+-Node::instantiate sorts/deduplicates again after physical mapping and
+-combining inherited controls, so aliases introduced by calls or alpha-renaming
+-have the same representation. Facts::reversible retains its all-operand
+-LIFO comparison and complete saved expressions. Callee/token/input/output
+-identity and every version-changing intervening event remain significant.
+-
+-GREEN: exact parser/library/CLI targets **7 passed / 0 failed**.
+-Both exact and duplicate objects check/hash; run-action a --mut 0 --in 1,1
+---arg token:1,0,0,0 returns state {"011":[1,0]}, wires=3, unchanged at token
+-0,0,0,0. Independent CLI adjoints and reverse equals_entry=true pass.
+-CLI also checks a complex superposition across control settings.
+-
+-support::r10_identity independently initializes each direction on all **32**
+-t,p,q,b,R basis entries, a control superposition, and a Bell-paired bR entry.
+-It checks exact state AND allocator equality after one execution, then the
+-opposite direction, with no escaping workspace. Oracle subjects use B=0/1;
+-qinplace uses B=1.
+-
+-Deterministic tests:
+-- generated_r10_effective_control_sets_match_independent_identity:
+-  **102 accepted / 6 rejected**, all positives executed as above.
+-  Five permuted/duplicated/indexed scalar contexts cross each other in direct,
+-  doubly nested qloop 1, local action-call/adjoint, and distinct swapped
+-  qinplace g/ginv forms; duplicate-only [p] vs [p,p] and p[0] forms are added.
+-  The child uses its own p/q stack, exercising inherited-context merging.
+-  Rejections: absent predicate, opposite polarity, changed version, different
+-  token, changed ABI operand order, and different callee.
+-- generated_r10_context_keys_cover_all_cleanup_families:
+-  **9 accepted / 1 rejected**. qcopy/quncopy, qload/qunload, qstore, qexchm,
+-  qexch, H/H, S/Sdg and X/X under reordered/duplicated controls, plus equivalent
+-  negative-polarity contexts. A wrong lexical pop still rejects §3.5.
+-- r1_fixtures::r10_independent_effective_control_and_grammar_pins:
+-  independent root interface AND closure pins, object bytes, malformed digests.
+-
+-All six distinct-control negatives reject parse/hash/check at §6.2; the
+-opposite-polarity case uses qif's else arm rather than an illegal spelling.
+-The changed-version case makes p mutable, changes it between predicate scopes,
+-and restores it afterward; no active predicate is illegally targeted.
+-
+-## Independent literal hash derivation
+-
+-Every supplied member pin reproduced exactly; no correction is needed.
+-tests/support/r10_pins.py uses only Python hashlib/json and literal function
+-bytes. For a memoryless function the exact envelope is:
+-isa=0.8 LF; ptr_width=32 LF; sorted-key canonical signature JSON LF; exact
+-LF-terminated function. Caller references @o are replaced with @H_o; distinct
+-H_o is appended once plus LF in reference order. Complete objects use the
+-standard header, blank-line section separators, sorted-key stored-H symbols,
+-functions in declared order and final LF. Rejected spellings stay rejected
+-spellings in both the envelope and the stored exact object.
+-The script asserts all supplied H/object pairs before writing the JSON corpus;
+-Rust checks successful interface/closure/object pins and rejected byte digests.
+-The 13 independently derived cases follow.
+-
+-| Case | interface = closure (root) | object_hash |
++- parser::r11_action_regs_do_not_produce_wires
++- parser::r11_action_regs_cannot_invent_angles
++- parser::r11_register_types_follow_function_kind
++- cli_xam::r11_cli_action_regs_reject_before_execution
++- cli_xam::r11_cli_action_angles_reject_before_execution
++- cli_xam::r11_cli_producer_and_argument_controls
++
++GREEN **6/0**. Register family: **8 accepted / 52 rejected** across six
++kinds × nine nonempty types plus six empty-regs controls. Only reg[N] files
++on oracle/lproc are accepted. Empty regs, one-trip bounds, named f64 positive,
++undefined and non-f64 angle negatives remain covered.
++CLI negatives exercise **32 commands** over both action kinds, wire/angle,
++scalar/indexed forms, hash/check/run-action and t=0/1: exit 1, empty stdout,
++§3.3 before execution. Both independently pinned positives check/hash and
++execute forward/adjoint on both basis values, one wire and exact identity.
++Full suite after this step: **344/0/5**.
++
++## SOL-R11-B02 ≡ codex R11-B02 — resolved
++
++Sections §§9.2, 16.1.
++
++Hand derivation: a and a.b are distinct JSON keys although NAME admits dots.
++Sol's @a has no interface regions: its envelope has only the seven
++non-interface scalar layout lines. Codex's @a additionally has exactly
++interface_regions.a.db {"base":16}. Moving a foreign base changes neither
++@a envelope nor interface/closure hash. Moving its own base must change it.
++Both complete @a envelopes are literal concat bytes in tests/identity.rs;
++independent Python SHA-256 reproduces the supplied pins.
++
++RED: identity **0/3**, both exact envelopes and dotted-name family; CLI
++**3/1**, with three retained B01 passes and check's erroneous §9.2 rejection.
++Sol's envelope incorrectly contained interface_regions.a.b.db; codex's
++contained interface_regions.a.b.other.
++
++Change: identity.rs::Object::envelope selects the exact JSON owner before
++layout_leaves, retaining every other layout field. No dotted prefix test.
++
++Witness tests:
++- identity::r11_oracle_layout_ownership_uses_exact_names
++- identity::r11_dotted_oracle_layout_ownership
++- identity::r11_dotted_owner_and_region_family
++- cli_xam::r11_cli_exact_oracle_layout_owners
++
++GREEN **7/0**, including three retained B01 CLI tests.
++Both member objects and sibling-base mutations check with literal pins,
++interface AND closure hashes. Codex @a runs x=7, db=00, B=1 as (7,0,1).
++Family: **6 accepted pinned objects** across three deeper owner/region pairs
++and **3 own-base sensitivity controls**. Each pair includes the same
++rendered path for owner a + region c.db versus owner a.c + region db,
++catching flatten-before-filter overwrites as well as prefix absorption.
++Full suite after this step: **348/0/5**.
++
++Exact foreign-oracle pins:
++- sol @a.b base 2: 9c6ed8677516f307a9957360c5328bc6df33d2263c2af75978064a7cbdc64863
++- sol @a.b base 3: e3e41f7b25615cb9b97efaeff328cddff88ec8028777fd7d0745d2675eff85d5
++- codex @a.b base 32: 26455a8ebeb96ca9ef90972709611ad6eed2bd2cb18f61aa368312e19edbd160
++- codex @a.b base 48: 03ae1cd76644a677efd6819e42cf6ec74036c7aeeedbb431fffc89caa7aa441e
++
++## SOL-R11-B03 ≡ codex R11-B03 — resolved
++
++Sections §§3.1, 4.4, 4.5, 5.4, 14.2. Runtime semantics were correct.
++
++Hand derivation 1: @o returns its input in one row. At B>=1 it is the
++identity permutation: both qinplace rows are I, H² restores c=0 and
++CX(0,b)=I on arbitrary bR. At B=0 every input faults with code 1, violating
++qinplace's fault-free premise. Reject §4.5, never claim identity execution.
++The exact council replacement is now in r9-sol-qinplace.comments and its
++generator's sol-qinplace branch. Direct oracle_call fixtures retain their
++valid same-token fault-XOR cancellation. All four R9 object bytes/pins remain.
++
++Hand derivation 2: theta=6.283185307179586 is the exact binary64 rational
++884279719003555/140737488355328, not symbolic 2*pi. At t=p=0 the rounded
++H p; ctl p phase; H p circuit has amplitudes (1+exp(-i*theta/2))/2 on 00 and
++(1-exp(-i*theta/2))/2 on 01. P(p=0)=cos(theta/4)^2 > 0, approximately
++3.749399456654644e-33. Both support keys survive display rounding.
++S S X S S X instead acts as X Z X Z=-I on both basis vectors. Controlled
++minus-I is exactly Z on p, so H Z H takes p=0 to p=1.
++
++RED: quantum_control **3/1**, fixtures **5/1**, aggregate **8/2**.
++The stronger basis assertion failed with §14.2 (not a basis state);
++qinplace's exact comment assertion displayed the false B=0 sentence.
++The separate rounded support test already passed, confirming runtime behavior.
++
++Changes: add @minus_i's six gates; controlled_phase calls it. Retain @phase
++literal bytes/hash. Correct sidecars and generator; independently derive new
++and dependent identity pins. Require read_basis(p)==1 and exact support
++{01:(1,0)}. Add separate rounded support, both-basis forward/adjoint minus-I,
++literal envelope and CLI pin tests. Correct the same misleading inline TAU
++comment in quantum.rs, with two-support/non-basis assertions.
++
++Witness tests:
++- r1_fixtures::r11_qinplace_comment_matches_budget_contract
++- quantum_control::qif_and_nested_control_preserve_interference
++- quantum_control::r11_rounded_angle_retains_nonzero_interference_branch
++- quantum_control::r11_exact_minus_i_on_both_basis_states
++- r1_fixtures::r11_control_flow_pins_match_literal_envelopes
++- cli_xam::r11_cli_rounded_and_exact_phase_probes
++- retained r1_borrow::r9_qinplace_zero_budget_rejects_before_mutation and
++  r9_qinplace_adjoint_restores_borrow_control
++
++First GREEN **74/0**: 63 CLI + 4 quantum_control + 7 fixtures.
++The later minus-I basis test and inline correction are in final **353/0/5**.
++qinplace's sidecar test executes CLI B=0/B=1 at t=0/1, requiring
++exit 1/empty stdout/§4.5 versus exact one-wire identity. The existing
++independently initialized r9_identity helper checks all eight t,b,R basis
++entries, superposition and Bell bR at B=1, both directions, reversal and
++allocator/state equality with no escaping workspace.
++
++Both codex standalone phase/probe/object triples reproduce exactly (table
++below). Renaming the discrete action to minus_i changes its definition bytes:
++H_minus_i=caec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443;
++H_controlled_phase=9d9c349c97df952f56700426fc92bc1c1f7937d144f868f2f2287d7ec243f3cb.
++The control_flow object hash is
++e7e0acadaebf638a1adb34adb61efc2c79b43f0ec90b786582d2fdb6db7634d8.
++All other existing control_flow symbol pins remain unchanged.
++
++## Complete fixture-comment audit
++
++| Sidecar | Independent hand check / executable coverage | Disposition |
+ |---|---|---|
+-| bare-cc | 2060222c2773451dd9a97e146d566bfca81c7a91c7fe04bd90d7e841163f531e | b6f4dc99c6f84d162c82c54ea4c41ceee3e9d4cc09a00c3ab8bd80d282faec3f |
+-| bare-r | 26aaa60527078d132feacc2ad2d7fcdc498854fda628b6131b12febf6dfa474e | ddd846be15e738a12a572592feb66b3c1a69750614033b2b89ef63a6f0c8e89a |
+-| cc | 218bf0ae43801ce9c291e2c3276d60df583a7a8b939b56312f88b1623c2e68cd | d2cb6bf361cd11bd9e68e31a0329b5b62bb9c2d23cf6cb7ca9d8ddf89bd208e5 |
+-| controls | 386dce74595f0e05ed2b7eb9218fc22fece3fafe7ad6fd206aed542ad8b7deef | 7b1153bae80cc041447870eaa9623f73e6cb6df5085365a1efcbac99789076ad |
+-| duplicate | 3c0aeff8beef09c65102af9b1000ba9147168f126398f1dfc9a43bc42a08189a | fab3d3bdec75198b190125a297e9c0145f25de221f8ede05beaf5949f85ce384 |
+-| empty-bounds | cb5e25ba34a6c84c96766f19a4b30c0999b7f262c2df63ae436296ba4a2554c8 | 8f2d76a7e18603d59a53082cd0493913725397140a6cbd162b7150fdb5358f11 |
+-| empty-lhs | a2f5278ca8db3abb0e407e475c1fba93c4307b97f0db8c1fe4a0bbe2b48da782 | 4ede077a7344efa101b22cd0f990feacde2c1a415dbec6667ee61290f9747480 |
+-| fn-oracle | 607bffa4376f76dc181141c19dc70dfbde0d8064e3d220187b13001e25cab0ca | 3868eb11e0293db6f43d3a9c5589c36feab4d88916327a34241141c1949b2dd6 |
+-| inc-empty-bounds | 31e7ad0837d13f0cd78e0fc2a155016c006ab18e3ecf6cc367308d58eb274437 | 6e0b6cfb1a74f8974706264ddc3b762bda7226e0abeb284f97978d5cb2f7d4f3 |
+-| omitted-bounds | 4b749e1b37d610bc72f3b4d5c63ea551364492a370bd2dc5054282c5b1b89e62 | 028699ab2f8bd8767b19d021e1153bac74c470d9a302636fe66928bcc0d74de5 |
+-| one-trip | 0b8ab098a6ba2bb42a91bb939a2d8efa08855ce6bf8500287e629b059bca35ae | 0795eacd49c0eab4b11a0640c5e52487fb7ea87b83d14f6cc5e04122deeb3011 |
+-| r | a0e0e58bbd950d19ef988ea34e59ae270fa891a2988e9d7ef94280b7bc5c02ee | 26db00f6a415fc59ab5df69e88b866b874ba637488efb178d6d8dccf5d641361 |
+-| tuple-lhs | d3d56fca12ac5d5241a321cf1095d53f605f1fd6569f83a7e1171182194f8754 | 5ae74605fdb749d2da04e9d4def8475785c84b0a602fb58d31ac8fff8efbcfc5 |
++| actions.comments | Copy/XOR/uncompute gives t XOR p; zero image, doubled stores/exchanges are identity; three Xs flip; H/CX Bell; lifted payload x XOR 1 in 3 rows (quantum, wide_oracle) | unchanged |
++| arithmetic.comments | Arithmetic modulo 256; -7/2=-3 remainder -1; MIN/-1 fault 6; oversized shifts zero by §4.1; sext/shift/trunc 255; parallel swap; explicit branch/label and fault literals (oracle, step_machine) | unchanged |
++| classical.comments | Triangular sum; inner clock segment undone once; five effect records, clock 1; absent sector restored; impure uncall, entropy, unknown-device, null/div0 faults; copied host reply truncation/full length (classical, cli_xam) | unchanged |
++| control_flow.comments | Prefix flag conjunction/parity; conditional H/X amplitudes; exact six-gate XZXZ=-I; rounded θ dyadic and two nonzero interference branches; exchange, little-endian dead image, translation lemma (quantum_control, cli_xam) | corrected exact-vs-rounded claim; clarified bytes is the data symbol and dead its hex image |
++| heap.comments | Base 32, 2-byte 0x1234→34 12; max(n,1) for zero alloc; pinned/free/null and capacity faults (oracle, step_machine) | unchanged |
++| inc8.comments | 255+1 wraps; const/add/retval = 3 rows; B=0/2 budget faults (oracle, step_machine) | unchanged |
++| mutual.comments | main has two rows, f next two, g starts at 4; main call + four g rows + retval = 6; name ordering distinct from hash ordering (identity) | unchanged |
++| nested.comments | Three-row inc8; explicit fr test propagates code 9; paired XOR calls clear payload/fault even at B=0; ignore does not propagate (oracle) | unchanged |
++| r9-codex-oracle.comments | Same-token self-adjoint XOR calls cancel at B=0/1; H² restores c=0; CX(0,b) identity on arbitrary bR (r1_borrow, r9_identity helper) | unchanged |
++| r9-loop.comments | Each lifetime returns b under c=0 and replaces c by fresh zero; H² on t; no cancellation across invalid returns (r1_borrow) | unchanged |
++| r9-sol-oracle.comments | Same direct-oracle XOR argument as codex fixture, including nonzero fault delivery (r1_borrow) | unchanged |
++| r9-sol-qinplace.comments | One-row @o is identity at B>=1, but B=0 has code 1 and fails §4.5 before qinplace mutation; all t,b,R basis entries, superposition and Bell bR at B=1 (r1_fixtures, r1_borrow) | exact council replacement; matching generator branch corrected |
++| registers.comments | Clean concat/views; two flips; dirty free traps; Bell 1/2 outcomes, lexicographic draws; measured segment cannot reverse (registers, cli_xam) | unchanged |
++| sum_db.comments | 3+2+1=6; R_sum=3+3+1+9=16; n=16 needs 17*16=272; n=17 accesses db[16] (oracle) | unchanged |
++| tiny_memory.comments | 1+8+1+4=14 interface bits; DIV0 row 4, db&1 row 8; B=9 idle; complete tuple reversal (step_machine) | unchanged |
++| wide.comments | (2^100-5)(2^100+5)=2^200-25 leaves remainder 28; call/ret/retval 3 rows; 5-cell frame; high code bit 200 (wide_oracle, bitvectors, cli) | unchanged |
++
++Generated comments: tests/support/r9_pins.py is the only Python sidecar writer.
++Its sol-qinplace branch now emits the exact B>=1/B=0 distinction; direct
++oracle-call cases retain valid fault-XOR cancellation and the loop branch
++retains its per-lifetime derivation. r10_pins.py and r11_pins.py generate
++envelopes/case records, not hand-result sidecars; both were checked for the
++same class of claims. No further sidecar semantic error was found.
++
++The same rounded-TAU-as-minus-I wording also occurred in an inline comment
++in tests/quantum.rs::every_gate_and_controlled_global_phase. It now describes
++the rounded residual and asserts two exact-support entries and non-basis
++control, retaining the approximate diagnostic-amplitude comparison.
++No runtime gate, budget, borrow or exact-state semantics changed for B03.
++
++## Independent literal pin derivation
++
++support/r11_pins.py uses only hashlib/json and literal function bytes:
++ISA/version, ptr_width, JCS signature, LF function bytes, exact owner-selected
++layout leaves; reference replacement and one dependency hash line per callee.
++Objects have the canonical header, separators, stored-H symbols and functions.
++It asserts every supplied member H/object pin before writing the corpus,
++without interpreter calls or support::rehash. Rust compares the literal
++envelopes, interface AND closure pins and object bytes. There are **16 R11
++records**, including six dotted-family objects and two phase probes.
++Regeneration is idempotent; all four R9 objects remain byte-identical.
++No member pin correction was needed.
++
++| Exact case | root interface = closure | object_hash |
++|---|---|---|
++| wire | 4a592df0f0a8651417bf00a48c5b75ad86060cf4a3b5d157a8c3bbce5443969d | c90b514421ef25e2cd27cd1b80039a39ca9a5c8d78173968ac4e5c25f7eb988a |
++| angle | 544dfe0fb1b3e44d693ddb39967d5d5b043b9f92f4eb33e43b2d402a1d433ec6 | 918e9042f73b4f1f0cd72f9364e902aacc35e1cad3fcd8976ec9b0139cec2978 |
++| producer | ed0795bb5a01b03715111e2fefe4bedb59a6869b3bdaab84f80fe7bc0e51fe05 | bef5f1ac1aa80ab0a4f523fe972f9227695b44f75e49c956acde273a9d7c225b |
++| argument | 58e8b3a871bfc8167844e4175bbc7e6ef9cf17ccfbf1acd30b33800a49910c80 | 5d4101e0c48ea4074fd97cc9a70e869779518b2ff864ec9afbba548ebf48af45 |
++| sol-layout-2 | 1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521 | bccb8459c5f0746c49f98dad438d40a71e56d5e9533c8dc714bf32391c401877 |
++| sol-layout-3 | 1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521 | 80e8b4b4083a0cfa451b102cc9c13e40be118bc3fb6649d8572583a1768be05f |
++| codex-layout-32 | 4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec | 1292bb07226f33217b884470c8e2c486bd4fb8b0f1eb4d9c829aaa75597cb4f4 |
++| codex-layout-48 | 4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec | 9f818c01a67c28872cb3e28e5a4c4405616cd0c0d3510576110ab7b8d90ba0ab |
++| rounded-probe | 0655c9e45f09d1748fbf0241e6d38244e7f353153a3f365f0a5f712b37a6e24d | 04baeadb96dbafb2dc94832982272b6cfeb60174de6c8bb407bd28a3e4c37294 |
++| exact-probe | 0dcda336816f668d43eb75a083d0ee26574ccf854078a639de0a08a64f79009d | 0b71a29321bd566442de1d6e61774603031c3616a0b1cb4875b7719016837457 |
++
++Rounded standalone H_phase=eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271;
++discrete standalone H_phase=300340284f4927db0fc9ccf6b6285917606928b2926e62e015034eb0174e2713.
+ 
+ ## Retained checks and observed verification
+ 
+-Every named round 4–9 positive and negative remains and passes: every-return
+-independence, later-borrow/global-identity nonwaivers, physical frame boundaries,
+-certificate binding/full-domain replay, full borrowed quantum/phase/call touches,
+-unmatched primitive/opaque readers, changed tokens/controls/inputs, full
+-version-stack prefixes, cell/window epochs, evolving loop bindings, zero-trip
+-lifetimes and lexical qregions. No new specification reading was introduced.
+-No test domain, seed, random distribution or runtime guard was weakened.
+-
+-Commands use absolute paths; DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/
+-BROWSER are unset and TMPDIR is
+-/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
+-All Rust tests use CARGO_PROFILE_TEST_OPT_LEVEL=1 (same assertions, domains,
+-overflow checks). The exact commands after this environment prefix are:
+-
+-```sh
++Every round 4–10 positive/negative remains in the passing normal suite:
++physical frame boundaries, every-return independence, borrowed quantum touch
++guards, certificate replay/binding, opaque LIFO histories, changed token/
++input/control/version negatives, canonical effective controls, zero-trip
++lifetimes, evolving bindings and exact-state cleanup/Born tests. No random
++code, domain, seed or distribution changed.
++
++Commands unset DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS, BROWSER;
++TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
++All tests set CARGO_PROFILE_TEST_OPT_LEVEL=1 (same assertions/domains/overflow
++checks). After that environment prefix, exact gate commands are:
++
++~~~sh
++cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline
++cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline -- --ignored --nocapture
+ cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
+ cargo clippy --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline --all-targets -- -D warnings
+-cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline
+-cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline -- --ignored --nocapture
+-python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r10_pins.py
+-```
+-
+-Development filters used the same manifest/environment: --test parser r10_,
+---test cli_xam r10_, --test r1_borrow r10_, --test r1_fuzz_discipline generated_r10,
+-and --test r1_fixtures --test r1_fuzz_discipline r10. The aggregate exact
+-reproduction used all three exact targets, filter r10_, --no-fail-fast and
+--- --nocapture so every member mutation was observed before the source repair.
+-
+-| Run | Observed result |
++python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r11_pins.py
++python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r9_pins.py
++~~~
++
++Development filters used the same manifest/environment: parser + cli_xam
++r11_ (B01); identity + cli_xam r11_ (B02), --no-fail-fast on RED;
++r1_fixtures + quantum_control (B03 RED), then those plus cli_xam (GREEN).
++Test-source setup errors (Rust quoting, OracleInput field name) were fixed
++before semantic RED and are not counted as reproduced blockers.
++A Python generation syntax error changed no files. An initial commit attempt
++lacked git add for new paths; explicit add/commit lists fixed it. No foreign
++path was staged/committed.
++
++| Run | Observed result / summed runner time |
+ |---|---|
+-| baseline | 327 passed / 0 failed / 5 ignored; 8 unit + 319 integration; 13.40 s |
+-| initial parser RED | 0 passed / 3 failed |
+-| initial grammar CLI RED | 1 passed / 1 failed |
+-| initial library RED | 0 passed / 1 failed |
+-| initial control CLI RED | 0 passed / 1 failed |
+-| aggregate exact RED | 1 passed / 6 failed; 152 grammar CLI commands |
+-| exact GREEN | 7 passed / 0 failed |
+-| first full suite | 334 passed / 0 failed / 5 ignored; 16.85 s |
+-| first deterministic families | 2 passed / 0 failed; 109 accepted / 22 rejected |
+-| extended families plus pin test | 4 passed / 0 failed; final families 118 accepted / 23 rejected |
+-| full suite with final families | 338 passed / 0 failed / 5 ignored; 15.67 s |
+-| extended one-trip/tuple CLI controls | 3 passed / 0 failed |
+-| final normal rerun | 338 passed / 0 failed / 5 ignored; 8 unit + 330 integration; 0 doctests; 17.70 s |
+-| fmt --check | pass, 0 tests executed |
+-| strict all-target Clippy | pass, 0 warnings, 0 tests executed; final rerun 1.25 s |
+-| five ignored sweeps | 5 passed / 0 failed; 100.42 s runner sum |
+-| independent pins | all supplied pins match; 13 derived case records; no correction |
++| baseline | 338/0/5; 8 unit + 330 integration; 15.02 s |
++| B01 initial combined RED | 1 passed / 4 failed; 0.03 s |
++| B01 separate exact angle CLI RED | 0 passed / 1 failed; 0.00 s |
++| B01 targeted GREEN | 6/0; 0.10 s |
++| B01 full suite | 344/0/5; 15.28 s |
++| B02 combined RED | 3 passed / 4 failed; 0.03 s |
++| B02 targeted GREEN | 7/0; 0.04 s |
++| B02 full suite | 348/0/5; 15.13 s |
++| B03 combined RED | 8 passed / 2 failed; 0.14 s |
++| B03 first targeted GREEN | 74/0; 12.77 s |
++| final normal suite | 353/0/5; 8 unit + 345 integration; 0 doctests; 15.36 s |
++| fmt --check | pass; 0 tests |
++| strict all-target Clippy | pass; 0 warnings, 0 tests; 1.12 s |
++| independent generators | 16 R11 cases; all pins match; four R9 objects unchanged; idempotent |
+ | owned diff --check | clean |
+ 
+-| Ignored sweep | Domain | Observed result / runner time |
++All **5 ignored sweeps passed / 0 failed**, 94.46 s runner sum:
++
++| Sweep | Full domain | Observed result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1/0; 0.52 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 2.91 s |
+-| checked borrow certificate | 262,144 domain elements, subject and expected program | 1/0; 15.23 s |
+-| §6 differential | 200,000 programs: 70,931 accepted, all exactly clean / 129,069 rejected | 1/0; 78.84 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.92 s |
+-
+-The unchanged RNG previously yielded 70,930 accepted / 129,070 rejected;
+-the effective-set repair admits one more independently executed clean sample.
+-No semantic source change followed the first 338/0/5 gate or the sweeps.
+-The one-trip and tuple-LHS test-only controls were strengthened after that
+-gate, then the full suite, fmt and Clippy were rerun successfully.
+-One implementation build caught an accidental edit to a lexical stack
+-extension; it was corrected before GREEN. An extended pin test initially
+-missed mod support; fixed before the 4/0 target run. Neither compiler setup
+-failure is counted as semantic RED or as a passing test run.
+-
+-Logs live in bennett-isa-spec/.tmp/r10-*.log, specifically baseline, red-all,
+-green-exact, first-full, families, families-extended, positive-extended,
+-final-tests, final-rerun-tests, final-sweeps, final-rerun-clippy,
+-final-fmt and independent-pins. PROGRESS.md is current through these gates.
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.74 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.76 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 73.97 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.48 s |
++
++The accepted/rejected counts equal round 10 with unchanged RNG/seeds.
++Fifteen new tests take the normal suite 338→344→348→353; no existing test
++was removed or weakened. Tracking b-isa-spec-x02 is closed.
++
++Logs: bennett-isa-spec/.tmp/r11-{baseline,b01-red,b01-angle-cli-red,
++b01-green,b01-full,b02-red,b02-green,b02-full,b03-red,b03-green,
++b03-full,pins,r9-regenerate,final-fmt,final-clippy,final-sweeps}.log.
++No semantic source changed after the normal gate or sweep start.
+ 
+ ## ISA 0.8 gaps and disposition
+ 
+-No new ISA 0.8 gap, ambiguity, decline or partial blocker. **Exact spec change
+-needed: none.** SPEC-QUESTIONS is unchanged; the fixes implement explicit
+-existing grammar, conjunction, adjoint and lifetime rules. No trip/wire/budget
+-cap, sampled admission, frame merge/waiver or function-specific certificate
+-requirement was introduced. The whole ISA remains the north-star scope;
+-existing deliverables 8–11 and performance follow-up b-isa-spec-436 retain
+-their disclosed staging without claiming completion.
+-
++No new ISA 0.8 gap, ambiguity, decline or partial blocker.
++**Exact spec change needed: none.** SPEC-QUESTIONS is unchanged. Existing
++deliverables 8–11 and performance follow-up b-isa-spec-436 retain disclosed
++staging. This response claims no completion of that staged work or an
++independent council-wide audit. No north-star capability was narrowed.
+ Accepted spec SHA-256 remains
+ 90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e.
+-Commits: **4ba57f9** implementation/tests/design; **a9f9261** final evidence.
+-This response is committed separately in bennett. All commits use explicit
+-owned path lists and BEADS_HOOK_TIMEOUT=20; no push or Dolt remote sync.
+-Beads' automatic export is outside owned commit paths and left to the maintainer.
++Explicit owned path commits all use BEADS_HOOK_TIMEOUT=20. No push or Dolt
++remote sync. Beads' automatic metadata export remains outside owned commit
++paths and is left to the maintainer.
+ ````
+ 
+@@ -3259,4 +3404,290 @@
+ validated paths became section-citing errors; the crate is rustfmt-formatted
+ and clippy-clean.
++````
++
++## `council/response-round-10.md` (281 lines)
++
++````markdown
++# Editor response: council round 10
++
++Both distinct S0 core blockers are resolved. Inputs: the round-10 brief,
++binding round-9/8/7 briefs, both members' full blocker text and exact objects
++in report.md/out-sol.json/out-codex.json, accepted ISA 0.8, interpreter
++README/PROGRESS/SPEC-QUESTIONS/BRIEF and round-9 response. Sole interpreter
++implementer; tracking b-isa-spec-eka is closed. Implementation **4ba57f9**;
++final verification evidence **a9f9261**. Only explicit interpreter paths and
++this response are committed. No push. Spec/conformance/include/Python seed,
++dependencies, RNG distribution and seeds are unchanged. The intentionally
++red concurrent conformance test was not run. This response does not claim
++completion of staged deliverables 8–11 or an independent council-wide audit.
++
++## Design
++
++1. The §16.2 fhead recognizer couples fn exclusively to cc/r; Q kinds are bare.
++2. Function boundaries use that same recognizer; malformed later headers fail grammar before semantic validation.
++3. Present bounds and explicit LHS productions require at least one element; empty operands and omitted bounds remain legal.
++4. Legal header-like SSA names remain legal; exact object/function bytes are never normalized before hashing.
++5. Lexical predicate stacks retain ordering, duplicates, push/pop matching and expansion-owned floors.
++6. EffectiveControls resolves scalar physical wire literals, retains polarity, sorts, and deduplicates equal literals.
++7. Every §6 context-bearing key uses that semantic set with complete current version-stack snapshots and dependency metadata.
++8. Copy/load creation records, oracle/action/gate/memory/phase keys and single/joint changes obey the same rule.
++9. Borrow compilation canonicalizes after physical resolution, including direct qpred, and canonicalizes again after callee/loop instantiation.
++10. Inverse events still require the same event atop ALL operand histories; those histories retain changes to control versions.
++11. ABI operands remain ordered; callee(s), token/classical specialization, polarity and explicit qinplace g/ginv inverse identities remain significant.
++12. Physical frames, full borrowed-touch guards, lifetime barriers and every return's restoration/independence obligations remain mandatory. No cap or frame waiver.
++
++## SOL-R10-B01 + SOL-R10-B02 ≡ codex R10-B01 — resolved
++
++Sections: §§16.1–16.2, suite F. These are explicit grammar productions,
++requiring no SPEC-QUESTIONS exception.
++
++Hand derivation: fhead has exactly two prefixed alternatives (fn cc, fn r)
++and four bare Q kinds. Its optional bounds suffix contains a mandatory first
++INT. Its optional assignment contains a mandatory first NAME. By contrast,
++operand lists can be empty. Therefore bare cc/r, all four fn-prefixed Q
++kinds, bounds {}, and () = are grammar errors before ret/lift.retval executes.
++Canonical fn cc @a with a single ret completes in exactly one row and returns
++[]; adding an empty regs declaration without bounds has the same execution.
++The one-trip action applies X once, and inc8's tuple-LHS control computes
++255+1 modulo 256 = 0 in const/add/retval, three rows.
++
++RED before production edits:
++- tests/parser.rs: **0 passed / 3 failed**.
++- tests/cli_xam.rs grammar subset: **1 passed / 1 failed**; legal controls pass.
++- Aggregate reproduction retained all **12** header-position cases, three
++  literal inc8 mutations, the empty-bounds CC and zero-result () = ret.
++  The CLI test exercised **152 commands** across **19 objects**.
++  Some malformed later Q headers already failed §16.2; these are retained
++  negatives, not claimed new admissions. Bare headers and malformed first
++  definitions either loaded or reached a later semantic error instead of
++  the mandatory grammar diagnostic. The aggregate log names every case.
++- All three pinned inc8 mutations were independently observed as accepted.
++  Their parser rejection assertions were red, independently of hash checking.
++
++Changes: object.rs::fhead_prefix is shared by parse_functions and is_head.
++is_head distinguishes actual definition starts from legal SSA names such as
++fn, r, action and oracle. Malformed later prefixes return §16.2 directly.
++parse_functions rejects empty contents of a present bounds clause.
++instruction rejects empty or non-NAME result lists, without changing operand
++list parsing or rewriting source bytes.
++
++Witness tests:
++- parser::r10_function_header_prefix_matches_kind
++- parser::r10_present_bounds_requires_an_integer
++- parser::r10_exact_fhead_and_nonempty_optional_productions
++- cli_xam::r10_cli_rejects_exact_grammar_witnesses_before_execution
++- cli_xam::r10_cli_pinned_grammar_positive_controls
++
++CLI negatives require exit 1, empty stdout and §16.2 for hash/check/run-cc;
++run-oracle is checked too, at budgets 0/1/3 and inc8 input 255. Nothing
++executes before the grammar diagnostic, even for a nonexistent entry in the
++malformed object. The exact malformed pins remain byte-for-byte fixtures in
++support/r10_cases.json, outside the audit of well-formed .bisa files.
++Positive controls independently pin fn cc, fn r, omitted bounds, one-trip
++bounds {1}, and tuple LHS, including check/hash and execution/reversal as
++appropriate. All existing bare canonical Q fixtures still pass.
++
++Deterministic grammar family: **7 accepted / 16 rejected**. Every forbidden
++header occurs first and later; seven header-like NAMEs are accepted as
++workspace names, preventing a new grammar restriction. The two-operand tuple
++LHS in arithmetic.bisa's lift.parmov remains covered by the unchanged suite.
++
++## codex R10-B02 — resolved
++
++Sections: §§2, 3.5, 4.7, 5.2, 5.3, 5.6, 6.2, 14.2.
++
++Hand derivation: conjunction is commutative and idempotent. Both oracle calls
++therefore execute under p*q in the exact witness, or under p in the duplicate
++variant. At B=1 each XORs that same controlled c into d with f unchanged.
++At B=0 each XORs the same controlled FAULT_BUDGET_STEPS into f. Either pair is
++identity. H² restores c=0; CX(0,b)=I on every borrowed b and arbitrary
++entangled reference R. All workspace is clean, and the action is identity on
++t,p,q,bR. The qinplace cases use the explicit swapped g/ginv adjoint at B=1;
++existing B=0 runtime §4.5 rejections remain mandatory and passing.
++
++Exact witness H_a=closure:
++386dce74595f0e05ed2b7eb9218fc22fece3fafe7ad6fd206aed542ad8b7deef.
++H_o=closure:
++cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926.
++Object:
++7b1153bae80cc041447870eaa9623f73e6cb6df5085365a1efcbac99789076ad.
++
++RED: r1_borrow::r10_equivalent_control_sets_preserve_opaque_inverse was
++**0/1** and explicitly collected both exact and duplicate rejections:
++§6.2: released value has not been uncomputed.
++cli_xam::r10_cli_equivalent_control_sets_preserve_opaque_inverse was **0/1**,
++exit 1, empty stdout, the same diagnostic at hash/check.
++Aggregate exact RED (all three targets): **1 passed / 6 failed**.
++
++Changes: controls.rs::EffectiveControls is the shared semantic constructor.
++validation.rs::Discipline::effective_controls resolves positive/negative
++lexical predicates to physical scalar literals and pairs them with their full
++current interned version stacks (collision-free IDs referencing full keys,
++not hashes or truncated histories). Creation.controls and all operation,
++phase, memory, oracle/action, change/joint_change context keys use it.
++Phase dependency snapshots are sorted/deduplicated through read_snapshot.
++Lexical push/pop and protected floors are untouched.
++borrow.rs::Compiler::compile constructs canonical controls separately from
++the lexical predicate stack, including direct qpred duplicates.
++Node::instantiate sorts/deduplicates again after physical mapping and
++combining inherited controls, so aliases introduced by calls or alpha-renaming
++have the same representation. Facts::reversible retains its all-operand
++LIFO comparison and complete saved expressions. Callee/token/input/output
++identity and every version-changing intervening event remain significant.
++
++GREEN: exact parser/library/CLI targets **7 passed / 0 failed**.
++Both exact and duplicate objects check/hash; run-action a --mut 0 --in 1,1
++--arg token:1,0,0,0 returns state {"011":[1,0]}, wires=3, unchanged at token
++0,0,0,0. Independent CLI adjoints and reverse equals_entry=true pass.
++CLI also checks a complex superposition across control settings.
++
++support::r10_identity independently initializes each direction on all **32**
++t,p,q,b,R basis entries, a control superposition, and a Bell-paired bR entry.
++It checks exact state AND allocator equality after one execution, then the
++opposite direction, with no escaping workspace. Oracle subjects use B=0/1;
++qinplace uses B=1.
++
++Deterministic tests:
++- generated_r10_effective_control_sets_match_independent_identity:
++  **102 accepted / 6 rejected**, all positives executed as above.
++  Five permuted/duplicated/indexed scalar contexts cross each other in direct,
++  doubly nested qloop 1, local action-call/adjoint, and distinct swapped
++  qinplace g/ginv forms; duplicate-only [p] vs [p,p] and p[0] forms are added.
++  The child uses its own p/q stack, exercising inherited-context merging.
++  Rejections: absent predicate, opposite polarity, changed version, different
++  token, changed ABI operand order, and different callee.
++- generated_r10_context_keys_cover_all_cleanup_families:
++  **9 accepted / 1 rejected**. qcopy/quncopy, qload/qunload, qstore, qexchm,
++  qexch, H/H, S/Sdg and X/X under reordered/duplicated controls, plus equivalent
++  negative-polarity contexts. A wrong lexical pop still rejects §3.5.
++- r1_fixtures::r10_independent_effective_control_and_grammar_pins:
++  independent root interface AND closure pins, object bytes, malformed digests.
++
++All six distinct-control negatives reject parse/hash/check at §6.2; the
++opposite-polarity case uses qif's else arm rather than an illegal spelling.
++The changed-version case makes p mutable, changes it between predicate scopes,
++and restores it afterward; no active predicate is illegally targeted.
++
++## Independent literal hash derivation
++
++Every supplied member pin reproduced exactly; no correction is needed.
++tests/support/r10_pins.py uses only Python hashlib/json and literal function
++bytes. For a memoryless function the exact envelope is:
++isa=0.8 LF; ptr_width=32 LF; sorted-key canonical signature JSON LF; exact
++LF-terminated function. Caller references @o are replaced with @H_o; distinct
++H_o is appended once plus LF in reference order. Complete objects use the
++standard header, blank-line section separators, sorted-key stored-H symbols,
++functions in declared order and final LF. Rejected spellings stay rejected
++spellings in both the envelope and the stored exact object.
++The script asserts all supplied H/object pairs before writing the JSON corpus;
++Rust checks successful interface/closure/object pins and rejected byte digests.
++The 13 independently derived cases follow.
++
++| Case | interface = closure (root) | object_hash |
++|---|---|---|
++| bare-cc | 2060222c2773451dd9a97e146d566bfca81c7a91c7fe04bd90d7e841163f531e | b6f4dc99c6f84d162c82c54ea4c41ceee3e9d4cc09a00c3ab8bd80d282faec3f |
++| bare-r | 26aaa60527078d132feacc2ad2d7fcdc498854fda628b6131b12febf6dfa474e | ddd846be15e738a12a572592feb66b3c1a69750614033b2b89ef63a6f0c8e89a |
++| cc | 218bf0ae43801ce9c291e2c3276d60df583a7a8b939b56312f88b1623c2e68cd | d2cb6bf361cd11bd9e68e31a0329b5b62bb9c2d23cf6cb7ca9d8ddf89bd208e5 |
++| controls | 386dce74595f0e05ed2b7eb9218fc22fece3fafe7ad6fd206aed542ad8b7deef | 7b1153bae80cc041447870eaa9623f73e6cb6df5085365a1efcbac99789076ad |
++| duplicate | 3c0aeff8beef09c65102af9b1000ba9147168f126398f1dfc9a43bc42a08189a | fab3d3bdec75198b190125a297e9c0145f25de221f8ede05beaf5949f85ce384 |
++| empty-bounds | cb5e25ba34a6c84c96766f19a4b30c0999b7f262c2df63ae436296ba4a2554c8 | 8f2d76a7e18603d59a53082cd0493913725397140a6cbd162b7150fdb5358f11 |
++| empty-lhs | a2f5278ca8db3abb0e407e475c1fba93c4307b97f0db8c1fe4a0bbe2b48da782 | 4ede077a7344efa101b22cd0f990feacde2c1a415dbec6667ee61290f9747480 |
++| fn-oracle | 607bffa4376f76dc181141c19dc70dfbde0d8064e3d220187b13001e25cab0ca | 3868eb11e0293db6f43d3a9c5589c36feab4d88916327a34241141c1949b2dd6 |
++| inc-empty-bounds | 31e7ad0837d13f0cd78e0fc2a155016c006ab18e3ecf6cc367308d58eb274437 | 6e0b6cfb1a74f8974706264ddc3b762bda7226e0abeb284f97978d5cb2f7d4f3 |
++| omitted-bounds | 4b749e1b37d610bc72f3b4d5c63ea551364492a370bd2dc5054282c5b1b89e62 | 028699ab2f8bd8767b19d021e1153bac74c470d9a302636fe66928bcc0d74de5 |
++| one-trip | 0b8ab098a6ba2bb42a91bb939a2d8efa08855ce6bf8500287e629b059bca35ae | 0795eacd49c0eab4b11a0640c5e52487fb7ea87b83d14f6cc5e04122deeb3011 |
++| r | a0e0e58bbd950d19ef988ea34e59ae270fa891a2988e9d7ef94280b7bc5c02ee | 26db00f6a415fc59ab5df69e88b866b874ba637488efb178d6d8dccf5d641361 |
++| tuple-lhs | d3d56fca12ac5d5241a321cf1095d53f605f1fd6569f83a7e1171182194f8754 | 5ae74605fdb749d2da04e9d4def8475785c84b0a602fb58d31ac8fff8efbcfc5 |
++
++## Retained checks and observed verification
++
++Every named round 4–9 positive and negative remains and passes: every-return
++independence, later-borrow/global-identity nonwaivers, physical frame boundaries,
++certificate binding/full-domain replay, full borrowed quantum/phase/call touches,
++unmatched primitive/opaque readers, changed tokens/controls/inputs, full
++version-stack prefixes, cell/window epochs, evolving loop bindings, zero-trip
++lifetimes and lexical qregions. No new specification reading was introduced.
++No test domain, seed, random distribution or runtime guard was weakened.
++
++Commands use absolute paths; DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/
++BROWSER are unset and TMPDIR is
++/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
++All Rust tests use CARGO_PROFILE_TEST_OPT_LEVEL=1 (same assertions, domains,
++overflow checks). The exact commands after this environment prefix are:
++
++```sh
++cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++cargo clippy --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline --all-targets -- -D warnings
++cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline
++cargo test --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --offline -- --ignored --nocapture
++python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r10_pins.py
++```
++
++Development filters used the same manifest/environment: --test parser r10_,
++--test cli_xam r10_, --test r1_borrow r10_, --test r1_fuzz_discipline generated_r10,
++and --test r1_fixtures --test r1_fuzz_discipline r10. The aggregate exact
++reproduction used all three exact targets, filter r10_, --no-fail-fast and
++-- --nocapture so every member mutation was observed before the source repair.
++
++| Run | Observed result |
++|---|---|
++| baseline | 327 passed / 0 failed / 5 ignored; 8 unit + 319 integration; 13.40 s |
++| initial parser RED | 0 passed / 3 failed |
++| initial grammar CLI RED | 1 passed / 1 failed |
++| initial library RED | 0 passed / 1 failed |
++| initial control CLI RED | 0 passed / 1 failed |
++| aggregate exact RED | 1 passed / 6 failed; 152 grammar CLI commands |
++| exact GREEN | 7 passed / 0 failed |
++| first full suite | 334 passed / 0 failed / 5 ignored; 16.85 s |
++| first deterministic families | 2 passed / 0 failed; 109 accepted / 22 rejected |
++| extended families plus pin test | 4 passed / 0 failed; final families 118 accepted / 23 rejected |
++| full suite with final families | 338 passed / 0 failed / 5 ignored; 15.67 s |
++| extended one-trip/tuple CLI controls | 3 passed / 0 failed |
++| final normal rerun | 338 passed / 0 failed / 5 ignored; 8 unit + 330 integration; 0 doctests; 17.70 s |
++| fmt --check | pass, 0 tests executed |
++| strict all-target Clippy | pass, 0 warnings, 0 tests executed; final rerun 1.25 s |
++| five ignored sweeps | 5 passed / 0 failed; 100.42 s runner sum |
++| independent pins | all supplied pins match; 13 derived case records; no correction |
++| owned diff --check | clean |
++
++| Ignored sweep | Domain | Observed result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 operations = 262,144 executions | 1/0; 0.52 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.91 s |
++| checked borrow certificate | 262,144 domain elements, subject and expected program | 1/0; 15.23 s |
++| §6 differential | 200,000 programs: 70,931 accepted, all exactly clean / 129,069 rejected | 1/0; 78.84 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.92 s |
++
++The unchanged RNG previously yielded 70,930 accepted / 129,070 rejected;
++the effective-set repair admits one more independently executed clean sample.
++No semantic source change followed the first 338/0/5 gate or the sweeps.
++The one-trip and tuple-LHS test-only controls were strengthened after that
++gate, then the full suite, fmt and Clippy were rerun successfully.
++One implementation build caught an accidental edit to a lexical stack
++extension; it was corrected before GREEN. An extended pin test initially
++missed mod support; fixed before the 4/0 target run. Neither compiler setup
++failure is counted as semantic RED or as a passing test run.
++
++Logs live in bennett-isa-spec/.tmp/r10-*.log, specifically baseline, red-all,
++green-exact, first-full, families, families-extended, positive-extended,
++final-tests, final-rerun-tests, final-sweeps, final-rerun-clippy,
++final-fmt and independent-pins. PROGRESS.md is current through these gates.
++
++## ISA 0.8 gaps and disposition
++
++No new ISA 0.8 gap, ambiguity, decline or partial blocker. **Exact spec change
++needed: none.** SPEC-QUESTIONS is unchanged; the fixes implement explicit
++existing grammar, conjunction, adjoint and lifetime rules. No trip/wire/budget
++cap, sampled admission, frame merge/waiver or function-specific certificate
++requirement was introduced. The whole ISA remains the north-star scope;
++existing deliverables 8–11 and performance follow-up b-isa-spec-436 retain
++their disclosed staging without claiming completion.
++
++Accepted spec SHA-256 remains
++90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e.
++Commits: **4ba57f9** implementation/tests/design; **a9f9261** final evidence.
++This response is committed separately in bennett. All commits use explicit
++owned path lists and BEADS_HOOK_TIMEOUT=20; no push or Dolt remote sync.
++Beads' automatic export is outside owned commit paths and left to the maintainer.
+ ````
+ 
+@@ -14153,5 +14584,5 @@
+ ````
+ 
+-## `src/identity.rs` (434 lines)
++## `src/identity.rs` (439 lines)
+ 
+ ````rust
+@@ -14381,16 +14812,21 @@
+         let mut images = BTreeSet::new();
+         if let Some(layout) = self.section("layout") {
+-            let all = layout_leaves(layout)?;
++            // §9.2 ownership is a JSON key, not a prefix of a rendered path.
++            // NAME and region names may contain dots (§16.1), including paths
++            // that would collide if foreign owners were flattened first.
++            let mut selected = layout.clone();
++            if kind == "oracle" {
++                let regions = layout.get("interface_regions")?.object()?;
++                let own = regions
++                    .get(n)
++                    .map(|entry| BTreeMap::from([(n.to_string(), entry.clone())]))
++                    .unwrap_or_default();
++                if let Json::Object(fields) = &mut selected {
++                    fields.insert("interface_regions".into(), Json::Object(own));
++                }
++            }
++            let all = layout_leaves(&selected)?;
+             match kind {
+-                "oracle" => {
+-                    for (k, v) in all {
+-                        if !k.starts_with("interface_regions.")
+-                            || k.starts_with(&format!("interface_regions.{n}."))
+-                        {
+-                            leaves.insert(k, v);
+-                        }
+-                    }
+-                }
+-                "cc" | "r" => leaves = all,
++                "oracle" | "cc" | "r" => leaves = all,
+                 "lproc" => {
+                     for line in &body {
+@@ -19181,5 +19617,5 @@
+ ````
+ 
+-## `src/object.rs` (1816 lines)
++## `src/object.rs` (1821 lines)
+ 
+ ````rust
+@@ -20901,4 +21337,9 @@
+         }
+         "action" | "perm_action" => {
++            // §3.3: structured workspace has producers, not register-file locations.
++            // An empty regs line can still carry the §5.3 loop bounds.
++            if !f.regs.is_empty() {
++                return err("§3.3", "actions use Q producers, not a mutable regs file");
++            }
+             all(&f.params[3], classical)?;
+             empty(&[4])?;
+@@ -23362,5 +23803,5 @@
+ ````
+ 
+-## `src/validation.rs` (2014 lines)
++## `src/validation.rs` (2016 lines)
+ 
+ ````rust
+@@ -23903,5 +24344,7 @@
+                     if matches!(op, "rx" | "ry" | "rz")
+                         && a.first().is_some_and(|angle| angle.parse::<f64>().is_err())
+-                        && s.types.get(&a[0]) != Some(&Type::F64)
++                        && !f.params[3]
++                            .iter()
++                            .any(|p| p.name == a[0] && p.ty == Type::F64)
+                     {
+                         return err("§3.3", "gate angle must be a classical f64 argument");
+@@ -26001,5 +26444,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (1807 lines)
++## `tests/cli_xam.rs` (1944 lines)
+ 
+ ````rust
+@@ -27808,4 +28251,141 @@
+                 );
+             }
++        }
++    }
++}
++
++#[test]
++fn r11_cli_action_regs_reject_before_execution() {
++    r11_cli_regs("wire");
++}
++#[test]
++fn r11_cli_action_angles_reject_before_execution() {
++    r11_cli_regs("angle");
++}
++fn r11_cli_regs(tag: &str) {
++    let mut commands = 0;
++    {
++        let raw = support::r11_text(tag);
++        // Independent object byte pin applies even though the object must not load.
++        assert_eq!(
++            bennett_isa_ref::sha256_hex(raw.as_bytes()),
++            support::r11_case(tag)
++                .get("object_hash")
++                .unwrap()
++                .string()
++                .unwrap()
++        );
++        for kind in ["action", "perm_action"] {
++            for indexed in [false, true] {
++                let text = raw.replace("action", kind);
++                let text = if indexed {
++                    text.replace("cx d t", "cx d[0] t")
++                } else {
++                    text
++                };
++                let path = tmp_file(&format!("r11-regs-{tag}-{kind}-{indexed}.bisa"), &text);
++                fails(&["hash", &path], "§3.3");
++                fails(&["check", &path], "§3.3");
++                for input in ["0", "1"] {
++                    fails(
++                        &["run-action", &path, "a", "--mut", input, "--budget", "0"],
++                        "§3.3",
++                    );
++                    commands += 1;
++                }
++                commands += 2;
++            }
++        }
++    }
++    assert_eq!(commands, 16);
++}
++#[test]
++fn r11_cli_producer_and_argument_controls() {
++    for tag in ["producer", "argument"] {
++        support::r11_pin(tag);
++        let path = tmp_file(&format!("r11-{tag}.bisa"), &support::r11_text(tag));
++        assert_eq!(text(&ok(&["check", &path]), "status"), "ok");
++        ok(&["hash", &path]);
++        for input in ["0", "1"] {
++            let mut args = vec!["run-action", path.as_str(), "a", "--mut", input];
++            if tag == "argument" {
++                args.extend(["--arg", "f64:0.0"]);
++            }
++            for adjoint in [false, true] {
++                let mut args = args.clone();
++                if adjoint {
++                    args.push("--adjoint");
++                }
++                let v = ok(&args);
++                assert_eq!(uint(&v, "wires"), 1);
++                assert_eq!(
++                    field(&v, "state").canonical(),
++                    format!(r#"{{"{input}":[1,0]}}"#)
++                );
++                assert_eq!(array(&v, "mut")[0].uint().unwrap().to_string(), input);
++            }
++        }
++    }
++}
++
++#[test]
++fn r11_cli_exact_oracle_layout_owners() {
++    for tag in [
++        "sol-layout-2",
++        "sol-layout-3",
++        "codex-layout-32",
++        "codex-layout-48",
++    ] {
++        let path = tmp_file(&format!("r11-{tag}.bisa"), &support::r11_text(tag));
++        for cmd in ["check", "hash"] {
++            let v = ok(&[cmd, &path]);
++            assert_eq!(text(&v, "status"), "ok");
++            let c = support::r11_case(tag);
++            assert_eq!(
++                text(&v, "object_hash"),
++                c.get("object_hash").unwrap().string().unwrap()
++            );
++            for (name, hash) in c.get("hashes").unwrap().object().unwrap() {
++                let symbol = field(&v, "symbols").get(name).unwrap();
++                assert_eq!(text(symbol, "interface_hash"), hash.string().unwrap());
++                assert_eq!(text(symbol, "closure_hash"), hash.string().unwrap());
++            }
++        }
++        if tag.starts_with("codex") {
++            let v = ok(&[
++                "run-oracle",
++                &path,
++                "a",
++                "--input",
++                "7",
++                "--mem",
++                "db=00",
++                "--budget",
++                "1,0,0,0",
++            ]);
++            assert_eq!(
++                (uint(&v, "payload"), uint(&v, "code"), uint(&v, "steps")),
++                (7, 0, 1)
++            );
++        }
++    }
++}
++
++#[test]
++fn r11_cli_rounded_and_exact_phase_probes() {
++    for tag in ["rounded-probe", "exact-probe"] {
++        support::r11_pin(tag);
++        let path = tmp_file(&format!("r11-{tag}.bisa"), &support::r11_text(tag));
++        assert_eq!(text(&ok(&["check", &path]), "status"), "ok");
++        let v = ok(&["run-action", &path, "probe", "--mut", "0,0"]);
++        if tag == "rounded-probe" {
++            assert_eq!(
++                field(&v, "state").canonical(),
++                r#"{"00":[0,-6.12323823339278e-17],"01":[1,6.12323823339278e-17]}"#
++            );
++            assert_eq!(field(&v, "mut").canonical(), "[0,null]");
++        } else {
++            assert_eq!(field(&v, "state").canonical(), r#"{"01":[1,0]}"#);
++            assert_eq!(field(&v, "mut").canonical(), "[0,1]");
+         }
+     }
+@@ -28441,5 +29021,5 @@
+ ````
+ 
+-## `tests/fixtures/control_flow.bisa` (48 lines)
++## `tests/fixtures/control_flow.bisa` (56 lines)
+ 
+ ````
+@@ -28447,5 +29027,5 @@
+ 
+ section symbols
+-{"0":{"interface_hash":"70c70c733a7c87eeedb2b9d3a77fea16cb1240041dddcfb865e8149b50769883","kind":"perm_action","name":"while3","signature":{"abi":"0.8","args":[],"bounds":[3],"in":[3],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}},"1":{"interface_hash":"9a71ebdeed0fcf79499b855cf2d7dfc747680ba58c06ebe130eb9576562205c9","kind":"action","name":"conditional","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1],"tier":"q"}},"2":{"interface_hash":"eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271","kind":"action","name":"phase","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}},"3":{"interface_hash":"ab91d03274c13ebfeb0832746e0567b6fe2e3178d34300ffb353cfc1cb2fbc06","kind":"action","name":"controlled_phase","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1],"tier":"q"}},"4":{"interface_hash":"bf13912ffa2d6932f730622105f5a243eec9a3c01554a034e0e97d0ca7a195f2","kind":"perm_action","name":"exchange","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[{"A":1,"W":2,"role":"mut"}],"mut":[2],"tier":"q"}},"5":{"interface_hash":"fd66ff5ee2580e4f999e4e85e74e2e24de2b54ffa1c70c4a6b90dc63e56a8e90","kind":"perm_action","name":"image","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[],"mut":[8],"tier":"q"}},"6":{"interface_hash":"4e3eba45f290de3007ae1ee11cd6ceb1e90cd9d64391e163255edd90eee78ef8","kind":"perm_action","name":"borrowed","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}},"7":{"interface_hash":"f7f06a09d59c31dcbff6f80485ab1c7fc3974bbdfb9e1e6b813bede211a94a6f","kind":"data","name":"bytes","signature":{"abi":"0.8","kind":"data","size":2,"tier":"-"}}}
++{"0":{"interface_hash":"70c70c733a7c87eeedb2b9d3a77fea16cb1240041dddcfb865e8149b50769883","kind":"perm_action","name":"while3","signature":{"abi":"0.8","args":[],"bounds":[3],"in":[3],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}},"1":{"interface_hash":"9a71ebdeed0fcf79499b855cf2d7dfc747680ba58c06ebe130eb9576562205c9","kind":"action","name":"conditional","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1],"tier":"q"}},"2":{"interface_hash":"eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271","kind":"action","name":"phase","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}},"3":{"interface_hash":"9d9c349c97df952f56700426fc92bc1c1f7937d144f868f2f2287d7ec243f3cb","kind":"action","name":"controlled_phase","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"action","mem":[],"mut":[1],"tier":"q"}},"4":{"interface_hash":"bf13912ffa2d6932f730622105f5a243eec9a3c01554a034e0e97d0ca7a195f2","kind":"perm_action","name":"exchange","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[{"A":1,"W":2,"role":"mut"}],"mut":[2],"tier":"q"}},"5":{"interface_hash":"fd66ff5ee2580e4f999e4e85e74e2e24de2b54ffa1c70c4a6b90dc63e56a8e90","kind":"perm_action","name":"image","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[],"mut":[8],"tier":"q"}},"6":{"interface_hash":"4e3eba45f290de3007ae1ee11cd6ceb1e90cd9d64391e163255edd90eee78ef8","kind":"perm_action","name":"borrowed","signature":{"abi":"0.8","args":[],"bounds":[],"in":[1],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}},"7":{"interface_hash":"f7f06a09d59c31dcbff6f80485ab1c7fc3974bbdfb9e1e6b813bede211a94a6f","kind":"data","name":"bytes","signature":{"abi":"0.8","kind":"data","size":2,"tier":"-"}},"8":{"interface_hash":"caec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443","kind":"action","name":"minus_i","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}}}
+ 
+ section functions
+@@ -28466,7 +29046,15 @@
+ ^entry():
+ rz 6.283185307179586 t
++action @minus_i (t:wire mut) () () () ()
++^entry():
++s t
++s t
++x t
++s t
++s t
++x t
+ action @controlled_phase (t:wire mut) (p:wire in) () () ()
+ ^entry():
+-ctl p action_call @phase (t) () () ()
++ctl p action_call @minus_i (t) () () ()
+ perm_action @exchange (t:wire[2] mut) (a:wire in) (m:region[1,2] mut) () ()
+ ^entry():
+@@ -28494,5 +29082,5 @@
+ ````
+ 
+-## `tests/fixtures/control_flow.comments` (14 lines)
++## `tests/fixtures/control_flow.comments` (22 lines)
+ 
+ ````
+@@ -28504,8 +29092,16 @@
+ conditional: starting with t=0 and p=+ gives amplitudes [0,1/sqrt(2),1/2,1/2]
+ in allocation order (t low bit). Applying the adjoint restores t=0,p=+.
+-controlled_phase: Rz(2*pi) = -I on t. Controlled by p, it is Z on p;
++minus_i: S^2=Z; the six gates S S X S S X act as X Z X Z = -I exactly.
++controlled_phase calls minus_i: controlled by p, it is Z on p;
+ H p; controlled_phase; H p therefore produces p=1 with probability one.
++phase retains theta=6.283185307179586=884279719003555/140737488355328,
++a finite binary64 angle, not symbolic 2*pi. Its Rz is
++diag(exp(-i*theta/2), exp(i*theta/2)). Starting at t=p=0, the separate
++H p; ctl p phase; H p probe has amplitudes (1+exp(-i*theta/2))/2 on 00
++and (1-exp(-i*theta/2))/2 on 01 (wire order t,p).
++P(p=0)=cos(theta/4)^2 is strictly positive, approximately 3.749399456654644e-33;
++both exact-support keys must survive even when a displayed component rounds.
+ exchange: qexchm swaps t with m[a] and leaves the other cell unchanged.
+-image: data dead has cell0=0xde and cell1=0xad. With t initially0x35 the
++image: data symbol bytes (hex dead) has cell0=0xde and cell1=0xad. With t initially0x35 the
+ result is0xeb or0x98 respectively. Scratch and local image are restored.
+ borrowed: CX x,b; CX b,t; CX x,b; CX b,t gives t XOR x, restores b,
+@@ -28829,5 +29425,5 @@
+ 
+ ````
+-Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.
++Hand: for B >= 1, @o is the one-step identity permutation, both qinplace rows are I, H^2=I, and CX(0,b)=I_bR. B=0 rejects under §4.5 because the oracle faults; it is not an identity run.
+ ````
+ 
+@@ -29029,5 +29625,5 @@
+ ````
+ 
+-## `tests/identity.rs` (233 lines)
++## `tests/identity.rs` (309 lines)
+ 
+ ````rust
+@@ -29265,4 +29861,80 @@
+     assert_eq!(id.interface_hashes["mix"], sha256_hex(expected.as_bytes()));
+ }
++
++#[test]
++fn r11_oracle_layout_ownership_uses_exact_names() {
++    let expected = concat!(
++        "isa=0.8\nptr_width=32\n",
++        "{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[],\"tgt\":1,\"tier\":\"q\"}\n",
++        "oracle @a (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\n",
++        "layout A_tab 0\nlayout H 4\nlayout S_cells 0\nlayout heap_base 1\nlayout heap_limit_max 0\nlayout null_size 1\nlayout ptr_width 32\n"
++    );
++    assert_eq!(
++        sha256_hex(expected.as_bytes()),
++        "1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521"
++    );
++    for tag in ["sol-layout-2", "sol-layout-3"] {
++        let o = Object::parse(&support::r11_text(tag)).unwrap();
++        assert_eq!(o.identity().unwrap().envelopes["a"], expected);
++        support::r11_pin(tag);
++    }
++}
++
++#[test]
++fn r11_dotted_oracle_layout_ownership() {
++    let expected = concat!(
++        "isa=0.8\nptr_width=32\n",
++        "{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\n",
++        "oracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n",
++        "layout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\n",
++        "layout interface_regions.a.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n"
++    );
++    assert_eq!(
++        sha256_hex(expected.as_bytes()),
++        "4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec"
++    );
++    for tag in ["codex-layout-32", "codex-layout-48"] {
++        let o = Object::parse(&support::r11_text(tag)).unwrap();
++        assert_eq!(o.identity().unwrap().envelopes["a"], expected);
++        let o = support::r11_pin(tag);
++        let mut input = bennett_isa_ref::OracleInput::bits(&[7]);
++        input.regions.insert("db".into(), vec![0]);
++        let result = o
++            .run_oracle("a", &input, bennett_isa_ref::Budget::steps(1))
++            .unwrap();
++        assert_eq!((result.payload, result.code, result.steps), (7, 0, 1));
++    }
++    let changed = support::r11_text("codex-layout-32").replace("\"base\":16", "\"base\":17");
++    assert_ne!(
++        Object::parse(&changed)
++            .unwrap()
++            .identity()
++            .unwrap()
++            .interface_hashes["a"],
++        sha256_hex(expected.as_bytes())
++    );
++}
++
++#[test]
++fn r11_dotted_owner_and_region_family() {
++    for owner in ["a", "a.b", "a.b.c"] {
++        let mut envelopes = vec![];
++        for base in [32, 48] {
++            let tag = format!("deep-{owner}-{base}");
++            let o = support::r11_pin(&tag);
++            envelopes.push(o.identity().unwrap().envelopes[owner].clone());
++            let changed = support::r11_text(&tag).replace("\"base\":16", "\"base\":17");
++            assert_ne!(
++                Object::parse(&changed)
++                    .unwrap()
++                    .identity()
++                    .unwrap()
++                    .envelopes[owner],
++                envelopes[0]
++            );
++        }
++        assert_eq!(envelopes[0], envelopes[1]);
++    }
++}
+ ````
+ 
+@@ -29980,5 +30652,5 @@
+ ````
+ 
+-## `tests/parser.rs` (259 lines)
++## `tests/parser.rs` (362 lines)
+ 
+ ````rust
+@@ -30242,7 +30914,110 @@
+     Object::parse(&support::object(&[("a",sig,"action @a (t:wire mut) () () () ()\nregs {  } bounds {1}\n^entry():\nqloop 1 {\nx t\n}")],"{}","")).unwrap();
+ }
++
++#[test]
++fn r11_action_regs_do_not_produce_wires() {
++    let text = support::r11_text("wire");
++    for kind in ["action", "perm_action"] {
++        for operand in ["d", "d[0]"] {
++            rejects(
++                &text
++                    .replace("action", kind)
++                    .replace("cx d t", &format!("cx {operand} t")),
++                "§3.3",
++            );
++        }
++    }
++    support::r11_pin("producer");
++}
++
++#[test]
++fn r11_action_regs_cannot_invent_angles() {
++    rejects(&support::r11_text("angle"), "§3.3");
++    support::r11_pin("argument");
++    // Named angles must be an f64 argument, never a wire, region or token.
++    let text = support::r11_text("argument");
++    for ty in ["i64", "ptr", "token"] {
++        rejects(
++            &text
++                .replace("angle:f64", &format!("angle:{ty}"))
++                .replace(r#""args":["f64"]"#, &format!(r#""args":["{ty}"]"#)),
++            "§3.3",
++        );
++    }
++    rejects(&text.replace("rx angle t", "rx missing t"), "§3.3");
++    support::r10_pin("one-trip");
++    support::r11_pin("producer");
++}
++
++#[test]
++fn r11_register_types_follow_function_kind() {
++    let mut accepted = 0;
++    let mut rejected = 0;
++    for kind in ["cc", "r", "oracle", "lproc", "action", "perm_action"] {
++        let (sig, head, row, tail) = match kind {
++            "cc" | "r" => (format!(r#"{{"abi":"0.8","kind":"{kind}","params":[],"results":[],"tier":"{kind}"}}"#),
++                format!("fn {kind} @a () () () () ()"), "ret", ""),
++            "oracle" => (r#"{"abi":"0.8","args":[],"fault":4,"in":[1],"kind":"oracle","mem":[],"tgt":1,"tier":"q"}"#.into(),
++                "oracle @a (x:wire in) (t:wire) (f:wire[4]) () ()".into(), "lift.retval x", ""),
++            "lproc" => (r#"{"abi":"0.8","kind":"lproc","params":[1],"result":1,"tier":"q"}"#.into(),
++                "lproc @a (x:reg[1]) (r:reg[1]) () () ()".into(), "lift.ret x",
++                r#"
++section layout
++{"A_tab":0,"H":1,"S_cells":0,"globals":{},"heap_base":1,"heap_limit_max":0,"interface_regions":{},"null_size":1,"ptr_width":32}
++"#),
++            _ => (format!(r#"{{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"{kind}","mem":[],"mut":[1],"tier":"q"}}"#),
++                format!("{kind} @a (t:wire mut) () () () ()"), "x t", ""),
++        };
++        for ty in [
++            "reg[1]",
++            "wire",
++            "wire[2]",
++            "f64",
++            "i8",
++            "ptr",
++            "token",
++            "qreg[1]",
++            "region[0,8]",
++        ] {
++            let body = format!(
++                "{head}
++regs {{ d:{ty} }}
++^entry():
++{row}
++"
++            );
++            let text = support::object(&[("a", &sig, &body)], "{}", tail);
++            if matches!(kind, "oracle" | "lproc") && ty == "reg[1]" {
++                Object::parse(&text).unwrap();
++                accepted += 1;
++            } else {
++                rejects(&text, "§3.3");
++                rejected += 1;
++            }
++        }
++        let text = support::object(
++            &[(
++                "a",
++                &sig,
++                &format!(
++                    "{head}
++regs {{  }}
++^entry():
++{row}
++"
++                ),
++            )],
++            "{}",
++            tail,
++        );
++        Object::parse(&text).unwrap();
++        accepted += 1;
++    }
++    assert_eq!((accepted, rejected), (8, 52));
++    eprintln!("R11 regs family: {accepted} accepted / {rejected} rejected");
++}
+ ````
+ 
+-## `tests/quantum.rs` (439 lines)
++## `tests/quantum.rs` (442 lines)
+ 
+ ````rust
+@@ -30307,5 +31082,6 @@
+         }
+     }
+-    // Controlled Rz(2*pi) is -I on its enabled subspace; global phase matters.
++    // TAU is a rounded binary64 angle. The enabled phase is near -1, but
++    // interference retains a strictly nonzero residual branch (§3.1/§4.4).
+     let mut q = QuantumState::new();
+     let w = q.allocate(2).unwrap();
+@@ -30314,4 +31090,6 @@
+         .unwrap();
+     q.gate("h", &[w[0]], None, &[]).unwrap();
++    assert_eq!(q.exact_support().len(), 2);
++    assert!(q.read_basis(&[w[0]]).is_err());
+     close(q.amplitudes().unwrap()[1], Complex::new(1.0, 0.0));
+ }
+@@ -30688,5 +31466,5 @@
+ ````
+ 
+-## `tests/quantum_control.rs` (160 lines)
++## `tests/quantum_control.rs` (208 lines)
+ 
+ ````rust
+@@ -30782,5 +31560,53 @@
+         .unwrap();
+     q.gate("h", &p, None, &[]).unwrap();
+-    assert!((q.amplitudes().unwrap()[2].re - 1.0).abs() < 1e-12);
++    assert_eq!(q.read_basis(&p).unwrap(), 1);
++    assert_eq!(q.exact_support(), vec![(vec![false, true], (1.0, 0.0))]);
++}
++
++#[test]
++fn r11_rounded_angle_retains_nonzero_interference_branch() {
++    // θ is the binary64 literal, not symbolic 2π. The exact amplitudes are
++    // (1+exp(-iθ/2))/2 and (1-exp(-iθ/2))/2, so both branches are nonzero.
++    let o = fixture();
++    let mut q = QuantumState::new();
++    let w = q.allocate(2).unwrap();
++    let mut b = QuantumBindings::default();
++    b.bundles.insert("t".into(), vec![w[0]]);
++    q.gate("h", &[w[1]], None, &[]).unwrap();
++    o.execute_action("phase", &mut q, &b, false, &[w[1]])
++        .unwrap();
++    q.gate("h", &[w[1]], None, &[]).unwrap();
++    let support = q.exact_support();
++    assert_eq!(
++        support
++            .iter()
++            .map(|(bits, _)| bits.clone())
++            .collect::<Vec<_>>(),
++        vec![vec![false, false], vec![false, true]]
++    );
++    assert!(q.read_basis(&[w[1]]).is_err());
++    assert_eq!(support[0].1, (0.0, -6.12323823339278e-17));
++    assert_eq!(support[1].1, (1.0, 6.12323823339278e-17));
++}
++
++#[test]
++fn r11_exact_minus_i_on_both_basis_states() {
++    let o = fixture();
++    // S S X S S X gives -|0> and -|1>; its adjoint does too.
++    for value in [false, true] {
++        for adjoint in [false, true] {
++            let mut q = QuantumState::new();
++            let w = q.allocate(1).unwrap();
++            if value {
++                q.gate("x", &w, None, &[]).unwrap();
++            }
++            let mut b = QuantumBindings::default();
++            b.bundles.insert("t".into(), w);
++            o.execute_action("minus_i", &mut q, &b, adjoint, &[])
++                .unwrap();
++            assert_eq!(q.exact_support(), vec![(vec![value], (-1.0, 0.0))]);
++            assert_eq!(q.wire_count(), 1);
++        }
++    }
+ }
+ 
+@@ -33149,5 +33975,5 @@
+ ````
+ 
+-## `tests/r1_fixtures.rs` (653 lines)
++## `tests/r1_fixtures.rs` (733 lines)
+ 
+ ````rust
+@@ -33157,4 +33983,49 @@
+ use bennett_isa_ref::Object;
+ use std::path::PathBuf;
++
++#[test]
++fn r11_qinplace_comment_matches_budget_contract() {
++    let expected = "Hand: for B >= 1, @o is the one-step identity permutation, both qinplace rows are I, H^2=I, and CX(0,b)=I_bR. B=0 rejects under §4.5 because the oracle faults; it is not an identity run.\n";
++    assert_eq!(include_str!("fixtures/r9-sol-qinplace.comments"), expected);
++    let o = Object::parse(support::r9_fixture("sol-qinplace")).unwrap();
++    o.check_hashes().unwrap();
++    support::r9_identity(
++        &o,
++        &[bennett_isa_ref::Argument::Token(
++            bennett_isa_ref::Budget::steps(1),
++        )],
++    );
++    let path =
++        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/r9-sol-qinplace.bisa");
++    for t in ["0", "1"] {
++        for budget in ["token:0,0,0,0", "token:1,0,0,0"] {
++            let out = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .args([
++                    "run-action",
++                    path.to_str().unwrap(),
++                    "a",
++                    "--mut",
++                    t,
++                    "--arg",
++                    budget,
++                ])
++                .output()
++                .unwrap();
++            if budget == "token:0,0,0,0" {
++                assert_eq!(out.status.code(), Some(1));
++                assert!(out.stdout.is_empty());
++                assert!(String::from_utf8_lossy(&out.stderr).contains("§4.5"));
++            } else {
++                assert!(out.status.success(), "{out:?}");
++                let v = support::json(std::str::from_utf8(&out.stdout).unwrap());
++                assert_eq!(
++                    v.get("state").unwrap().canonical(),
++                    format!(r#"{{"{t}":[1,0]}}"#)
++                );
++                assert_eq!(v.get("wires").unwrap().uint().unwrap(), 1);
++            }
++        }
++    }
++}
+ 
+ fn fixtures() -> Vec<PathBuf> {
+@@ -33525,5 +34396,5 @@
+             "control_flow",
+             "controlled_phase",
+-            "ab91d03274c13ebfeb0832746e0567b6fe2e3178d34300ffb353cfc1cb2fbc06",
++            "9d9c349c97df952f56700426fc92bc1c1f7937d144f868f2f2287d7ec243f3cb",
+         ),
+         (
+@@ -33536,4 +34407,9 @@
+             "image",
+             "fd66ff5ee2580e4f999e4e85e74e2e24de2b54ffa1c70c4a6b90dc63e56a8e90",
++        ),
++        (
++            "control_flow",
++            "minus_i",
++            "caec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443",
+         ),
+         (
+@@ -33805,4 +34681,34 @@
+     }
+ }
++
++#[test]
++fn r11_control_flow_pins_match_literal_envelopes() {
++    let pins = support::json(include_str!("support/r11_control_flow_pins.json"));
++    let o = Object::parse(include_str!("fixtures/control_flow.bisa")).unwrap();
++    let id = o.identity().unwrap();
++    assert_eq!(
++        id.object_hash,
++        pins.get("object_hash").unwrap().string().unwrap()
++    );
++    for (name, env) in pins.get("envelopes").unwrap().object().unwrap() {
++        let env = env.string().unwrap();
++        assert_eq!(id.envelopes[name], env);
++        let h = bennett_isa_ref::sha256_hex(env.as_bytes());
++        assert_eq!(
++            h,
++            pins.get("hashes")
++                .unwrap()
++                .get(name)
++                .unwrap()
++                .string()
++                .unwrap()
++        );
++        assert_eq!(id.interface_hashes[name], h);
++        assert_eq!(id.closure_hashes[name].as_deref(), Some(h.as_str()));
++    }
++    for tag in ["rounded-probe", "exact-probe"] {
++        support::r11_pin(tag);
++    }
++}
+ ````
+ 
+@@ -37753,5 +38659,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (648 lines)
++## `tests/support/mod.rs` (685 lines)
+ 
+ ````rust
+@@ -38404,4 +39310,41 @@
+     object(&funcs, "{}", "")
+ }
++
++pub fn r11_case(tag: &str) -> Json {
++    json(include_str!("r11_cases.json"))
++        .get(tag)
++        .unwrap()
++        .clone()
++}
++pub fn r11_text(tag: &str) -> String {
++    r11_case(tag).get("text").unwrap().string().unwrap().into()
++}
++pub fn r11_pin(tag: &str) -> Object {
++    let c = r11_case(tag);
++    let o = Object::parse(c.get("text").unwrap().string().unwrap()).unwrap();
++    let id = o.identity().unwrap();
++    assert_eq!(
++        id.object_hash,
++        c.get("object_hash").unwrap().string().unwrap()
++    );
++    for (name, hash) in c.get("hashes").unwrap().object().unwrap() {
++        assert_eq!(id.interface_hashes[name], hash.string().unwrap());
++        assert_eq!(
++            id.closure_hashes[name].as_deref(),
++            Some(hash.string().unwrap())
++        );
++        assert_eq!(
++            id.envelopes[name],
++            c.get("envelopes")
++                .unwrap()
++                .get(name)
++                .unwrap()
++                .string()
++                .unwrap()
++        );
++    }
++    o.check_hashes().unwrap();
++    o
++}
+ ````
+ 
+@@ -38483,5 +39426,182 @@
+ ````
+ 
+-## `tests/support/r9_pins.py` (42 lines)
++## `tests/support/r11-comment-audit.md` (37 lines)
++
++````markdown
++# Round-11 fixture comment audit
++
++All 16 .comments files were read against their literal .bisa rows, the accepted
++ISA 0.8 rules and the independent expectations in the test targets below.
++A passing hash/existence check alone is not evidence of a correct hand claim.
++
++| Sidecar | Independent hand check / executable coverage | Disposition |
++|---|---|---|
++| actions.comments | Copy/XOR/uncompute gives t XOR p; zero image, doubled stores/exchanges are identity; three Xs flip; H/CX Bell; lifted payload x XOR 1 in 3 rows (quantum, wide_oracle) | unchanged |
++| arithmetic.comments | Arithmetic modulo 256; -7/2=-3 remainder -1; MIN/-1 fault 6; oversized shifts zero by §4.1; sext/shift/trunc 255; parallel swap; explicit branch/label and fault literals (oracle, step_machine) | unchanged |
++| classical.comments | Triangular sum; inner clock segment undone once; five effect records, clock 1; absent sector restored; impure uncall, entropy, unknown-device, null/div0 faults; copied host reply truncation/full length (classical, cli_xam) | unchanged |
++| control_flow.comments | Prefix flag conjunction/parity; conditional H/X amplitudes; exact six-gate XZXZ=-I; rounded θ dyadic and two nonzero interference branches; exchange, little-endian dead image, translation lemma (quantum_control, cli_xam) | corrected exact-vs-rounded claim; clarified bytes is the data symbol and dead its hex image |
++| heap.comments | Base 32, 2-byte 0x1234→34 12; max(n,1) for zero alloc; pinned/free/null and capacity faults (oracle, step_machine) | unchanged |
++| inc8.comments | 255+1 wraps; const/add/retval = 3 rows; B=0/2 budget faults (oracle, step_machine) | unchanged |
++| mutual.comments | main has two rows, f next two, g starts at 4; main call + four g rows + retval = 6; name ordering distinct from hash ordering (identity) | unchanged |
++| nested.comments | Three-row inc8; explicit fr test propagates code 9; paired XOR calls clear payload/fault even at B=0; ignore does not propagate (oracle) | unchanged |
++| r9-codex-oracle.comments | Same-token self-adjoint XOR calls cancel at B=0/1; H² restores c=0; CX(0,b) identity on arbitrary bR (r1_borrow, r9_identity helper) | unchanged |
++| r9-loop.comments | Each lifetime returns b under c=0 and replaces c by fresh zero; H² on t; no cancellation across invalid returns (r1_borrow) | unchanged |
++| r9-sol-oracle.comments | Same direct-oracle XOR argument as codex fixture, including nonzero fault delivery (r1_borrow) | unchanged |
++| r9-sol-qinplace.comments | One-row @o is identity at B>=1, but B=0 has code 1 and fails §4.5 before qinplace mutation; all t,b,R basis entries, superposition and Bell bR at B=1 (r1_fixtures, r1_borrow) | exact council replacement; matching generator branch corrected |
++| registers.comments | Clean concat/views; two flips; dirty free traps; Bell 1/2 outcomes, lexicographic draws; measured segment cannot reverse (registers, cli_xam) | unchanged |
++| sum_db.comments | 3+2+1=6; R_sum=3+3+1+9=16; n=16 needs 17*16=272; n=17 accesses db[16] (oracle) | unchanged |
++| tiny_memory.comments | 1+8+1+4=14 interface bits; DIV0 row 4, db&1 row 8; B=9 idle; complete tuple reversal (step_machine) | unchanged |
++| wide.comments | (2^100-5)(2^100+5)=2^200-25 leaves remainder 28; call/ret/retval 3 rows; 5-cell frame; high code bit 200 (wide_oracle, bitvectors, cli) | unchanged |
++
++Generated comments: tests/support/r9_pins.py is the only Python sidecar writer.
++Its sol-qinplace branch now emits the exact B>=1/B=0 distinction; direct
++oracle-call cases retain valid fault-XOR cancellation and the loop branch
++retains its per-lifetime derivation. r10_pins.py and r11_pins.py generate
++envelopes/case records, not hand-result sidecars; both were checked for the
++same class of claims. No further sidecar semantic error was found.
++
++The same rounded-TAU-as-minus-I wording also occurred in an inline comment
++in tests/quantum.rs::every_gate_and_controlled_global_phase. It now describes
++the rounded residual and asserts two exact-support entries and non-basis
++control, retaining the approximate diagnostic-amplitude comparison.
++No runtime gate, budget, borrow or exact-state semantics changed for B03.
++````
++
++## `tests/support/r11_cases.json` (1 lines)
++
++````json
++{"angle":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @a (t:wire mut) () () () ()\nregs { angle:f64 }\n^entry():\nrx angle t\n"},"hashes":{"a":"544dfe0fb1b3e44d693ddb39967d5d5b043b9f92f4eb33e43b2d402a1d433ec6"},"object_hash":"918e9042f73b4f1f0cd72f9364e902aacc35e1cad3fcd8976ec9b0139cec2978","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"544dfe0fb1b3e44d693ddb39967d5d5b043b9f92f4eb33e43b2d402a1d433ec6\",\"kind\":\"action\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}}}\n\nsection functions\naction @a (t:wire mut) () () () ()\nregs { angle:f64 }\n^entry():\nrx angle t\n"},"argument":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[\"f64\"],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @a (t:wire mut) () () (angle:f64) ()\n^entry():\nrx angle t\n"},"hashes":{"a":"58e8b3a871bfc8167844e4175bbc7e6ef9cf17ccfbf1acd30b33800a49910c80"},"object_hash":"5d4101e0c48ea4074fd97cc9a70e869779518b2ff864ec9afbba548ebf48af45","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"58e8b3a871bfc8167844e4175bbc7e6ef9cf17ccfbf1acd30b33800a49910c80\",\"kind\":\"action\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[\"f64\"],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}}}\n\nsection functions\naction @a (t:wire mut) () () (angle:f64) ()\n^entry():\nrx angle t\n"},"codex-layout-32":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.b":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (other:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.other {\"base\":32}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a":"4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec","a.b":"26455a8ebeb96ca9ef90972709611ad6eed2bd2cb18f61aa368312e19edbd160"},"object_hash":"1292bb07226f33217b884470c8e2c486bd4fb8b0f1eb4d9c829aaa75597cb4f4","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"26455a8ebeb96ca9ef90972709611ad6eed2bd2cb18f61aa368312e19edbd160\",\"kind\":\"oracle\",\"name\":\"a.b\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (other:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a\":{\"db\":{\"base\":16}},\"a.b\":{\"other\":{\"base\":32}}},\"null_size\":1,\"ptr_width\":32}\n"},"codex-layout-48":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.b":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (other:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.other {\"base\":48}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a":"4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec","a.b":"03ae1cd76644a677efd6819e42cf6ec74036c7aeeedbb431fffc89caa7aa441e"},"object_hash":"9f818c01a67c28872cb3e28e5a4c4405616cd0c0d3510576110ab7b8d90ba0ab","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"03ae1cd76644a677efd6819e42cf6ec74036c7aeeedbb431fffc89caa7aa441e\",\"kind\":\"oracle\",\"name\":\"a.b\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (other:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a\":{\"db\":{\"base\":16}},\"a.b\":{\"other\":{\"base\":48}}},\"null_size\":1,\"ptr_width\":32}\n"},"deep-a-32":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.c.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.c.db {\"base\":32}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a":"d7b1663ea88edb0facd7401f8dc732a03facf5f9005901844b37f567a9f60afe","a.c":"3c360ffb446a6418133d64bd4dddef00368d1f4c8f3b4723cb46f79262fd6f2a"},"object_hash":"673db64b49c76de49031ca29f1e9faef63b079cc0d836faf76b8d3cf229963a5","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"d7b1663ea88edb0facd7401f8dc732a03facf5f9005901844b37f567a9f60afe\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"3c360ffb446a6418133d64bd4dddef00368d1f4c8f3b4723cb46f79262fd6f2a\",\"kind\":\"oracle\",\"name\":\"a.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a\":{\"c.db\":{\"base\":16}},\"a.c\":{\"db\":{\"base\":32}}},\"null_size\":1,\"ptr_width\":32}\n"},"deep-a-48":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.c.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.c.db {\"base\":48}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a":"d7b1663ea88edb0facd7401f8dc732a03facf5f9005901844b37f567a9f60afe","a.c":"028bb275b12c3ff58c827784a46740acd6c417f02d3cf0452dd604e3bbb20508"},"object_hash":"1f9d2a0edf64290d59cb1257bfda59abf54c3ce3d396a4186024eb1cc565e3ec","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"d7b1663ea88edb0facd7401f8dc732a03facf5f9005901844b37f567a9f60afe\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"028bb275b12c3ff58c827784a46740acd6c417f02d3cf0452dd604e3bbb20508\",\"kind\":\"oracle\",\"name\":\"a.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a\":{\"c.db\":{\"base\":16}},\"a.c\":{\"db\":{\"base\":48}}},\"null_size\":1,\"ptr_width\":32}\n"},"deep-a.b-32":{"envelopes":{"a.b":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.b.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.db {\"base\":32}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a.b":"21f28d2ab4db7c45844b48331f75181766f84aae598a7a002747c22b8684ad5a","a.b.c":"218e34f364db13634eb62ab693270cd743529f9f7f9e0628458ec956d887eab4"},"object_hash":"bfb85cfbb8fd5421637f83638f8b262395fe1921f91ad9904b00d180e93c42f9","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"21f28d2ab4db7c45844b48331f75181766f84aae598a7a002747c22b8684ad5a\",\"kind\":\"oracle\",\"name\":\"a.b\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"218e34f364db13634eb62ab693270cd743529f9f7f9e0628458ec956d887eab4\",\"kind\":\"oracle\",\"name\":\"a.b.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a.b\":{\"c.db\":{\"base\":16}},\"a.b.c\":{\"db\":{\"base\":32}}},\"null_size\":1,\"ptr_width\":32}\n"},"deep-a.b-48":{"envelopes":{"a.b":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.b.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.db {\"base\":48}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a.b":"21f28d2ab4db7c45844b48331f75181766f84aae598a7a002747c22b8684ad5a","a.b.c":"d5cdf8033efeab224a7c4e6541536fca035da149ded37253e864c3e9eba64dc6"},"object_hash":"ec8fd55a718ca46344db10c76a6b736485f4d1f4ec877c5f58ef602e47d6495b","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"21f28d2ab4db7c45844b48331f75181766f84aae598a7a002747c22b8684ad5a\",\"kind\":\"oracle\",\"name\":\"a.b\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"d5cdf8033efeab224a7c4e6541536fca035da149ded37253e864c3e9eba64dc6\",\"kind\":\"oracle\",\"name\":\"a.b.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a.b (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a.b\":{\"c.db\":{\"base\":16}},\"a.b.c\":{\"db\":{\"base\":48}}},\"null_size\":1,\"ptr_width\":32}\n"},"deep-a.b.c-32":{"envelopes":{"a.b.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.c.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.b.c.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b.c.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.c.db {\"base\":32}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a.b.c":"becd3ceecffcfa8d376ebc1984066599fc0147cd1ca211709b21e1948ac09359","a.b.c.c":"72a06a95cd0cff786e46ac6b917802377a3e414ed10e8910227f5abcdbded834"},"object_hash":"72441353a9bf40200974862a3f53c894cebbb0657f4a1554f1fcf21b6b3e6d8a","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"becd3ceecffcfa8d376ebc1984066599fc0147cd1ca211709b21e1948ac09359\",\"kind\":\"oracle\",\"name\":\"a.b.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"72a06a95cd0cff786e46ac6b917802377a3e414ed10e8910227f5abcdbded834\",\"kind\":\"oracle\",\"name\":\"a.b.c.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.b.c.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a.b.c\":{\"c.db\":{\"base\":16}},\"a.b.c.c\":{\"db\":{\"base\":32}}},\"null_size\":1,\"ptr_width\":32}\n"},"deep-a.b.c-48":{"envelopes":{"a.b.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.c.db {\"base\":16}\nlayout null_size 1\nlayout ptr_width 32\n","a.b.c.c":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}\noracle @a.b.c.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 1\nlayout H 8\nlayout S_cells 0\nlayout heap_base 128\nlayout heap_limit_max 0\nlayout interface_regions.a.b.c.c.db {\"base\":48}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a.b.c":"becd3ceecffcfa8d376ebc1984066599fc0147cd1ca211709b21e1948ac09359","a.b.c.c":"e180e245c652d65ef1fadde2b9fdc6058ec06dbc08722af76bf64e98cb4fb498"},"object_hash":"791a673a5d42b5b541ed5a4a98575b71ff82f33a86e25a8d6f71668bfca72344","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"becd3ceecffcfa8d376ebc1984066599fc0147cd1ca211709b21e1948ac09359\",\"kind\":\"oracle\",\"name\":\"a.b.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"e180e245c652d65ef1fadde2b9fdc6058ec06dbc08722af76bf64e98cb4fb498\",\"kind\":\"oracle\",\"name\":\"a.b.c.c\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[8],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":8,\"tier\":\"q\"}}}\n\nsection functions\noracle @a.b.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (c.db:region[0,8] in) ()\n^entry():\nlift.retval x\noracle @a.b.c.c (x:wire[8] in) (t:wire[8]) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":1,\"H\":8,\"S_cells\":0,\"globals\":{},\"heap_base\":128,\"heap_limit_max\":0,\"interface_regions\":{\"a.b.c\":{\"c.db\":{\"base\":16}},\"a.b.c.c\":{\"db\":{\"base\":48}}},\"null_size\":1,\"ptr_width\":32}\n"},"exact-probe":{"envelopes":{"phase":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @phase (t:wire mut) () () () ()\n^entry():\ns t\ns t\nx t\ns t\ns t\nx t\n","probe":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1,1],\"tier\":\"q\"}\naction @probe (t:wire mut, p:wire mut) () () () ()\n^entry():\nh p\nctl p action_call @300340284f4927db0fc9ccf6b6285917606928b2926e62e015034eb0174e2713 (t) () () ()\nh p\n300340284f4927db0fc9ccf6b6285917606928b2926e62e015034eb0174e2713\n"},"hashes":{"phase":"300340284f4927db0fc9ccf6b6285917606928b2926e62e015034eb0174e2713","probe":"0dcda336816f668d43eb75a083d0ee26574ccf854078a639de0a08a64f79009d"},"object_hash":"0b71a29321bd566442de1d6e61774603031c3616a0b1cb4875b7719016837457","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"300340284f4927db0fc9ccf6b6285917606928b2926e62e015034eb0174e2713\",\"kind\":\"action\",\"name\":\"phase\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"0dcda336816f668d43eb75a083d0ee26574ccf854078a639de0a08a64f79009d\",\"kind\":\"action\",\"name\":\"probe\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1,1],\"tier\":\"q\"}}}\n\nsection functions\naction @phase (t:wire mut) () () () ()\n^entry():\ns t\ns t\nx t\ns t\ns t\nx t\naction @probe (t:wire mut, p:wire mut) () () () ()\n^entry():\nh p\nctl p action_call @phase (t) () () ()\nh p\n"},"producer":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @a (t:wire mut) () () () ()\n^entry():\nd = qalloc any 1\ncx d t\nqfree d\n"},"hashes":{"a":"ed0795bb5a01b03715111e2fefe4bedb59a6869b3bdaab84f80fe7bc0e51fe05"},"object_hash":"bef5f1ac1aa80ab0a4f523fe972f9227695b44f75e49c956acde273a9d7c225b","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"ed0795bb5a01b03715111e2fefe4bedb59a6869b3bdaab84f80fe7bc0e51fe05\",\"kind\":\"action\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}}}\n\nsection functions\naction @a (t:wire mut) () () () ()\n^entry():\nd = qalloc any 1\ncx d t\nqfree d\n"},"rounded-probe":{"envelopes":{"phase":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @phase (t:wire mut) () () () ()\n^entry():\nrz 6.283185307179586 t\n","probe":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1,1],\"tier\":\"q\"}\naction @probe (t:wire mut, p:wire mut) () () () ()\n^entry():\nh p\nctl p action_call @eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271 (t) () () ()\nh p\neb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271\n"},"hashes":{"phase":"eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271","probe":"0655c9e45f09d1748fbf0241e6d38244e7f353153a3f365f0a5f712b37a6e24d"},"object_hash":"04baeadb96dbafb2dc94832982272b6cfeb60174de6c8bb407bd28a3e4c37294","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271\",\"kind\":\"action\",\"name\":\"phase\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"0655c9e45f09d1748fbf0241e6d38244e7f353153a3f365f0a5f712b37a6e24d\",\"kind\":\"action\",\"name\":\"probe\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1,1],\"tier\":\"q\"}}}\n\nsection functions\naction @phase (t:wire mut) () () () ()\n^entry():\nrz 6.283185307179586 t\naction @probe (t:wire mut, p:wire mut) () () () ()\n^entry():\nh p\nctl p action_call @phase (t) () () ()\nh p\n"},"sol-layout-2":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[],\"tgt\":1,\"tier\":\"q\"}\noracle @a (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\nlayout A_tab 0\nlayout H 4\nlayout S_cells 0\nlayout heap_base 1\nlayout heap_limit_max 0\nlayout null_size 1\nlayout ptr_width 32\n","a.b":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":1,\"tier\":\"q\"}\noracle @a.b (x:wire in) (t:wire) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 0\nlayout H 4\nlayout S_cells 0\nlayout heap_base 1\nlayout heap_limit_max 0\nlayout interface_regions.a.b.db {\"base\":2}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a":"1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521","a.b":"9c6ed8677516f307a9957360c5328bc6df33d2263c2af75978064a7cbdc64863"},"object_hash":"bccb8459c5f0746c49f98dad438d40a71e56d5e9533c8dc714bf32391c401877","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[],\"tgt\":1,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"9c6ed8677516f307a9957360c5328bc6df33d2263c2af75978064a7cbdc64863\",\"kind\":\"oracle\",\"name\":\"a.b\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":1,\"tier\":\"q\"}}}\n\nsection functions\noracle @a (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\noracle @a.b (x:wire in) (t:wire) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":0,\"H\":4,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{\"a.b\":{\"db\":{\"base\":2}}},\"null_size\":1,\"ptr_width\":32}\n"},"sol-layout-3":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[],\"tgt\":1,\"tier\":\"q\"}\noracle @a (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\nlayout A_tab 0\nlayout H 4\nlayout S_cells 0\nlayout heap_base 1\nlayout heap_limit_max 0\nlayout null_size 1\nlayout ptr_width 32\n","a.b":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":1,\"tier\":\"q\"}\noracle @a.b (x:wire in) (t:wire) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\nlayout A_tab 0\nlayout H 4\nlayout S_cells 0\nlayout heap_base 1\nlayout heap_limit_max 0\nlayout interface_regions.a.b.db {\"base\":3}\nlayout null_size 1\nlayout ptr_width 32\n"},"hashes":{"a":"1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521","a.b":"e3e41f7b25615cb9b97efaeff328cddff88ec8028777fd7d0745d2675eff85d5"},"object_hash":"80e8b4b4083a0cfa451b102cc9c13e40be118bc3fb6649d8572583a1768be05f","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521\",\"kind\":\"oracle\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[],\"tgt\":1,\"tier\":\"q\"}},\"1\":{\"interface_hash\":\"e3e41f7b25615cb9b97efaeff328cddff88ec8028777fd7d0745d2675eff85d5\",\"kind\":\"oracle\",\"name\":\"a.b\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"fault\":4,\"in\":[1],\"kind\":\"oracle\",\"mem\":[{\"A\":0,\"W\":8,\"role\":\"in\"}],\"tgt\":1,\"tier\":\"q\"}}}\n\nsection functions\noracle @a (x:wire in) (t:wire) (f:wire[4]) () ()\n^entry():\nlift.retval x\noracle @a.b (x:wire in) (t:wire) (f:wire[4]) (db:region[0,8] in) ()\n^entry():\nlift.retval x\n\nsection layout\n{\"A_tab\":0,\"H\":4,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{\"a.b\":{\"db\":{\"base\":3}}},\"null_size\":1,\"ptr_width\":32}\n"},"wire":{"envelopes":{"a":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @a (t:wire mut) () () () ()\nregs { d:wire }\n^entry():\ncx d t\n"},"hashes":{"a":"4a592df0f0a8651417bf00a48c5b75ad86060cf4a3b5d157a8c3bbce5443969d"},"object_hash":"c90b514421ef25e2cd27cd1b80039a39ca9a5c8d78173968ac4e5c25f7eb988a","text":"bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"4a592df0f0a8651417bf00a48c5b75ad86060cf4a3b5d157a8c3bbce5443969d\",\"kind\":\"action\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}}}\n\nsection functions\naction @a (t:wire mut) () () () ()\nregs { d:wire }\n^entry():\ncx d t\n"}}
++````
++
++## `tests/support/r11_control_flow_pins.json` (1 lines)
++
++````json
++{"envelopes":{"controlled_phase":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[1],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @controlled_phase (t:wire mut) (p:wire in) () () ()\n^entry():\nctl p action_call @caec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443 (t) () () ()\ncaec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443\n","minus_i":"isa=0.8\nptr_width=32\n{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\naction @minus_i (t:wire mut) () () () ()\n^entry():\ns t\ns t\nx t\ns t\ns t\nx t\n"},"hashes":{"controlled_phase":"9d9c349c97df952f56700426fc92bc1c1f7937d144f868f2f2287d7ec243f3cb","minus_i":"caec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443"},"object_hash":"e7e0acadaebf638a1adb34adb61efc2c79b43f0ec90b786582d2fdb6db7634d8"}
++````
++
++## `tests/support/r11_pins.py` (118 lines)
++
++````python
++"""Independent R11 literal envelopes. Standard Python hashlib/json only.
++Malformed objects are retained as evidence, never normalized by the interpreter.
++"""
++import hashlib
++import json
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++def j(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":"))
++def sha(text):
++    return hashlib.sha256(text.encode()).hexdigest()
++HEADER = "bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n"
++cases = {}
++def case(tag, funcs, layout=None, expected=None):
++    symbols, hashes, envelopes = {}, {}, {}
++    for name, sig, body, refs in funcs:
++        envelope = "isa=0.8\nptr_width=32\n" + j(sig) + "\n" + body
++        for ref in refs:
++            envelope = envelope.replace("@"+ref+" ", "@"+hashes[ref]+" ")
++        if layout is not None and sig["kind"] == "oracle":
++            # Select structured owners before serializing dotted paths.
++            leaves = {k:v for k,v in layout.items() if k not in ("globals","interface_regions")}
++            leaves.update({"globals."+k:v for k,v in layout["globals"].items()})
++            leaves.update({"interface_regions."+name+"."+k:v
++                           for k,v in layout["interface_regions"].get(name,{}).items()})
++            envelope += "".join("layout "+k+" "+j(v)+"\n" for k,v in sorted(leaves.items()))
++        envelope += "".join(hashes[ref]+"\n" for ref in refs)
++        hashes[name] = sha(envelope)
++        envelopes[name] = envelope
++        symbols[str(len(symbols))] = dict(name=name,kind=sig["kind"],signature=sig,interface_hash=hashes[name])
++    text = HEADER+"\nsection symbols\n"+j(symbols)+"\n\nsection functions\n"+"".join(f[2] for f in funcs)
++    if layout is not None:
++        text += "\nsection layout\n"+j(layout)+"\n"
++    if expected:
++        for name, pin in expected[0].items():
++            assert hashes[name] == pin, (tag,name,hashes[name],pin)
++        if expected[1]:
++            assert sha(text) == expected[1], (tag,sha(text),expected[1])
++    cases[tag] = dict(text=text,hashes=hashes,envelopes=envelopes,object_hash=sha(text))
++    print(tag, hashes, sha(text))
++
++action = dict(abi="0.8",args=[],bounds=[],**{"in":[]},kind="action",mem=[],mut=[1],tier="q")
++head = "action @a (t:wire mut) () () () ()\n"
++case("wire", [("a",action,head+"regs { d:wire }\n^entry():\ncx d t\n",[])],
++     expected=({"a":"4a592df0f0a8651417bf00a48c5b75ad86060cf4a3b5d157a8c3bbce5443969d"},"c90b514421ef25e2cd27cd1b80039a39ca9a5c8d78173968ac4e5c25f7eb988a"))
++case("angle", [("a",action,head+"regs { angle:f64 }\n^entry():\nrx angle t\n",[])],
++     expected=({"a":"544dfe0fb1b3e44d693ddb39967d5d5b043b9f92f4eb33e43b2d402a1d433ec6"},"918e9042f73b4f1f0cd72f9364e902aacc35e1cad3fcd8976ec9b0139cec2978"))
++case("producer", [("a",action,head+"^entry():\nd = qalloc any 1\ncx d t\nqfree d\n",[])],
++     expected=({"a":"ed0795bb5a01b03715111e2fefe4bedb59a6869b3bdaab84f80fe7bc0e51fe05"},"bef5f1ac1aa80ab0a4f523fe972f9227695b44f75e49c956acde273a9d7c225b"))
++case("argument", [("a",dict(action,args=["f64"]),"action @a (t:wire mut) () () (angle:f64) ()\n^entry():\nrx angle t\n",[])],
++     expected=({"a":"58e8b3a871bfc8167844e4175bbc7e6ef9cf17ccfbf1acd30b33800a49910c80"},"5d4101e0c48ea4074fd97cc9a70e869779518b2ff864ec9afbba548ebf48af45"))
++def oracle(name, width, region):
++    w = "wire" if width==1 else "wire[8]"
++    mem = "(" + region + ":region[0,8] in)" if region else "()"
++    sig = dict(abi="0.8",args=[],fault=4,**{"in":[width]},kind="oracle",
++               mem=[dict(A=0,W=8,role="in")] if region else [],tgt=width,tier="q")
++    return (name,sig,f"oracle @{name} (x:{w} in) (t:{w}) (f:wire[4]) {mem} ()\n^entry():\nlift.retval x\n",[])
++for base, pin in [(2,"9c6ed8677516f307a9957360c5328bc6df33d2263c2af75978064a7cbdc64863"),(3,"e3e41f7b25615cb9b97efaeff328cddff88ec8028777fd7d0745d2675eff85d5")]:
++    layout = dict(A_tab=0,H=4,S_cells=0,globals={},heap_base=1,heap_limit_max=0,
++                  interface_regions={"a.b":{"db":{"base":base}}},null_size=1,ptr_width=32)
++    case("sol-layout-"+str(base),[oracle("a",1,None),oracle("a.b",1,"db")],layout,
++         ({"a":"1b593b9027243623bfb18cc5b34c51d7df81d23526bc4987c14a5da2806b9521","a.b":pin},
++          "bccb8459c5f0746c49f98dad438d40a71e56d5e9533c8dc714bf32391c401877" if base==2 else None))
++for base, pin, op in [(32,"26455a8ebeb96ca9ef90972709611ad6eed2bd2cb18f61aa368312e19edbd160","1292bb07226f33217b884470c8e2c486bd4fb8b0f1eb4d9c829aaa75597cb4f4"),
++                      (48,"03ae1cd76644a677efd6819e42cf6ec74036c7aeeedbb431fffc89caa7aa441e","9f818c01a67c28872cb3e28e5a4c4405616cd0c0d3510576110ab7b8d90ba0ab")]:
++    layout = dict(A_tab=1,H=8,S_cells=0,globals={},heap_base=128,heap_limit_max=0,
++                  interface_regions={"a":{"db":{"base":16}},"a.b":{"other":{"base":base}}},
++                  null_size=1,ptr_width=32)
++    case("codex-layout-"+str(base),[oracle("a",8,"db"),oracle("a.b",8,"other")],layout,
++         ({"a":"4671ca551ee57390d7f69d362e83180a1f3b29a3b8d2f45e2cd80962c6692aec","a.b":pin},op))
++# Dotted region names can render colliding paths across owners. Filter first.
++for a, b in [("a","a.c"),("a.b","a.b.c"),("a.b.c","a.b.c.c")]:
++    for base in (32,48):
++        layout = dict(A_tab=1,H=8,S_cells=0,globals={},heap_base=128,heap_limit_max=0,
++                      interface_regions={a:{"c.db":{"base":16}},b:{"db":{"base":base}}},
++                      null_size=1,ptr_width=32)
++        case(f"deep-{a}-{base}",[oracle(a,8,"c.db"),oracle(b,8,"db")],layout)
++
++# Exact council two-function probes. These pin the binary64 and discrete cases
++# independently of the larger control_flow fixture and every interpreter hash.
++phase = "action @phase (t:wire mut) () () () ()\n^entry():\nrz 6.283185307179586 t\n"
++discrete = "s t\ns t\nx t\ns t\ns t\nx t\n"
++probe = "action @probe (t:wire mut, p:wire mut) () () () ()\n^entry():\nh p\nctl p action_call @phase (t) () () ()\nh p\n"
++for tag, body, hp, ho, op in [
++    ("rounded-probe",phase,"eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271","0655c9e45f09d1748fbf0241e6d38244e7f353153a3f365f0a5f712b37a6e24d","04baeadb96dbafb2dc94832982272b6cfeb60174de6c8bb407bd28a3e4c37294"),
++    ("exact-probe",phase.replace("rz 6.283185307179586 t\n",discrete),"300340284f4927db0fc9ccf6b6285917606928b2926e62e015034eb0174e2713","0dcda336816f668d43eb75a083d0ee26574ccf854078a639de0a08a64f79009d","0b71a29321bd566442de1d6e61774603031c3616a0b1cb4875b7719016837457")]:
++    case(tag,[("phase",action,body,[]),("probe",dict(action,mut=[1,1]),probe,["phase"])],
++         expected=({"phase":hp,"probe":ho},op))
++
++(ROOT/"support/r11_cases.json").write_text(j(cases)+"\n")
++
++# Idempotently add minus_i while retaining the literal rounded phase. Only
++# controlled_phase depends on minus_i. All other stored pins stay unchanged.
++fixture = ROOT/"fixtures/control_flow.bisa"
++text = fixture.read_text()
++symbols = json.loads(text.splitlines()[3])
++functions = text.split("section functions\n")[1].split("\nsection data\n")[0]
++minus = "action @minus_i (t:wire mut) () () () ()\n^entry():\n"+discrete
++if "action @minus_i " not in functions:
++    functions = functions.replace("action @controlled_phase ",minus+"action @controlled_phase ")
++functions = functions.replace("ctl p action_call @phase (t) () () ()","ctl p action_call @minus_i (t) () () ()")
++minus_env = "isa=0.8\nptr_width=32\n"+j(action)+"\n"+minus
++minus_hash = sha(minus_env)
++control_sig = dict(action, **{"in":[1]})
++control_body = "action @controlled_phase (t:wire mut) (p:wire in) () () ()\n^entry():\nctl p action_call @minus_i (t) () () ()\n"
++control_env = "isa=0.8\nptr_width=32\n"+j(control_sig)+"\n"+control_body.replace("@minus_i ","@"+minus_hash+" ")+minus_hash+"\n"
++for symbol in symbols.values():
++    if symbol["name"]=="controlled_phase":
++        symbol["interface_hash"] = sha(control_env)
++if not any(s["name"]=="minus_i" for s in symbols.values()):
++    symbols[str(len(symbols))] = dict(name="minus_i",kind="action",signature=action,interface_hash=minus_hash)
++text = text.split("\nsection symbols\n")[0]+"\nsection symbols\n"+j(symbols)+"\n\nsection functions\n"+functions+"\nsection data\n"+text.split("\nsection data\n")[1]
++fixture.write_text(text)
++pins = dict(envelopes=dict(minus_i=minus_env,controlled_phase=control_env),
++            hashes=dict(minus_i=minus_hash,controlled_phase=sha(control_env)),object_hash=sha(text))
++(ROOT/"support/r11_control_flow_pins.json").write_text(j(pins)+"\n")
++print("control_flow",pins["hashes"],pins["object_hash"])
++````
++
++## `tests/support/r9_pins.py` (47 lines)
+ 
+ ````python
+@@ -38526,5 +39646,10 @@
+     assert sha(text) == expected_object, (name, sha(text))
+     (ROOT / ("r9-" + name + ".bisa")).write_text(text)
+-    (ROOT / ("r9-" + name + ".comments")).write_text("Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.\n" if oracle else "Hand: each visit returns b under clean c, frees c and allocates a fresh zero; H²=I_t.\n")
++    comment = ("Hand: for B >= 1, @o is the one-step identity permutation, both qinplace rows are I, H^2=I, and CX(0,b)=I_bR. B=0 rejects under §4.5 because the oracle faults; it is not an identity run.\n"
++               if name == "sol-qinplace" else
++               "Hand: H; O; O†; H = I (oracle B=0 fault XORs also cancel); CX(0,b)=I_bR.\n"
++               if oracle else
++               "Hand: each visit returns b under clean c, frees c and allocates a fresh zero; H²=I_t.\n")
++    (ROOT / ("r9-" + name + ".comments")).write_text(comment)
+     print(name, "H=" + h, "object=" + sha(text), "envelope-bytes=" + str(len(envelope.encode())))
+ ````
