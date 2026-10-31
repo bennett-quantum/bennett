@@ -172,3 +172,11 @@ report lists spec gaps under "Spec gaps (not editor blockers)", `consensus.json`
 total, so `verdict: accept` with only spec gaps is valid. Report items print as the header
 line followed by `  <1>1 claim  — by` lines. Old rounds keep their saved schema; JSON with
 `problem` and no `steps` still validates and renders as before.
+
+## Review context: the structured proofs (maintainer, 2026-10-31)
+
+Every interpreter round and every 0.9 spec round passes the Lamport-style invariant proofs as
+`--context`: `../bennett-conformance/proofs/INDEX.md` and `proofs/INV-*.md` (about 58 KB). The
+task text asks each reviewer to cite the theorem step a finding violates, or to say that it fits
+no stated theorem, which is the signal that a theorem is missing. Refuted or ASSUMED steps in the
+proofs are spec gaps and are filed as beads in the owning spec repo, not as editor blockers.
