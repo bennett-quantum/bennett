@@ -1,0 +1,45 @@
+{
+ "run": "isa-ref-2026-10-29",
+ "round": 23,
+ "doc": "docs/council/isa-ref-2026-10-29/packet-round-23.md",
+ "doc_sha256": "5b8fc0e1e80b27076cce7c9e6adf7c392eb8803e148fc65903458a3f276d963e",
+ "prepared": "2026-10-31T11:51:58+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T12:02:59+00:00",
+   "exit": 0,
+   "seconds": 36,
+   "errors": [],
+   "updated": "2026-10-31T12:03:35+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T12:02:35+00:00",
+   "exit": 0,
+   "seconds": 60,
+   "errors": [],
+   "updated": "2026-10-31T12:03:35+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "Bennett ISA 0.8 reference interpreter, round 23: acceptance vote on snapshot 5e9fa3075f570dc70a78dc550ad28b4cb744e763 after R22 fixes (shared payload retention, 12-stage audit; role/slot claim-domain coverage per INV-6 1.3.4; 451 tests)",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/proofs/INV-6-certificate-soundness.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review"
+}

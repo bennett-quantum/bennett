@@ -1,0 +1,105 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R23-B01",
+    "section": "S0; ISA \u00a7\u00a73.4, 4.1, 7.4, 10; src/classical.rs::ClassicalMachine::{step,undo_record}; src/oracle.rs::Memory::store; src/retained.rs::{Retained::prepare,SparseBytes::prepare}",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a73.4 requires sequential small-step execution and says every executed instruction pushes a run-history frame (\u00a77.4). \u00a74.1 store.i8 writes one byte to its live allocation. Thus after the legal sequence n=1572864; p=alloc n; hostcall; z=const.i8 0; store.i8 p z; ret, with a full reply of 0xa5 bytes, successful completion must leave memory[1]=0 and retain all six instructions. A reported host limitation is not an ISA instruction that may silently advance past the store. The R21/R22 reported-resource reading permits refusal with the full prefix preserved, not a hidden execution-state change.",
+      "by": "clause:ISA-3.4; clause:ISA-4.1; clause:ISA-7.4; clause:ISA-10"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Complete pinned witness /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/store-cow.bisa has SHA-256 e94c5cbbbdfdfeb32d4101cf6a6033172afcea1c6f6b9cc1bd1df80ad541ece5; its independent literal envelope hashes to interface=closure abcde78cd19169240834bca4e8c30f1a036782615a97495b329c6f7b4dd3d97f. Object::parse and check_hashes succeed. The public probe creates a machine, retains entry, executes the first three rows, replies with 1572864 copies of 0xa5, executes z=0, retains the complete pre-store snapshot, then calls step_once. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/reproduce-store-cow.py. The child uses RLIMIT_AS=134217728, RLIMIT_CORE=0 and MALLOC_ARENA_MAX=1; all resident payloads come from the actual request/reply/history, with no artificial filler allocation.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/store-cow.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/store-cow.envelope; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/probe.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/reproduce-store-cow.py"
+     },
+     {
+      "n": "<1>3",
+      "claim": "The child exits normally. The store returns ErrorKind::HostResource citing \u00a77.1/\u00a77.4/\u00a710 and sparse memory retention allocation of 1572864 elements, but prefix_equal=false, with the first difference in control. After dropping the snapshot and retrying step_once, the returned StepPoint is ret at index 5, not store.i8 at index 4. The machine completes without fault, steps=5, and memory_bytes(1,1)=[165]. At the same limit the 8-byte and 1 MiB controls execute store, complete in six steps and leave [0]; the 1.5 MiB unlimited control does too. Eventual reverse succeeds and restores entry, which does not repair the skipped forward instruction.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/store-cow-results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-sol/store-cow.log; step:<1>1; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "In classical.rs::step, ip is incremented before execute. save_bytes records the old nonzero byte; Memory::store calls SparseBytes::prepare, whose Retained::prepare must clone the shared resident map and fails under the limit. The execute error branch calls undo_record(undo) with ?. undo_record first tries to prepare the same shared map again, even though the store has changed no byte. That allocation fails again and exits before assigning undo.control. No HistoryFrame is pushed. The advanced ip consequently escapes with the resource Err. This is an allocation-dependent rollback defect, not an ISA memory fault or an expensive-but-correct sparse representation.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1024; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1268; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1612; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/oracle.rs:285; step:<1>3"
+     },
+     {
+      "n": "<1>5",
+      "claim": "S0 core: normal reported resource rejection leaves a state that is not the retained sequential prefix, and a retry produces a successful completion that omitted the specified store. Both verdicts must remain revise. This finding fits no stated INV-1..6 theorem: INV-6(C), specifically 1.7.6, concerns checker-domain host outcomes, not CC memory transactions; T4 assumes a valid retained trace. Whole-run reversal passes here and is not alleged broken. The round-22 request-clone and name-coverage fixes remain resolved; this is a separately exposed sparse-COW failure path, not evidence that either exact old witness still fails.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "fix": "Change src/classical.rs::ClassicalMachine::{step,undo_record} and the sparse-write preparation used by src/oracle.rs::Memory::store. The determining sentences are \u00a73.4 \"Sequential small-step execution with an instruction pointer\" and \"every executed instruction pushes a run-history frame\", \u00a74.1 store.iN memory semantics, and \u00a77.4 \"one frame per executed instruction\". Prepare/perform fallible memory work transactionally before committing control, or retain the pre-instruction memory owner and restore it without allocation on failure. In particular, rolling back an unchanged map must not attempt the failed full COW copy again before restoring ip. Merely moving control restoration earlier is insufficient if other visible components or partial deltas can still escape; guarantee complete-prefix equality on the reported resource Err. Add the pinned fixture and a fresh-child regression to tests/r22_retention.rs: under 128 MiB/core=0/MALLOC_ARENA_MAX=1 create the request, successfully reply with 1572864 bytes 0xa5, run const z=0, hold snapshot, attempt store.i8 p z. If denied, assert HostResource with \u00a77.1 and snapshot equality including control/history/output; drop the observer and retry, asserting returned opcode store.i8 at index 4 and byte 1=0, then ret and steps=6. Reverse to the retained entry. Preserve small 8-byte/1 MiB and unlimited 1.5 MiB successful controls, the exact 64 MiB R22 request/reply controls, and the existing console/JSON rejections. Extend the failure-stage audit to rollback itself, then rerun focused, full and ignored gates. No spec amendment or new ISA cap is needed."
+   }
+  ],
+  "codex": [
+   {
+    "id": "CODEX-R23-B01",
+    "section": "ISA \u00a7\u00a73.4, 4.1, 7.1, 7.4; src/classical.rs::ClassicalMachine::{step,undo_record} (1260\u20131266, 1346\u20131347, 1592\u20131600, 1031\u20131036); src/retained.rs::SparseBytes::prepare; src/oracle.rs::Memory::store",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a73.4 requires sequential small-step execution and says \"every executed instruction pushes a run-history frame\". \u00a74.1 store writes N/8 little-endian bytes; \u00a77.4 retains its address, width and overwritten bytes. For a live byte initially 1, store.i8 p 2 followed by load.i8 p and zero-extension must return 2 if execution completes without an ISA fault. A host-storage error is not an instruction that may silently advance past this store with neither its write nor its frame.",
+      "by": "clause:ISA-3.4; clause:ISA-4.1; clause:ISA-7.1; clause:ISA-7.4"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Pinned complete object store-retry.bisa uses the R22 64-bit sparse layout and body: n=const.i64 1048576; p=alloc n; r=hostcall org.bennett.test p n; v=const.i8 2; store.i8 p v; s=load.i8 p; t=zext.i64 s; ret t. A 1048576-byte reply of 0x01 succeeds. Interface=closure is bc33128d4826fa8851677edb2f9f998280dcbb241d33848a2b326bd425051c52; file SHA-256 is 24ee4403ae9037b1f6d7b8bfcbf01cf0fb05d4732cefd9f10fe8021ccf4a23fd. Parse/check_hashes succeed. Reproduce with env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/reproduce-store-retry.py. The script compiles the public-library probe, then runs fresh 128/256 MiB children with RLIMIT_CORE=0 and MALLOC_ARENA_MAX=1.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry.envelope; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/reproduce-store-retry.py"
+     },
+     {
+      "n": "<1>3",
+      "claim": "At 128 MiB, after request/reply and v are complete, retain before=m.snapshot(). There are four history frames and byte 1 is 1. step_once on the store returns ErrorKind::HostResource citing \u00a77.1/\u00a77.4/\u00a710 sparse memory retention. But before != m.snapshot(): the activation ip changes from 4 to 5; the byte is still 1 and history still has four frames. This is an ordinary Err from the library, not an allocator abort or malformed input.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry-results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-1048576.log; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "step increments ip before executing the row. save_bytes records the old byte; Memory::store then attempts fallible sparse copy-on-write/growth. On error, step calls undo_record(undo)? before returning the original error. The new undo_record starts by preparing sparse capacity again whenever undo.bytes is nonempty, even though no store byte changed. That reservation also fails, so it exits before assigning undo.control. At 1 MiB the shared copy can fit but geometric growth cannot; 1.25/1.5 MiB controls also reproduce the failure when the shared copy itself is denied.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1260; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1031; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1599; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/retained.rs:88; step:<1>3"
+     },
+     {
+      "n": "<1>5",
+      "claim": "Drop the held observer and call step_once again: the next op is load.i8, not the rejected store.i8. run completes with Int(64,1), byte [1], fault=None. At 256 MiB the same program/probe executes the store, adds its frame and returns Int(64,2), byte [2], fault=None. Both children exit 0 and whole-run reversal subsequently restores entry. Thus successful reversal later does not detect the skipped forward operation.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry-results.json; step:<1>2; step:<1>3"
+     },
+     {
+      "n": "<1>6",
+      "claim": "S0 core: fallible shared-memory preparation has introduced a failed rollback that consumes an unexecuted store and permits a wrong successful continuation. This fits no stated INV-1..INV-6 theorem: INV-6 concerns checker labels/resources, not CC store rollback; ISA T4 assumes a valid retained trace and does not justify skipping a forward instruction. The two original R22 blockers can be resolved while this new defect still prevents core and whole-crate acceptance.",
+      "by": "step:<1>1; step:<1>3; step:<1>4; step:<1>5"
+     }
+    ],
+    "fix": "Change src/classical.rs::ClassicalMachine::{step,undo_record} and, as needed, src/retained.rs::SparseBytes::prepare / src/oracle.rs::Memory::store. The determining text is \u00a73.4 \"Sequential small-step execution\" and \"every executed instruction pushes a run-history frame\", plus \u00a74.1 store \"N/8 bytes little-endian\" and \u00a77.4 the retained store frame. Prepare writes on an unpublished memory value, or retain a restorable pre-write shared owner, and ensure the failure path restores control and data without repeating an allocation that already failed. Do not merely suppress the rollback error or advance past the instruction. In tests/r22_retention.rs add the exact pinned object above in a fresh 128 MiB child: 1 MiB request and nonzero reply both succeed; hold the prefix snapshot; attempt store; on HostResource assert full prefix equality, four frames, no fault and unchanged transcript/byte. Drop the observer and retry: next op must be store.i8, byte becomes 2, completion returns Int(64,2), and reversal restores entry. Permit a successful first store if an improved representation makes it fit, but then require its write/frame/result; add a deterministically denied preparation case so the failure branch remains exercised. Retain 256 MiB success and small-byte controls, and cover the same preparation/rollback interaction for device writes sharing this path. No ISA size cap or spec change is needed."
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 4.0,
+  "C6": 5.0,
+  "C7": 4.0,
+  "C8": 4.5
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

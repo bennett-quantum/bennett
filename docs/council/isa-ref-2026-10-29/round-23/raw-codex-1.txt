@@ -1,0 +1,120 @@
+exit 0 in 60s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "Object parsing, operand validation and the recursive metadata_schema TABLE retain the §16/§9.1 admission paths. The role-scoped duplicate check in certificate::domain permits borrowed/interface spelling collisions while preserving same-role duplicate rejection. All parser/schema and R9–R22 tests pass. No new parser S0 found.",
+      "change": "No correctness change requested. Extend tests/r22_coverage.rs with public verify_certificate cases for complete explicit region-cell lists versus cells:\"all\", retaining identical Proof verdicts and rejecting repeated cell indices."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "Independently reconstructed the 261-byte inc8 §9.2 envelope and obtained 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. R20, R21 and R22 independent pin scripts pass; the original 64 MiB envelope/file pins are unchanged. Identity/linking tests, including R11–R13 dotted-name controls, pass. INV-4:1.5.3 remains the documented specification limitation, not a new implementation defect.",
+      "change": "No correctness change requested. In tests/identity.rs retain an explicit assertion that using try_canonical for payload output never changes the legacy canonical bytes used in identity envelopes; include supplementary-plane keys and escaped control characters."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "Hand-derived inc8(254) gives (255,0,3) at B=3 and (0,1,2) at B=2. For sum_db(2), db[0..2]=[3,5], the derivation is 4 root rows + 2*14 recursive rows + 6 base-case rows = 38: B=38 returns (8,0,38), B=37 returns (0,1,37), and stack=47 instead of 48 faults with code 3 on row 29. CLI reproduces all values. The §4.2 families remain dispatched, including shared arithmetic/cast helpers.",
+      "change": "No oracle-result correction requested. Add the independently derived sum_db n=2, B=37/38, stack=47/48 cases to tests/oracle.rs with the row-count derivation beside the assertions."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Traced machine::{inverse_step,inverse_call,inverse_ret} against §3.6 and the C5^-1..C1^-1/R5^-1..R1^-1 lists: counters precede restored-address accesses, delivery precedes restoring callee locations, then capture/succ clear. An independent public probe individually inverted all 38 sum_db steps, then reversed the complete prefix; every snapshot matched and frames_clean was true. All five release sweeps pass.",
+      "change": "No ordinary-step correction requested. Extend tests/machine.rs with observer-held sparse-memory allocation-failure cases around forward/inverse memory exchanges, asserting a failed operation leaves a retryable frame and control state; this is additional coverage, not a separately reproduced blocker."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "CODEX-R22-B01 is resolved for its request/reply retention witnesses. Shared requests, snapshots and transcripts preserve their values; nonempty 0/1/8/256 KiB reply controls deliver min(capacity,reply_len), return full reply_len and reverse. However CODEX-R23-B01 is a new core failure: failed sparse-memory preparation followed by failed rollback advances the CC instruction pointer without a frame, silently skipping a store on continuation.",
+      "change": "Fix src/classical.rs::{step,undo_record} and the preparation contract in src/retained.rs::SparseBytes::prepare so a denied write restores the complete prefix without requiring the denied allocation again. Add the pinned store-retry witness and retry-after-dropping-observer regression described in CODEX-R23-B01."
+    },
+    {
+      "id": "C6",
+      "score": 5,
+      "evidence": "No new Q semantic defect found in the diff; most Q changes preserve diagnostics while tagging resource errors. Matched opaque pairs, effective-control sets, loop lifetimes, borrowed-system and exact-phase regression families remain green. SOL-R22-B01 now returns Evidence(4) for both borrowed spellings; the full-domain comparison fails at element 4. The omitted input remains CNOT(1,0)=(1,1), identity(1,0)=(1,0). This agrees with INV-6:1.3.4, 1.3.5 and 1.5.5.",
+      "change": "No Q semantic correction requested. Extend tests/r22_coverage.rs public replay cases to omitted oracle ins/tgt/fault slots and borrowed names colliding with region names, asserting borrowed renaming preserves both the label and exact evidence count."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Independently reran 451 passing tests, 0 failures, 5 ignored, followed by all 5 passing release sweeps. The 12-stage/53-case inventory accurately distinguishes feasible materialization from later denial; independent probes confirmed its major stages. Its coverage nevertheless misses a successful resident-memory reply followed by a snapshot-held failing write and failing rollback. That sequence is the new S0 witness, despite every retained pin passing.",
+      "change": "Add tests/r22_retention.rs coverage for the cross-stage sequence in CODEX-R23-B01, checking next instruction and final returned byte after recovery as well as snapshot equality. Update the retention inventory with this distinct reached failure stage, rather than counting it as another request-length control."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "ErrorKind::HostResource and context preserve typed host limitations without reclassifying them as ISA faults. Both Json::try_canonical on a feasible 64 MiB source and the actual CLI console-output serialization path fail normally with cited host-limit errors and no partial stdout. SPEC-QUESTIONS 1–33 remain defensible recorded readings; INV-1..6 open/refuted steps are not treated as completed proofs. The remaining reporting defect is that a recoverable-looking store error leaves a running machine advanced, contrary to the atomic-prefix behavior described in PROGRESS.",
+      "change": "Along with CODEX-R23-B01, make the public step_once/run error contract explicit in README: HostResource before instruction commit preserves the full observable prefix and permits retry, with no consumed row or added frame. Update PROGRESS and the stage inventory only after the new recovery test passes."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "CODEX-R23-B01",
+      "section": "ISA §§3.4, 4.1, 7.1, 7.4; src/classical.rs::ClassicalMachine::{step,undo_record} (1260–1266, 1346–1347, 1592–1600, 1031–1036); src/retained.rs::SparseBytes::prepare; src/oracle.rs::Memory::store",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "§3.4 requires sequential small-step execution and says \"every executed instruction pushes a run-history frame\". §4.1 store writes N/8 little-endian bytes; §7.4 retains its address, width and overwritten bytes. For a live byte initially 1, store.i8 p 2 followed by load.i8 p and zero-extension must return 2 if execution completes without an ISA fault. A host-storage error is not an instruction that may silently advance past this store with neither its write nor its frame.",
+          "by": "clause:ISA-3.4; clause:ISA-4.1; clause:ISA-7.1; clause:ISA-7.4"
+        },
+        {
+          "n": "<1>2",
+          "claim": "Pinned complete object store-retry.bisa uses the R22 64-bit sparse layout and body: n=const.i64 1048576; p=alloc n; r=hostcall org.bennett.test p n; v=const.i8 2; store.i8 p v; s=load.i8 p; t=zext.i64 s; ret t. A 1048576-byte reply of 0x01 succeeds. Interface=closure is bc33128d4826fa8851677edb2f9f998280dcbb241d33848a2b326bd425051c52; file SHA-256 is 24ee4403ae9037b1f6d7b8bfcbf01cf0fb05d4732cefd9f10fe8021ccf4a23fd. Parse/check_hashes succeed. Reproduce with env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/reproduce-store-retry.py. The script compiles the public-library probe, then runs fresh 128/256 MiB children with RLIMIT_CORE=0 and MALLOC_ARENA_MAX=1.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry.envelope; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/reproduce-store-retry.py"
+        },
+        {
+          "n": "<1>3",
+          "claim": "At 128 MiB, after request/reply and v are complete, retain before=m.snapshot(). There are four history frames and byte 1 is 1. step_once on the store returns ErrorKind::HostResource citing §7.1/§7.4/§10 sparse memory retention. But before != m.snapshot(): the activation ip changes from 4 to 5; the byte is still 1 and history still has four frames. This is an ordinary Err from the library, not an allocator abort or malformed input.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry-results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-1048576.log; step:<1>2"
+        },
+        {
+          "n": "<1>4",
+          "claim": "step increments ip before executing the row. save_bytes records the old byte; Memory::store then attempts fallible sparse copy-on-write/growth. On error, step calls undo_record(undo)? before returning the original error. The new undo_record starts by preparing sparse capacity again whenever undo.bytes is nonempty, even though no store byte changed. That reservation also fails, so it exits before assigning undo.control. At 1 MiB the shared copy can fit but geometric growth cannot; 1.25/1.5 MiB controls also reproduce the failure when the shared copy itself is denied.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1260; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1031; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1599; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/retained.rs:88; step:<1>3"
+        },
+        {
+          "n": "<1>5",
+          "claim": "Drop the held observer and call step_once again: the next op is load.i8, not the rejected store.i8. run completes with Int(64,1), byte [1], fault=None. At 256 MiB the same program/probe executes the store, adds its frame and returns Int(64,2), byte [2], fault=None. Both children exit 0 and whole-run reversal subsequently restores entry. Thus successful reversal later does not detect the skipped forward operation.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex/store-retry-results.json; step:<1>2; step:<1>3"
+        },
+        {
+          "n": "<1>6",
+          "claim": "S0 core: fallible shared-memory preparation has introduced a failed rollback that consumes an unexecuted store and permits a wrong successful continuation. This fits no stated INV-1..INV-6 theorem: INV-6 concerns checker labels/resources, not CC store rollback; ISA T4 assumes a valid retained trace and does not justify skipping a forward instruction. The two original R22 blockers can be resolved while this new defect still prevents core and whole-crate acceptance.",
+          "by": "step:<1>1; step:<1>3; step:<1>4; step:<1>5"
+        }
+      ],
+      "fix": "Change src/classical.rs::ClassicalMachine::{step,undo_record} and, as needed, src/retained.rs::SparseBytes::prepare / src/oracle.rs::Memory::store. The determining text is §3.4 \"Sequential small-step execution\" and \"every executed instruction pushes a run-history frame\", plus §4.1 store \"N/8 bytes little-endian\" and §7.4 the retained store frame. Prepare writes on an unpublished memory value, or retain a restorable pre-write shared owner, and ensure the failure path restores control and data without repeating an allocation that already failed. Do not merely suppress the rollback error or advance past the instruction. In tests/r22_retention.rs add the exact pinned object above in a fresh 128 MiB child: 1 MiB request and nonzero reply both succeed; hold the prefix snapshot; attempt store; on HostResource assert full prefix equality, four frames, no fault and unchanged transcript/byte. Drop the observer and retry: next op must be store.i8, byte becomes 2, completion returns Int(64,2), and reversal restores entry. Permit a successful first store if an improved representation makes it fit, but then require its write/frame/result; add a deterministically denied preparation case so the failure branch remains exercised. Retain 256 MiB success and small-byte controls, and cover the same preparation/rollback interaction for device writes sharing this path. No ISA size cap or spec change is needed."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "CODEX-R22-B01",
+      "status": "resolved",
+      "note": "The exact 64 MiB request now fits under 128 MiB through shared ownership; an 8 MiB reply returns a cited retained-memory HostResource error with suspended prefix unchanged, then empty-reply recovery and reversal succeed. Separate JSON and nonempty-reply controls pass. CODEX-R23-B01 is a new later-write rollback issue."
+    },
+    {
+      "id": "SOL-R22-B01",
+      "status": "resolved",
+      "note": "Both public verifiers return Evidence(4) for the original and renamed borrowed-name CNOT witnesses; full coverage rejects at element 4; table spoof returns Evidence(2). Borrowed renaming and component-identity families pass, as required by INV-6:1.3.4/1.3.5."
+    }
+  ],
+  "regressions": [
+    "CODEX-R23-B01 is introduced by the R22 sparse-memory migration: undo_record now has a fallible sparse preparation before control restoration, which can fail during rollback of a failed store. No retained round-9–22 test/pin regressed. The exact new limited-memory witness was run on 5e9fa30, not rebuilt against 9851a9c; this is a source-traced new failure path, not a claimed before/after binary comparison."
+  ],
+  "suggestions": [
+    "S1: In src/retained.rs::SparseBytes::prepare and src/oracle.rs::Memory::store, reserve for genuinely new resident addresses rather than every nonzero incoming byte. Replacing an existing byte currently asks for growth, and a COW copy with exact capacity can immediately request geometric growth. Keep this optimization separate from the required transactional rollback fix; add an existing-address rewrite control that preserves snapshot values and the sorted memory digest without increasing resident-entry count."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Fix CODEX-R23-B01 so failed write preparation cannot advance control or lose the original prefix, and retry executes the rejected row. 2. Add the independently pinned observer-held memory witness, denied-preparation and successful-retry assertions, plus device-write controls for the shared rollback path. 3. Rerun the retention/coverage families, all tests, independent pins and the five release sweeps; update the documented stage inventory and error contract. No further change to the resolved R22 coverage classifier or request-sharing repair is requested.",
+  "summary": "Reviewed snapshot 5e9fa3075f570dc70a78dc550ad28b4cb744e763 and the diff from 9851a9c. The supplied packet has 196 embedded files, all byte-content matched to the worktree. Both prior blockers are resolved, but one new core S0 prevents acceptance. First reproduced memory behavior: the original 64 MiB request succeeds under RLIMIT_AS=128 MiB, which is explicitly valid with shared storage (it no longer must fail at initial retention); supplying an 8 MiB reply then fails at retained memory bytes, preserves the suspended snapshot/transcript and allows recovery/reversal. Independently pinned 0/1/8/256 KiB requests with nonempty replies complete, retain exact request/reply bytes, deliver only capacity bytes, return full reply length and reverse while observers remain held. CLI transcript hex and independently computed memory digests agree. A 64 MiB JSON source reports HostResource unchanged; an 8 MiB zero-console CLI output reaches final JSON serialization and exits 1 with §7.4/§10 JSON output bytes, empty stdout. Then independently reran both public certificate verifiers: CNOT spoof and renamed control Evidence(4), complete control §12.1 mismatch at element 4, table spoof Evidence(2); direct action input (1,0) gives (1,1) versus (1,0). Method 1: hand-derived inc8, sum_db tight-step/stack cases and literal inc8/R22 envelopes as detailed in C2/C3, all matched. Method 2: traced the complete §3.6 inverse control/slot ordering and recursive call/return inverse lists, checked all 38 sum_db prefixes with a public probe, and traced nested classical call g/clock.read/ret/uncall g, then outer uncall f; CLI reverse nested reports 11 steps, result 0, clock/tape reset and exact entry equality. Method 3: audited SPEC-QUESTIONS 1–33 against the ISA and INV-1..6; kept documented readings and staged realisation/interval work distinct from proved obligations, with no new spec-gap filing. Method 4: scanned source/tests for every rubric hazard pattern (1,778 hits); classified test assertions, fallible parser expect, guarded internal invariants, explicit device-version rejection, diagnostic approximations and epsilon metadata; no todo!/unimplemented! macros. The new failure is propagated Err during rollback, not an unwrap. Method 5: compared §4.1/4.2/4.3–4.8 families, fault codes 0–10, assignment/capture/delivery and CC/R history frames, recursive object/certificate/schedule schema fields, and documented CLI dispatch; no new omitted dispatch/schema production found. The sparse-memory write/rollback path supplies the new witness. Fresh gates: 451 passed, 0 failed, 5 ignored across 36 result blocks; then all 5 release sweeps passed; R20/R21/R22 independent pin scripts passed. No retained R9–R22 pin failed. Evidence and reproduction sources are in /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r23-codex. No tracked files were changed, and no commit or push was made."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r23-codex.json
