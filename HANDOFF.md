@@ -3,10 +3,12 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-11-01, ~00:30Z
+## 2026-11-01, ~01:30Z
 
-**Running**: isa-ref round-23 fix (sol editor: transactional step under host-resource errors, stage-indexed
-failure-injection family); dialect **draft 0.2.11** editor (sol; compatible track, 33 items).
+**Running**: isa-ref round 24 (two-seat acceptance vote on ad84e75 after the R23 transactional-step fix;
+461 tests; reviewers classify findings as correctness vs host-resource per the acceptance-tail ruling);
+dialect round 10 (sol + codex) on draft 0.2.11 (35 repairs, gate 2767 -> 2834, spec SHA 67157631…82ba;
+33 evidence closures tracked in b-dialect-spec-oxs); ISA and dialect main gate pushes (background).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
