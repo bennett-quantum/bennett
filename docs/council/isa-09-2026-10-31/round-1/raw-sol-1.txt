@@ -1,0 +1,149 @@
+exit 0 in 49s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "§3.3 and §3.7 pin register aliases, runtime widths, reversible ledger transitions, and finite classical/token/region binding instances. K32–K35 close the cited INV-2 assumptions. The instance identity sentence in ISA-9.2-P1.S3 needs reconciliation with K49 (see suggestion S2).",
+      "change": "In §11 and §12.1 add an instance field containing the §3.7 binding key to path/context elements for instantiated lproc rows; retain the source program-point id and the rule that lift.call adds no invocation element."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "The new classical fault table, device-minted budgets, parametrised qinplace, and Q14 operand groups have explicit types, charges and failure behavior. The qinplace operator is correct; its scheduled adjoint expansion has the two conflicting prescriptions in SOL09-R1-B01.",
+      "change": "Add the exact source-adjoint versus emitted-leaf-inverse precedence rule specified in SOL09-R1-B01, including the n=1/F=4 ordinal trace."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "K29 uses the complete qif expansion and preserves cross-arm lifetimes. K37–K44 pin versions, controls, outstanding joint dependence and static release. In particular ISA-6.1-P18 and ISA-6.2-P1.S6 reject the INV-3 H/entangling-reader/H counterexample, including dependence transferred through cleaned scratch. No additional core S0 demonstrated.",
+      "change": "Add beside §6.1 the explicit computation: for p=1, CCX(d0,p,d1);CX(d1,t);CCX(d0,p,d1) induces CX(d0,t) with d1 clean, so M is not I_d0 tensor V and the final H cannot discharge d0; contrast it with an intervening S;SDG, whose M is identity."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "K9 fixes exact accuracy buckets; K12 fixes exact class-separated aggregation and upward display rounding; K14 gives deterministic placements and adjacency. Different adjoint allocation ordinals in SOL09-R1-B01 can select different allocation classes, so this is observable in resource/frame outputs despite equal interface unitaries.",
+      "change": "Include a scheduled n=1/F=4 qinplace-adjoint example assigning a nondefault class to allocation ordinal 0 and print the canonical private allocation identities, widths and resolved classes using the chosen rule from SOL09-R1-B01."
+    },
+    {
+      "id": "C5",
+      "score": 3,
+      "evidence": "The bound catalog contains 219 recipes and its independently recomputed envelope SHA-256 is fcb2f1e6d61aced0bf9689eab5f6d82c4ae42e9fea8d1b21ae9c7ffccda6f5ce. K45–K48 repair structural path selection and injectivity without banning dotted names. The adjoint contract conflicts; non-row addresses and the cleanup decision carrier remain explicitly unaddressed INV-5 gaps, reported separately as owner spec gaps.",
+      "change": "Resolve SOL09-R1-B01 first; then state the total non-row address map and pre-expansion whole-cleanup selection rule proposed in SOL09-R1-G01/G02."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The five supplied proofs are treated as statements with hypotheses, not as completed mechanisation. The K29–K48 repairs address their named counterexamples; K49–K61 address the selected INV-5 readings. Correctness of dependency names is weaker than the reported zero-unresolved-ID check: K28 points at an existing but unrelated clause.",
+      "change": "Retarget K28 markers as in S1 and add one conformance vector checking the emitted scheduled qinplace adjoint against the newly selected canonical trace, rather than checking only its final permutation."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The reviewed additions preserve the north-star capability constructions: wide values, explicit forwarded lproc arguments, dynamic device budgets, reversible failed prefixes, certified in-place operations and optional topology. I do not reopen accepted 0.8 restrictions or the ratified decisions. The demonstrated blocker concerns a new scheduling/library consistency conflict, not the ratified qinplace map or forward release order.",
+      "change": "No scope change is needed. Add a sentence in §0.3 linking the explicit-construction column to the corresponding north-star §8 rung so future deferrals can be audited against the same preserved capability."
+    },
+    {
+      "id": "C8",
+      "score": 3,
+      "evidence": "The draft provides concrete contracts and carefully separates mathematical obligations from implementation mechanics. However a stranger must reconcile the competing adjoint trace rules, the two acknowledged selector gaps, and stale dependency targets. The report does not claim 0.9 executor conformance from the 0.8 implementation or catalog family checks.",
+      "change": "After the adjoint correction, regenerate the statement catalog and audit dependency targets by their sentence content; replace the stale K28 ordinal/scratch references and the schema-only references for matching and staging identified in S1."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL09-R1-B01",
+      "section": "§5.3 adjoint table; §11 generated order; §11.1 inverse/K28 and bound ref adj recipe",
+      "scope": "contract",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "The scheduled generated order is fixed above gate level. The adjoint table replaces qinplace @G @H by qinplace @H @G; each such instruction explicitly generates allocation t, allocation f, first oracle, exchange, second oracle, release t, release f, in that order. K28 preserves this instruction-defined sequence.",
+          "by": "clause:ISA-4.5-P5.S2; clause:ISA-5.3-P4.S2; clause:ISA-11-P2.S2; clause:ISA-11.1-P30.S1"
+        },
+        {
+          "n": "<1>2",
+          "claim": "The newly bound catalog also prescribes a different construction of an action adjoint: recipe adj(B) is exactly inverse(splice B). §11.1 defines inverse as reversal of the fully expanded leaves, swapping allocation/release, and K28 says the inverse traversal retains the original ordinals. There is no stated precedence separating this recipe from the source adjoint table.",
+          "by": "clause:ISA-11.1-P5.S9; clause:ISA-11.1-P31.S4; witness:spec/ref-0.9-draft.json recipe kind=\"adj\", body=[{\"inverse\":true,\"body\":[{\"splice\":\"B\"}]}], bound by ISA-11.1-P39.S2"
+        },
+        {
+          "n": "<1>3",
+          "claim": "Take an action consisting of one certified qinplace, n=1, F=4, with identity inverse-pair oracles. At its private-operation level the source-table adjoint is alloc t[1](0), alloc f[4](1), call H, swap(2), call G, release t(3), release f(4). The catalog leaf inverse instead is alloc f[4](4), alloc t[1](3), call H-adjoint, swap(2), call G-adjoint, release f(1), release t(0). Oracle involution makes the interface results equal but does not make these traces or allocation ordinals equal. Callee-local events have their separate ordinal spaces and do not remove this difference.",
+          "by": "witness:reverse([(alloc t[1],0),(alloc f[4],1),(call G,G-local),(swap x t,2),(call H,H-local),(release t,3),(release f,4)]) and exchange alloc/release; clause:ISA-11.1-P29; clause:ISA-11.1-P31.S1; step:<1>1; step:<1>2"
+        },
+        {
+          "n": "<1>4",
+          "claim": "For example, a matching alloc decision at generated=0 assigns a class to private t under the source-table trace, but matches no private allocation in the leaf-inverse trace (ordinal 0 is a release there). Thus the same scheduled call has different resolved private-frame classes and potentially different class resource charges. This is an S0 contract contradiction, not a claim that either circuit implements the wrong bijection.",
+          "by": "clause:ISA-11-P6.S6; clause:ISA-9.4; step:<1>1; step:<1>2; step:<1>3"
+        }
+      ],
+      "fix": "In §5.3/§11.1 explicitly choose the canonical scheduled action-adjoint expansion. I would preserve the instruction-table rule and K28: state, \"Before ref recipe instantiation, form an action adjoint by the §5.3 instruction replacements. In particular adj(qinplace G H) instantiates qinplace H G with private allocations t then f, releases t then f, and its own instruction ordinal space. Raw inverse constructors used to reverse an already expanded machine row retain the forward ordinals; they are not a substitute for this source qinplace adjoint rule. The qif replacement still reverses its complete §4.6 expansion, including lifetimes.\" Change the catalog adj adapter so it consumes the source-adjointed body rather than blindly leaf-inverting every source operation, and update the bound library hash wherever used. The corrected private trace for n=1/F=4 is alloc t[1](0), alloc f[4](1), H, swap(2), G, release t(3), release f(4). A second viable resolution is to make the table only an extensional identity and explicitly require scheduled adjoints to use the literal leaf inverse, with trace alloc f[4](4), alloc t[1](3), H-adjoint, swap(2), G-adjoint, release f(1), release t(0); that alternative must expressly delimit the above-gate-order/K28 rules. Either resolution must say which trace a scheduler, executor and estimator share, and add the missing dependencies on ISA-5.3-P4, ISA-11-P2 and ISA-11.1-P29."
+    },
+    {
+      "id": "SOL09-R1-G01",
+      "section": "§11 matching and §11.1 non-row generated-operation addresses (INV-5 gap 3)",
+      "scope": "contract",
+      "kind": "spec-gap",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "A total source-independent point/ordinal address for every dispatch, successor, pc exchange, construction, commit and release leaf is not stated. The progress record explicitly leaves INV-5 gap 3 open as b-isa-spec-8ka; this is an inherited owner gap, not a new editor blocker.",
+          "by": "ASSUMED: ISA-11-P5.S1/S9 end addresses at an operation own point and an ordinal within a row; no source row owns these support leaves"
+        },
+        {
+          "n": "<1>2",
+          "claim": "The bound step recipe emits dispatch scratch allocation and equality gates before applying any Rows[k] template. Those leaves still need matching alloc/gate/start decisions. One reader gives them an oracle-step pseudo-point and local ordinals; another places them in the construction recipe ordinal space. The draft gives no required choice.",
+          "by": "witness:spec/ref-0.9-draft.json kind=\"step\" starts with alloc at and alloc counter before apply Rows; INV-5 proof step 1.1.6; clause:ISA-11-P2.S2"
+        },
+        {
+          "n": "<1>3",
+          "claim": "The existing defaults keep these operations executable and charged, but do not provide the missing selector address. Report the precise mapping obligation to the spec owner without treating this accepted-text silence as an S0 editor blocker.",
+          "by": "step:<1>1; step:<1>2; clause:ISA-11-P6.S8"
+        }
+      ],
+      "fix": "Complete b-isa-spec-8ka in §11/§11.1 with a total mapping. One concrete rule is: \"Non-row construction support leaves use reserved pseudo-points $alloc:0, $commit:0 and $release:0; step support leaves use $step:0 with that invocation step and phase. At each pseudo-point, number its support leaves in expansion order, excluding source-row and callee leaves, which retain their own point and ordinal spaces. These reserved points are legal path points despite not being user blocks. Construction points match only wildcard step/phase.\" Publish the exact source-to-constructor partition for the bound library and teach path validation this reserved namespace. This is a proposed owner design, not text I assume the present draft already contains."
+    },
+    {
+      "id": "SOL09-R1-G02",
+      "section": "§6.4 and §11 cleanup selection (INV-5 gap 8)",
+      "scope": "contract",
+      "kind": "spec-gap",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "No carrier is specified against which kind=cleanup selectors select one whole cleanup before the chosen realisation changes its expansion. The progress record explicitly leaves INV-5 gap 8 open as b-isa-spec-23g; I do not reopen it as a new S0 blocker.",
+          "by": "ASSUMED: ISA-11-P6.S6 gives operation classes for gate/alloc/start but none for cleanup; ISA-6.4-P1.S1 allows both reverse and recompute"
+        },
+        {
+          "n": "<1>2",
+          "claim": "For a one-bit qcopy cleanup, reverse can be a CX followed by release, while recompute first creates fresh scratch, computes a copy, XORs it, uncomputes and releases it. Selecting cleanup by its first emitted leaf would therefore use a carrier changed by the selection itself; selecting independently on all leaves can assign conflicting realisations to one cleanup.",
+          "by": "witness:\"d=qcopy s; quncopy s d\": reverse has CX(s,d);release(d), while §6.4 recompute introduces fresh scratch before XOR/uncompute; INV-5 proof step 1.2.4.2; clause:ISA-6.4-P1.S1"
+        },
+        {
+          "n": "<1>3",
+          "claim": "The default reverse realisation preserves the capability, but the explicit recompute choice still needs a stable whole-cleanup selector. This is a spec-owner gap distinct from the new adjoint contradiction.",
+          "by": "step:<1>1; step:<1>2; clause:ISA-11-P6.S8"
+        }
+      ],
+      "fix": "Complete b-isa-spec-23g in §11 with: \"A cleanup has one decision carrier at its explicit source cleanup point, resolved before expansion of the cleanup. A cleanup entry matches that carrier once; generated=* or generated=0 matches it and other generated integers do not. The selected reverse/recompute realisation applies to the entire cleanup. The carrier exists even for an empty cleanup, emits no charged leaf, and is not a gate, allocation or start event.\" Specify its invocation/iteration/step/phase coordinates by the containing source point, and retain ordinary gate/alloc/start selection for the resulting realisation leaves."
+    }
+  ],
+  "previous_status": [],
+  "regressions": [
+    "Contract: binding the generic leaf-inverting ref adj recipe introduces the generated-order disagreement with the retained source qinplace adjoint and forward-order rules described in SOL09-R1-B01; the corresponding interface unitary remains correct."
+  ],
+  "suggestions": [
+    "S1 — Dependency targets are not validated by existence alone. In the supplied final statement view, ISA-11.1-P21 is the activation-location/capture descriptor paragraph, whereas ISA-11.1-P29 contains ordinals, scratch identity and reverse-allocation release. Replace ISA-11.1-P21 with ISA-11.1-P29 in K28, ISA-11.1-P30.S1 and ISA-11.1-P31.S1/S3/S4; use P29.S5 for the scratch-release assertion and P29.S3 for retained inverse ordinals. Also add actual semantic dependencies: ISA-11-P6.S2 must cite P6.S1 (maximal specificity), P6.S3 must cite P7 (validation stages), and P7.S6 must cite P7.S2 plus P6 (object-derivability and ties). P3 is only the schedule schema and cannot replace those edges. Regenerate the catalog and check target content, not merely zero unresolved ids. These annotation defects do not independently change the machine function, so they are suggestions under the S0-only rule.",
+    "S2 — Clarify Q14 instance identity without restoring dynamic lift.call chains. ISA-9.2-P1.S3 says invocation paths distinguish instance uses, but K49 removes lift.call elements and instance rows retain the same source program-point id. Witness: two calls to f forward distinct root classical positions a and b; §3.7 creates keys [0] and [1], and both copies of a nested-call source row are expanded at each outer step with the same source point/loop vector. State in §11: \"A path element for an instantiated lproc row additionally carries instance equal to its §3.7 binding-key array; this distinguishes static instances, not dynamic recursion or lift.call history.\" Add that field to context keys and scratch identities in §12.1/§11.1 and state one expansion per instance row per step. If sharing selectors across instances is intentional, instead explicitly define a separate occurrence discriminator for certificate-context ordering and scratch identity and say the selector deliberately matches all instances. Do not leave the assertion that paths distinguish them unsupported.",
+    "S3 — Label the K28 callee-CX illustration as a schematic macro trace rather than a full ref identity-oracle expansion. ISA-11.1-P31.S1 places G CX at callee ordinal 0, but the bound oracle.construct recipe begins with private-state allocations/initialisation; even a one-row lift.retval identity oracle has that construction under ref with removable=[]. Replace the witness sentence with \"At the qinplace instruction level the private ordinals are alloc t=0, alloc f=1, exchange=2, release t=3, release f=4; each oracle call has its separate complete bound-library expansion. A one-CX identity-call fixture is a schematic interface witness, not the ref oracle.construct trace.\" Then present callee leaf ordinals only after specifying an actual source oracle, budget and library expansion. This separates the correct macro release ruling from an overcompressed ordinal example."
+  ],
+  "verdict": "revise",
+  "path_to_accept": "1. Resolve SOL09-R1-B01 by stating one canonical scheduled action-adjoint expansion and making the bound catalog, ordinal witness and bindings agree with it; the suggested source-table resolution preserves the ratified qinplace forward order and swapped-pair adjoint. 2. Verify the n=1/F=4 private trace and a nondefault allocation-class selector against that choice; recompute the library binding if its bytes change. No core semantic redesign or mechanised proof is required. G01/G02 are explicitly nonblocking owner gaps; S1–S3 should be addressed as focused contract/documentation improvements, not promoted to S0 merely because they need implementation work.",
+  "summary": "sol, round 1: revise overall; accept core. One S0 contract contradiction concerns canonical qinplace adjoint generated order, not its unitary. Two inherited scheduling spec gaps are reported without counting against acceptance. Three suggestions cover stale/missing dependency edges, fixed-binding-instance identity, and the schematic K28 callee trace. K29 qif, the INV-3 reader/phase repair, and structural JCS paths close their cited counterexamples at the statement level. The 219-recipe envelope hash was independently verified; no 0.9 executor conformance or new proof mechanisation is claimed.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-09-2026-10-31-r1-sol.json

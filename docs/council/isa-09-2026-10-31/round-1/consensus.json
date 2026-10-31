@@ -1,0 +1,197 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL09-R1-B01",
+    "section": "\u00a75.3 adjoint table; \u00a711 generated order; \u00a711.1 inverse/K28 and bound ref adj recipe",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "The scheduled generated order is fixed above gate level. The adjoint table replaces qinplace @G @H by qinplace @H @G; each such instruction explicitly generates allocation t, allocation f, first oracle, exchange, second oracle, release t, release f, in that order. K28 preserves this instruction-defined sequence.",
+      "by": "clause:ISA-4.5-P5.S2; clause:ISA-5.3-P4.S2; clause:ISA-11-P2.S2; clause:ISA-11.1-P30.S1"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The newly bound catalog also prescribes a different construction of an action adjoint: recipe adj(B) is exactly inverse(splice B). \u00a711.1 defines inverse as reversal of the fully expanded leaves, swapping allocation/release, and K28 says the inverse traversal retains the original ordinals. There is no stated precedence separating this recipe from the source adjoint table.",
+      "by": "clause:ISA-11.1-P5.S9; clause:ISA-11.1-P31.S4; witness:spec/ref-0.9-draft.json recipe kind=\"adj\", body=[{\"inverse\":true,\"body\":[{\"splice\":\"B\"}]}], bound by ISA-11.1-P39.S2"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Take an action consisting of one certified qinplace, n=1, F=4, with identity inverse-pair oracles. At its private-operation level the source-table adjoint is alloc t[1](0), alloc f[4](1), call H, swap(2), call G, release t(3), release f(4). The catalog leaf inverse instead is alloc f[4](4), alloc t[1](3), call H-adjoint, swap(2), call G-adjoint, release f(1), release t(0). Oracle involution makes the interface results equal but does not make these traces or allocation ordinals equal. Callee-local events have their separate ordinal spaces and do not remove this difference.",
+      "by": "witness:reverse([(alloc t[1],0),(alloc f[4],1),(call G,G-local),(swap x t,2),(call H,H-local),(release t,3),(release f,4)]) and exchange alloc/release; clause:ISA-11.1-P29; clause:ISA-11.1-P31.S1; step:<1>1; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "For example, a matching alloc decision at generated=0 assigns a class to private t under the source-table trace, but matches no private allocation in the leaf-inverse trace (ordinal 0 is a release there). Thus the same scheduled call has different resolved private-frame classes and potentially different class resource charges. This is an S0 contract contradiction, not a claim that either circuit implements the wrong bijection.",
+      "by": "clause:ISA-11-P6.S6; clause:ISA-9.4; step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "fix": "In \u00a75.3/\u00a711.1 explicitly choose the canonical scheduled action-adjoint expansion. I would preserve the instruction-table rule and K28: state, \"Before ref recipe instantiation, form an action adjoint by the \u00a75.3 instruction replacements. In particular adj(qinplace G H) instantiates qinplace H G with private allocations t then f, releases t then f, and its own instruction ordinal space. Raw inverse constructors used to reverse an already expanded machine row retain the forward ordinals; they are not a substitute for this source qinplace adjoint rule. The qif replacement still reverses its complete \u00a74.6 expansion, including lifetimes.\" Change the catalog adj adapter so it consumes the source-adjointed body rather than blindly leaf-inverting every source operation, and update the bound library hash wherever used. The corrected private trace for n=1/F=4 is alloc t[1](0), alloc f[4](1), H, swap(2), G, release t(3), release f(4). A second viable resolution is to make the table only an extensional identity and explicitly require scheduled adjoints to use the literal leaf inverse, with trace alloc f[4](4), alloc t[1](3), H-adjoint, swap(2), G-adjoint, release f(1), release t(0); that alternative must expressly delimit the above-gate-order/K28 rules. Either resolution must say which trace a scheduler, executor and estimator share, and add the missing dependencies on ISA-5.3-P4, ISA-11-P2 and ISA-11.1-P29."
+   }
+  ],
+  "codex": [
+   {
+    "id": "COD-R1-B01",
+    "section": "\u00a73.7, \u00a79.2, \u00a711, \u00a711.1, \u00a712.1 (Q14, K19, K49)",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "A semantic call must have an invocation-path element identified by its constructor expansion occurrence, and repeated calls must have distinct paths. Fixed lproc binding instances also retain distinct identities even when values agree; \u00a79.2 says invocation paths distinguish their uses.",
+      "by": "clause:ISA-11.1-P9.S3; clause:ISA-11.1-P9.S6; clause:ISA-3.7-P5.S5; clause:ISA-9.2-P1.S3"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The serialized schedule element contains only symbol, source point and iteration; the certificate context key adds oracle step/phase. K49 removes lift.call sites from the chain. Neither schema carries a constructor call occurrence or a fixed-binding key, and generated selects a callee-local leaf ordinal, not its caller occurrence.",
+      "by": "clause:ISA-11-P3; clause:ISA-11-P5.S1; clause:ISA-11-P5.S2; clause:ISA-11-P5.S9; clause:ISA-12.1-P11.S2"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Take a one-bit identity-function oracle G with F=4, a sufficient token and a covering inverse-pair certificate. One action row qinplace @G @G tk x generates two calls of G. For a corresponding leaf of source row q in G, both chains are [(A, entry:0, []), (G, q, [])], with identical nested step, phase and generated ordinal. There are no source qloops to distinguish iteration. Assigning both this source path obeys \u00a711 but violates \u00a711.1 distinctness; inserting a constructor occurrence distinguishes them but requires an unspecified encoding and validation rule outside the printed schema. This is a collision before hashing.",
+      "by": "witness:\"qinplace @G @G tk x\"; clause:ISA-4.5-P5; clause:ISA-11.1-P9; clause:ISA-11.1-P29"
+     },
+     {
+      "n": "<1>4",
+      "claim": "Q14 creates a second instance of the same problem: two lift.call sites forwarding distinct root token positions to the same lproc create distinct row instances. At one padded outer step, both instances expand their nested call row, but their source symbol/point, iteration, step and phase coincide after K49 removes lift.call. Their nested budgets and classical arguments can differ. Thus this is not only redundant identity-oracle execution; certificate contexts with different resolved invocations can have the same prescribed key.",
+      "by": "witness:\"lift.call @f (x) (ta) () (); lift.call @f (x) (tb) () ()\", with f containing a lift.oracle_call and ta/tb resolving to different tuples; clause:ISA-3.7-P5; clause:ISA-3.7-P6; clause:ISA-9.2-P1.S3; clause:ISA-11-P5.S2"
+     },
+     {
+      "n": "<1>5",
+      "claim": "The new occurrence-distinctness obligation and the serialized path contract cannot both be implemented as written. A source-point consumer aliases these contexts, while an occurrence-path consumer needs private fields or synthetic points, producing incompatible schedule validation and certificate-context enumeration. This is S0 contract interoperability, not a request for a proof or an optimization.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "fix": "In \u00a711 and \u00a712.1 state: \"Every invocation edge identifies the source call point, the containing fixed-binding instance (the \u00a73.7 integer binding key, or [] outside an lproc instance), and the zero-based semantic-call occurrence within that source row expansion. Occurrences are numbered in instantiated constructor traversal order before descending into callees, independently of leaf ordinals; inverse traversal retains the forward occurrence number. These components are part of the concrete invocation chain and context key.\" Add instance and call_index selectors to path elements, allowing * and treating omission as *, and validate concrete values against the source and bound library; retain the existing lexicographic specificity rule, so newly overlapping equal-specificity entries still tie. Give qinplace @G @G call_index 0 and 1 and distinct context keys; give the two lproc instances their distinct positional binding keys. Update \u00a79.2-P1 and K49 to say once per fixed row instance per step. Declare dependencies on ISA-3.7-P5/P6, ISA-9.2-P1.S3, ISA-11.1-P9 and ISA-12.1-P11. An alternative is an explicitly specified synthetic-point encoding carrying the same two components; prefer explicit fields because source points remain independently checkable. Neither alternative restores dynamic lift.call histories."
+   }
+  ]
+ },
+ "spec_gaps": {
+  "sol": [
+   {
+    "id": "SOL09-R1-G01",
+    "section": "\u00a711 matching and \u00a711.1 non-row generated-operation addresses (INV-5 gap 3)",
+    "scope": "contract",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "A total source-independent point/ordinal address for every dispatch, successor, pc exchange, construction, commit and release leaf is not stated. The progress record explicitly leaves INV-5 gap 3 open as b-isa-spec-8ka; this is an inherited owner gap, not a new editor blocker.",
+      "by": "ASSUMED: ISA-11-P5.S1/S9 end addresses at an operation own point and an ordinal within a row; no source row owns these support leaves"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The bound step recipe emits dispatch scratch allocation and equality gates before applying any Rows[k] template. Those leaves still need matching alloc/gate/start decisions. One reader gives them an oracle-step pseudo-point and local ordinals; another places them in the construction recipe ordinal space. The draft gives no required choice.",
+      "by": "witness:spec/ref-0.9-draft.json kind=\"step\" starts with alloc at and alloc counter before apply Rows; INV-5 proof step 1.1.6; clause:ISA-11-P2.S2"
+     },
+     {
+      "n": "<1>3",
+      "claim": "The existing defaults keep these operations executable and charged, but do not provide the missing selector address. Report the precise mapping obligation to the spec owner without treating this accepted-text silence as an S0 editor blocker.",
+      "by": "step:<1>1; step:<1>2; clause:ISA-11-P6.S8"
+     }
+    ],
+    "fix": "Complete b-isa-spec-8ka in \u00a711/\u00a711.1 with a total mapping. One concrete rule is: \"Non-row construction support leaves use reserved pseudo-points $alloc:0, $commit:0 and $release:0; step support leaves use $step:0 with that invocation step and phase. At each pseudo-point, number its support leaves in expansion order, excluding source-row and callee leaves, which retain their own point and ordinal spaces. These reserved points are legal path points despite not being user blocks. Construction points match only wildcard step/phase.\" Publish the exact source-to-constructor partition for the bound library and teach path validation this reserved namespace. This is a proposed owner design, not text I assume the present draft already contains."
+   },
+   {
+    "id": "SOL09-R1-G02",
+    "section": "\u00a76.4 and \u00a711 cleanup selection (INV-5 gap 8)",
+    "scope": "contract",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "No carrier is specified against which kind=cleanup selectors select one whole cleanup before the chosen realisation changes its expansion. The progress record explicitly leaves INV-5 gap 8 open as b-isa-spec-23g; I do not reopen it as a new S0 blocker.",
+      "by": "ASSUMED: ISA-11-P6.S6 gives operation classes for gate/alloc/start but none for cleanup; ISA-6.4-P1.S1 allows both reverse and recompute"
+     },
+     {
+      "n": "<1>2",
+      "claim": "For a one-bit qcopy cleanup, reverse can be a CX followed by release, while recompute first creates fresh scratch, computes a copy, XORs it, uncomputes and releases it. Selecting cleanup by its first emitted leaf would therefore use a carrier changed by the selection itself; selecting independently on all leaves can assign conflicting realisations to one cleanup.",
+      "by": "witness:\"d=qcopy s; quncopy s d\": reverse has CX(s,d);release(d), while \u00a76.4 recompute introduces fresh scratch before XOR/uncompute; INV-5 proof step 1.2.4.2; clause:ISA-6.4-P1.S1"
+     },
+     {
+      "n": "<1>3",
+      "claim": "The default reverse realisation preserves the capability, but the explicit recompute choice still needs a stable whole-cleanup selector. This is a spec-owner gap distinct from the new adjoint contradiction.",
+      "by": "step:<1>1; step:<1>2; clause:ISA-11-P6.S8"
+     }
+    ],
+    "fix": "Complete b-isa-spec-23g in \u00a711 with: \"A cleanup has one decision carrier at its explicit source cleanup point, resolved before expansion of the cleanup. A cleanup entry matches that carrier once; generated=* or generated=0 matches it and other generated integers do not. The selected reverse/recompute realisation applies to the entire cleanup. The carrier exists even for an empty cleanup, emits no charged leaf, and is not a gate, allocation or start event.\" Specify its invocation/iteration/step/phase coordinates by the containing source point, and retain ordinary gate/alloc/start selection for the resulting realisation leaves."
+   }
+  ],
+  "codex": [
+   {
+    "id": "COD-R1-G01",
+    "section": "\u00a711/\u00a711.1; INV-5 gap 3; b-isa-spec-8ka",
+    "scope": "contract",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "No total schedule-point and ordinal-space mapping is specified for dispatch, successor, pc-commit, clean-dispatch, construction, oracle commit and release operations that have no source instruction point. The progress record explicitly carries this as INV-5 gap 3 rather than claiming K51 closes it.",
+      "by": "ASSUMED: \u00a711 defines an operation own point and a row-local generated ordinal, but supplies no source point for these operations; the progress disposition leaves b-isa-spec-8ka open"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Even a B=0 oracle generates construction allocations and commit gates. With B=1, its dispatcher generates comparator scratch outside any row. An entry path=[] generated=0 kind=alloc cannot be interpreted uniformly without deciding whether these leaves use construction-local, step-local or source-row ordinal spaces; the schema also supplies no point by which to select just the dispatcher.",
+      "by": "witness:\"B=0 oracle construction/commit\" and \"B=1 dispatch comparator allocation\"; clause:ISA-5.2-P3; clause:ISA-3.6; clause:ISA-11-P5.S9; clause:ISA-11.1-P22"
+     },
+     {
+      "n": "<1>3",
+      "claim": "K51 supplies wildcard-only absent step coordinates, but does not supply the missing own points or ordinals. Report this as a carried spec-owner gap under the requested schema, separately from the new contradictory call-path requirements in B01.",
+      "by": "step:<1>1; step:<1>2; clause:ISA-11-P5.S8"
+     }
+    ],
+    "fix": "Complete b-isa-spec-8ka in \u00a711/\u00a711.1: \"Non-row leaves use reserved points $construct, $step, $commit and $release in the containing oracle. $step carries that oracle step and phase; the other points have no step/phase. Within each point, number leaves in bound-library traversal order excluding source-row and callee subtrees, which retain their own spaces; inverse traversal retains forward ordinals.\" Validate these reserved points explicitly and publish the recipe-to-point mapping, including B=0. This is an addressing annotation, not permission to omit any generated operation or silently alter the bound catalog bytes."
+   },
+   {
+    "id": "COD-R1-G02",
+    "section": "\u00a76.4, \u00a711/\u00a711.1; INV-5 gap 8; b-isa-spec-23g",
+    "scope": "contract",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "The specification does not identify a realization-independent carrier against which a cleanup-kind entry selects one decision for a whole cleanup. The progress record explicitly carries INV-5 gap 8 as b-isa-spec-23g.",
+      "by": "ASSUMED: \u00a711-P6 defines gate/alloc/start domains, but leaves the cleanup domain unspecified although \u00a76.4 admits reverse and recompute"
+     },
+     {
+      "n": "<1>2",
+      "claim": "For d=qcopy s followed by quncopy s d, reverse emits the inverse copy and release, whereas recompute allocates a fresh bundle, computes a copy, XORs, uncomputes and releases. Matching cleanup against each generated leaf can select different realizations for one cleanup; matching only its first realized leaf makes the carrier depend on the choice it is supposed to determine.",
+      "by": "witness:\"d = qcopy s; quncopy s d\", scheduled as reverse versus recompute; clause:ISA-6.4-P1.S1; clause:ISA-11-P6.S6"
+     },
+     {
+      "n": "<1>3",
+      "claim": "The reverse default does not define how an explicit recompute request is selected. This remains a spec-owner gap, not a demand for measurement-based cleanup or a reopening of the ratified unitary-only decision.",
+      "by": "step:<1>1; step:<1>2"
+     }
+    ],
+    "fix": "Complete b-isa-spec-23g with: \"Each explicit computing-sequence/cleanup pair has one non-emitting cleanup carrier at its source cleanup point, identified before realization expansion, even for an empty expansion. Only cleanup-kind entries match this carrier; its generated selector is * or carrier ordinal 0. Select one realization for the entire cleanup before generating its leaves; gate/alloc/start decisions subsequently match those leaves normally.\" Specify the source-to-carrier mapping for each cleanup form and retain both reverse and recompute."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.5,
+  "C2": 4.0,
+  "C3": 4.5,
+  "C4": 4.0,
+  "C5": 3.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 3.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

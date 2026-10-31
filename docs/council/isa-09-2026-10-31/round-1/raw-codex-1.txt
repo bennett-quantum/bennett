@@ -1,0 +1,153 @@
+exit 0 in 15s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "§3.3 pins register identity, aliasing, width checks and atomic failures; §3.7 gives finite, ordered lproc binding instances. K32–K35 close the four cited INV-2 gaps without banning ordinary handle aliases.",
+      "change": "No core-model change requested. Preserve the distinction between a source lproc and each fixed binding instance when repairing contract finding COD-R1-B01."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "K1–K7 supply concrete forms, fault codes, token validity, inverse-pair applicability and reversal behavior. K29 reverses the full qif expansion, so the cross-arm allocation/free witness is now legal in both directions; K30 carries live bindings between loop visits.",
+      "change": "In §11.1 label the K28 five-ordinal example as a synthetic callee-binding witness, as specified in COD-R1-S04; it is not the actual ref expansion of an ISA identity oracle."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "K37–K44 supply computation-time input/produced-output versions, effective controls, joint residual dependence and a static release condition. The SQ25 middle circuit is CX(d0,t) after d1 is cleaned, so it fails M=I_G tensor V and the final H cannot justify release. H/H with empty intervening M passes. Matched-pair restoration is expressly conditional on legal cleanup, preventing a bypass.",
+      "change": "No semantic change requested to these repairs. Keep the §5.3 matched-inverse condition dependent on §6.2, including outstanding phases, when updating dependency annotations."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "K9 fixes exact accuracy buckets; K12 preserves per-class resources and upward display rounding; K14 supplies adjacency and deterministic placement. K58/K59 remove the eps-dependent count and nonterminating-decimal problems: 0.1/3 is exactly 1/30.",
+      "change": "Resolve COD-R1-G01 with reserved non-row operation points and a bound ordinal mapping, so target matching, placement and resource accounting apply to an identical addressable event stream in independent consumers."
+    },
+    {
+      "id": "C5",
+      "score": 3,
+      "evidence": "K45–K48 repair layout ownership and injective envelope paths. K49–K61 settle selector levels, maximal ties, nested budgets and default values, but §11.1 requires occurrence-distinct generated calls that the §11/§12 path schemas cannot distinguish (COD-R1-B01). The two acknowledged library-facing gaps also remain.",
+      "change": "Apply COD-R1-B01: serialize generated-call occurrence and fixed-binding instance identity in schedule paths and certificate context keys, with a deterministic source/library mapping."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The repairs address the refuted qif, other-cleanup and dotted-path steps directly; K55 deliberately replaces impossible unbound admission with prescribed staged validation. Independently ran python3 -I conformance/tools/ref_catalog.py --check: 219 recipes, hash fcb2f1e6d61aced0bf9689eab5f6d82c4ae42e9fea8d1b21ae9c7ffccda6f5ce, exit 0. Dependency existence is not dependency correctness: K28 still cites activation descriptors for scratch/ordinal facts.",
+      "change": "Repair the concrete dependency edges in COD-R1-S01/S02 and make the CLAIM-REPLAY witness a legal oracle as in COD-R1-S03. Retain the distinction between catalog hash verification and executor conformance."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The new register, budget, failed-run reversal and parameterized in-place mechanisms preserve the north-star capabilities. The review does not reopen accepted 0.8 choices or the ratified topology, release-order and hash-placeholder decisions.",
+      "change": "Keep both unitary cleanup realizations and arbitrary legal lproc bindings while resolving the contract findings; do not fix addressing by prohibiting repeated generated calls or binding instances."
+    },
+    {
+      "id": "C8",
+      "score": 3,
+      "evidence": "The detailed change ledger and proof-gap dispositions are useful, and the complete catalog has a reproducible binding. A scheduler/checker implementer still cannot serialize the distinct occurrences demanded by K19/Q14; non-row and cleanup selection are explicitly carried in the progress record. Some supposedly checked dependency IDs resolve to unrelated text.",
+      "change": "Publish one complete mapping example containing qinplace @G @G and two fixed instances of an lproc after COD-R1-B01, with distinct context keys and round-trippable schedule selectors; update the statement-level dependency annotations at the same time."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "COD-R1-B01",
+      "section": "§3.7, §9.2, §11, §11.1, §12.1 (Q14, K19, K49)",
+      "scope": "contract",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "A semantic call must have an invocation-path element identified by its constructor expansion occurrence, and repeated calls must have distinct paths. Fixed lproc binding instances also retain distinct identities even when values agree; §9.2 says invocation paths distinguish their uses.",
+          "by": "clause:ISA-11.1-P9.S3; clause:ISA-11.1-P9.S6; clause:ISA-3.7-P5.S5; clause:ISA-9.2-P1.S3"
+        },
+        {
+          "n": "<1>2",
+          "claim": "The serialized schedule element contains only symbol, source point and iteration; the certificate context key adds oracle step/phase. K49 removes lift.call sites from the chain. Neither schema carries a constructor call occurrence or a fixed-binding key, and generated selects a callee-local leaf ordinal, not its caller occurrence.",
+          "by": "clause:ISA-11-P3; clause:ISA-11-P5.S1; clause:ISA-11-P5.S2; clause:ISA-11-P5.S9; clause:ISA-12.1-P11.S2"
+        },
+        {
+          "n": "<1>3",
+          "claim": "Take a one-bit identity-function oracle G with F=4, a sufficient token and a covering inverse-pair certificate. One action row qinplace @G @G tk x generates two calls of G. For a corresponding leaf of source row q in G, both chains are [(A, entry:0, []), (G, q, [])], with identical nested step, phase and generated ordinal. There are no source qloops to distinguish iteration. Assigning both this source path obeys §11 but violates §11.1 distinctness; inserting a constructor occurrence distinguishes them but requires an unspecified encoding and validation rule outside the printed schema. This is a collision before hashing.",
+          "by": "witness:\"qinplace @G @G tk x\"; clause:ISA-4.5-P5; clause:ISA-11.1-P9; clause:ISA-11.1-P29"
+        },
+        {
+          "n": "<1>4",
+          "claim": "Q14 creates a second instance of the same problem: two lift.call sites forwarding distinct root token positions to the same lproc create distinct row instances. At one padded outer step, both instances expand their nested call row, but their source symbol/point, iteration, step and phase coincide after K49 removes lift.call. Their nested budgets and classical arguments can differ. Thus this is not only redundant identity-oracle execution; certificate contexts with different resolved invocations can have the same prescribed key.",
+          "by": "witness:\"lift.call @f (x) (ta) () (); lift.call @f (x) (tb) () ()\", with f containing a lift.oracle_call and ta/tb resolving to different tuples; clause:ISA-3.7-P5; clause:ISA-3.7-P6; clause:ISA-9.2-P1.S3; clause:ISA-11-P5.S2"
+        },
+        {
+          "n": "<1>5",
+          "claim": "The new occurrence-distinctness obligation and the serialized path contract cannot both be implemented as written. A source-point consumer aliases these contexts, while an occurrence-path consumer needs private fields or synthetic points, producing incompatible schedule validation and certificate-context enumeration. This is S0 contract interoperability, not a request for a proof or an optimization.",
+          "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+        }
+      ],
+      "fix": "In §11 and §12.1 state: \"Every invocation edge identifies the source call point, the containing fixed-binding instance (the §3.7 integer binding key, or [] outside an lproc instance), and the zero-based semantic-call occurrence within that source row expansion. Occurrences are numbered in instantiated constructor traversal order before descending into callees, independently of leaf ordinals; inverse traversal retains the forward occurrence number. These components are part of the concrete invocation chain and context key.\" Add instance and call_index selectors to path elements, allowing * and treating omission as *, and validate concrete values against the source and bound library; retain the existing lexicographic specificity rule, so newly overlapping equal-specificity entries still tie. Give qinplace @G @G call_index 0 and 1 and distinct context keys; give the two lproc instances their distinct positional binding keys. Update §9.2-P1 and K49 to say once per fixed row instance per step. Declare dependencies on ISA-3.7-P5/P6, ISA-9.2-P1.S3, ISA-11.1-P9 and ISA-12.1-P11. An alternative is an explicitly specified synthetic-point encoding carrying the same two components; prefer explicit fields because source points remain independently checkable. Neither alternative restores dynamic lift.call histories."
+    },
+    {
+      "id": "COD-R1-G01",
+      "section": "§11/§11.1; INV-5 gap 3; b-isa-spec-8ka",
+      "scope": "contract",
+      "kind": "spec-gap",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "No total schedule-point and ordinal-space mapping is specified for dispatch, successor, pc-commit, clean-dispatch, construction, oracle commit and release operations that have no source instruction point. The progress record explicitly carries this as INV-5 gap 3 rather than claiming K51 closes it.",
+          "by": "ASSUMED: §11 defines an operation own point and a row-local generated ordinal, but supplies no source point for these operations; the progress disposition leaves b-isa-spec-8ka open"
+        },
+        {
+          "n": "<1>2",
+          "claim": "Even a B=0 oracle generates construction allocations and commit gates. With B=1, its dispatcher generates comparator scratch outside any row. An entry path=[] generated=0 kind=alloc cannot be interpreted uniformly without deciding whether these leaves use construction-local, step-local or source-row ordinal spaces; the schema also supplies no point by which to select just the dispatcher.",
+          "by": "witness:\"B=0 oracle construction/commit\" and \"B=1 dispatch comparator allocation\"; clause:ISA-5.2-P3; clause:ISA-3.6; clause:ISA-11-P5.S9; clause:ISA-11.1-P22"
+        },
+        {
+          "n": "<1>3",
+          "claim": "K51 supplies wildcard-only absent step coordinates, but does not supply the missing own points or ordinals. Report this as a carried spec-owner gap under the requested schema, separately from the new contradictory call-path requirements in B01.",
+          "by": "step:<1>1; step:<1>2; clause:ISA-11-P5.S8"
+        }
+      ],
+      "fix": "Complete b-isa-spec-8ka in §11/§11.1: \"Non-row leaves use reserved points $construct, $step, $commit and $release in the containing oracle. $step carries that oracle step and phase; the other points have no step/phase. Within each point, number leaves in bound-library traversal order excluding source-row and callee subtrees, which retain their own spaces; inverse traversal retains forward ordinals.\" Validate these reserved points explicitly and publish the recipe-to-point mapping, including B=0. This is an addressing annotation, not permission to omit any generated operation or silently alter the bound catalog bytes."
+    },
+    {
+      "id": "COD-R1-G02",
+      "section": "§6.4, §11/§11.1; INV-5 gap 8; b-isa-spec-23g",
+      "scope": "contract",
+      "kind": "spec-gap",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "The specification does not identify a realization-independent carrier against which a cleanup-kind entry selects one decision for a whole cleanup. The progress record explicitly carries INV-5 gap 8 as b-isa-spec-23g.",
+          "by": "ASSUMED: §11-P6 defines gate/alloc/start domains, but leaves the cleanup domain unspecified although §6.4 admits reverse and recompute"
+        },
+        {
+          "n": "<1>2",
+          "claim": "For d=qcopy s followed by quncopy s d, reverse emits the inverse copy and release, whereas recompute allocates a fresh bundle, computes a copy, XORs, uncomputes and releases. Matching cleanup against each generated leaf can select different realizations for one cleanup; matching only its first realized leaf makes the carrier depend on the choice it is supposed to determine.",
+          "by": "witness:\"d = qcopy s; quncopy s d\", scheduled as reverse versus recompute; clause:ISA-6.4-P1.S1; clause:ISA-11-P6.S6"
+        },
+        {
+          "n": "<1>3",
+          "claim": "The reverse default does not define how an explicit recompute request is selected. This remains a spec-owner gap, not a demand for measurement-based cleanup or a reopening of the ratified unitary-only decision.",
+          "by": "step:<1>1; step:<1>2"
+        }
+      ],
+      "fix": "Complete b-isa-spec-23g with: \"Each explicit computing-sequence/cleanup pair has one non-emitting cleanup carrier at its source cleanup point, identified before realization expansion, even for an empty expansion. Only cleanup-kind entries match this carrier; its generated selector is * or carrier ordinal 0. Select one realization for the entire cleanup before generating its leaves; gate/alloc/start decisions subsequently match those leaves normally.\" Specify the source-to-carrier mapping for each cleanup form and retain both reverse and recompute."
+    }
+  ],
+  "previous_status": [],
+  "regressions": [],
+  "suggestions": [
+    "COD-R1-S01 (dependency accuracy): In K28, ISA-11.1-P30.S1 and ISA-11.1-P31.S1/S3/S4 cite ISA-11.1-P21, which in the supplied current statement view is the activation-location/capture descriptor, not scratch ordering or ordinal retention. Replace those P21 edges with ISA-11.1-P29.S1–S5 as appropriate (individual IDs, not a literal range), and retain ISA-4.5-P5. For P31.S4 specifically cite ISA-11.1-P29.S3 and ISA-5.3. Also add ISA-9.2-P4 to the envelope-boundary lemma final sentence: its declared edges omit the actual injective-path rule on which it relies. For K55 admission/rejection statements add the actual matching and domain rules ISA-11-P5, ISA-11-P6.S1–S4 and ISA-11-P7.S2/S3/S7 as applicable; ISA-11-P3 alone is merely the schedule schema. Validate edge meaning against the final catalog, not just ID existence. These annotation repairs do not change machine semantics.",
+    "COD-R1-S02 (missing dependencies): The packet does not in fact annotate every new normative sentence. For example ISA-11.1-P9.S3–S6 (K19 call occurrence/ordinal rules), ISA-11.1-P22.S5/S12/S14 (K25 construction), and ISA-12.1-P7.S3–S7 (K13 replay) have no declared markers. Add markers per sentence: P9 to the final §11 invocation/address rules and ISA-11.1-P29; P22.S5 to ISA-3.7, P22.S12 to ISA-3.6, P22.S14 to ISA-5.2-P3 and the library step/construction rules; P7.S3 to ISA-5.2, P7.S6 to ISA-14.3-P3 and ISA-5.6, P7.S7 to the numerical/channel claim rules. Audit the other K1–K27 additions on the same basis. The current 91-marker/zero-unresolved report does not establish completeness or correctness.",
+    "COD-R1-S03 (illegal CLAIM-REPLAY witness): §12.1-P10 uses F=2 despite §5.4 requiring F>=4, and an oracle interface region with W=2 despite §7.2 requiring mapped oracle regions to have W=8. Make x, target and a two bits, fault four bits, the preserved dirty bundle one bit, and the two interface cells eight bits each; supply a legal layout and unused mapping. Keep the printed values and XOR outcomes unchanged. The full domain then has 2+2+4+1+16=25 bits, so change full 11-bit D, 2048 and covered_fraction 1/2048 to 25 bits, 33554432 and 1/33554432. Four singleton draws still use zero generator words. This repairs the illustrative witness without changing the ratified replay relation.",
+    "COD-R1-S04 (K28 witness scope): §11.1-P31 calls G's CX callee ordinal 0 for an identity oracle. Under the bound ref library an actual ISA oracle starts with construction allocations and padded steps; its first leaf is not that CX, and removable is empty. The README confirms the test uses synthetic registry identities. State instead: \"This is a synthetic constructor-binding witness whose two callee fixtures each contain one CX at callee ordinal 0; it illustrates caller ordinals and release order, not the ref expansion or cost of an ISA oracle.\" Keep caller ordinals 0,1,2,3,4 and t-then-f release unchanged. For an executable ISA witness, use the actual full oracle.construct expansion and report its real callee ordinals."
+  ],
+  "verdict": "revise",
+  "verdict_core": "accept",
+  "path_to_accept": "Repair COD-R1-B01 by defining and serializing generated-call occurrence and fixed-binding instance identity consistently across §9.2, §11, §11.1 and §12.1. Then publish/check the two collision witnesses with distinct round-trippable paths and certificate keys, retaining K49's exclusion of dynamic lift.call histories. That is the minimal S0 change for acceptance. The two ASSUMED spec-gap items are reported to the spec owner and do not count against this verdict under the supplied schema; resolving them and the four suggestions would improve implementability and evidence quality.",
+  "summary": "Round 1 spec review: core accept; whole document revise for one S0 contract inconsistency in occurrence identity. Two explicitly carried spec-owner gaps are separate from the blocker, and four suggestions address dependency annotations and invalid/synthetic witnesses. K29–K48 close their cited lifetime, aliasing, cleanup and envelope proof gaps at statement level; K49–K61 substantially repair schedule selection, but must be reconciled with Q14 binding instances and K19 generated calls. The independent catalog check confirms 219 recipes and the exact bound hash. No 0.9 executor conformance or full-domain proof of the catalog is claimed; no other council member output was read. This is the first spec round, so previous_status is empty."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-09-2026-10-31-r1-codex.json
