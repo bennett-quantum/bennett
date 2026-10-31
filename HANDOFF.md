@@ -3,15 +3,16 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-10-31, ~13:30Z
+## 2026-10-31, ~14:30Z
 
-**Running**: isa-ref round-17 editor (sol; §17 defaults sweep + maximal-match schedule ambiguity);
-§11.1 completion pass (sol; qinplace ruling sentence, close 82x, bind the library hash). Process
-watcher every 8 h (next 14:50Z).
+**Running**: isa-ref round 18 (astra alone; first round on structured `steps` blockers, proofs as
+context); ISA 0.9 editorial pass (sol; folds the 4 proof-derived defect beads and the 15-gap task
+into the draft with `[deps:]` markers); ISA main gate push (background, >10 min); statement-layer
+build in bennett-conformance (opus). Process watcher every 8 h (next 14:50Z).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
-ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 passes I-II (218 recipes, 7 REF
-beads closed); bennett-conformance clause graph, neutral suite, pre-push gate, four structured
+ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
+(independently re-run by the orchestrator), all 8 REF beads + parent 8r4 closed; K21-K28; bennett-conformance clause graph, neutral suite, pre-push gate, four structured
 proofs (4 refuted 0.8 steps filed as beads in bennett-isa-spec); process watcher + first entry, all
 7 verdicts applied; council: one reviewer on fix rounds, one commit per round, severity dropped,
 Lamport-structured blocking items (`steps`, ASSUMED step 1 = spec gap), proofs as standing
