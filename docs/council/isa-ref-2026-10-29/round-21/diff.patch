@@ -1,0 +1,3774 @@
+--- round-20/doc.md
++++ round-21/doc.md
+@@ -1,13 +1,12 @@
+-# Bennett ISA reference interpreter, council round 19 (re-grade after round-18 fix; codex seat only; structured blockers; INV-5 context)
+-
+-Snapshot of `reference-interpreter/` at commit `85241b8355fe608c90f29b44463c1568664ae83e`. 158 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 538 lines, sha256 5383962a93f2
+-- `PROGRESS.md` 135 lines, sha256 b62c4d20055a
++# Bennett ISA reference interpreter, council round 21 (acceptance vote after the round-20 fix and extreme-width sweep; sol + codex)
++
++Snapshot of `reference-interpreter/` at commit `adf5dff8a0798e41326685669ed32d7469c3c63e`. 164 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 556 lines, sha256 9d9d47607e38
++- `PROGRESS.md` 126 lines, sha256 82678de14348
+ - `SPEC-QUESTIONS.md` 332 lines, sha256 f9d92d1588ac
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-18.md` 211 lines, sha256 331ef032ec52
++- `council/response-round-20.md` 212 lines, sha256 5f992f05fd20
+ - `src/metadata_schema.rs` 353 lines, sha256 3a691d09a0b0
+-- `src/metadata/schedule_domains.rs` 477 lines, sha256 65c3e9badbab
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+@@ -21,4 +20,5 @@
+ - `council/response-round-16.md` 189 lines, sha256 9f12691508df
+ - `council/response-round-17.md` 267 lines, sha256 4bee624be1d7
++- `council/response-round-18.md` 211 lines, sha256 331ef032ec52
+ - `council/response-round-2.md` 260 lines, sha256 ad3b4b794b86
+ - `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+@@ -30,10 +30,10 @@
+ - `council/response-round-9.md` 242 lines, sha256 cca9d01464b6
+ - `isa_check.py` 549 lines, sha256 c2392d44d05c
+-- `src/action.rs` 1066 lines, sha256 1467f754ab50
+-- `src/bits.rs` 384 lines, sha256 b7c11790ac89
+-- `src/borrow.rs` 1990 lines, sha256 a7e4e8e0c997
++- `src/action.rs` 1067 lines, sha256 e60d32ef40b8
++- `src/bits.rs` 385 lines, sha256 7a95bd7f4669
++- `src/borrow.rs` 2002 lines, sha256 f94e9dc4bf43
+ - `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+-- `src/certificate.rs` 332 lines, sha256 c04a9e92dfff
+-- `src/claims.rs` 800 lines, sha256 71eedb774e6b
++- `src/certificate.rs` 389 lines, sha256 8dc519b08717
++- `src/claims.rs` 868 lines, sha256 d4c8df691774
+ - `src/classical.rs` 1624 lines, sha256 0aacce3a8e69
+ - `src/controls.rs` 19 lines, sha256 8820f7e9c67f
+@@ -43,23 +43,24 @@
+ - `src/identity.rs` 472 lines, sha256 c62a0551dacf
+ - `src/json.rs` 411 lines, sha256 22f03bcb2698
+-- `src/lib.rs` 62 lines, sha256 7f25dcecf133
++- `src/lib.rs` 73 lines, sha256 3f947a720eee
+ - `src/linking.rs` 403 lines, sha256 b773eff53f8d
+-- `src/machine.rs` 1294 lines, sha256 527e0bce9c0c
+-- `src/main.rs` 2001 lines, sha256 2d378567ac42
++- `src/machine.rs` 1294 lines, sha256 d9025a9de849
++- `src/main.rs` 2010 lines, sha256 09b10c5cacf0
++- `src/metadata/schedule_domains.rs` 477 lines, sha256 65c3e9badbab
+ - `src/metadata.rs` 421 lines, sha256 2d0d7d7d0676
+ - `src/metadata_schema/tests.rs` 564 lines, sha256 ac67f6a9ad6c
+ - `src/metadata_types.rs` 7 lines, sha256 2aef2d060fa5
+-- `src/object.rs` 1774 lines, sha256 c99a4ca0d870
+-- `src/oracle.rs` 861 lines, sha256 e29aa9ffb215
+-- `src/quantum.rs` 893 lines, sha256 9ac2ba04ab35
++- `src/object.rs` 1802 lines, sha256 7d494ac9223c
++- `src/oracle.rs` 861 lines, sha256 d4705f8b33cf
++- `src/quantum.rs` 897 lines, sha256 672c4d95a31d
+ - `src/registers.rs` 258 lines, sha256 d0e263c64ed6
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+-- `src/validation.rs` 1900 lines, sha256 1c810db9fac3
++- `src/validation.rs` 1903 lines, sha256 1619d34fc5ff
+ - `tests/bitvectors.rs` 117 lines, sha256 dcb60f20f4da
+ - `tests/borrow.rs` 195 lines, sha256 40d8a3a4b61e
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 2355 lines, sha256 ec956c81e012
++- `tests/cli_xam.rs` 2414 lines, sha256 0227ccc38a0d
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -97,5 +98,5 @@
+ - `tests/identity.rs` 614 lines, sha256 119066ed630d
+ - `tests/linking.rs` 133 lines, sha256 ca9f81880cc9
+-- `tests/metadata.rs` 1284 lines, sha256 a3eb913a63e1
++- `tests/metadata.rs` 1478 lines, sha256 af86e97559b9
+ - `tests/oracle.rs` 312 lines, sha256 b150c109a1c6
+ - `tests/parser.rs` 434 lines, sha256 8449dc9e827d
+@@ -110,13 +111,13 @@
+ - `tests/r1_gates.rs` 122 lines, sha256 64b6a15b59b1
+ - `tests/r1_linking.rs` 218 lines, sha256 a9d60be4f6a6
+-- `tests/r1_literals.rs` 180 lines, sha256 89e4ca03f914
++- `tests/r1_literals.rs` 223 lines, sha256 af1e8add4011
+ - `tests/r1_qinplace.rs` 146 lines, sha256 420bac787015
+ - `tests/r1_rules.rs` 519 lines, sha256 1e4e08b46209
+-- `tests/r1_widths.rs` 470 lines, sha256 38eaf172bcd9
++- `tests/r1_widths.rs` 503 lines, sha256 d0e52f29ae41
+ - `tests/r2_validation.rs` 84 lines, sha256 7804bd497504
+ - `tests/registers.rs` 360 lines, sha256 f3affd1b3b71
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 783 lines, sha256 b30b7cc9e29e
++- `tests/support/mod.rs` 785 lines, sha256 163d202b2f5c
+ - `tests/support/r10_cases.json` 1 lines, sha256 ac147d3409d3
+ - `tests/support/r10_pins.py` 66 lines, sha256 f9753b4c0606
+@@ -159,10 +160,15 @@
+ - `tests/support/r18.rs` 168 lines, sha256 3ca4a41d420e
+ - `tests/support/r18_pins.py` 32 lines, sha256 5c45e1513435
++- `tests/support/r20-const-width-18446744073709551614.bisa` 11 lines, sha256 254bf985f88a
++- `tests/support/r20-const-width-18446744073709551615.bisa` 11 lines, sha256 94416b11560b
++- `tests/support/r20.rs` 13 lines, sha256 c55d70822d4e
++- `tests/support/r20_extremes.rs` 529 lines, sha256 817c7168470f
++- `tests/support/r20_pins.py` 19 lines, sha256 500da441429f
+ - `tests/support/r9_pins.py` 47 lines, sha256 46a27f6d9112
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 44005 lines.
+-
+-## `README.md` (538 lines)
++Total embedded: 45334 lines.
++
++## `README.md` (556 lines)
+ 
+ ````markdown
+@@ -686,9 +692,27 @@
+ separate controls.
+ 
++**Design (round 20).** `const_literal` validates canonical decimal magnitude
++using storage proportional to its spelling, then compares bit length with N;
++negative literals at the signed minimum additionally require a single set bit.
++It never constructs N+1 bits or adds to N. The same magnitude check serves
++fault codes and certificate endpoints; admission of small constants/intervals
++at huge widths needs no destination-sized storage. `Function::signature` emits
++large dimensions as decimal strings under §9.1. Concrete wire names, region
++images/cells, quantum identities, claim elements and CLI interface buffers
++reserve storage fallibly, with checked products/cardinalities. Range errors
++cite their ISA clause; representation/allocation failures additionally name the
++host limit, without an ISA width cap.
++
+ `DerivedWidths::from_program` checks H+2, A_tab+1 and S_cells+1; a legal layout
+ whose counters exceed host representation returns a cited host-limit error.
+ Admission and sequential B=0 semantics remain independent of that host limit.
+ The depth addition and bit-vector limb/storage sizing also use checked
+-arithmetic. No ISA exponent cap is introduced.
++arithmetic. The R13 family retains its 507 inputs and adds the 2^63 boundaries
++(591 cases), assigning expected layout/range, deterministic representation,
++legal and allocation-dependent outcomes before execution. Its R20 siblings
++cover text descriptors, casts, counts, bounds, region products, storage,
++schedules and certificate domains: 102 fixture-qualified paths / 1,113 cases
++total, with catch_unwind and cited range/resource distinctions. This is a
++finite extreme-value sweep, not an exhaustive proof over all objects.
+ 
+ | Schema / rule | Load-time validator | Positive and negative controls |
+@@ -707,5 +731,5 @@
+ ````
+ 
+-## `PROGRESS.md` (135 lines)
++## `PROGRESS.md` (126 lines)
+ 
+ ````markdown
+@@ -714,103 +738,93 @@
+ Resume here. The whole accepted ISA 0.8 remains in scope; staged deliverables
+ are not complete. Sole implementation sub-agent; owned interpreter and external
+-round-18 response only. Never push. Every cargo invocation uses the headless
++round-20 response only. Never push. Every cargo invocation uses the headless
+ prefix and TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
+ 
+-## Round-18 fixes (2026-10-31)
+-
+-Baseline **403 passed / 0 failed / 5 ignored**, summed over all 33 binaries
+-(including 0-test main/doctests), **22.51 s** runner sum. Original reviewer RED:
+-**1 passed / 2 failed**, root-B clipping admits the nested tie. Initial local
+-commit 9f7ea64 implemented the reviewer's symbolic-range remedy; superseded by
+-the orchestrator's INV-5 addendum because that remedy over-rejects token B=2.
+-Addendum RED: **0 passed / 1 failed**, literal deferred-admission test rejects
+-under that symbolic-range commit. Both directions are repaired below.
++## Round-20 fixes (2026-10-31)
++
++Clean isolated baseline **412 passed / 0 failed / 5 ignored**, **118.60 s**
++runner sum across all **33** result blocks. Final **425 passed / 0 failed /
++5 ignored**, **176.88 s**, **16 unit + 409 integration**, 0 doctests. All round
++4–20 controls retained. The first before log observed one rebuilt R20 binary;
++it is superseded by the isolated baseline, not used for before/after totals.
+ 
+ | Blocker | RED tests | Status | Commit |
+ |---|---|---|---|
+-| R18-B01 | metadata::r18_literal_nested_budget_ties_defer_until_run (original admission-negative witness, revised by addendum); cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject | GREEN | 42d4049 |
+-
+-Design: `metadata.rs::validate_schedule_details` supplies a bound only for an
+-oracle root. `metadata/schedule_domains.rs::InvocationSteps` tracks root,
+-nested-token and action domains. lift.call/lift.perm_call stay in the same
+-machine; lifted oracle call/uncall and normalized oracle_call enter a new
+-invocation. A nested step is NEVER clipped by root B. ISA 0.8 has no object-
+-level token constant, only classical parameters: the derivable-budget branch
+-cannot fire at admission. Unknown nested domains are DEFERRED, never taken as
+-empty or universally quantified. Root domains still use exact union subtraction.
+-
+-INV-5 steps 1.1.5, 1.4.2, 1.4.3 and Spec gaps item 10 determine the addendum:
+-check/hash cannot decide actual nested-budget ties from object + params_hash.
+-SPEC-QUESTIONS 33 records the 0.9 gap and both unsound alternatives; the
+-orchestrator owns bead b-isa-spec-6hs. No token encoding or 0.8 amendment is
+-invented. The bound Some branch is shared with admission so a future derivable
+-budget can use it, if 0.9 defines one.
+-
+-`Object::check_schedule_matches_for_run` binds actual token arguments, forwards
+-them by callee parameter (including permutations), and uses each invocation's
+-own budget. It sends concrete uncovered selector-box witnesses to
+-resolve_schedule, which errors §11 multiple maximal matching schedule entries
+-before any realisation. Hooks precede mutation in both oracle engines and
+-action execution. This is a matching preflight, not full target/timing/expansion
+-execution. Known finite domains inspect call extensions; suffix states include
+-bound arguments and budgets and terminate recursive lprocs without a depth cap.
+-Zero-trip loops, root B=0 and zero-budget nested ancestors stay empty.
+-
+-Literal reviewer files and probe copied verbatim into tests/support/. Both
+-root B=2 and B=3 witnesses now pass check/hash with their original identities
+-and bytes, and reject at run-oracle with token B=3 (exit 1, empty stdout,
+-§11 diagnostic). Token B=2 runs clean: payload=0/code=0/steps=2; inc8 has not
+-reached retval, and ignore intentionally does not propagate the nested fault.
+-The unscheduled token-B=3 reference still gives payload=9/code=0/steps=2.
+-Root step 3 is dead at B=2 and rejects a true root tie at B=3. Machine creation
+-and action execution reject bound ties before mutation; the action's complete
+-QuantumState remains equal. Single-entry positives and genuinely covering
+-A/B/C entries admit, preserve object/closure pins and resolve C in all six
+-orders. The literal duplicates are fully specific except generated="*";
+-covering controls broaden A/B's iterations, not one generated ordinal.
+-
+-`r18_nested_specificity_family_matches_brute_force`: **7,500 schedules + 7,500
+-reversed orders**, **6,894 admitted / 606 root-rejected**, **319 deferred ties
+-materialise at binding / 6,575 bound-clean**. **100% oracle agreement** for
+-root-only admission, actual-budget bound matching and concrete resolver results,
+-including errors. Fifteen shapes cover depth 1–3 oracle prefixes/lproc suffixes,
+-action roots, root B in {0,1,2,4}, and every independent token assignment 0..4:
+-**1,532 distinct assignments**, **569,910 concrete operation partitions**.
+-The oracle derives owning machines from O/L edges before calling production;
+-steps 1..3 and residual 4, both phases, generated 0,1 and residual 2 exhaust
+-this finite family's selector distinctions. It models EACH actual budget map,
+-never their union. This does not claim a complete expansion-library executor.
+-The original R17 1,200-schedule family/distribution and all six literal orders,
+-union/partial coverage, zero/large loops, all defaults and pins remain green.
+-All round 4–17 assertions are retained; R18 admission expectations follow the
+-explicit addendum. r18_pins.py and r17_pins.py and all three reviewer cmp checks
+-pass; no reference body, token budget or canonical witness byte was altered.
+-
+-Final full suite after the addendum: **412 passed / 0 failed / 5 ignored**,
+-**31.66 s** runner sum, **14 unit + 398 integration**, 0 doctests, over all
+-33 binaries. Focused final R18: **9 passed / 0 failed**, family 10.47 s.
+-Fmt/fmt --check and strict all-target Clippy pass with 0 warnings. The earlier
+-411-test full runs/sweeps preceded the addendum and are not final evidence.
+-All **5 ignored sweeps passed / 0 failed**, **96.71 s** runner sum across all
+-33 binaries, rerun on final bound-matching code. Production, test inputs and
+-assertions were unchanged from their start.
++| SOL-R20-B01 | r1_literals::r20_pinned_extreme_const_widths_parse_and_hash_without_panic; cli_xam::r20_cli_pinned_extreme_const_widths_check_and_hash | GREEN | af52c9c |
++
++Exact original const_literal RED: library 0/1; max−1 CLI exits 1 with a false
++§3.3 range error; max CLI exits 101 on unchecked N+1. Both reviewer files now
++parse/check/hash, preserve their 269-byte envelope pins and whole-file SHA-256s.
++`r20_pins.py` independently reconstructs them; reviewer cmp checks pass.
++`r20_extreme_const_execution_reports_host_resource` checks both execution
++engines return a cited host limit for actual unrepresentable storage.
++Ordinary i8 256/-129 still reject, 255/-128 still admit.
++
++Design: object::const_literal parses only the decimal spelling's magnitude and
++compares its bit length to N; a negative N-bit magnitude must be a power of two.
++No N+1 arithmetic or destination-sized admission allocation remains. Fault-code
++and certificate endpoint admission share the unsigned magnitude check; errors
++propagate with range/resource separation. Signature dimensions follow §9.1's
++number/string boundary. Wire names, region images/cells, quantum identities,
++CLI buffers and claim-element storage reserve fallibly; products/cardinalities
++are checked. Representation/allocation failures cite the § and name the host
++limit. No ISA width/count cap or new spec reading is introduced.
++
++The sweep reproduced additional false large-width signature mismatches,
++wire-expansion capacity panics and certificate small-endpoint allocation with
++a misleading range wrapper. The arithmetic audit also repaired unchecked
++region products and eager exhaustive/sample collection, and normalized cited
++resource diagnostics for frames, counters, borrowed-capacity sums and CLI
++storage. Bead b-isa-spec-61i records this class.
++
++**102 fixture-qualified paths / 1,113 generated cases**, plus separate pinned
++admission/execution controls. Every scalar path receives 0, 1, 2^63−1, 2^63,
++2^64−2, 2^64−1 in grammar-admitted spellings. Twenty descriptor spelling
++negatives include 00/+1/-0/1.0/2^64. All are under catch_unwind with preassigned
++admit/range/resource expectations and § citation. See the full path/validation/
++case inventory in external round-20 response.md.
++
++| Family / consumers | Paths | Cases |
++|---|---:|---:|
++| r13_generated_derived_width_extremes_family: five fixtures' layout scalars + depth | 42 | 591 |
++| r20_generated_text_width_count_index_extremes | 8 | 90 |
++| r20_generated_descriptor_budget_storage_extremes | 15 | 110 |
++| r20_generated_qreg_descriptor_arithmetic_extremes | 4 | 24 |
++| r20_generated_cast_length_region_product_extremes | 5 | 30 |
++| r20_generated_borrow_capacity_sum_extremes | 1 | 6 |
++| r20_generated_certificate_width_bound_count_table_extremes | 10 | 60 |
++| r20_region_domain_extremes (direct semantic consumer) | 5 | 30 |
++| r20_exhaustive_domain_cardinality_extremes (exhaustive/sample direct consumers) | 2 | 12 |
++| r20_generated_schedule_count_selector_extremes | 8 | 48 |
++| r20_cli_interface_region_storage_extremes | 2 | 12 |
++
++S1 applied: all original **507** R13 inputs retained, **84** added. Independent
++§§7.1–7.2 range/non-overlap/capacity and §§3.7/5.4 width formulas assign legal,
++layout rejection, deterministic representation or allocation-dependent storage
++before production. Observed **167 constructed / 342 layout rejections / 82
++resource diagnostics**. Allocation-dependent cases allow success or a cited
++host allocation failure; this is finite boundary coverage, not an exhaustive
++resource-availability or full-u64 proof.
++
++All **5 ignored release sweeps passed / 0 failed**, **106.12 s** runner sum:
+ 
+ | Sweep | Full domain | Result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.51 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 2.86 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.80 s |
+-| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.14 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.40 s |
+-
+-Implementation commit 42d404924e68d4a40524f6c35accdcc7c60cfc73; this block
+-records final evidence. No user decision is needed for this repair; the 0.9
+-spec decision remains tracked by b-isa-spec-6hs.
+-
+-Logs: interpreter .tmp/r18-{before,red,addendum-red,addendum-green,bound-full,
+-bound-clippy,bound-final,bound-sweeps}.log. Only owned interpreter paths and
+-external response; no foreign tests, dependency changes, push or Dolt sync.
+-Concurrent spec/conformance/Beads changes are untouched. Full-ISA bead
+-b-isa-spec-zq2 remains active for staged work.
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 1.09 s |
++| 17-wire borrow | 131,072 entries | 1/0; 5.81 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 23.01 s |
++| §6 differential | 200,000 programs: 70,931 accepted clean / 129,069 rejected | 1/0; 74.22 s |
++| recursive prefix reversal | 256 inputs × every completion/first-fault prefix | 1/0; 1.99 s |
++
++Fmt/fmt --check, strict offline all-target Clippy (0 warnings), unchanged Python
++seed (2 examples / 2 envelopes), independent R20 pins and byte comparisons pass.
++Production/test inputs stayed fixed throughout the final full run and sweeps.
++Implementation commit **af52c9cd42965c1f7fd3fa0bcd4139673074e10c**; this block records final evidence.
++Logs: interpreter .tmp/r20-{baseline-clean,exact-red,class-red,allocation-red,
++cert-red,focused,widths,final,final-clippy,sweeps}.log.
++
++No new spec gap; no user decision needed for this repair. Deliverables 8–11
++remain staged/Unverified. Only owned paths committed; Beads auto-export left
++for the orchestrator. No foreign changes, worklog edits, push or Dolt sync.
+ 
+ ## Resume here: outstanding work, in priority order
+@@ -828,7 +842,8 @@
+    are centralized and tested in metadata_schema.rs).
+    Imports resolve by signature and pin, including data; linking is tested.
+-3. Generalize lifted reg widths and oracle bitvectors beyond128. Structured
+-   wire bundles and Q basis execution support256 in tests; descriptors remain
+-   u16. Audit JSON/JCS number corner cases and all integer spellings.
++3. Continue generalized-width and host-resource verification beyond the R20
++   finite boundary family. Lifted widths are u64 descriptors; concrete vectors
++   and Q basis execution already exceed128. Audit remaining JSON/JCS numeric
++   corner cases and spellings without an ISA width cap.
+ 4. Complete Q verification: qinplace certificates/full domain, qif, coherent
+    while dependencies, nested controlled calls, local-image and cell cleanup.
+@@ -1249,218 +1264,219 @@
+ ````
+ 
+-## `council/response-round-18.md` (211 lines)
++## `council/response-round-20.md` (212 lines)
+ 
+ ````markdown
+-# Editor response: council round 18
+-
+-**R18-B01 is resolved under the orchestrator's INV-5 addendum**; none declined
+-or partial. Root-only admission cannot decide nested-budget ties from
+-params_hash. The literal witness therefore **admits at check/hash and rejects
+-at run-oracle with token B=3**; token B=2 runs clean. This intentionally
+-supersedes the reviewer's request for unconditional admission rejection.
+-Determining proof: INV-5 **1.1.5, 1.4.2, 1.4.3**, Spec gaps item 10.
+-
+-Implementation commit: **42d404924e68d4a40524f6c35accdcc7c60cfc73**.
+-The initial local **9f7ea64e364a4564d09cba311c171a9eab0039ea** implemented the
+-reviewer's symbolic-range remedy; the addendum demonstrates its over-rejection
+-and the implementation commit supersedes it. Final evidence commit: **fed0d19a026ae35ea175a4c97edba2d1f2e7f68a**.
+-Only owned interpreter paths and this response are committed. No push.
+-Concurrent spec/conformance/Beads changes are untouched.
+-
+-## Design
+-
+-1. §11 steps belong to their invocation. `InvocationSteps` distinguishes the
+-   known root bound, a nested invocation with an optional resolved bound, and
+-   action-level operations. `lift.call` and lifted action gates stay within
+-   the enclosing oracle machine. Lifted oracle call/uncall and normalized
+-   oracle_call enter token-governed invocations. Root B never bounds them.
+-2. ISA 0.8 has **no object-level token constant**. Tokens are classical
+-   parameters, so the derivable-nested-budget branch **cannot fire at admission**.
+-   Whether 0.9 adds such an encoding is a spec decision; no encoding or test
+-   fabricating one was added. A resolved bound uses the same domain path, ready
+-   for a future derivable bound if the spec defines one.
+-3. Admission checks root-owned domains exactly, including lprocs sharing that
+-   root machine, and **defers** unknown nested domains. Deferred is neither a
+-   proof of emptiness nor universal quantification over possible budgets.
+-   INV-5 1.4.3 shows why both alternatives fail: root clipping admits the
+-   token-B=3 witness, while an "any budget" range rejects its valid B=2 run.
+-4. `Object::check_schedule_matches_for_run` binds the actual classical token
+-   arguments, follows forwarding by callee parameter, and checks each nested
+-   invocation against its own resolved budget. A zero-budget ancestor has no
+-   descendant operations. No token-budget inference from params_hash occurs.
+-5. The bound matching preflight constructs a concrete uncovered selector-box
+-   witness and passes it to `Object::resolve_schedule`. At that concrete
+-   ambiguity the resolver raises `§11: multiple maximal matching schedule
+-   entries`, before any realisation. Both oracle engines and action execution
+-   invoke this gate before mutation. No silent first-entry choice is possible.
+-6. Equal-specificity overlap is still only a candidate. Intersection followed
+-   by subtraction of the UNION of all strictly higher entries determines
+-   whether any equal-maximum remainder exists. R17 shadowed ties stay admitted
+-   in all six orders. The resolver's order-independent final-maxima rule stays.
+-7. Step/loop counts are not expanded or capped. Known finite domains also visit
+-   call extensions whose invocation budgets can differ; suffix states include
+-   bound arguments and budgets beyond the longest selector path. Recursive
+-   lprocs terminate without a depth cap. Empty paths split over real points;
+-   zero-trip loops and root B=0 stay empty.
+-8. Generated ordinal ranges still belong to the staged expansion library.
+-   This is schedule **matching** verification over selector partitions, not
+-   completion of target selection, timing, expansion execution or numerical
+-   claims. Those deliverables remain staged/Unverified. Other INV-5 readings
+-   are not silently imposed by this budget repair.
+-9. SPEC-QUESTIONS **33** records the 0.9 budget-binding/check-timing gap, both
+-   unsound alternatives, the absence of object token constants and the needed
+-   spec decision. The orchestrator owns **b-isa-spec-6hs**. Possible 0.9 choices
+-   are explicit deferred matching until token binding, or recoverable nested
+-   budgets in bindings; token JCS interchange must also be defined. No 0.8
+-   normative bytes or new object fields were changed.
+-
+-## R18-B01 — resolved
+-
+-Determining clauses: §11 Matching (ISA-11-P4), §5.2, §4.2. INV-5 1.1.5 establishes
+-per-invocation budgets; 1.4.2 establishes exact bound matching and harmless
+-shadowed ties; **1.4.3 refutes exact unbound admission** from object + params_hash.
+-
+-| Blocker | RED tests | Final fix locations | Commit |
++# Editor response: council round 20
++
++**SOL-R20-B01 is resolved; S1 is applied.** No blocker is declined or partial.
++The literal range and unrestricted positive lifted widths remain unchanged.
++Only interpreter paths and this response are committed; no push. No accepted
++0.8 spec, draft spec or conformance file was edited by this implementer.
++
++Implementation commit: af52c9cd42965c1f7fd3fa0bcd4139673074e10c.
++
++Final evidence commit: **2a32dfbeb29d0c204bba5a6c81f3e84df1f086b0**.
++
++## SOL-R20-B01 — resolved
++
++Determining clauses: §§3.3, 4.2, 16.1–16.2; SPEC-QUESTIONS 12/15. A positive
++literal fits iff its magnitude bit length is at most N. A negative magnitude
++fits iff its bit length is less than N, or equals N and is a power of two.
++Thus 1, 0 and -1 fit both supplied positive widths. No theorem assumption or
++spec amendment is needed.
++
++| Blocker | RED tests / observations | Fix | Commit |
+ |---|---|---|---|
+-| R18-B01 | metadata::r18_literal_nested_budget_ties_defer_until_run (initial admission-negative witness, revised by addendum); cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject | metadata.rs::validate_schedule_details; metadata/schedule_domains.rs::{InvocationSteps,chain_domain,tie_witness,concrete_witness,check_schedule_matches_for_run}; oracle.rs::run_oracle_vectors; machine.rs::OracleVectorMachine::new; action.rs::action_internal | 42d4049 |
+-
+-Original reviewer RED: **1 passed / 2 failed**. Library and CLI admission
+-accept the genuinely ambiguous nested witness under root-B clipping; the
+-independent execution derivation already passes. The first symbolic-range fix
+-was subsequently tested against the addendum: the revised literal test is
+-RED **0 passed / 1 failed**, because that remedy rejects at admission.
+-The final implementation repairs both the under- and over-rejection.
+-
+-Final literal controls, for both supplied root budgets 2 and 3:
+-
+-- `check` and `hash`: exit 0; object hash unchanged, check status ok.
+-- `run-oracle ... ignore --input 8 --budget B --arg token:3,0,0,0`:
+-  exit 1, empty stdout, §11 multiple maximal matching schedule entries.
+-- Same run with token:2,0,0,0: exit 0, **payload=0, code=0, steps=2**.
+-  inc8 has not reached its retval; ignore intentionally does not propagate
+-  the nested fault. This is not a three-step call clipped by the outer budget.
+-- The unchanged unscheduled fixture with root B=2 and token B=3 still gives
+-  **payload=9, code=0, steps=2**. No execution budget or body was changed.
+-- A true root-owned step-3 tie rejects at admission with root B=3, but is dead
+-  at root B=2. A same-machine lproc step 3 at B=2 stays dead; nested-oracle/lproc
+-  and action-root ties defer, then reject under their actual token B=3.
+-- Reversible-machine creation rejects the bound tie. The action-root control
+-  checks complete QuantumState equality before/after the error: no mutation.
+-
+-Single-entry positives preserve identity and resolve uniquely. Covering-entry
+-controls admit and resolve C in all six orders, including CLI check/hash at
+-both root budgets. The literal duplicate entries are fully specific except
+-for generated="*"; one concrete generated ordinal cannot cover that wildcard.
+-The genuine covering control broadens A/B's iteration selectors to "*" and
+-uses literal C with [] iterations to cover ALL generated ordinals. Resolver
+-controls include generated 0, 1 and u128::MAX.
+-
+-`r18_bound_tokens_forward_by_parameter_and_zero_ancestor_is_empty` permutes the
+-forwarded token arguments, uses distinct budgets at each nested invocation,
+-and checks both the materialised tie and the dead step-3 control. A zero-budget
+-ancestor prevents a larger descendant token from manufacturing operations.
+-`r18_recursive_lproc_keeps_root_budget_without_depth_cap` retains the same
+-root bound through recursive sum_db lprocs and terminates without truncation.
+-
+-## Independent byte and identity evidence
+-
+-Both literal .bisa files and r18-review-probe.rs were copied verbatim from the
+-read-only review directory into tests/support/; all three cmp checks pass.
+-The probe's concrete generated=0 resolution is exercised in the library
+-controls. `r18_pins.py` independently checks original nested fixture bytes,
+-canonical schedules, both file hashes and the reviewer's token-preimage hash
+-construction using hashlib/json, without the interpreter or rehash helper.
+-That construction pins this fixture; it does not declare a normative token
+-JCS interchange encoding (the latter is part of the recorded spec gap).
+-
+-| Pin | Root B=2 | Root B=3 |
++| SOL-R20-B01 | `r1_literals::r20_pinned_extreme_const_widths_parse_and_hash_without_panic`; `cli_xam::r20_cli_pinned_extreme_const_widths_check_and_hash`. Original N=max−1: exit 1, false §3.3 range error. Original N=max: exit 101, unchecked-add panic. | `object.rs::{const_literal,literal_magnitude,unsigned_literal}` | af52c9cd42965c1f7fd3fa0bcd4139673074e10c |
++
++The original function was reinstalled temporarily, tested, and restored in a
++`finally` block to obtain isolated RED evidence for both exact CLI witnesses:
++`.tmp/r20-exact-red.log`. The library test failed 0/1; CLI stdout was empty in
++both cases. An earlier focused library/CLI RED also rejected max−1.
++
++GREEN: both full reviewer files are copied byte-for-byte into
++`tests/support/r20-const-width-*.bisa`. Library admission runs under
++`catch_unwind`, then `check_hashes`, and asserts both interface and closure.
++CLI `check`/`hash` exit 0 with those identities; check status is `ok`.
++`r20_extreme_const_execution_reports_host_resource` requires both sequential
++execution and reversible-machine construction to return a cited host limit,
++never panic or describe literal 1 as out of range.
++
++| N | Interface = closure | Whole-file SHA-256 |
+ |---|---|---|
+-| File SHA-256 | 07c617a312f2b1f333689d95b474ccf9b7dea4a570c43ced87a92c089b66d9e7 | 0584dc9a6dbe02b138e516caca59168a4dbbf577185e9d96504f58d5a5fcf4ae |
+-| Schedule SHA-256 | 197452169a33d0ced5dce10dbe2949dc42d1b96bcf62a089718ce7534b98c077 | 7e66e4320a43b0d93a2302a71c926f70c9dc37407ca15605a3c898c74a44492b |
+-
+-Common object hash:
+-`8e6e852c4717ad55763ec2162b0582896a948c073b649c40002a8aa64dd0f815`.
+-Ignore interface=closure:
+-`9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012`.
+-The supplied canonical schedules, reference bodies and token-budget pins are
+-unchanged. `r17_pins.py` also passes with every R17 file/schedule/identity pin.
+-
+-## Nested specificity family and retained gates
+-
+-`r18_nested_specificity_family_matches_brute_force` independently derives
+-operations from O/L edges and concrete budgets before admission or resolver
+-calls. Fifteen valid shapes cover depth 1–3, all oracle-prefix/lproc-suffix
+-mixes permitted by §4.2, and action roots. Root B is 0,1,2,4; each nested token
+-independently ranges 0..4. Steps 1,2,3 plus residual 4, both phases and generated
+-0,1 plus residual 2 exhaust the distinctions the family's selectors make.
+-No production overlap/domain/specificity helper computes the oracle maximum.
+-
+-Observed: **7,500 schedules + 7,500 reversed orders**, **1,532 distinct concrete
+-budget assignments**, **569,910 concrete operation partitions**. Admission
+-rejects **606 root ties** and admits **6,894** schedules with any nested check
+-deferred. Under their actual run-time budgets, **319** deferred ties materialise
+-and **6,575** are bound-clean. Admission, bound matching and every concrete
+-resolver result (including the error on a true maximum tie) have **100% oracle
+-agreement**. This oracle does not take a union over possible token budgets.
+-It is a finite selector-domain family, not a claim to verify every expansion
+-library operation or full schedule execution.
+-
+-All round 4–17 tests/assertions are retained; R18 admission expectations follow
+-the explicit addendum. All six R17 witness orders, 1,200 schedules plus reversed
+-orders, union/partial coverage, zero/large loops, all 14 defaults and byte pins
+-remain green. Earlier borrow/discipline, derived-width, schema, complete inverse
+-and CC/R nested-uncall tests remain. The nonblocking independent width-outcome
+-classification follow-up remains staged as in R17; no widths/assertions were
+-weakened. No foreign conformance tests were run.
+-
+-## Observed verification
+-
+-| Gate | Result |
+-|---|---|
+-| Baseline, summed over 33 binaries including main/doctests | 403 passed / 0 failed / 5 ignored; 22.51 s |
+-| Final full suite after addendum | 412 passed / 0 failed / 5 ignored; 31.66 s; 14 unit + 398 integration, 0 doctests |
+-| Final focused R18 | 9 passed / 0 failed; nested family 10.47 s |
+-| Fmt and fmt --check | pass |
+-| Strict all-target Clippy | pass, 0 warnings |
+-| Independent R17/R18 pin scripts and three reviewer cmp checks | pass |
+-
+-All **5 ignored sweeps passed / 0 failed**, **96.71 s** runner sum across all
+-33 binaries, rerun after the addendum on final code and unchanged sweep inputs.
++| 18446744073709551614 | 9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318 | 254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367 |
++| 18446744073709551615 | 97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1 | 94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344 |
++
++`tests/support/r20_pins.py` independently reconstructs each 269-byte envelope
++using Python json/hashlib, without the interpreter or rehash helper. Both
++reviewer files compare equal with `cmp`. Existing i8 256 / -129 negatives and
++255 / -128 positives remain; the generated family adds 0, 1, -1, -2, 255,
++256, -128, -129 against every extreme width, with independent expectations.
++
++## Design and additional defects found by the sweep
++
++1. Magnitude parsing reserves four bits per decimal digit plus
++   limb padding, and scans only those bits. Neither N+1 nor N-bit storage is
++   used at admission. Parser/resource errors propagate; only a mathematical
++   range failure becomes the §3.3 out-of-range diagnostic.
++2. Fault-code admission and certificate bundle/borrowed/cell endpoints had the
++   same destination-sized allocation pattern. They now share the spelling-sized
++   unsigned check. Canonical decimal endpoint ordering uses length then lexical
++   order. The certificate family reproduced the old legal small-endpoint host
++   failure with a misleading "outside bundle width" wrapper; that wrapper is
++   gone. Actual claim execution still allocates concrete vectors fallibly.
++3. `Function::signature` emitted large wire/reg and region A/W dimensions as
++   JSON numbers, causing false §9.1 signature mismatches for canonical strings.
++   It now emits numbers only through 2^53−1, decimal strings above it. The text
++   family reproduced this mismatch before repair. Published identities remain
++   unchanged; both new reviewer pins are preserved.
++4. `Discipline::wires` and `borrow::Compiler::{fresh,declare_regions,
++   borrow_compiler}` expanded scalar counts through infallible collect/push or
++   unchecked cells*W. A large whole-wire operand reproduced a caught capacity
++   overflow panic after the signature defect was repaired. Wire names, images
++   and cell vectors now reserve fallibly; region products are checked.
++5. The audit found unchecked storage growth in exhaustive claim enumeration
++   and sample collection. Exhaustive interval cardinality, product, usize
++   conversion and vector reservation are checked before enumeration. Sample
++   counts reserve fallibly before drawing. These are host-resource failures,
++   never an arbitrary ISA count cap. The unit family exercises the cardinality
++   and reservation consumers directly, avoiding an unsafe pre-fix OOM run.
++6. Quantum wire identities now reserve before collecting; CLI interface cells
++   reserve before iteration and check cells*cell_bytes. Resource diagnostics in
++   these paths, derived machine frames/indices, borrow-capacity sums and depth
++   counters name the host limit and cite the relevant §. Qreg descriptor-sum
++   overflow is distinguished from an invalid slice's mathematical range.
++
++No new specification gap was exposed. Bead **b-isa-spec-61i** records the
++recurring class; full-ISA staged work remains separate.
++
++## Extreme-width path inventory
++
++**102 fixture-qualified paths, 1,113 generated cases.** Every scalar path is
++driven by 0, 1, 2^63−1, 2^63, 2^64−2, 2^64−1. Text uses canonical unsigned
++INT; metadata uses numbers through 2^53−1 and decimal strings above it. Twenty
++additional descriptor spelling controls include 00, +1, -0, 1.0 and 2^64.
++The retained R13 values and its three u128 depth boundaries remain included.
++Counts below exclude the two pinned objects and their execution/CLI controls.
++
++| Path(s) | Where validated / consumed | Paths | Cases |
++|---|---|---:|---:|
++| Every layout scalar, qualified by five fixtures (listed below) | `Object::validate_layout`, `DerivedWidths::from_program`, `BitVector::zero`, machine construction | 41 | 574 |
++| depth+2 / Dc | `DerivedWidths::from_program`, machine construction | 1 | 17 |
++| constant width × eight signed/unsigned literals | `const_literal` | 1 | 48 |
++| action wire, qalloc, qborrow, wire index, qloop/bounds list, qregion A, qregion W | `Type::parse`, `validate_action_sequence`, `Discipline::wires`, borrow compiler | 7 | 42 |
++| iN, reg, wire, qreg, region A/W, plus 20 spelling controls | `Type::parse`, `host_count` | 6 | 56 |
++| concrete bit storage | `BitVector::zero` | 1 | 6 |
++| concrete wire storage | `QuantumState::allocate` | 1 | 6 |
++| B (machine and sequential), heap, stack, depth | `validate_budget`, `DerivedWidths`, `OracleVectorMachine::new`, `run_oracle` | 5 | 30 |
++| fault width with literal code 1 | signature construction, `unsigned_literal` | 1 | 6 |
++| allocation length | `validate_row` pointer-range check | 1 | 6 |
++| zext and trunc destination widths | `lifted_suffix`, `validate_row` | 2 | 12 |
++| boundscheck length | `validate_row` pointer-range check | 1 | 6 |
++| local region cells*W | `declare_region`, borrow compiler checked sizing/reservation | 1 | 6 |
++| local region image size | `declare_region` exact power/product comparison | 1 | 6 |
++| qreg.new, slice offset, slice length, concat | `validate_classical`, handle-view discipline | 4 | 24 |
++| borrowed-capacity sum | public `Object::borrow_capacity` consumer, isolated from wire expansion | 1 | 6 |
++| certificate borrowed width, bundle/borrowed lo/hi, sample count, table cell, frame width, bounds, gate count | TABLE and `validate_certificate_details` / `domain` | 10 | 60 |
++| certificate region A, W, index, lo, hi | `certificate::domain` (direct semantic consumer) | 5 | 30 |
++| exhaustive cardinality/product and sampled-element capacity | `claims::{enumerate,sample_elements}` (direct consumers) | 2 | 12 |
++| schedule B/heap/stack/depth, inherited controls, step, generated ordinal, point ordinal | TABLE, `validate_schedule_details`, symbolic selector domains | 8 | 48 |
++| CLI interface A and W | `build_action_state`, bit-vector/region allocation | 2 | 12 |
++| **Total** | | **102** | **1,113** |
++
++The 41 layout instances are:
++
++- inc8/ptr32 and inc8/ptr128: A_tab, H, S_cells, heap_base, heap_limit_max,
++  null_size, ptr_width (7 each).
++- heap: those seven plus globals.g.base and globals.g.size (9).
++- sum_db: those seven plus globals.zero.base, globals.zero.size,
++  interface_regions.sum_db.db.base (10).
++- tiny_memory: those seven plus interface_regions.tiny.db.base (8).
++
++Numeric table capacities use checked/exact powers; only actual allocations
++create entries. Array/table lengths, instruction/program counters, frame-cell
++counts, ABI slot counts and ordinal worklists otherwise derive from resident
++parsed collections, not an untrusted virtual length. Scalar lengths do not
++control an unchecked eager allocation on the audited paths. Pointer lengths,
++layout base+size, region shifts/products, qreg slices/concats and the guarded
++selector lo−1/hi+1 operations were inspected. The selectors keep large domains
++symbolic; loops retain transfer/cycle rules and acquire no trip cap.
++
++### S1: independently assigned categories
++
++`r13_generated_derived_width_extremes_family` retains all 507 original inputs
++and adds 84: 41 layout paths × two new 2^63 boundaries plus two depth cases.
++Expected categories are computed *before* production by independent §§7.1–7.2
++range/non-overlap/capacity formulas and §§3.7/5.4 width arithmetic:
++legal, layout rejection, deterministic host representation, or allocation-
++dependent host storage. Allocation-dependent cases allow a successful concrete
++construction or a cited host allocation failure; they are not advertised as
++deterministic representation failures. The observed distribution is
++**167 constructed / 342 layout rejections / 82 resource diagnostics**.
++
++All generated families use `catch_unwind`; admission/range/resource results are
++asserted against preassigned expectations, with § citation and host-limit
++separation. The families are finite boundary coverage, not an exhaustive
++u64-domain or resource-availability proof. Direct capacity/domain tests are
++identified above; they do not claim completion of staged semantic claims.
++
++## Validation and retained evidence
++
++Clean baseline: **412 passed / 0 failed / 5 ignored**, **118.60 s** runner
++sum over **33 result blocks**. Final: **425 passed / 0 failed / 5 ignored**,
++**176.88 s**, **16 unit + 409 integration**, 0 doctests, the same 33 blocks.
++Focused R20: **13 passed / 0 failed**, 0.15 s runner sum. The 591-case width
++family reports 167 constructed / 342 layout rejections / 82 resource errors.
++
++All five ignored sweeps: **5 passed / 0 failed**, **106.12 s** runner sum,
++rerun in release mode on final code:
+ 
+ | Sweep | Full domain | Result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.51 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 2.86 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.80 s |
+-| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.14 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.40 s |
+-
+-Exact final commands (all cargo calls headless, offline where applicable, with
+-absolute interpreter manifest; test opt-level 1 retains assertions/overflow
+-checks and complete sweep domains):
+-
+-~~~sh
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --test metadata --test cli_xam --test oracle r18_ --no-fail-fast -- --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast -- --ignored --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
+-python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18_pins.py
+-python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17_pins.py
+-cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-nested-budget-2.bisa
+-cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-3.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-nested-budget-3.bisa
+-cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-review-probe.rs /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-review-probe.rs
+-~~~
+-
+-Final logs: interpreter `.tmp/r18-{before,red,addendum-red,addendum-green,
+-bound-full,bound-clippy,bound-final,bound-sweeps}.log`. Earlier 411-test runs
+-and the first sweep run preceded the addendum and are not final evidence.
+-Production, test inputs and assertions were unchanged throughout the final
+-sweeps. Owned diffs pass --check. Full-ISA bead b-isa-spec-zq2 stays active for
+-staged work; b-isa-spec-6hs belongs to the orchestrator. No dependency, normative
+-spec, conformance, include, Python-seed or foreign-source changes; no push or
+-Dolt sync. Commits use explicit owned paths, absolute git -C and
+-BEADS_HOOK_TIMEOUT=20.
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 1.09 s |
++| 17-wire borrow | 131,072 entries | 1/0; 5.81 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 23.01 s |
++| §6 differential | 200,000 programs; 70,931 accepted clean / 129,069 rejected | 1/0; 74.22 s |
++| recursive prefix reversal | 256 inputs × all completion/first-fault prefixes | 1/0; 1.99 s |
++
++Fmt/fmt --check and strict all-target offline Clippy pass with **0 warnings**.
++The unchanged Python seed passes **2 example objects / 2 printed envelopes**.
++Independent pins and both exact file comparisons pass. Logs under interpreter
++`.tmp/`: `r20-{baseline-clean,exact-red,class-red,allocation-red,cert-red,
++focused,widths,final,final-clippy,sweeps}.log`.
++
++All round 4–20 tests are retained. In particular the R13 service/block_image
++controls, R14 Y/table schema family, R15 frame/epsilon controls, R16–17 defaults,
++R17 union-subtraction schedule oracle, R18 per-invocation deferred/bound budget
++family, borrow/discipline positives and negatives and exact fixture hashes
++remain in the full suite. Deliverables 8–11 retain their staged/Unverified
++status; no literal other-value theorem is newly claimed proved.
++
++The clean baseline was rerun in isolation against the unchanged HEAD
++interpreter, restoring all working files in a finally block. Use
++`.tmp/r20-baseline-clean.log`; the initial `.tmp/r20-before.log` picked up one
++rebuilt R20 test binary during concurrent focused compilation and is explicitly
++superseded. The final gates run on restored repaired code, with no production
++or test-input changes during those gates.
++
++Commands (each cargo command has the mandatory prefix):
++
++```sh
++ENV_PREFIX='env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp'
++MANIFEST=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST"
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" r20_ -- --nocapture
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" --test r1_widths -- --nocapture
++$ENV_PREFIX cargo test --offline --release --manifest-path "$MANIFEST" -- --ignored --nocapture
++$ENV_PREFIX cargo fmt --manifest-path "$MANIFEST"
++$ENV_PREFIX cargo fmt --manifest-path "$MANIFEST" -- --check
++$ENV_PREFIX cargo clippy --offline --manifest-path "$MANIFEST" --all-targets -- -D warnings
++python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r20_pins.py
++```
++
++The Python seed is unchanged. Source/test changes belong only to
++`reference-interpreter/`; the Beads auto-export is left for the orchestrator,
++not included in the explicit-path commits. No foreign changes were staged or
++committed by this implementer. Worklog ownership remains with the orchestrator.
+ ````
+ 
+@@ -1823,486 +1839,4 @@
+ ````
+ 
+-## `src/metadata/schedule_domains.rs` (477 lines)
+-
+-````rust
+-//! §11 maximal-match admission over selector domains, without loop expansion.
+-use super::*;
+-
+-type Domain = Vec<(u128, u128)>;
+-
+-#[derive(Clone, Copy)]
+-enum InvocationSteps {
+-    Root(u128),
+-    // None is deferred, never an empty domain or an "any budget" proof.
+-    // ISA 0.8 has no object-level constant token; Some is populated at binding.
+-    Nested(Option<u128>),
+-    Action,
+-}
+-impl InvocationSteps {
+-    fn upper(self) -> Option<u128> {
+-        match self {
+-            Self::Root(budget) => Some(budget),
+-            Self::Nested(budget) => budget,
+-            Self::Action => Some(u128::MAX),
+-        }
+-    }
+-}
+-
+-fn intersection(a: &Domain, b: &Domain) -> Option<Domain> {
+-    let out: Domain = a
+-        .iter()
+-        .zip(b)
+-        .map(|(x, y)| (x.0.max(y.0), x.1.min(y.1)))
+-        .collect();
+-    out.iter().all(|(lo, hi)| lo <= hi).then_some(out)
+-}
+-
+-/// Partition A \ B into disjoint boxes. Boundaries come only from selectors;
+-/// cost is independent of numeric loop/step bounds. Repeating subtraction
+-/// checks coverage by the UNION of all higher entries, not one overlapping C.
+-fn subtract(mut a: Domain, b: &Domain) -> Vec<Domain> {
+-    let Some(common) = intersection(&a, b) else {
+-        return vec![a];
+-    };
+-    let mut out = Vec::new();
+-    for (i, &(lo, hi)) in common.iter().enumerate() {
+-        if a[i].0 < lo {
+-            let mut part = a.clone();
+-            part[i].1 = lo - 1;
+-            out.push(part);
+-            a[i].0 = lo;
+-        }
+-        if hi < a[i].1 {
+-            let mut part = a.clone();
+-            part[i].0 = hi + 1;
+-            out.push(part);
+-            a[i].1 = hi;
+-        }
+-    }
+-    out
+-}
+-
+-impl Object {
+-    /// Each point has its own generated operations (§11), including call/loop
+-    /// rows. Start at the shortest chains; a new oracle invocation can broaden
+-    /// their step domain, so has_uncovered_tie also visits those extensions.
+-    /// The empty prefix is split over every root instruction (not a fictitious
+-    /// operation with an empty chain). validate_path already checked call edges.
+-    fn shortest_chains(&self, path: &Json, region: &str) -> Result<Vec<Vec<Json>>> {
+-        if !path.array()?.is_empty() {
+-            return Ok(vec![path.array()?.to_vec()]);
+-        }
+-        fn points(seq: &[Instruction], ordinal: &mut u128, out: &mut Vec<u128>) {
+-            for i in seq {
+-                out.push(*ordinal);
+-                *ordinal += 1;
+-                for body in &i.bodies {
+-                    points(body, ordinal, out);
+-                }
+-            }
+-        }
+-        let symbol = &self.identity()?.interface_hashes[region];
+-        let mut chains = Vec::new();
+-        for block in &self.functions[region].blocks {
+-            let mut ordinals = Vec::new();
+-            points(&block.instructions, &mut 0, &mut ordinals);
+-            for ordinal in ordinals {
+-                chains.push(vec![Json::Object(std::collections::BTreeMap::from([
+-                    ("symbol".into(), Json::String(symbol.clone())),
+-                    (
+-                        "point".into(),
+-                        Json::String(format!("{}:{ordinal}", block.name)),
+-                    ),
+-                    ("iteration".into(), Json::String("*".into())),
+-                ]))]);
+-            }
+-        }
+-        Ok(chains)
+-    }
+-
+-    fn chain_domain(
+-        &self,
+-        chain: &[Json],
+-        root_budget: Option<u128>,
+-        arguments: Option<&std::collections::BTreeMap<String, crate::Argument>>,
+-    ) -> Result<Option<(Domain, InvocationSteps, String)>> {
+-        let mut domain = Vec::new();
+-        // The step owner persists through lift.call and lifted action gates.
+-        // Only an oracle call opens a new token-governed invocation (§11).
+-        let mut steps = root_budget.map_or(InvocationSteps::Action, InvocationSteps::Root);
+-        let mut arguments = arguments.cloned();
+-        if root_budget == Some(0) {
+-            return Ok(None);
+-        }
+-        for (index, element) in chain.iter().enumerate() {
+-            let (block, ordinal) = element
+-                .get("point")?
+-                .string()?
+-                .rsplit_once(':')
+-                .ok_or_else(|| Error("§11: invalid point".into()))?;
+-            let point = self.point(
+-                element.get("symbol")?.string()?,
+-                block,
+-                ordinal
+-                    .parse()
+-                    .map_err(|_| Error("§11: invalid point ordinal".into()))?,
+-            )?;
+-            if index + 1 < chain.len() {
+-                // lift.call stays in the same oracle/argument environment.
+-                let call = if matches!(
+-                    point.instruction.op.as_str(),
+-                    "lift.oracle_call" | "lift.oracle_uncall" | "lift.perm_call"
+-                ) {
+-                    Some(point.instruction.clone())
+-                } else {
+-                    normalize_call(point.instruction)
+-                        .ok()
+-                        .map(|c| c.instruction)
+-                };
+-                if let Some(call) = call {
+-                    let oracle = matches!(
+-                        call.op.as_str(),
+-                        "lift.oracle_call" | "lift.oracle_uncall" | "oracle_call"
+-                    );
+-                    if oracle {
+-                        steps = InvocationSteps::Nested(arguments.as_ref().and_then(|a| {
+-                            match a.get(&call.operands[1]) {
+-                                Some(crate::Argument::Token(budget)) => {
+-                                    Some(u128::from(budget.steps))
+-                                }
+-                                _ => None,
+-                            }
+-                        }));
+-                    }
+-                    if steps.upper() == Some(0) {
+-                        return Ok(None);
+-                    }
+-                    if let Some(old) = arguments.take() {
+-                        let callee = &self.functions[call.operands[0].trim_start_matches('@')];
+-                        let group = if oracle { 4 } else { 3 };
+-                        let operands =
+-                            crate::object::list(&call.operands[if oracle { 6 } else { 4 }])?;
+-                        arguments = Some(
+-                            callee.params[group]
+-                                .iter()
+-                                .zip(operands)
+-                                .map(|(p, n)| {
+-                                    old.get(&n)
+-                                        .cloned()
+-                                        .map(|v| (p.name.clone(), v))
+-                                        .ok_or_else(|| {
+-                                            Error(format!("§11: unresolved classical argument {n}"))
+-                                        })
+-                                })
+-                                .collect::<Result<_>>()?,
+-                        );
+-                    }
+-                }
+-            }
+-            for bound in point.loops {
+-                if bound == 0 {
+-                    return Ok(None);
+-                }
+-                domain.push((0, u128::from(bound) - 1));
+-            }
+-        }
+-        // Generated ordinals belong to the bound expansion library. Admission
+-        // does not execute it; retain the whole ordinal selector domain.
+-        // Unknown is DEFERRED under INV-5 1.4.3, not a proof of emptiness.
+-        // A future object-derived token bound can use the same Some branch.
+-        let Some(upper) = steps.upper() else {
+-            return Ok(None);
+-        };
+-        if upper == 0 {
+-            return Ok(None);
+-        }
+-        domain.extend([(1, upper), (0, 1), (0, u128::MAX)]);
+-        Ok(Some((domain, steps, format!("{arguments:?}"))))
+-    }
+-
+-    fn entry_domain(&self, entry: &Json, chain: &[Json], base: &Domain) -> Result<Option<Domain>> {
+-        let path = entry.get("path")?.array()?;
+-        if path.len() > chain.len() {
+-            return Ok(None);
+-        }
+-        let mut domain = base.clone();
+-        let mut offset = 0;
+-        for (i, element) in chain.iter().enumerate() {
+-            let (block, ordinal) = element
+-                .get("point")?
+-                .string()?
+-                .rsplit_once(':')
+-                .ok_or_else(|| Error("§11: invalid point".into()))?;
+-            let depth = self
+-                .point(
+-                    element.get("symbol")?.string()?,
+-                    block,
+-                    ordinal
+-                        .parse()
+-                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
+-                )?
+-                .loops
+-                .len();
+-            if let Some(selector) = path.get(i) {
+-                if selector.get("symbol")? != element.get("symbol")?
+-                    || selector.get("point")? != element.get("point")?
+-                {
+-                    return Ok(None);
+-                }
+-                let iterations = selector.get("iteration")?;
+-                if !wildcard(iterations) {
+-                    for (j, value) in iterations.array()?.iter().enumerate() {
+-                        let value = value.uint()?;
+-                        domain[offset + j] = (value, value);
+-                    }
+-                }
+-            }
+-            offset += depth;
+-        }
+-        for (i, key) in ["step", "phase", "generated"].iter().enumerate() {
+-            let value = entry.get(key)?;
+-            if !wildcard(value) {
+-                let n = if *key == "phase" {
+-                    u128::from(value.string()? == "rev")
+-                } else {
+-                    value.uint()?
+-                };
+-                domain[offset + i] = (n, n);
+-            }
+-        }
+-        Ok(intersection(&domain, base))
+-    }
+-
+-    pub(super) fn has_uncovered_tie(
+-        &self,
+-        a: &Json,
+-        b: &Json,
+-        entries: &[Json],
+-        region: &str,
+-        root_budget: Option<u128>,
+-    ) -> Result<bool> {
+-        Ok(self
+-            .tie_witness(a, b, entries, region, root_budget, None)?
+-            .is_some())
+-    }
+-
+-    fn tie_witness(
+-        &self,
+-        a: &Json,
+-        b: &Json,
+-        entries: &[Json],
+-        region: &str,
+-        root_budget: Option<u128>,
+-        arguments: Option<&std::collections::BTreeMap<String, crate::Argument>>,
+-    ) -> Result<Option<Json>> {
+-        let mut chains = self.shortest_chains(a.get("path")?, region)?;
+-        let max_path = entries
+-            .iter()
+-            .map(|e| e.get("path")?.array().map(<[Json]>::len))
+-            .collect::<Result<Vec<_>>>()?
+-            .into_iter()
+-            .max()
+-            .unwrap_or(0);
+-        // Beyond every selector's path, only the reachable call graph matters.
+-        // Memoizing suffix points per boundary chain terminates recursive
+-        // lprocs without a call-depth, step, or loop expansion cap.
+-        let mut suffixes = std::collections::BTreeSet::new();
+-        while let Some(chain) = chains.pop() {
+-            let Some((base, steps, bound_arguments)) =
+-                self.chain_domain(&chain, root_budget, arguments)?
+-            else {
+-                continue;
+-            };
+-            if !matches!(steps, InvocationSteps::Action) {
+-                let last = chain
+-                    .last()
+-                    .ok_or_else(|| Error("§11: empty operation chain".into()))?;
+-                let (block, ordinal) = last
+-                    .get("point")?
+-                    .string()?
+-                    .rsplit_once(':')
+-                    .ok_or_else(|| Error("§11: invalid point".into()))?;
+-                let point = self.point(
+-                    last.get("symbol")?.string()?,
+-                    block,
+-                    ordinal
+-                        .parse()
+-                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
+-                )?;
+-                let callee = if matches!(
+-                    point.instruction.op.as_str(),
+-                    "lift.call" | "lift.oracle_call" | "lift.oracle_uncall" | "lift.perm_call"
+-                ) {
+-                    Some(
+-                        point.instruction.operands[0]
+-                            .trim_start_matches('@')
+-                            .to_string(),
+-                    )
+-                } else {
+-                    normalize_call(point.instruction).ok().map(|call| {
+-                        call.instruction.operands[0]
+-                            .trim_start_matches('@')
+-                            .to_string()
+-                    })
+-                };
+-                let boundary = chain[..chain.len().min(max_path)].to_vec();
+-                let key = (
+-                    Json::Array(boundary).canonical(),
+-                    last.canonical(),
+-                    steps.upper(),
+-                    bound_arguments,
+-                );
+-                if chain.len() < max_path || suffixes.insert(key) {
+-                    if let Some(callee) = callee.filter(|name| self.functions.contains_key(name)) {
+-                        for suffix in self.shortest_chains(&Json::Array(vec![]), &callee)? {
+-                            let mut extension = chain.clone();
+-                            extension.extend(suffix);
+-                            chains.push(extension);
+-                        }
+-                    }
+-                }
+-            }
+-            let Some(ad) = self.entry_domain(a, &chain, &base)? else {
+-                continue;
+-            };
+-            let Some(bd) = self.entry_domain(b, &chain, &base)? else {
+-                continue;
+-            };
+-            let Some(common) = intersection(&ad, &bd) else {
+-                continue;
+-            };
+-            let mut remaining = vec![common];
+-            for higher in entries {
+-                if higher.get("kind")? != a.get("kind")? || specificity(higher)? <= specificity(a)?
+-                {
+-                    continue;
+-                }
+-                if let Some(cover) = self.entry_domain(higher, &chain, &base)? {
+-                    remaining = remaining
+-                        .into_iter()
+-                        .flat_map(|box_| subtract(box_, &cover))
+-                        .collect();
+-                    if remaining.is_empty() {
+-                        break;
+-                    }
+-                }
+-            }
+-            if let Some(uncovered) = remaining.first() {
+-                return Ok(Some(self.concrete_witness(&chain, uncovered)?));
+-            }
+-        }
+-        Ok(None)
+-    }
+-
+-    fn concrete_witness(&self, chain: &[Json], domain: &Domain) -> Result<Json> {
+-        let mut path = chain.to_vec();
+-        let mut offset = 0;
+-        for element in &mut path {
+-            let (block, ordinal) = element
+-                .get("point")?
+-                .string()?
+-                .rsplit_once(':')
+-                .ok_or_else(|| Error("§11: invalid point".into()))?;
+-            let depth = self
+-                .point(
+-                    element.get("symbol")?.string()?,
+-                    block,
+-                    ordinal
+-                        .parse()
+-                        .map_err(|_| Error("§11: invalid ordinal".into()))?,
+-                )?
+-                .loops
+-                .len();
+-            let iterations = domain[offset..offset + depth]
+-                .iter()
+-                .map(|d| Json::Number(d.0.to_string()))
+-                .collect();
+-            if let Json::Object(fields) = element {
+-                fields.insert("iteration".into(), Json::Array(iterations));
+-            }
+-            offset += depth;
+-        }
+-        Ok(Json::Object(std::collections::BTreeMap::from([
+-            ("path".into(), Json::Array(path)),
+-            ("step".into(), Json::Number(domain[offset].0.to_string())),
+-            (
+-                "phase".into(),
+-                Json::String(
+-                    if domain[offset + 1].0 == 0 {
+-                        "fwd"
+-                    } else {
+-                        "rev"
+-                    }
+-                    .into(),
+-                ),
+-            ),
+-            (
+-                "generated".into(),
+-                Json::Number(domain[offset + 2].0.to_string()),
+-            ),
+-        ])))
+-    }
+-
+-    /// Check matching with the actual run's tokens, before any realisation.
+-    /// This is the §11 matching gate, not staged target/timing execution.
+-    /// Unbound admission defers nested domains (SPEC-QUESTIONS 33 / INV-5 1.4.3).
+-    pub fn check_schedule_matches_for_run(
+-        &self,
+-        region: &str,
+-        budget: crate::Budget,
+-        args: &[crate::Argument],
+-    ) -> Result<()> {
+-        let Some(schedule) = self.section("schedule") else {
+-            return Ok(());
+-        };
+-        if schedule
+-            .get("bindings")?
+-            .get("region")?
+-            .string()?
+-            .trim_start_matches('@')
+-            != region
+-        {
+-            return Ok(());
+-        }
+-        let function = &self.functions[region];
+-        let parameters = &function.params[if function.kind == "oracle" { 4 } else { 3 }];
+-        if parameters.len() != args.len() {
+-            return err("§11", "schedule argument count mismatch");
+-        }
+-        let arguments = parameters
+-            .iter()
+-            .zip(args)
+-            .map(|(p, v)| {
+-                crate::oracle::check_argument(self, &p.ty, v)?;
+-                Ok((p.name.clone(), v.clone()))
+-            })
+-            .collect::<Result<std::collections::BTreeMap<_, _>>>()?;
+-        let entries = schedule.get("entries")?.array()?;
+-        let root_budget = (function.kind == "oracle").then_some(u128::from(budget.steps));
+-        for (i, a) in entries.iter().enumerate() {
+-            for b in &entries[i + 1..] {
+-                if a.get("kind")? == b.get("kind")?
+-                    && specificity(a)? == specificity(b)?
+-                    && overlaps(a, b)?
+-                {
+-                    if let Some(operation) =
+-                        self.tie_witness(a, b, entries, region, root_budget, Some(&arguments))?
+-                    {
+-                        // Never choose or apply a realisation on an ambiguous
+-                        // concrete operation. The resolver owns the diagnostic.
+-                        self.resolve_schedule(&operation, a.get("kind")?.string()?)?;
+-                        return err(
+-                            "§11",
+-                            "internal maximal-tie witness did not resolve to a tie",
+-                        );
+-                    }
+-                }
+-            }
+-        }
+-        Ok(())
+-    }
+-}
+-````
+-
+ ## `.gitignore` (1 lines)
+ 
+@@ -4705,4 +4239,220 @@
+ dependencies, Beads mutation/export, push or Dolt sync. Explicit owned path
+ commits use absolute git -C and BEADS_HOOK_TIMEOUT=20.
++````
++
++## `council/response-round-18.md` (211 lines)
++
++````markdown
++# Editor response: council round 18
++
++**R18-B01 is resolved under the orchestrator's INV-5 addendum**; none declined
++or partial. Root-only admission cannot decide nested-budget ties from
++params_hash. The literal witness therefore **admits at check/hash and rejects
++at run-oracle with token B=3**; token B=2 runs clean. This intentionally
++supersedes the reviewer's request for unconditional admission rejection.
++Determining proof: INV-5 **1.1.5, 1.4.2, 1.4.3**, Spec gaps item 10.
++
++Implementation commit: **42d404924e68d4a40524f6c35accdcc7c60cfc73**.
++The initial local **9f7ea64e364a4564d09cba311c171a9eab0039ea** implemented the
++reviewer's symbolic-range remedy; the addendum demonstrates its over-rejection
++and the implementation commit supersedes it. Final evidence commit: **fed0d19a026ae35ea175a4c97edba2d1f2e7f68a**.
++Only owned interpreter paths and this response are committed. No push.
++Concurrent spec/conformance/Beads changes are untouched.
++
++## Design
++
++1. §11 steps belong to their invocation. `InvocationSteps` distinguishes the
++   known root bound, a nested invocation with an optional resolved bound, and
++   action-level operations. `lift.call` and lifted action gates stay within
++   the enclosing oracle machine. Lifted oracle call/uncall and normalized
++   oracle_call enter token-governed invocations. Root B never bounds them.
++2. ISA 0.8 has **no object-level token constant**. Tokens are classical
++   parameters, so the derivable-nested-budget branch **cannot fire at admission**.
++   Whether 0.9 adds such an encoding is a spec decision; no encoding or test
++   fabricating one was added. A resolved bound uses the same domain path, ready
++   for a future derivable bound if the spec defines one.
++3. Admission checks root-owned domains exactly, including lprocs sharing that
++   root machine, and **defers** unknown nested domains. Deferred is neither a
++   proof of emptiness nor universal quantification over possible budgets.
++   INV-5 1.4.3 shows why both alternatives fail: root clipping admits the
++   token-B=3 witness, while an "any budget" range rejects its valid B=2 run.
++4. `Object::check_schedule_matches_for_run` binds the actual classical token
++   arguments, follows forwarding by callee parameter, and checks each nested
++   invocation against its own resolved budget. A zero-budget ancestor has no
++   descendant operations. No token-budget inference from params_hash occurs.
++5. The bound matching preflight constructs a concrete uncovered selector-box
++   witness and passes it to `Object::resolve_schedule`. At that concrete
++   ambiguity the resolver raises `§11: multiple maximal matching schedule
++   entries`, before any realisation. Both oracle engines and action execution
++   invoke this gate before mutation. No silent first-entry choice is possible.
++6. Equal-specificity overlap is still only a candidate. Intersection followed
++   by subtraction of the UNION of all strictly higher entries determines
++   whether any equal-maximum remainder exists. R17 shadowed ties stay admitted
++   in all six orders. The resolver's order-independent final-maxima rule stays.
++7. Step/loop counts are not expanded or capped. Known finite domains also visit
++   call extensions whose invocation budgets can differ; suffix states include
++   bound arguments and budgets beyond the longest selector path. Recursive
++   lprocs terminate without a depth cap. Empty paths split over real points;
++   zero-trip loops and root B=0 stay empty.
++8. Generated ordinal ranges still belong to the staged expansion library.
++   This is schedule **matching** verification over selector partitions, not
++   completion of target selection, timing, expansion execution or numerical
++   claims. Those deliverables remain staged/Unverified. Other INV-5 readings
++   are not silently imposed by this budget repair.
++9. SPEC-QUESTIONS **33** records the 0.9 budget-binding/check-timing gap, both
++   unsound alternatives, the absence of object token constants and the needed
++   spec decision. The orchestrator owns **b-isa-spec-6hs**. Possible 0.9 choices
++   are explicit deferred matching until token binding, or recoverable nested
++   budgets in bindings; token JCS interchange must also be defined. No 0.8
++   normative bytes or new object fields were changed.
++
++## R18-B01 — resolved
++
++Determining clauses: §11 Matching (ISA-11-P4), §5.2, §4.2. INV-5 1.1.5 establishes
++per-invocation budgets; 1.4.2 establishes exact bound matching and harmless
++shadowed ties; **1.4.3 refutes exact unbound admission** from object + params_hash.
++
++| Blocker | RED tests | Final fix locations | Commit |
++|---|---|---|---|
++| R18-B01 | metadata::r18_literal_nested_budget_ties_defer_until_run (initial admission-negative witness, revised by addendum); cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject | metadata.rs::validate_schedule_details; metadata/schedule_domains.rs::{InvocationSteps,chain_domain,tie_witness,concrete_witness,check_schedule_matches_for_run}; oracle.rs::run_oracle_vectors; machine.rs::OracleVectorMachine::new; action.rs::action_internal | 42d4049 |
++
++Original reviewer RED: **1 passed / 2 failed**. Library and CLI admission
++accept the genuinely ambiguous nested witness under root-B clipping; the
++independent execution derivation already passes. The first symbolic-range fix
++was subsequently tested against the addendum: the revised literal test is
++RED **0 passed / 1 failed**, because that remedy rejects at admission.
++The final implementation repairs both the under- and over-rejection.
++
++Final literal controls, for both supplied root budgets 2 and 3:
++
++- `check` and `hash`: exit 0; object hash unchanged, check status ok.
++- `run-oracle ... ignore --input 8 --budget B --arg token:3,0,0,0`:
++  exit 1, empty stdout, §11 multiple maximal matching schedule entries.
++- Same run with token:2,0,0,0: exit 0, **payload=0, code=0, steps=2**.
++  inc8 has not reached its retval; ignore intentionally does not propagate
++  the nested fault. This is not a three-step call clipped by the outer budget.
++- The unchanged unscheduled fixture with root B=2 and token B=3 still gives
++  **payload=9, code=0, steps=2**. No execution budget or body was changed.
++- A true root-owned step-3 tie rejects at admission with root B=3, but is dead
++  at root B=2. A same-machine lproc step 3 at B=2 stays dead; nested-oracle/lproc
++  and action-root ties defer, then reject under their actual token B=3.
++- Reversible-machine creation rejects the bound tie. The action-root control
++  checks complete QuantumState equality before/after the error: no mutation.
++
++Single-entry positives preserve identity and resolve uniquely. Covering-entry
++controls admit and resolve C in all six orders, including CLI check/hash at
++both root budgets. The literal duplicate entries are fully specific except
++for generated="*"; one concrete generated ordinal cannot cover that wildcard.
++The genuine covering control broadens A/B's iteration selectors to "*" and
++uses literal C with [] iterations to cover ALL generated ordinals. Resolver
++controls include generated 0, 1 and u128::MAX.
++
++`r18_bound_tokens_forward_by_parameter_and_zero_ancestor_is_empty` permutes the
++forwarded token arguments, uses distinct budgets at each nested invocation,
++and checks both the materialised tie and the dead step-3 control. A zero-budget
++ancestor prevents a larger descendant token from manufacturing operations.
++`r18_recursive_lproc_keeps_root_budget_without_depth_cap` retains the same
++root bound through recursive sum_db lprocs and terminates without truncation.
++
++## Independent byte and identity evidence
++
++Both literal .bisa files and r18-review-probe.rs were copied verbatim from the
++read-only review directory into tests/support/; all three cmp checks pass.
++The probe's concrete generated=0 resolution is exercised in the library
++controls. `r18_pins.py` independently checks original nested fixture bytes,
++canonical schedules, both file hashes and the reviewer's token-preimage hash
++construction using hashlib/json, without the interpreter or rehash helper.
++That construction pins this fixture; it does not declare a normative token
++JCS interchange encoding (the latter is part of the recorded spec gap).
++
++| Pin | Root B=2 | Root B=3 |
++|---|---|---|
++| File SHA-256 | 07c617a312f2b1f333689d95b474ccf9b7dea4a570c43ced87a92c089b66d9e7 | 0584dc9a6dbe02b138e516caca59168a4dbbf577185e9d96504f58d5a5fcf4ae |
++| Schedule SHA-256 | 197452169a33d0ced5dce10dbe2949dc42d1b96bcf62a089718ce7534b98c077 | 7e66e4320a43b0d93a2302a71c926f70c9dc37407ca15605a3c898c74a44492b |
++
++Common object hash:
++`8e6e852c4717ad55763ec2162b0582896a948c073b649c40002a8aa64dd0f815`.
++Ignore interface=closure:
++`9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012`.
++The supplied canonical schedules, reference bodies and token-budget pins are
++unchanged. `r17_pins.py` also passes with every R17 file/schedule/identity pin.
++
++## Nested specificity family and retained gates
++
++`r18_nested_specificity_family_matches_brute_force` independently derives
++operations from O/L edges and concrete budgets before admission or resolver
++calls. Fifteen valid shapes cover depth 1–3, all oracle-prefix/lproc-suffix
++mixes permitted by §4.2, and action roots. Root B is 0,1,2,4; each nested token
++independently ranges 0..4. Steps 1,2,3 plus residual 4, both phases and generated
++0,1 plus residual 2 exhaust the distinctions the family's selectors make.
++No production overlap/domain/specificity helper computes the oracle maximum.
++
++Observed: **7,500 schedules + 7,500 reversed orders**, **1,532 distinct concrete
++budget assignments**, **569,910 concrete operation partitions**. Admission
++rejects **606 root ties** and admits **6,894** schedules with any nested check
++deferred. Under their actual run-time budgets, **319** deferred ties materialise
++and **6,575** are bound-clean. Admission, bound matching and every concrete
++resolver result (including the error on a true maximum tie) have **100% oracle
++agreement**. This oracle does not take a union over possible token budgets.
++It is a finite selector-domain family, not a claim to verify every expansion
++library operation or full schedule execution.
++
++All round 4–17 tests/assertions are retained; R18 admission expectations follow
++the explicit addendum. All six R17 witness orders, 1,200 schedules plus reversed
++orders, union/partial coverage, zero/large loops, all 14 defaults and byte pins
++remain green. Earlier borrow/discipline, derived-width, schema, complete inverse
++and CC/R nested-uncall tests remain. The nonblocking independent width-outcome
++classification follow-up remains staged as in R17; no widths/assertions were
++weakened. No foreign conformance tests were run.
++
++## Observed verification
++
++| Gate | Result |
++|---|---|
++| Baseline, summed over 33 binaries including main/doctests | 403 passed / 0 failed / 5 ignored; 22.51 s |
++| Final full suite after addendum | 412 passed / 0 failed / 5 ignored; 31.66 s; 14 unit + 398 integration, 0 doctests |
++| Final focused R18 | 9 passed / 0 failed; nested family 10.47 s |
++| Fmt and fmt --check | pass |
++| Strict all-target Clippy | pass, 0 warnings |
++| Independent R17/R18 pin scripts and three reviewer cmp checks | pass |
++
++All **5 ignored sweeps passed / 0 failed**, **96.71 s** runner sum across all
++33 binaries, rerun after the addendum on final code and unchanged sweep inputs.
++
++| Sweep | Full domain | Result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.51 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.86 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.80 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.14 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.40 s |
++
++Exact final commands (all cargo calls headless, offline where applicable, with
++absolute interpreter manifest; test opt-level 1 retains assertions/overflow
++checks and complete sweep domains):
++
++~~~sh
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --test metadata --test cli_xam --test oracle r18_ --no-fail-fast -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast -- --ignored --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
++python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18_pins.py
++python3 -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r17_pins.py
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-nested-budget-2.bisa
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-3.bisa /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-nested-budget-3.bisa
++cmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-review-probe.rs /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r18-review-probe.rs
++~~~
++
++Final logs: interpreter `.tmp/r18-{before,red,addendum-red,addendum-green,
++bound-full,bound-clippy,bound-final,bound-sweeps}.log`. Earlier 411-test runs
++and the first sweep run preceded the addendum and are not final evidence.
++Production, test inputs and assertions were unchanged throughout the final
++sweeps. Owned diffs pass --check. Full-ISA bead b-isa-spec-zq2 stays active for
++staged work; b-isa-spec-6hs belongs to the orchestrator. No dependency, normative
++spec, conformance, include, Python-seed or foreign-source changes; no push or
++Dolt sync. Commits use explicit owned paths, absolute git -C and
++BEADS_HOOK_TIMEOUT=20.
+ ````
+ 
+@@ -7465,5 +7215,5 @@
+ ````
+ 
+-## `src/action.rs` (1066 lines)
++## `src/action.rs` (1067 lines)
+ 
+ ````rust
+@@ -7616,10 +7366,11 @@
+             for i in seq {
+                 if i.op == "qborrow" {
+-                    *count =
+-                        count
+-                            .checked_add(i.operands[1].parse::<usize>().map_err(|_| {
+-                                Error("§5.6: borrow count exceeds host storage".into())
+-                            })?)
+-                            .ok_or_else(|| Error("§5.6: borrow capacity overflow".into()))?;
++                    *count = count
++                        .checked_add(i.operands[1].parse::<usize>().map_err(|_| {
++                            Error("§5.6: host limit: borrow count exceeds usize".into())
++                        })?)
++                        .ok_or_else(|| {
++                            Error("§5.6: host limit: borrow capacity sum exceeds usize".into())
++                        })?;
+                 }
+                 if let Ok(call) = normalize_call(i) {
+@@ -7752,9 +7503,9 @@
+                 .and_then(|n| usize::try_from(n).ok())
+                 .ok_or_else(|| {
+-                    Error("host limit: local region exceeds host address space".into())
++                    Error("§4.6: host limit: local region exceeds host address space".into())
+                 })?;
+             let n = count
+                 .checked_mul(w as usize)
+-                .ok_or_else(|| Error("§4.6: region bit size overflow".into()))?;
++                .ok_or_else(|| Error("§4.6: host limit: region bit count exceeds usize".into()))?;
+             let wires = q.allocate(n)?;
+             let image = if i.operands.len() == 4 {
+@@ -8536,5 +8287,5 @@
+ ````
+ 
+-## `src/bits.rs` (384 lines)
++## `src/bits.rs` (385 lines)
+ 
+ ````rust
+@@ -8553,12 +8304,13 @@
+             return err("§3.3", "bit-vector width must be positive");
+         }
+-        let count = width
+-            .checked_add(63)
+-            .ok_or_else(|| Error("§3.3: bit-vector width overflow".into()))?
+-            / 64;
++        let count = width.checked_add(63).ok_or_else(|| {
++            Error("§3.3: host limit: bit-vector width plus word padding exceeds usize".into())
++        })? / 64;
+         let mut words = Vec::new();
+-        words
+-            .try_reserve_exact(count)
+-            .map_err(|e| Error(format!("§3.3: bit-vector storage: {e}")))?;
++        words.try_reserve_exact(count).map_err(|e| {
++            Error(format!(
++                "§3.3: host limit: bit-vector storage allocation failed: {e}"
++            ))
++        })?;
+         words.resize(count, 0);
+         Ok(Self { width, words })
+@@ -8661,5 +8413,5 @@
+             .len()
+             .checked_mul(4)
+-            .ok_or_else(|| Error("§3.3: literal size overflow".into()))?
++            .ok_or_else(|| Error("§3.3: host limit: literal spelling size exceeds usize".into()))?
+             .max(width);
+         let value = Self::parse_decimal(generous, s)?;
+@@ -8925,5 +8677,5 @@
+ ````
+ 
+-## `src/borrow.rs` (1990 lines)
++## `src/borrow.rs` (2002 lines)
+ 
+ ````rust
+@@ -9333,15 +9085,15 @@
+         Ok(w[0].clone())
+     }
+-    fn fresh(&mut self, width: usize) -> Vec<String> {
++    fn fresh(&mut self, width: usize) -> Result<Vec<String>> {
+         let generation = self.generation;
+         self.generation += 1;
+-        (0..width)
+-            .map(|bit| format!("v{generation}_{bit}"))
+-            .collect()
+-    }
+-    fn produce(&mut self, name: &str, width: usize) -> Vec<String> {
+-        let wires = self.fresh(width);
++        let mut wires = crate::reserved(width, "§3.3", "borrow compiler wire names")?;
++        wires.extend((0..width).map(|bit| format!("v{generation}_{bit}")));
++        Ok(wires)
++    }
++    fn produce(&mut self, name: &str, width: usize) -> Result<Vec<String>> {
++        let wires = self.fresh(width)?;
+         self.bundles.insert(name.into(), wires.clone());
+-        wires
++        Ok(wires)
+     }
+     /// The address condition `a == i` as literals on the address wires.
+@@ -9361,5 +9113,5 @@
+             let cells = crate::oracle::power_of_two(aw as u128)
+                 .and_then(|n| usize::try_from(n).ok())
+-                .ok_or_else(|| Error("host limit: region exceeds host address space".into()))?;
++                .ok_or_else(|| Error("§4.6: host limit: region cell count exceeds usize".into()))?;
+             let image = match a.get(3) {
+                 Some(img) => self
+@@ -9369,9 +9121,16 @@
+                     .cloned()
+                     .ok_or_else(|| Error("§4.6: unresolved qregion image".into()))?,
+-                None => vec![0; (cells * w).div_ceil(8)],
++                None => {
++                    let bits = cells.checked_mul(w).ok_or_else(|| {
++                        Error("§4.6: host limit: region bit count exceeds usize".into())
++                    })?;
++                    let mut image = crate::reserved(bits.div_ceil(8), "§4.6", "region image")?;
++                    image.resize(bits.div_ceil(8), 0);
++                    image
++                }
+             };
+-            let mut all = Vec::new();
++            let mut all = crate::reserved(cells, "§4.6", "region cells")?;
+             for _ in 0..cells {
+-                all.push(self.fresh(w));
++                all.push(self.fresh(w)?);
+             }
+             let flat: Vec<String> = all.iter().flatten().cloned().collect();
+@@ -9466,5 +9225,7 @@
+         }
+         for from in all {
+-            wires.entry(from).or_insert_with(|| self.fresh(1).remove(0));
++            if let std::collections::btree_map::Entry::Vacant(entry) = wires.entry(from) {
++                entry.insert(self.fresh(1)?.remove(0));
++            }
+         }
+         self.borrowed
+@@ -9604,5 +9365,5 @@
+                 "qalloc" | "qborrow" => {
+                     let n = crate::object::host_count(&a[1], "allocation width")? as usize;
+-                    let wires = self.produce(&i.lhs[0], n);
++                    let wires = self.produce(&i.lhs[0], n)?;
+                     if op == "qborrow" {
+                         self.borrowed.extend(wires.iter().cloned());
+@@ -9635,5 +9396,5 @@
+                     let target = match op {
+                         "qcopy" => {
+-                            let w = self.produce(&i.lhs[0], source.len());
++                            let w = self.produce(&i.lhs[0], source.len())?;
+                             out.push(Node::Alloc(w.clone()));
+                             w
+@@ -9698,5 +9459,5 @@
+                         .ok_or_else(|| Error("§4.6: unknown region".into()))?;
+                     let value = if op == "qload" {
+-                        let w = self.produce(&i.lhs[0], cells.first().map_or(0, Vec::len));
++                        let w = self.produce(&i.lhs[0], cells.first().map_or(0, Vec::len))?;
+                         out.push(Node::Alloc(w.clone()));
+                         w
+@@ -10616,5 +10377,5 @@
+             match p.ty {
+                 Type::Wire(width) => {
+-                    compiler.produce(&p.name, width as usize);
++                    compiler.produce(&p.name, width as usize)?;
+                 }
+                 Type::Region(a, w) => {
+@@ -10622,7 +10383,10 @@
+                         .and_then(|n| usize::try_from(n).ok())
+                         .ok_or_else(|| {
+-                            Error("host limit: region exceeds host address space".into())
++                            Error("§4.6: host limit: region cell count exceeds usize".into())
+                         })?;
+-                    let all = (0..cells).map(|_| compiler.fresh(w as usize)).collect();
++                    let mut all = crate::reserved(cells, "§4.6", "region cells")?;
++                    for _ in 0..cells {
++                        all.push(compiler.fresh(w as usize)?);
++                    }
+                     compiler.regions.insert(p.name.clone(), (a, all));
+                 }
+@@ -11315,5 +11079,5 @@
+ ````
+ 
+-## `src/certificate.rs` (332 lines)
++## `src/certificate.rs` (389 lines)
+ 
+ ````rust
+@@ -11431,15 +11195,14 @@
+             }
+             let width = b.get("width")?.uint()?;
+-            let bits =
+-                usize::try_from(width).map_err(|_| Error("host limit: domain width".into()))?;
+             if width == 0 {
+                 return err("§12.2", "zero-width domain component");
+             }
+-            // Bounds are exact integers of any size, within the bundle width.
+-            let lo = crate::BitVector::parse_unsigned_exact(bits, b.get("lo")?.uint_text()?)
+-                .map_err(|e| Error(format!("§12.2: domain lo outside bundle width: {e}")))?;
+-            let hi = crate::BitVector::parse_unsigned_exact(bits, b.get("hi")?.uint_text()?)
+-                .map_err(|e| Error(format!("§12.2: domain hi outside bundle width: {e}")))?;
+-            if lo.unsigned_cmp(&hi)? == std::cmp::Ordering::Greater {
++            // Admission compares the spelling's magnitude, never allocates width
++            // bits for an endpoint. Resource errors retain their own diagnostic.
++            let lo = b.get("lo")?.uint_text()?;
++            let hi = b.get("hi")?.uint_text()?;
++            crate::object::unsigned_literal(lo, width)?;
++            crate::object::unsigned_literal(hi, width)?;
++            if (lo.len(), lo) > (hi.len(), hi) {
+                 return err("§12.2", "domain interval with lo > hi");
+             }
+@@ -11478,4 +11241,7 @@
+             })
+             .ok_or_else(|| Error("§12.2: unknown domain interface region".into()))?;
++        if w == 0 {
++            return err("§12.2", "zero-width domain cell");
++        }
+         let cells = region.get("cells")?;
+         if cells == &Json::String("all".into()) {
+@@ -11485,10 +11251,11 @@
+         for cell in cells.array()? {
+             let index = cell.get("index")?.uint()?;
+-            let bits = usize::try_from(w).map_err(|_| Error("host limit: cell width".into()))?;
+-            let lo = crate::BitVector::parse_unsigned_exact(bits, cell.get("lo")?.uint_text()?)?;
+-            let hi = crate::BitVector::parse_unsigned_exact(bits, cell.get("hi")?.uint_text()?)?;
++            let lo = cell.get("lo")?.uint_text()?;
++            let hi = cell.get("hi")?.uint_text()?;
++            crate::object::unsigned_literal(lo, w as u128)?;
++            crate::object::unsigned_literal(hi, w as u128)?;
+             if crate::oracle::power_of_two(a as u128).is_some_and(|cells| index >= cells)
+                 || !indices.insert(index)
+-                || lo.unsigned_cmp(&hi)? == std::cmp::Ordering::Greater
++                || (lo.len(), lo) > (hi.len(), hi)
+             {
+                 return err("§12.2", "invalid domain cell interval");
+@@ -11650,7 +11417,61 @@
+     }
+ }
++
++#[cfg(test)]
++mod r20_tests {
++    use super::*;
++    #[test]
++    fn r20_region_domain_extremes() {
++        let values = [0u64, 1, (1 << 63) - 1, 1 << 63, u64::MAX - 1, u64::MAX];
++        let mut cases = 0;
++        for n in values {
++            for path in ["A", "W", "index", "lo", "hi"] {
++                let (a, w, index, lo, hi) = match path {
++                    "A" => (n, 1, 0, 0, 1),
++                    "W" => (0, n, 0, 0, 1),
++                    "index" => (1, 1, n, 0, 1),
++                    "lo" => (0, 1, 0, n, n),
++                    _ => (0, 1, 0, 0, n),
++                };
++                let mut f = Function::from_signature("o", &Json::parse(r#"{"abi":"0.8","args":[],"fault":4,"in":[],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#).unwrap()).unwrap();
++                f.params[3].push(crate::Param {
++                    name: "r".into(),
++                    ty: Type::Region(a, w),
++                    role: Some("in".into()),
++                });
++                let meta = |n: u64| {
++                    if n <= 9_007_199_254_740_991 {
++                        n.to_string()
++                    } else {
++                        format!("\"{n}\"")
++                    }
++                };
++                let d = Json::parse(&format!(r#"{{"bundles":[],"borrowed":[],"regions":[{{"name":"r","cells":[{{"index":{},"lo":{},"hi":{}}}]}}]}}"#,meta(index),meta(lo),meta(hi))).unwrap();
++                let admit = match path {
++                    "A" => true,
++                    "W" => n > 0,
++                    "index" => n < 2,
++                    _ => n < 2,
++                };
++                let result = std::panic::catch_unwind(|| domain(&d, &f)).expect("no domain panic");
++                if admit {
++                    result.unwrap();
++                } else {
++                    let e = result.unwrap_err().to_string();
++                    assert!(
++                        e.contains('§') && !e.contains("host limit"),
++                        "{path}={n}: {e}"
++                    );
++                }
++                cases += 1;
++            }
++        }
++        assert_eq!(cases, 30);
++        eprintln!("R20 region domains: 5 paths, {cases} cases");
++    }
++}
+ ````
+ 
+-## `src/claims.rs` (800 lines)
++## `src/claims.rs` (868 lines)
+ 
+ ````rust
+@@ -11729,5 +11550,20 @@
+ /// Every element of the domain, last component fastest (§12.2).
+ fn enumerate(domain: &Domain) -> Result<Vec<Vec<BitVector>>> {
+-    let mut out = Vec::new();
++    let mut count = 1u128;
++    for (_, _, lo, hi) in &domain.components {
++        let span = hi.binary("sub", lo)?.to_u128().map_err(|_| {
++            Error("§12.2: host limit: exhaustive interval cardinality exceeds u128".into())
++        })?;
++        count = span
++            .checked_add(1)
++            .and_then(|span| count.checked_mul(span))
++            .ok_or_else(|| {
++                Error("§12.2: host limit: exhaustive domain cardinality exceeds u128".into())
++            })?;
++    }
++    let count = usize::try_from(count).map_err(|_| {
++        Error("§12.2: host limit: exhaustive domain cardinality exceeds usize".into())
++    })?;
++    let mut out = crate::reserved(count, "§12.2", "exhaustive domain elements")?;
+     let mut current: Vec<BitVector> = domain.components.iter().map(|c| c.2.clone()).collect();
+     loop {
+@@ -11761,4 +11597,10 @@
+         _ => Json::String(v.to_decimal()),
+     }
++}
++
++fn sample_elements(count: u128) -> Result<Vec<Vec<BitVector>>> {
++    let count = usize::try_from(count)
++        .map_err(|_| Error("§12.1: host limit: sample count exceeds usize".into()))?;
++    crate::reserved(count, "§12.1", "sampled domain elements")
+ }
+ 
+@@ -11835,5 +11677,5 @@
+                 let name = b.get("name")?.string()?.to_string();
+                 let width = usize::try_from(b.get("width")?.uint()?)
+-                    .map_err(|_| Error("host limit: domain width".into()))?;
++                    .map_err(|_| Error("§12.2: host limit: domain width".into()))?;
+                 let lo = json_bits(b.get("lo")?, width)?;
+                 let hi = json_bits(b.get("hi")?, width)?;
+@@ -11867,5 +11709,5 @@
+             let cells = crate::oracle::power_of_two(a as u128)
+                 .and_then(|n| usize::try_from(n).ok())
+-                .ok_or_else(|| Error("host limit: region cells".into()))?;
++                .ok_or_else(|| Error("§12.2: host limit: region cells".into()))?;
+             listed.insert(name.clone());
+             match r.get("cells")? {
+@@ -11954,5 +11796,5 @@
+             let cells = crate::oracle::power_of_two(a as u128)
+                 .and_then(|n| usize::try_from(n).ok())
+-                .ok_or_else(|| Error("host limit: region cells".into()))?;
++                .ok_or_else(|| Error("§12.2: host limit: region cells".into()))?;
+             Ok((cells, w as usize))
+         };
+@@ -12129,5 +11971,5 @@
+                     ));
+                 }
+-                let mut elements = Vec::new();
++                let mut elements;
+                 if kind == "exhaustive" {
+                     for lo in &domain.components {
+@@ -12150,5 +11992,7 @@
+                         .collect::<Result<Vec<_>>>()?;
+                     let mut rng = Xoshiro256([seed[0], seed[1], seed[2], seed[3]]);
+-                    for _ in 0..sample_count(sampler)? {
++                    let count = sample_count(sampler)?;
++                    elements = sample_elements(count)?;
++                    for _ in 0..count {
+                         elements.push(
+                             domain
+@@ -12453,4 +12297,49 @@
+         }
+         Ok(())
++    }
++}
++
++#[cfg(test)]
++mod r20_tests {
++    use super::*;
++    #[test]
++    fn r20_exhaustive_domain_cardinality_extremes() {
++        let mut cases = 0;
++        for hi in [
++            0u128,
++            1,
++            (1 << 63) - 1,
++            1 << 63,
++            u64::MAX as u128 - 1,
++            u64::MAX as u128,
++        ] {
++            let d = Domain {
++                covers_d: false,
++                components: vec![(
++                    Component::Bundle(0, 0),
++                    64,
++                    BitVector::zero(64).unwrap(),
++                    BitVector::from_u128(64, hi).unwrap(),
++                )],
++            };
++            let result = std::panic::catch_unwind(|| enumerate(&d)).expect("no cardinality panic");
++            if hi <= 1 {
++                assert_eq!(result.unwrap().len(), hi as usize + 1);
++            } else {
++                let e = result.unwrap_err().to_string();
++                assert!(e.contains("§12.2") && e.contains("host limit"), "{e}");
++            }
++            let sampled =
++                std::panic::catch_unwind(|| sample_elements(hi)).expect("no sample count panic");
++            if hi <= 1 {
++                sampled.unwrap();
++            } else {
++                let e = sampled.unwrap_err().to_string();
++                assert!(e.contains("§12.1") && e.contains("host limit"), "{e}");
++            }
++            cases += 2;
++        }
++        assert_eq!(cases, 12);
++        eprintln!("R20 exhaustive/sample storage: 2 paths, {cases} cases");
+     }
+ }
+@@ -16287,5 +16176,5 @@
+ ````
+ 
+-## `src/lib.rs` (62 lines)
++## `src/lib.rs` (73 lines)
+ 
+ ````rust
+@@ -16352,4 +16241,15 @@
+     "0.8"
+ }
++
++/// Reserve text-derived storage fallibly before iteration or initialization.
++pub(crate) fn reserved<T>(count: usize, rule: &str, what: &str) -> Result<Vec<T>> {
++    let mut out = Vec::new();
++    out.try_reserve_exact(count).map_err(|e| {
++        Error(format!(
++            "{rule}: host limit: {what} allocation of {count} elements failed: {e}"
++        ))
++    })?;
++    Ok(out)
++}
+ ````
+ 
+@@ -16829,5 +16729,5 @@
+             .depth
+             .checked_add(2)
+-            .ok_or_else(|| Error("§5.4: depth limit exceeds the counter range".into()))?;
++            .ok_or_else(|| Error("§5.4: host limit: depth plus two exceeds u128".into()))?;
+         // ceil(log2(d + 2)) = bits(d + 1).
+         let dc = bits_for(depth_plus_two - 1);
+@@ -17154,5 +17054,5 @@
+         let atop = memory.allocations.len() as u128;
+         let count = usize::try_from(budget.steps)
+-            .map_err(|_| Error("host limit: B frames exceed host address space".into()))?;
++            .map_err(|_| Error("§3.7: host limit: B frames exceed host address space".into()))?;
+         let frame = Frame {
+             old_pc: 0,
+@@ -17168,5 +17068,5 @@
+         frames
+             .try_reserve_exact(count)
+-            .map_err(|e| Error(format!("host limit: cannot allocate B frames: {e}")))?;
++            .map_err(|e| Error(format!("§3.7: host limit: cannot allocate B frames: {e}")))?;
+         frames.resize(count, frame);
+         let target = root.params[1][0].ty.bits(object.ptr_width)?;
+@@ -17422,5 +17322,5 @@
+     fn live_entries(&self) -> Result<&[Allocation]> {
+         let atop = usize::try_from(number(&self.state.atop)?)
+-            .map_err(|_| Error("host limit: atop exceeds host address space".into()))?;
++            .map_err(|_| Error("§3.7: host limit: atop exceeds host address space".into()))?;
+         let entries = &self.state.memory.allocations;
+         Ok(&entries[..atop.min(entries.len())])
+@@ -17667,5 +17567,5 @@
+                 // alloctab[atop], addressed with the counter value current now (§3.6).
+                 let index = usize::try_from(number(&self.state.atop)?)
+-                    .map_err(|_| Error("host limit: alloctab index exceeds usize".into()))?;
++                    .map_err(|_| Error("§3.7: host limit: alloctab index exceeds usize".into()))?;
+                 let entries = &mut self.state.memory.allocations;
+                 let clean = Allocation {
+@@ -18061,5 +17961,5 @@
+ ````
+ 
+-## `src/main.rs` (2001 lines)
++## `src/main.rs` (2010 lines)
+ 
+ ````rust
+@@ -18979,17 +18879,24 @@
+             .then(|| 1usize.checked_shl(a as u32))
+             .flatten()
+-            .ok_or_else(|| fail("host limit: interface region exceeds host memory"))?;
+-        let cell_width =
+-            usize::try_from(w).map_err(|_| fail("host limit: cell width exceeds host storage"))?;
++            .ok_or_else(|| fail("§3.3: host limit: interface region exceeds host memory"))?;
++        let cell_width = usize::try_from(w)
++            .map_err(|_| fail("§3.3: host limit: cell width exceeds host storage"))?;
+         let cell_bytes = cell_width.div_ceil(8);
+-        let mut values = (0..cells)
+-            .map(|_| BitVector::zero(cell_width))
+-            .collect::<Result<Vec<_>>>()?;
++        let byte_count = cells
++            .checked_mul(cell_bytes)
++            .ok_or_else(|| fail("§3.3: host limit: interface region byte count exceeds usize"))?;
++        let mut values = Vec::new();
++        values
++            .try_reserve_exact(cells)
++            .map_err(|e| fail(format!("§3.3: host limit: interface region cells: {e}")))?;
++        for _ in 0..cells {
++            values.push(BitVector::zero(cell_width)?);
++        }
+         if let Some((_, bytes)) = options.mem.iter().find(|(n, _)| *n == p.name) {
+-            if bytes.len() != cells * cell_bytes {
++            if bytes.len() != byte_count {
+                 return Err(fail(format!(
+                     "§5.1: region {} needs {} bytes ({} cells of {}), --mem gave {}",
+                     p.name,
+-                    cells * cell_bytes,
++                    byte_count,
+                     cells,
+                     cell_bytes,
+@@ -19382,7 +19289,8 @@
+                 .then(|| 1usize.checked_shl(a as u32))
+                 .flatten()
+-                .ok_or_else(|| fail("host limit: interface region exceeds host memory"))?;
++                .ok_or_else(|| fail("§3.3: host limit: interface region exceeds host memory"))?;
+             let mut zero = Vec::new();
+-            zero.try_reserve_exact(n).map_err(fail)?;
++            zero.try_reserve_exact(n)
++                .map_err(|e| fail(format!("§3.3: host limit: interface region storage: {e}")))?;
+             zero.resize(n, 0);
+             regions.insert(p.name.clone(), zero);
+@@ -19911,7 +19819,8 @@
+                 .then(|| 1usize.checked_shl(a as u32))
+                 .flatten()
+-                .ok_or_else(|| fail("host limit: interface region exceeds host memory"))?;
++                .ok_or_else(|| fail("§3.3: host limit: interface region exceeds host memory"))?;
+             let mut zero = Vec::new();
+-            zero.try_reserve_exact(n).map_err(fail)?;
++            zero.try_reserve_exact(n)
++                .map_err(|e| fail(format!("§3.3: host limit: interface region storage: {e}")))?;
+             zero.resize(n, 0);
+             input.regions.insert(p.name.clone(), zero);
+@@ -20064,4 +19973,486 @@
+     );
+     Ok(())
++}
++````
++
++## `src/metadata/schedule_domains.rs` (477 lines)
++
++````rust
++//! §11 maximal-match admission over selector domains, without loop expansion.
++use super::*;
++
++type Domain = Vec<(u128, u128)>;
++
++#[derive(Clone, Copy)]
++enum InvocationSteps {
++    Root(u128),
++    // None is deferred, never an empty domain or an "any budget" proof.
++    // ISA 0.8 has no object-level constant token; Some is populated at binding.
++    Nested(Option<u128>),
++    Action,
++}
++impl InvocationSteps {
++    fn upper(self) -> Option<u128> {
++        match self {
++            Self::Root(budget) => Some(budget),
++            Self::Nested(budget) => budget,
++            Self::Action => Some(u128::MAX),
++        }
++    }
++}
++
++fn intersection(a: &Domain, b: &Domain) -> Option<Domain> {
++    let out: Domain = a
++        .iter()
++        .zip(b)
++        .map(|(x, y)| (x.0.max(y.0), x.1.min(y.1)))
++        .collect();
++    out.iter().all(|(lo, hi)| lo <= hi).then_some(out)
++}
++
++/// Partition A \ B into disjoint boxes. Boundaries come only from selectors;
++/// cost is independent of numeric loop/step bounds. Repeating subtraction
++/// checks coverage by the UNION of all higher entries, not one overlapping C.
++fn subtract(mut a: Domain, b: &Domain) -> Vec<Domain> {
++    let Some(common) = intersection(&a, b) else {
++        return vec![a];
++    };
++    let mut out = Vec::new();
++    for (i, &(lo, hi)) in common.iter().enumerate() {
++        if a[i].0 < lo {
++            let mut part = a.clone();
++            part[i].1 = lo - 1;
++            out.push(part);
++            a[i].0 = lo;
++        }
++        if hi < a[i].1 {
++            let mut part = a.clone();
++            part[i].0 = hi + 1;
++            out.push(part);
++            a[i].1 = hi;
++        }
++    }
++    out
++}
++
++impl Object {
++    /// Each point has its own generated operations (§11), including call/loop
++    /// rows. Start at the shortest chains; a new oracle invocation can broaden
++    /// their step domain, so has_uncovered_tie also visits those extensions.
++    /// The empty prefix is split over every root instruction (not a fictitious
++    /// operation with an empty chain). validate_path already checked call edges.
++    fn shortest_chains(&self, path: &Json, region: &str) -> Result<Vec<Vec<Json>>> {
++        if !path.array()?.is_empty() {
++            return Ok(vec![path.array()?.to_vec()]);
++        }
++        fn points(seq: &[Instruction], ordinal: &mut u128, out: &mut Vec<u128>) {
++            for i in seq {
++                out.push(*ordinal);
++                *ordinal += 1;
++                for body in &i.bodies {
++                    points(body, ordinal, out);
++                }
++            }
++        }
++        let symbol = &self.identity()?.interface_hashes[region];
++        let mut chains = Vec::new();
++        for block in &self.functions[region].blocks {
++            let mut ordinals = Vec::new();
++            points(&block.instructions, &mut 0, &mut ordinals);
++            for ordinal in ordinals {
++                chains.push(vec![Json::Object(std::collections::BTreeMap::from([
++                    ("symbol".into(), Json::String(symbol.clone())),
++                    (
++                        "point".into(),
++                        Json::String(format!("{}:{ordinal}", block.name)),
++                    ),
++                    ("iteration".into(), Json::String("*".into())),
++                ]))]);
++            }
++        }
++        Ok(chains)
++    }
++
++    fn chain_domain(
++        &self,
++        chain: &[Json],
++        root_budget: Option<u128>,
++        arguments: Option<&std::collections::BTreeMap<String, crate::Argument>>,
++    ) -> Result<Option<(Domain, InvocationSteps, String)>> {
++        let mut domain = Vec::new();
++        // The step owner persists through lift.call and lifted action gates.
++        // Only an oracle call opens a new token-governed invocation (§11).
++        let mut steps = root_budget.map_or(InvocationSteps::Action, InvocationSteps::Root);
++        let mut arguments = arguments.cloned();
++        if root_budget == Some(0) {
++            return Ok(None);
++        }
++        for (index, element) in chain.iter().enumerate() {
++            let (block, ordinal) = element
++                .get("point")?
++                .string()?
++                .rsplit_once(':')
++                .ok_or_else(|| Error("§11: invalid point".into()))?;
++            let point = self.point(
++                element.get("symbol")?.string()?,
++                block,
++                ordinal
++                    .parse()
++                    .map_err(|_| Error("§11: invalid point ordinal".into()))?,
++            )?;
++            if index + 1 < chain.len() {
++                // lift.call stays in the same oracle/argument environment.
++                let call = if matches!(
++                    point.instruction.op.as_str(),
++                    "lift.oracle_call" | "lift.oracle_uncall" | "lift.perm_call"
++                ) {
++                    Some(point.instruction.clone())
++                } else {
++                    normalize_call(point.instruction)
++                        .ok()
++                        .map(|c| c.instruction)
++                };
++                if let Some(call) = call {
++                    let oracle = matches!(
++                        call.op.as_str(),
++                        "lift.oracle_call" | "lift.oracle_uncall" | "oracle_call"
++                    );
++                    if oracle {
++                        steps = InvocationSteps::Nested(arguments.as_ref().and_then(|a| {
++                            match a.get(&call.operands[1]) {
++                                Some(crate::Argument::Token(budget)) => {
++                                    Some(u128::from(budget.steps))
++                                }
++                                _ => None,
++                            }
++                        }));
++                    }
++                    if steps.upper() == Some(0) {
++                        return Ok(None);
++                    }
++                    if let Some(old) = arguments.take() {
++                        let callee = &self.functions[call.operands[0].trim_start_matches('@')];
++                        let group = if oracle { 4 } else { 3 };
++                        let operands =
++                            crate::object::list(&call.operands[if oracle { 6 } else { 4 }])?;
++                        arguments = Some(
++                            callee.params[group]
++                                .iter()
++                                .zip(operands)
++                                .map(|(p, n)| {
++                                    old.get(&n)
++                                        .cloned()
++                                        .map(|v| (p.name.clone(), v))
++                                        .ok_or_else(|| {
++                                            Error(format!("§11: unresolved classical argument {n}"))
++                                        })
++                                })
++                                .collect::<Result<_>>()?,
++                        );
++                    }
++                }
++            }
++            for bound in point.loops {
++                if bound == 0 {
++                    return Ok(None);
++                }
++                domain.push((0, u128::from(bound) - 1));
++            }
++        }
++        // Generated ordinals belong to the bound expansion library. Admission
++        // does not execute it; retain the whole ordinal selector domain.
++        // Unknown is DEFERRED under INV-5 1.4.3, not a proof of emptiness.
++        // A future object-derived token bound can use the same Some branch.
++        let Some(upper) = steps.upper() else {
++            return Ok(None);
++        };
++        if upper == 0 {
++            return Ok(None);
++        }
++        domain.extend([(1, upper), (0, 1), (0, u128::MAX)]);
++        Ok(Some((domain, steps, format!("{arguments:?}"))))
++    }
++
++    fn entry_domain(&self, entry: &Json, chain: &[Json], base: &Domain) -> Result<Option<Domain>> {
++        let path = entry.get("path")?.array()?;
++        if path.len() > chain.len() {
++            return Ok(None);
++        }
++        let mut domain = base.clone();
++        let mut offset = 0;
++        for (i, element) in chain.iter().enumerate() {
++            let (block, ordinal) = element
++                .get("point")?
++                .string()?
++                .rsplit_once(':')
++                .ok_or_else(|| Error("§11: invalid point".into()))?;
++            let depth = self
++                .point(
++                    element.get("symbol")?.string()?,
++                    block,
++                    ordinal
++                        .parse()
++                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
++                )?
++                .loops
++                .len();
++            if let Some(selector) = path.get(i) {
++                if selector.get("symbol")? != element.get("symbol")?
++                    || selector.get("point")? != element.get("point")?
++                {
++                    return Ok(None);
++                }
++                let iterations = selector.get("iteration")?;
++                if !wildcard(iterations) {
++                    for (j, value) in iterations.array()?.iter().enumerate() {
++                        let value = value.uint()?;
++                        domain[offset + j] = (value, value);
++                    }
++                }
++            }
++            offset += depth;
++        }
++        for (i, key) in ["step", "phase", "generated"].iter().enumerate() {
++            let value = entry.get(key)?;
++            if !wildcard(value) {
++                let n = if *key == "phase" {
++                    u128::from(value.string()? == "rev")
++                } else {
++                    value.uint()?
++                };
++                domain[offset + i] = (n, n);
++            }
++        }
++        Ok(intersection(&domain, base))
++    }
++
++    pub(super) fn has_uncovered_tie(
++        &self,
++        a: &Json,
++        b: &Json,
++        entries: &[Json],
++        region: &str,
++        root_budget: Option<u128>,
++    ) -> Result<bool> {
++        Ok(self
++            .tie_witness(a, b, entries, region, root_budget, None)?
++            .is_some())
++    }
++
++    fn tie_witness(
++        &self,
++        a: &Json,
++        b: &Json,
++        entries: &[Json],
++        region: &str,
++        root_budget: Option<u128>,
++        arguments: Option<&std::collections::BTreeMap<String, crate::Argument>>,
++    ) -> Result<Option<Json>> {
++        let mut chains = self.shortest_chains(a.get("path")?, region)?;
++        let max_path = entries
++            .iter()
++            .map(|e| e.get("path")?.array().map(<[Json]>::len))
++            .collect::<Result<Vec<_>>>()?
++            .into_iter()
++            .max()
++            .unwrap_or(0);
++        // Beyond every selector's path, only the reachable call graph matters.
++        // Memoizing suffix points per boundary chain terminates recursive
++        // lprocs without a call-depth, step, or loop expansion cap.
++        let mut suffixes = std::collections::BTreeSet::new();
++        while let Some(chain) = chains.pop() {
++            let Some((base, steps, bound_arguments)) =
++                self.chain_domain(&chain, root_budget, arguments)?
++            else {
++                continue;
++            };
++            if !matches!(steps, InvocationSteps::Action) {
++                let last = chain
++                    .last()
++                    .ok_or_else(|| Error("§11: empty operation chain".into()))?;
++                let (block, ordinal) = last
++                    .get("point")?
++                    .string()?
++                    .rsplit_once(':')
++                    .ok_or_else(|| Error("§11: invalid point".into()))?;
++                let point = self.point(
++                    last.get("symbol")?.string()?,
++                    block,
++                    ordinal
++                        .parse()
++                        .map_err(|_| Error("§11: invalid point ordinal".into()))?,
++                )?;
++                let callee = if matches!(
++                    point.instruction.op.as_str(),
++                    "lift.call" | "lift.oracle_call" | "lift.oracle_uncall" | "lift.perm_call"
++                ) {
++                    Some(
++                        point.instruction.operands[0]
++                            .trim_start_matches('@')
++                            .to_string(),
++                    )
++                } else {
++                    normalize_call(point.instruction).ok().map(|call| {
++                        call.instruction.operands[0]
++                            .trim_start_matches('@')
++                            .to_string()
++                    })
++                };
++                let boundary = chain[..chain.len().min(max_path)].to_vec();
++                let key = (
++                    Json::Array(boundary).canonical(),
++                    last.canonical(),
++                    steps.upper(),
++                    bound_arguments,
++                );
++                if chain.len() < max_path || suffixes.insert(key) {
++                    if let Some(callee) = callee.filter(|name| self.functions.contains_key(name)) {
++                        for suffix in self.shortest_chains(&Json::Array(vec![]), &callee)? {
++                            let mut extension = chain.clone();
++                            extension.extend(suffix);
++                            chains.push(extension);
++                        }
++                    }
++                }
++            }
++            let Some(ad) = self.entry_domain(a, &chain, &base)? else {
++                continue;
++            };
++            let Some(bd) = self.entry_domain(b, &chain, &base)? else {
++                continue;
++            };
++            let Some(common) = intersection(&ad, &bd) else {
++                continue;
++            };
++            let mut remaining = vec![common];
++            for higher in entries {
++                if higher.get("kind")? != a.get("kind")? || specificity(higher)? <= specificity(a)?
++                {
++                    continue;
++                }
++                if let Some(cover) = self.entry_domain(higher, &chain, &base)? {
++                    remaining = remaining
++                        .into_iter()
++                        .flat_map(|box_| subtract(box_, &cover))
++                        .collect();
++                    if remaining.is_empty() {
++                        break;
++                    }
++                }
++            }
++            if let Some(uncovered) = remaining.first() {
++                return Ok(Some(self.concrete_witness(&chain, uncovered)?));
++            }
++        }
++        Ok(None)
++    }
++
++    fn concrete_witness(&self, chain: &[Json], domain: &Domain) -> Result<Json> {
++        let mut path = chain.to_vec();
++        let mut offset = 0;
++        for element in &mut path {
++            let (block, ordinal) = element
++                .get("point")?
++                .string()?
++                .rsplit_once(':')
++                .ok_or_else(|| Error("§11: invalid point".into()))?;
++            let depth = self
++                .point(
++                    element.get("symbol")?.string()?,
++                    block,
++                    ordinal
++                        .parse()
++                        .map_err(|_| Error("§11: invalid ordinal".into()))?,
++                )?
++                .loops
++                .len();
++            let iterations = domain[offset..offset + depth]
++                .iter()
++                .map(|d| Json::Number(d.0.to_string()))
++                .collect();
++            if let Json::Object(fields) = element {
++                fields.insert("iteration".into(), Json::Array(iterations));
++            }
++            offset += depth;
++        }
++        Ok(Json::Object(std::collections::BTreeMap::from([
++            ("path".into(), Json::Array(path)),
++            ("step".into(), Json::Number(domain[offset].0.to_string())),
++            (
++                "phase".into(),
++                Json::String(
++                    if domain[offset + 1].0 == 0 {
++                        "fwd"
++                    } else {
++                        "rev"
++                    }
++                    .into(),
++                ),
++            ),
++            (
++                "generated".into(),
++                Json::Number(domain[offset + 2].0.to_string()),
++            ),
++        ])))
++    }
++
++    /// Check matching with the actual run's tokens, before any realisation.
++    /// This is the §11 matching gate, not staged target/timing execution.
++    /// Unbound admission defers nested domains (SPEC-QUESTIONS 33 / INV-5 1.4.3).
++    pub fn check_schedule_matches_for_run(
++        &self,
++        region: &str,
++        budget: crate::Budget,
++        args: &[crate::Argument],
++    ) -> Result<()> {
++        let Some(schedule) = self.section("schedule") else {
++            return Ok(());
++        };
++        if schedule
++            .get("bindings")?
++            .get("region")?
++            .string()?
++            .trim_start_matches('@')
++            != region
++        {
++            return Ok(());
++        }
++        let function = &self.functions[region];
++        let parameters = &function.params[if function.kind == "oracle" { 4 } else { 3 }];
++        if parameters.len() != args.len() {
++            return err("§11", "schedule argument count mismatch");
++        }
++        let arguments = parameters
++            .iter()
++            .zip(args)
++            .map(|(p, v)| {
++                crate::oracle::check_argument(self, &p.ty, v)?;
++                Ok((p.name.clone(), v.clone()))
++            })
++            .collect::<Result<std::collections::BTreeMap<_, _>>>()?;
++        let entries = schedule.get("entries")?.array()?;
++        let root_budget = (function.kind == "oracle").then_some(u128::from(budget.steps));
++        for (i, a) in entries.iter().enumerate() {
++            for b in &entries[i + 1..] {
++                if a.get("kind")? == b.get("kind")?
++                    && specificity(a)? == specificity(b)?
++                    && overlaps(a, b)?
++                {
++                    if let Some(operation) =
++                        self.tie_witness(a, b, entries, region, root_budget, Some(&arguments))?
++                    {
++                        // Never choose or apply a realisation on an ambiguous
++                        // concrete operation. The resolver owns the diagnostic.
++                        self.resolve_schedule(&operation, a.get("kind")?.string()?)?;
++                        return err(
++                            "§11",
++                            "internal maximal-tie witness did not resolve to a tie",
++                        );
++                    }
++                }
++            }
++        }
++        Ok(())
++    }
+ }
+ ````
+@@ -21074,5 +21465,5 @@
+ ````
+ 
+-## `src/object.rs` (1774 lines)
++## `src/object.rs` (1802 lines)
+ 
+ ````rust
+@@ -21116,5 +21507,5 @@
+     s.parse::<u64>().map_err(|_| {
+         Error(format!(
+-            "host limit: {what} {s} exceeds the host's 64-bit descriptor range (not an ISA rule)"
++            "§3.3: host limit: {what} {s} exceeds the host's 64-bit descriptor range (not an ISA rule)"
+         ))
+     })
+@@ -21174,5 +21565,5 @@
+         usize::try_from(w).map_err(|_| {
+             Error(format!(
+-                "host limit: width {w} exceeds the host address space (not an ISA rule)"
++                "§3.3: host limit: width {w} exceeds the host address space (not an ISA rule)"
+             ))
+         })
+@@ -21352,11 +21743,18 @@
+     }
+     pub fn signature(&self) -> Json {
++        let uint = |n: u64| {
++            if n <= 9_007_199_254_740_991 {
++                Json::Number(n.to_string())
++            } else {
++                Json::String(n.to_string())
++            }
++        };
+         let widths = |p: &[Param]| {
+             Json::Array(
+                 p.iter()
+                     .map(|p| {
+-                        Json::Number(match &p.ty {
+-                            Type::Wire(n) | Type::Reg(n) => n.to_string(),
+-                            _ => "0".into(),
++                        uint(match &p.ty {
++                            Type::Wire(n) | Type::Reg(n) => *n,
++                            _ => 0,
+                         })
+                     })
+@@ -21376,6 +21774,6 @@
+                         Json::Object(
+                             [
+-                                ("A".into(), Json::Number(a.to_string())),
+-                                ("W".into(), Json::Number(w.to_string())),
++                                ("A".into(), uint(a)),
++                                ("W".into(), uint(w)),
+                                 (
+                                     "role".into(),
+@@ -22275,8 +22673,5 @@
+         let code = |s: &str| -> Result<()> {
+             let fw = self.fault_width(f)?;
+-            crate::BitVector::parse_unsigned_exact(
+-                usize::try_from(fw).map_err(|_| Error("host limit: fault width".into()))?,
+-                s,
+-            )?;
++            unsigned_literal(s, fw as u128)?;
+             Ok(())
+         };
+@@ -22645,16 +23040,13 @@
+         return err("§16.1", format!("invalid or noncanonical INT literal {s}"));
+     }
+-    let w = usize::try_from(width).map_err(|_| Error("host limit: const width".into()))?;
+-    let magnitude = s.trim_start_matches('-');
+-    let in_range = match crate::BitVector::parse_unsigned_exact(w + 1, magnitude) {
+-        Ok(m) if s.starts_with('-') => {
+-            // |c| <= 2^(N-1): bits >= N-1 must be zero, except exactly 2^(N-1).
+-            let mut limit = crate::BitVector::zero(w + 1)?;
+-            limit.set(w - 1, true)?;
+-            m.unsigned_cmp(&limit)? != std::cmp::Ordering::Greater
+-        }
+-        Ok(m) => !m.bit(w)?,
+-        Err(_) => false,
+-    };
++    let (bits, power_of_two) = literal_magnitude(s.trim_start_matches('-'))?;
++    // For negative c, |c| <= 2^(N-1): either fewer than N bits, or exactly
++    // N bits with only the high bit set. Compare in u128, never N+1 or N-1.
++    let in_range = width > 0
++        && if s.starts_with('-') {
++            bits < width as u128 || (bits == width as u128 && power_of_two)
++        } else {
++            bits <= width as u128
++        };
+     if !in_range {
+         return err(
+@@ -22662,4 +23054,31 @@
+             format!("const literal {s} is outside [-2^(N-1), 2^N) for N = {width}"),
+         );
++    }
++    Ok(())
++}
++/// Inspect only the spelling's magnitude, using four bits per
++/// decimal digit plus word padding. Destination widths never drive storage.
++fn literal_magnitude(s: &str) -> Result<(u128, bool)> {
++    let generous = s
++        .len()
++        .checked_mul(4)
++        .ok_or_else(|| Error("§3.3: host limit: literal spelling size exceeds usize".into()))?;
++    let value = crate::BitVector::parse_decimal(generous, s)?;
++    let mut bits = 0;
++    let mut ones = 0usize;
++    for i in 0..generous {
++        if value.bit(i)? {
++            bits = i as u128 + 1;
++            ones += 1;
++        }
++    }
++    Ok((bits, ones == 1))
++}
++pub(crate) fn unsigned_literal(s: &str, width: u128) -> Result<()> {
++    if !integer(s) || s.starts_with('-') {
++        return err("§16.1", "unsigned canonical INT required");
++    }
++    if literal_magnitude(s)?.0 > width {
++        return err("§3.3", "integer literal exceeds declared width");
+     }
+     Ok(())
+@@ -23326,5 +23745,5 @@
+     let len = power_of_two(address_width as u128)
+         .and_then(|n| usize::try_from(n).ok())
+-        .ok_or_else(|| Error("host limit: region exceeds host address space".into()))?;
++        .ok_or_else(|| Error("§4.2: host limit: region exceeds host address space".into()))?;
+     (0..len)
+         .map(|i| Ok(memory.byte(offset(base, i)?)))
+@@ -23344,5 +23763,5 @@
+             // whenever d + 2 is representable (§3.7, §5.4).
+             if b.depth.checked_add(2).is_none() {
+-                return err("§5.4", "depth limit exceeds the counter range");
++                return err("§5.4", "host limit: depth plus two exceeds u128");
+             }
+         } else if b.heap != 0 || b.stack != 0 || b.depth != 0 {
+@@ -23719,5 +24138,5 @@
+ ````
+ 
+-## `src/quantum.rs` (893 lines)
++## `src/quantum.rs` (897 lines)
+ 
+ ````rust
+@@ -24094,17 +24513,21 @@
+             .next
+             .checked_add(n as u64)
+-            .ok_or_else(|| Error("§4.3: wire identity overflow".into()))?;
++            .ok_or_else(|| Error("§4.3: host limit: wire identity exceeds u64".into()))?;
+         let total = self
+             .ids
+             .len()
+             .checked_add(n)
+-            .ok_or_else(|| Error("§4.3: wire count overflow".into()))?;
++            .ok_or_else(|| Error("§4.3: host limit: wire count exceeds usize".into()))?;
++        let mut wires = crate::reserved(n, "§4.3", "wire identities")?;
++        self.ids
++            .try_reserve(n)
++            .map_err(|e| Error(format!("§4.3: host limit: wire identities: {e}")))?;
+         // New wires are |0> at the high positions: sparse keys are unchanged.
+         if let State::Basis { bits, .. } = &mut self.state {
+             bits.try_reserve(n)
+-                .map_err(|e| Error(format!("host limit: wire allocation failed ({e})")))?;
++                .map_err(|e| Error(format!("§4.3: host limit: wire allocation failed ({e})")))?;
+             bits.resize(total, false);
+         }
+-        let wires: Vec<_> = (self.next..end).collect();
++        wires.extend(self.next..end);
+         self.next = end;
+         self.ids.extend(&wires);
+@@ -24132,5 +24555,5 @@
+         if n >= usize::BITS as usize - 1 {
+             return err(
+-                "host limit",
++                "§4.3: host limit",
+                 format!("2^{n} dense amplitudes exceed the host address space"),
+             );
+@@ -24140,5 +24563,5 @@
+         out.try_reserve_exact(len).map_err(|e| {
+             Error(format!(
+-                "host limit: cannot allocate {len} amplitudes ({e})"
++                "§4.3: host limit: cannot allocate {len} amplitudes ({e})"
+             ))
+         })?;
+@@ -25214,5 +25637,5 @@
+ ````
+ 
+-## `src/validation.rs` (1900 lines)
++## `src/validation.rs` (1903 lines)
+ 
+ ````rust
+@@ -26352,8 +26775,7 @@
+                         return err("§3.3", "concat tier/alias");
+                     }
+-                    result = Some(Type::Qreg(
+-                        n.checked_add(m)
+-                            .ok_or_else(|| Error("§3.3: qreg size overflow".into()))?,
+-                    ));
++                    result = Some(Type::Qreg(n.checked_add(m).ok_or_else(|| {
++                        Error("§3.3: host limit: qreg descriptor sum exceeds u64".into())
++                    })?));
+                 }
+                 "measure" => {
+@@ -26583,5 +27005,9 @@
+             Ok(vec![format!("{base}[{i}]")])
+         } else {
+-            Ok((0..w).map(|i| format!("{base}[{i}]")).collect())
++            let count = usize::try_from(w)
++                .map_err(|_| Error("§3.3: host limit: wire count exceeds usize".into()))?;
++            let mut wires = crate::reserved(count, "§3.3", "wire names")?;
++            wires.extend((0..w).map(|i| format!("{base}[{i}]")));
++            Ok(wires)
+         }
+     }
+@@ -27739,5 +28165,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (2355 lines)
++## `tests/cli_xam.rs` (2414 lines)
+ 
+ ````rust
+@@ -30096,4 +30522,63 @@
+         }
+     }
++}
++
++#[test]
++fn r20_cli_pinned_extreme_const_widths_check_and_hash() {
++    for (i, (source, pin, file_pin)) in support::r20::CASES.into_iter().enumerate() {
++        assert_eq!(bennett_isa_ref::sha256_hex(source.as_bytes()), file_pin);
++        let path = tmp_file(&format!("r20-const-{i}.bisa"), source);
++        for command in ["check", "hash"] {
++            let result = ok(&[command, &path]);
++            if command == "check" {
++                assert_eq!(text(&result, "status"), "ok");
++            }
++            let o = Object::parse(source).unwrap();
++            assert_eq!(
++                text(&result, "object_hash"),
++                o.identity().unwrap().object_hash
++            );
++            assert!(result.canonical().contains(pin));
++        }
++    }
++}
++
++#[test]
++fn r20_cli_interface_region_storage_extremes() {
++    let mut cases = 0;
++    for n in [0u64, 1, (1 << 63) - 1, 1 << 63, u64::MAX - 1, u64::MAX] {
++        let meta = |n: u64| {
++            if n <= 9_007_199_254_740_991 {
++                n.to_string()
++            } else {
++                format!("\"{n}\"")
++            }
++        };
++        for (a, w) in [(n, 1), (0, n)] {
++            let sig = format!(
++                r#"{{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{{"A":{},"W":{},"role":"mut"}}],"mut":[1],"tier":"q"}}"#,
++                meta(a),
++                meta(w)
++            );
++            let source=support::object(&[("a",&sig,&format!("action @a (t:wire mut) () (r:region[{a},{w}] mut) () ()\n^entry():\nx t\nx t"))],"{}","\nsection layout\n{\"A_tab\":0,\"H\":0,\"S_cells\":0,\"globals\":{},\"heap_base\":1,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n");
++            if w == 0 {
++                assert!(Object::parse(&source)
++                    .unwrap_err()
++                    .to_string()
++                    .contains("§3.3"));
++            } else {
++                let o = support::rehash(&source);
++                let path = tmp_file(&format!("r20-region-{a}-{w}.bisa"), &o.text);
++                if n <= 1 {
++                    ok(&["run-action", &path, "a", "--mut", "0"]);
++                } else {
++                    fails(&["run-action", &path, "a", "--mut", "0"], "host limit");
++                }
++            }
++            cases += 1;
++        }
++    }
++    assert_eq!(cases, 12);
++    eprintln!("R20 CLI interface storage: 2 paths, {cases} cases");
+ }
+ ````
+@@ -32088,5 +32573,5 @@
+ ````
+ 
+-## `tests/metadata.rs` (1284 lines)
++## `tests/metadata.rs` (1478 lines)
+ 
+ ````rust
+@@ -33374,4 +33859,198 @@
+         }
+     }
++}
++
++#[test]
++fn r20_generated_certificate_width_bound_count_table_extremes() {
++    // §9.1 spelling, §12.2 exact endpoints; small intervals at every width.
++    // Expectations are assigned before admission, never learned from errors.
++    let values = [0u64, 1, (1 << 63) - 1, 1 << 63, u64::MAX - 1, u64::MAX];
++    let mut cases = 0;
++    for n in values {
++        let raw = if n <= 9_007_199_254_740_991 {
++            n.to_string()
++        } else {
++            format!("\"{n}\"")
++        };
++        for path in [
++            "borrowed.width",
++            "bundle.lo",
++            "bundle.hi",
++            "borrowed.lo",
++            "borrowed.hi",
++            "sampler.count",
++            "table.cell",
++            "frame.width",
++            "bounds",
++            "gate.count",
++        ] {
++            let mut c = certificate();
++            let mut claim = json(
++                r#"{"kind":"exhaustive","domain":{"bundles":[],"borrowed":[],"regions":[]},"expected":{"table":[]}}"#,
++            );
++            let admit = match path {
++                "borrowed.width" => {
++                    set(
++                        &mut claim,
++                        "domain",
++                        json(&format!(
++                            r#"{{"bundles":[],"borrowed":[{{"name":"b","width":{raw},"lo":0,"hi":1}}],"regions":[]}}"#
++                        )),
++                    );
++                    n > 0
++                }
++                "bundle.lo" | "bundle.hi" | "borrowed.lo" | "borrowed.hi" => {
++                    let group = if path.starts_with("bundle.") {
++                        "bundles"
++                    } else {
++                        "borrowed"
++                    };
++                    let width = if group == "bundles" { 8 } else { 1 };
++                    let name = if group == "bundles" { "x" } else { "b" };
++                    let (lo, hi) = if path.ends_with(".lo") {
++                        (raw.clone(), raw.clone())
++                    } else {
++                        ("0".into(), raw.clone())
++                    };
++                    let mut d = json(r#"{"bundles":[],"borrowed":[],"regions":[]}"#);
++                    set(
++                        &mut d,
++                        group,
++                        json(&format!(
++                            r#"[{{"name":"{name}","width":{width},"lo":{lo},"hi":{hi}}}]"#
++                        )),
++                    );
++                    set(&mut claim, "domain", d);
++                    n < (1 << width)
++                }
++                "sampler.count" => {
++                    set(&mut claim, "kind", json("\"sampled\""));
++                    if let Json::Object(m) = &mut claim {
++                        m.remove("expected");
++                    }
++                    set(
++                        &mut claim,
++                        "sampler",
++                        json(&format!(
++                            r#"{{"algorithm":"xoshiro256**","seed":["1","0","0","0"],"count":{raw}}}"#
++                        )),
++                    );
++                    true
++                }
++                "table.cell" => {
++                    set(
++                        &mut claim,
++                        "expected",
++                        json(&format!(r#"{{"table":[[{raw}]]}}"#)),
++                    );
++                    true
++                }
++                "frame.width" => {
++                    let Json::Object(r) = region_mut(&mut c) else {
++                        panic!("region")
++                    };
++                    let Json::Object(frame) = r.get_mut("frame").unwrap() else {
++                        panic!("frame")
++                    };
++                    frame.insert(
++                        "interface".into(),
++                        json(&format!(r#"[{{"role":"in","width":{raw},"class":"any"}}]"#)),
++                    );
++                    n > 0
++                }
++                "bounds" => {
++                    set(region_mut(&mut c), "bounds", json(&format!("[{raw}]")));
++                    false
++                }
++                "gate.count" => {
++                    set(
++                        region_mut(&mut c),
++                        "gates_used",
++                        json(&format!(r#"{{"x":{{"count":{raw}}}}}"#)),
++                    );
++                    true
++                }
++                _ => unreachable!(),
++            };
++            set(region_mut(&mut c), "claims", Json::Array(vec![claim]));
++            let result = std::panic::catch_unwind(|| Object::parse(&with("certificate", &c)))
++                .expect("certificate must not panic");
++            if admit {
++                result.unwrap_or_else(|e| panic!("{path}={n}: {e}"));
++            } else {
++                let e = result.unwrap_err().to_string();
++                assert!(
++                    e.contains('§') && !e.contains("host limit"),
++                    "{path}={n}: {e}"
++                );
++            }
++            cases += 1;
++        }
++    }
++    assert_eq!(cases, 60);
++    eprintln!("R20 certificate: 10 paths, {cases} cases");
++}
++
++#[test]
++fn r20_generated_schedule_count_selector_extremes() {
++    let mut cases = 0;
++    for n in [0u64, 1, (1 << 63) - 1, 1 << 63, u64::MAX - 1, u64::MAX] {
++        let raw = if n <= 9_007_199_254_740_991 {
++            n.to_string()
++        } else {
++            format!("\"{n}\"")
++        };
++        for path in [
++            "B",
++            "heap",
++            "stack",
++            "depth",
++            "controls",
++            "step",
++            "generated",
++            "ordinal",
++        ] {
++            let mut s = schedule();
++            let mut admit = true;
++            if let Json::Object(fields) = &mut s {
++                let b = fields.get_mut("bindings").unwrap();
++                if let Some(i) = ["B", "heap", "stack", "depth"]
++                    .iter()
++                    .position(|p| *p == path)
++                {
++                    let mut budget = vec![json("3"), json("0"), json("0"), json("0")];
++                    budget[i] = json(&raw);
++                    set(b, "budget", Json::Array(budget));
++                    admit = i == 0 || n == 0;
++                } else if path == "controls" {
++                    set(b, "inherited_controls", json(&raw));
++                } else {
++                    let mut e = entry("entry:0", "[]");
++                    if path == "ordinal" {
++                        e = entry(&format!("entry:{n}"), "[]");
++                        admit = n < 3;
++                    } else {
++                        set(&mut e, path, json(&raw));
++                        admit = path != "step" || n > 0;
++                    }
++                    set(&mut s, "entries", Json::Array(vec![e]));
++                }
++            }
++            let result = std::panic::catch_unwind(|| Object::parse(&with("schedule", &s)))
++                .expect("no selector/count panic");
++            if admit {
++                result.unwrap_or_else(|e| panic!("{path}={n}: {e}"));
++            } else {
++                let e = result.unwrap_err().to_string();
++                assert!(
++                    e.contains('§') && !e.contains("host limit"),
++                    "{path}={n}: {e}"
++                );
++            }
++            cases += 1;
++        }
++    }
++    assert_eq!(cases, 48);
++    eprintln!("R20 schedule counts/selectors: 8 paths, {cases} cases");
+ }
+ ````
+@@ -40005,5 +40684,5 @@
+ ````
+ 
+-## `tests/r1_literals.rs` (180 lines)
++## `tests/r1_literals.rs` (223 lines)
+ 
+ ````rust
+@@ -40187,4 +40866,47 @@
+     support::rehash(&caller("r = call @f x"));
+     rejects(&caller("r = call @f (x)"), "§16.2");
++}
++
++#[test]
++fn r20_pinned_extreme_const_widths_parse_and_hash_without_panic() {
++    for (source, pin, file_pin) in support::r20::CASES {
++        assert_eq!(bennett_isa_ref::sha256_hex(source.as_bytes()), file_pin);
++        let o = std::panic::catch_unwind(|| Object::parse(source))
++            .expect("§3.3: admission must never panic")
++            .unwrap();
++        o.check_hashes().unwrap();
++        let id = o.identity().unwrap();
++        assert_eq!(id.interface_hashes["o"], pin);
++        assert_eq!(id.closure_hashes["o"].as_deref(), Some(pin));
++    }
++}
++
++#[test]
++fn r20_extreme_const_execution_reports_host_resource() {
++    use bennett_isa_ref::{BitVector, Budget, OracleVectorInput, OracleVectorMachine};
++    for (source, _, _) in support::r20::CASES {
++        let o = Object::parse(source).unwrap();
++        let input = OracleVectorInput {
++            ins: vec![BitVector::from_u128(8, 8).unwrap()],
++            ..Default::default()
++        };
++        let sequential =
++            std::panic::catch_unwind(|| o.run_oracle_vectors("o", &input, Budget::steps(1)))
++                .expect("no execution panic")
++                .unwrap_err();
++        let machine = std::panic::catch_unwind(|| {
++            OracleVectorMachine::new(&o, "o", &input, Budget::steps(1))
++        })
++        .expect("no machine construction panic")
++        .err()
++        .expect("host limit");
++        for e in [sequential, machine] {
++            let s = e.to_string();
++            assert!(
++                s.contains('§') && s.contains("host limit") && !s.contains("outside"),
++                "{s}"
++            );
++        }
++    }
+ }
+ ````
+@@ -40865,5 +41587,5 @@
+ ````
+ 
+-## `tests/r1_widths.rs` (470 lines)
++## `tests/r1_widths.rs` (503 lines)
+ 
+ ````rust
+@@ -41181,4 +41903,6 @@
+         127,
+         128,
++        (1u128 << 63) - 1,
++        1u128 << 63,
+         u64::MAX as u128 - 64,
+         u64::MAX as u128 - 63,
+@@ -41251,9 +41975,14 @@
+                 put(&mut l, &path, n);
+                 let mutated = text.replace(&layout.canonical(), &l.canonical());
++                let expected = r20_extremes::layout_expected(&l, &o);
+                 let result = std::panic::catch_unwind(|| -> bennett_isa_ref::Result<bool> {
+                     let object = match Object::parse(&mutated) {
+                         Ok(o) => o,
+                         Err(e) => {
+-                            assert!(e.to_string().contains('§'), "{e}");
++                            assert!(
++                                e.to_string().contains('§')
++                                    && !e.to_string().contains("host limit"),
++                                "{e}"
++                            );
+                             return Ok(false);
+                         }
+@@ -41291,8 +42020,22 @@
+                 });
+                 match result.unwrap_or_else(|_| panic!("panic for {root} {path:?}={n}")) {
+-                    Ok(true) => admitted += 1,
+-                    Ok(false) => rejected += 1,
++                    Ok(true) => {
++                        assert!(
++                            ["legal", "allocation"].contains(&expected),
++                            "{root} {path:?}={n}: expected {expected}"
++                        );
++                        admitted += 1;
++                    }
++                    Ok(false) => {
++                        assert_eq!(expected, "layout", "{root} {path:?}={n}");
++                        rejected += 1;
++                    }
+                     Err(e) => {
+                         assert!(e.to_string().contains('§'), "{root} {path:?}={n}: {e}");
++                        assert!(
++                            ["representation", "allocation"].contains(&expected),
++                            "{root} {path:?}={n}: expected {expected}: {e}"
++                        );
++                        assert!(e.to_string().contains("host limit"), "{e}");
+                         host_limits += 1;
+                     }
+@@ -41318,4 +42061,5 @@
+             ..Budget::steps(0)
+         };
++        let expected_resource = depth > u128::MAX - 2;
+         let result = std::panic::catch_unwind(|| -> bennett_isa_ref::Result<()> {
+             let d = bennett_isa_ref::DerivedWidths::derive(&o, "inc8", b)?;
+@@ -41327,7 +42071,15 @@
+         .expect("depth arithmetic must not panic");
+         match result {
+-            Ok(()) => admitted += 1,
++            Ok(()) => {
++                assert!(!expected_resource);
++                admitted += 1;
++            }
+             Err(e) => {
+-                assert!(e.to_string().contains('§'), "{e}");
++                assert!(
++                    expected_resource
++                        && e.to_string().contains("host limit")
++                        && e.to_string().contains('§'),
++                    "{e}"
++                );
+                 host_limits += 1;
+             }
+@@ -41335,7 +42087,10 @@
+     }
+     eprintln!("R13 widths: {cases} cases; {admitted} constructed, {rejected} layout rejections, {host_limits} resource diagnostics");
+-    assert_eq!(cases, 507);
++    assert_eq!(cases, 591);
+     assert_eq!(cases, admitted + rejected + host_limits);
+ }
++
++#[path = "support/r20_extremes.rs"]
++mod r20_extremes;
+ ````
+ 
+@@ -42068,5 +42823,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (783 lines)
++## `tests/support/mod.rs` (785 lines)
+ 
+ ````rust
+@@ -42854,4 +43609,6 @@
+ 
+ pub mod r18;
++
++pub mod r20;
+ ````
+ 
+@@ -44652,4 +45409,612 @@
+ ````
+ 
++## `tests/support/r20-const-width-18446744073709551614.bisa` (11 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318","kind":"oracle","name":"o","signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}}
++
++section functions
++oracle @o (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()
++regs { huge:reg[18446744073709551614] }
++^entry():
++huge = lift.const.i18446744073709551614 1
++lift.retval x
++````
++
++## `tests/support/r20-const-width-18446744073709551615.bisa` (11 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1","kind":"oracle","name":"o","signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}}
++
++section functions
++oracle @o (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()
++regs { huge:reg[18446744073709551615] }
++^entry():
++huge = lift.const.i18446744073709551615 1
++lift.retval x
++````
++
++## `tests/support/r20.rs` (13 lines)
++
++````rust
++//! Reviewer bytes and independently reconstructed §9.2 pins (r20_pins.py).
++pub const CASES: [(&str, &str, &str); 2] = [
++    (
++        include_str!("r20-const-width-18446744073709551614.bisa"),
++        "9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318",
++        "254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367",
++    ),
++    (
++        include_str!("r20-const-width-18446744073709551615.bisa"),
++        "97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1",
++        "94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344",
++    ),
++];
++````
++
++## `tests/support/r20_extremes.rs` (529 lines)
++
++````rust
++//! R20 recurring arithmetic/allocation class. Expected outcomes are assigned
++//! before production is called. Text has canonical unsigned INT spelling;
++//! metadata has number <= 2^53-1 and decimal string otherwise (§9.1).
++use super::support;
++use bennett_isa_ref::{Object, Result};
++use std::panic::{catch_unwind, UnwindSafe};
++const VALUES: [u64; 6] = [0, 1, (1 << 63) - 1, 1 << 63, u64::MAX - 1, u64::MAX];
++
++#[derive(Clone, Copy, Debug)]
++enum Expected {
++    Admit,
++    Range,
++    Resource,
++}
++fn check<T>(label: &str, expected: Expected, run: impl FnOnce() -> Result<T> + UnwindSafe) {
++    let result = catch_unwind(run).unwrap_or_else(|_| panic!("panic: {label}"));
++    match (expected, result) {
++        (Expected::Admit, Ok(_)) => (),
++        (Expected::Range | Expected::Resource, Err(e)) => {
++            let s = e.to_string();
++            assert!(s.contains('§'), "{label}: {s}");
++            assert_eq!(
++                s.contains("host limit"),
++                matches!(expected, Expected::Resource),
++                "{label}: {s}"
++            );
++        }
++        (expected, result) => panic!(
++            "{label}: expected {expected:?}, got {}",
++            result.err().map_or("admission".into(), |e| e.to_string())
++        ),
++    }
++}
++fn oracle(width: u64, literal: &str) -> String {
++    support::object(&[("o", r#"{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}"#,
++       &format!("oracle @o (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\nregs {{ r:reg[{width}] }}\n^entry():\nr = lift.const.i{width} {literal}\nlift.retval x"))], "{}", "")
++}
++fn action(width: u64, body: &str, bound: Option<u64>) -> String {
++    let bounds = bound.map_or(String::new(), |n| {
++        if n <= 9_007_199_254_740_991 {
++            n.to_string()
++        } else {
++            format!("\"{n}\"")
++        }
++    });
++    let meta_width = if width <= 9_007_199_254_740_991 {
++        width.to_string()
++    } else {
++        format!("\"{width}\"")
++    };
++    let sig = format!(
++        r#"{{"abi":"0.8","args":[],"bounds":[{bounds}],"in":[],"kind":"action","mem":[],"mut":[{meta_width}],"tier":"q"}}"#
++    );
++    let regs = bound.map_or(String::new(), |n| format!("regs {{  }} bounds {{{n}}}\n"));
++    support::object(
++        &[(
++            "a",
++            &sig,
++            &format!("action @a (t:wire[{width}] mut) () () () ()\n{regs}^entry():\n{body}"),
++        )],
++        "{}",
++        "",
++    )
++}
++#[test]
++fn r20_generated_text_width_count_index_extremes() {
++    use Expected::*;
++    let mut cases = 0;
++    for n in VALUES {
++        for literal in ["0", "1", "-1", "-2", "255", "256", "-128", "-129"] {
++            let expected = if n == 0 || (n == 1 && !["0", "1", "-1"].contains(&literal)) {
++                Range
++            } else {
++                Admit
++            };
++            check(&format!("const N={n} c={literal}"), expected, || {
++                Object::parse(&oracle(n, literal))
++            });
++            cases += 1;
++        }
++        // A whole bundle invokes both disjointness expansion and borrow compiler.
++        for (path, text, expected) in [
++            (
++                "action-wire",
++                action(n, "x t\nx t", None),
++                if n == 0 {
++                    Range
++                } else if n == 1 {
++                    Admit
++                } else {
++                    Resource
++                },
++            ),
++            (
++                "qalloc",
++                action(1, &format!("b = qalloc any {n}\nqfree b"), None),
++                if n == 0 {
++                    Range
++                } else if n == 1 {
++                    Admit
++                } else {
++                    Resource
++                },
++            ),
++            (
++                "qborrow",
++                action(1, &format!("b = qborrow any {n}\nqreturn b"), None),
++                if n == 0 {
++                    Range
++                } else if n == 1 {
++                    Admit
++                } else {
++                    Resource
++                },
++            ),
++            (
++                "wire-index",
++                action(1, &format!("x t[{n}]\nx t[{n}]"), None),
++                if n == 0 { Admit } else { Range },
++            ),
++            (
++                "qloop-bounds",
++                action(1, &format!("qloop {n} {{\nx t\nx t\n}}"), Some(n)),
++                Admit,
++            ),
++            (
++                "qregion-A",
++                action(
++                    1,
++                    &format!("qregion r {n} 1\nb = qborrow any 1\nqreturn b"),
++                    None,
++                ),
++                if n <= 1 { Admit } else { Resource },
++            ),
++            (
++                "qregion-W",
++                action(
++                    1,
++                    &format!("qregion r 0 {n}\nb = qborrow any 1\nqreturn b"),
++                    None,
++                ),
++                if n == 0 {
++                    Range
++                } else if n == 1 {
++                    Admit
++                } else {
++                    Resource
++                },
++            ),
++        ] {
++            check(&format!("{path}={n}"), expected, || Object::parse(&text));
++            cases += 1;
++        }
++    }
++    assert_eq!(cases, 90);
++    eprintln!("R20 text: 8 paths, {cases} cases");
++}
++
++/// Independent §7.1–7.2 range formulas, evaluated BEFORE Object::parse.
++/// No production layout validator or DerivedWidths helper is called here.
++pub(super) fn layout_expected(l: &bennett_isa_ref::json::Json, o: &Object) -> &'static str {
++    use bennett_isa_ref::{json::Json, Type};
++    fn n(v: &Json) -> u128 {
++        match v {
++            Json::Number(s) | Json::String(s) => s.parse().unwrap(),
++            _ => panic!("scalar"),
++        }
++    }
++    let val = |key| n(l.get(key).unwrap());
++    let h = val("H");
++    if val("ptr_width") != o.ptr_width as u128 || h > o.ptr_width as u128 || val("null_size") == 0 {
++        return "layout";
++    }
++    let mut shared = vec![
++        (0, val("null_size")),
++        (val("heap_base"), val("heap_limit_max")),
++    ];
++    let globals = l.get("globals").unwrap().object().unwrap();
++    let capacity = (h < 128).then(|| 1u128 << h);
++    let entries = (val("A_tab") < 128).then(|| 1u128 << val("A_tab"));
++    for (name, g) in globals {
++        let size = n(g.get("size").unwrap());
++        if o.data[name].len() as u128 != size {
++            return "layout";
++        }
++        shared.push((n(g.get("base").unwrap()), size));
++    }
++    let valid = |ranges: &[(u128, u128)]| {
++        let mut sorted = Vec::new();
++        for &(base, size) in ranges {
++            let end = base.checked_add(size);
++            if end.is_none() && base.wrapping_add(size) != 0 {
++                return false;
++            }
++            if capacity.is_some_and(|cap| end.is_none_or(|end| end > cap)) {
++                return false;
++            }
++            if size > 0 {
++                sorted.push((base, end));
++            }
++        }
++        sorted.sort();
++        sorted
++            .windows(2)
++            .all(|p| p[0].1.is_some_and(|end| end <= p[1].0))
++    };
++    if entries.is_some_and(|e| globals.len() as u128 > e) || !valid(&shared) {
++        return "layout";
++    }
++    for (name, regions) in l.get("interface_regions").unwrap().object().unwrap() {
++        let mut ranges = shared.clone();
++        for p in &o.functions[name].params[3] {
++            let Type::Region(a, _) = p.ty else {
++                panic!("region")
++            };
++            if a >= 128 {
++                return "layout";
++            }
++            ranges.push((
++                n(regions.get(&p.name).unwrap().get("base").unwrap()),
++                1u128 << a,
++            ));
++        }
++        if entries
++            .is_some_and(|e| globals.len() as u128 + o.functions[name].params[3].len() as u128 > e)
++            || !valid(&ranges)
++        {
++            return "layout";
++        }
++    }
++    let widths = [h + 2, val("A_tab") + 1, val("S_cells") + 1];
++    if widths
++        .iter()
++        .any(|w| *w > usize::MAX as u128 || *w > usize::MAX as u128 - 63)
++    {
++        "representation"
++    } else if widths.iter().any(|w| *w > (1u128 << 32)) {
++        "allocation"
++    } else {
++        "legal"
++    }
++}
++
++#[test]
++fn r20_generated_descriptor_budget_storage_extremes() {
++    use bennett_isa_ref::{
++        BitVector, Budget, DerivedWidths, OracleInput, OracleVectorInput, OracleVectorMachine,
++        QuantumState, Type,
++    };
++    use Expected::*;
++    let mut cases = 0;
++    for n in VALUES {
++        for (ty, zero_legal) in [
++            (format!("i{n}"), false),
++            (format!("reg[{n}]"), false),
++            (format!("wire[{n}]"), false),
++            (format!("qreg[{n}]"), false),
++            (format!("region[{n},1]"), true),
++            (format!("region[0,{n}]"), false),
++        ] {
++            let expected = if (!zero_legal && n == 0) || (ty.starts_with('i') && n > 128) {
++                Range
++            } else {
++                Admit
++            };
++            check(&ty, expected, || Type::parse(&ty));
++            cases += 1;
++        }
++        check(
++            &format!("bit-storage={n}"),
++            if n == 0 {
++                Range
++            } else if n == 1 {
++                Admit
++            } else {
++                Resource
++            },
++            || BitVector::zero(n as usize),
++        );
++        cases += 1;
++        check(
++            &format!("quantum-storage={n}"),
++            if n <= 1 { Admit } else { Resource },
++            || QuantumState::new().allocate(n as usize),
++        );
++        cases += 1;
++        let o = Object::parse(include_str!("../fixtures/inc8.bisa")).unwrap();
++        let input = OracleVectorInput {
++            ins: vec![BitVector::from_u128(8, 8).unwrap()],
++            ..Default::default()
++        };
++        // B frames are storage, whereas B in the sequential engine is a bound:
++        // its three rows terminate even at B=max. No huge loop is executed.
++        check(
++            &format!("budget-B-machine={n}"),
++            if n <= 1 { Admit } else { Resource },
++            || OracleVectorMachine::new(&o, "inc8", &input, Budget::steps(n)),
++        );
++        check(&format!("budget-B-sequential={n}"), Admit, || {
++            o.run_oracle("inc8", &OracleInput::bits(&[8]), Budget::steps(n))
++        });
++        cases += 2;
++        let text = support::r13_text("S_cells")
++            .replace(r#""S_cells":"18446744073709551615""#, r#""S_cells":128"#);
++        let o = Object::parse(&text).unwrap();
++        for component in ["heap", "stack", "depth"] {
++            let mut b = Budget::steps(0);
++            match component {
++                "heap" => b.heap = n as u128,
++                "stack" => b.stack = n as u128,
++                _ => b.depth = n as u128,
++            }
++            let expected = if component == "heap"
++                && n as u128
++                    > o.section("layout")
++                        .unwrap()
++                        .get("heap_limit_max")
++                        .unwrap()
++                        .uint()
++                        .unwrap()
++            {
++                Range
++            } else {
++                Admit
++            };
++            check(&format!("budget-{component}={n}"), expected, || {
++                o.validate_budget(b)?;
++                DerivedWidths::derive(&o, "inc8", b)
++            });
++            cases += 1;
++        }
++        // All canonical decimal widths/counts are descriptor-bounded only by
++        // the host. This explicitly probes beyond the descriptor, with § citation.
++        for (label, text, expected) in [
++            ("fault-width", support::object(&[("o",&format!(r#"{{"abi":"0.8","args":[],"fault":{},"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}"#, if n <= 9_007_199_254_740_991 { n.to_string() } else { format!("\"{n}\"") }), &format!("oracle @o (x:wire[8] in) (t:wire[8]) (f:wire[{n}]) () ()\n^entry():\nfault 1"))],"{}",""), if n < 4 { Range } else { Admit }),
++            ("alloc-length", include_str!("../fixtures/heap.bisa").replace("p = lift.alloc 0", &format!("p = lift.alloc {n}")), if n < 65536 { Admit } else { Range }),
++        ] { check(&format!("{label}={n}"),expected,|| Object::parse(&text)); cases += 1; }
++    }
++    for spelling in ["00", "+1", "-0", "1.0", "18446744073709551616"] {
++        for ty in [
++            format!("reg[{spelling}]"),
++            format!("wire[{spelling}]"),
++            format!("qreg[{spelling}]"),
++            format!("region[{spelling},1]"),
++        ] {
++            check(
++                &ty,
++                if spelling == "18446744073709551616" {
++                    Resource
++                } else {
++                    Range
++                },
++                || Type::parse(&ty),
++            );
++            cases += 1;
++        }
++    }
++    assert_eq!(cases, 110);
++    eprintln!("R20 descriptors/budgets/storage: 15 paths, {cases} cases (20 spelling controls)");
++}
++
++#[test]
++fn r20_generated_qreg_descriptor_arithmetic_extremes() {
++    use Expected::*;
++    let mut cases = 0;
++    for n in VALUES {
++        for (path, params, body, expected) in [
++            (
++                "new",
++                String::new(),
++                format!("q = qreg.new any {n}\nqreg.free q\nret"),
++                if n == 0 { Range } else { Admit },
++            ),
++            (
++                "slice-offset",
++                "q:qreg[18446744073709551615]".into(),
++                format!("s = qreg.slice q {n} 1\naction_call @a (s) () () ()\nret"),
++                if n == u64::MAX { Range } else { Admit },
++            ),
++            (
++                "slice-length",
++                "q:qreg[18446744073709551615]".into(),
++                format!("s = qreg.slice q 0 {n}\naction_call @a (s) () () ()\nret"),
++                if n == 0 { Range } else { Admit },
++            ),
++            (
++                "concat",
++                format!("q:qreg[{n}], p:qreg[1]"),
++                "s = qreg.concat q p\nqreg.free s\nret".into(),
++                if n == 0 {
++                    Range
++                } else if n == u64::MAX {
++                    Resource
++                } else {
++                    Admit
++                },
++            ),
++        ] {
++            let types = if params.is_empty() {
++                String::new()
++            } else {
++                params
++                    .split(", ")
++                    .map(|p| format!("\"{}\"", p.split_once(':').unwrap().1))
++                    .collect::<Vec<_>>()
++                    .join(",")
++            };
++            let sig = format!(
++                r#"{{"abi":"0.8","kind":"cc","params":[{types}],"results":[],"tier":"cc"}}"#
++            );
++            let fbody = format!("fn cc @f ({params}) () () () ()\n^entry():\n{body}");
++            let w = if path == "slice-length" { n } else { 1 };
++            let mw = if w <= 9_007_199_254_740_991 {
++                w.to_string()
++            } else {
++                format!("\"{w}\"")
++            };
++            let asig = format!(
++                r#"{{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[{mw}],"tier":"q"}}"#
++            );
++            let abody =
++                format!("action @a (t:wire[{w}] mut) () () () ()\n^entry():\nx t[0]\nx t[0]");
++            let mut defs = vec![("f", sig.as_str(), fbody.as_str())];
++            if path.starts_with("slice") {
++                defs.push(("a", &asig, &abody));
++            }
++            let text = support::object(&defs, "{}", "");
++            check(&format!("qreg-{path}={n}"), expected, || {
++                Object::parse(&text)
++            });
++            cases += 1;
++        }
++    }
++    assert_eq!(cases, 24);
++    eprintln!("R20 qreg arithmetic: 4 paths, {cases} cases");
++}
++
++#[test]
++fn r20_generated_cast_length_region_product_extremes() {
++    use Expected::*;
++    let mut cases = 0;
++    for n in VALUES {
++        for cast in ["zext", "trunc"] {
++            let text = oracle(n, "1").replace(
++                &format!("lift.const.i{n} 1"),
++                &format!("lift.{cast}.i{n} x"),
++            );
++            let expected = if n == 0 || (cast == "zext" && n < 8) || (cast == "trunc" && n > 8) {
++                Range
++            } else {
++                Admit
++            };
++            check(&format!("{cast}={n}"), expected, || Object::parse(&text));
++            cases += 1;
++        }
++        let text = include_str!("../fixtures/heap.bisa").replace(
++            "p = lift.alloc 0",
++            &format!("lift.boundscheck p {n}\np = lift.alloc 0"),
++        );
++        check(
++            &format!("bounds-length={n}"),
++            if n < 65536 { Admit } else { Range },
++            || Object::parse(&text),
++        );
++        cases += 1;
++        let text = action(
++            1,
++            &format!("qregion r 1 {n}\nb = qborrow any 1\nqreturn b"),
++            None,
++        );
++        check(
++            &format!("region-product={n}"),
++            if n == 0 {
++                Range
++            } else if n == 1 {
++                Admit
++            } else {
++                Resource
++            },
++            || Object::parse(&text),
++        );
++        cases += 1;
++        let sig = r#"{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[],"mut":[1],"tier":"q"}"#;
++        let text = support::object_with_data(
++            &[(
++                "a",
++                sig,
++                &format!(
++                    "action @a (t:wire mut) () () () ()\n^entry():\nqregion r {n} 8 @img\nx t\nx t"
++                ),
++            )],
++            &[("img", "00")],
++            "",
++        );
++        check(
++            &format!("region-image={n}"),
++            if n == 0 { Admit } else { Range },
++            || Object::parse(&text),
++        );
++        cases += 1;
++    }
++    assert_eq!(cases, 30);
++    eprintln!("R20 casts/lengths/region products: 5 paths, {cases} cases");
++}
++
++#[test]
++fn r20_generated_borrow_capacity_sum_extremes() {
++    for n in VALUES {
++        let mut o = Object::parse(&action(
++            1,
++            "b = qborrow any 1\nqreturn b\nc = qborrow any 1\nqreturn c",
++            None,
++        ))
++        .unwrap();
++        // Exercise the public capacity consumer independently of concrete wire
++        // expansion. Every positive n is an ISA width; usize limits this host sum.
++        o.functions.get_mut("a").unwrap().blocks[0].instructions[0].operands[1] = n.to_string();
++        check(
++            &format!("borrow-capacity={n}"),
++            if n == u64::MAX {
++                Expected::Resource
++            } else {
++                Expected::Admit
++            },
++            || o.borrow_capacity("a"),
++        );
++    }
++    eprintln!("R20 borrow capacity: 1 path, 6 cases");
++}
++````
++
++## `tests/support/r20_pins.py` (19 lines)
++
++````python
++"""Independent §9.2 literal envelopes; no interpreter or rehash helper."""
++import hashlib
++import json
++from pathlib import Path
++
++HERE = Path(__file__).resolve().parent
++for n, expected, file_pin in [
++    (18446744073709551614, "9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318", "254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367"),
++    (18446744073709551615, "97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1", "94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344"),
++]:
++    data = (HERE / f"r20-const-width-{n}.bisa").read_bytes()
++    assert hashlib.sha256(data).hexdigest() == file_pin
++    prefix, body = data.decode().split("section functions\n")
++    symbol = json.loads(prefix.split("section symbols\n")[1].strip())["0"]
++    signature = json.dumps(symbol["signature"], sort_keys=True, separators=(",", ":"))
++    envelope = ("isa=0.8\nptr_width=32\n" + signature + "\n" + body).encode()
++    assert len(envelope) == 269
++    assert hashlib.sha256(envelope).hexdigest() == expected == symbol["interface_hash"]
++    print(f"N={n}: envelope={len(envelope)} bytes, interface=closure={expected}, file={file_pin}")
++````
++
+ ## `tests/support/r9_pins.py` (47 lines)
+ 

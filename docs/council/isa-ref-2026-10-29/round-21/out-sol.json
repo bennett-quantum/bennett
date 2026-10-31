@@ -1,0 +1,103 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "object.rs::{validate_row,const_literal,unsigned_literal}, schema.rs and validation.rs preserve the \u00a73.3/\u00a74.8/\u00a716 admission rules on the cases reviewed. Both original extreme-width objects check successfully; independently pinned i8 256 and -129 reject with \u00a73.3, while 255 and -128 admit. The new failure occurs after successful admission, inside claim execution.",
+   "change": "Retain the exact R20 admission fixtures and their literal expected pins in tests/r1_literals.rs and tests/cli_xam.rs; no admission-rule correction is required for SOL-R20-B01."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "Independent \u00a79.2 reconstruction reproduces all four \u00a716.3 identities: inc8, zero, recursive sum (including its SCC member derivation), and sum_db. The R20 envelopes remain 269 bytes with both original interface/closure and whole-file pins. Function::signature now uses canonical decimal strings for dimensions above 2^53-1; my fault-width=u64::MAX object passes check against an independently computed hash. Identity/linking tests remain green.",
+   "change": "In tests/identity.rs, add independent signature-envelope controls at dimensions 2^53-1, 2^53 and 2^53+1 for wire widths and region A/W, preserving existing published pins; this would strengthen boundary evidence at the current score."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "oracle.rs::run_oracle_vectors dispatches every \u00a74.2 row and preserves first-fault/step accounting in the reproductions. Hand-derived inc8(255): B=3 gives (0,0,3), B=2 gives (0,1,2). tiny(x=0,db=05): B=4 gives (0,5,4), B=3 gives (0,1,3). sum_db(0): B=10/stack=16/depth=1 succeeds in 10 rows; B=9 exhausts, and stack=15 faults code 3 at row 3. All agree.",
+   "change": "In tests/wide_oracle.rs, add independently calculated signed division/remainder cases at 63/64/65-bit boundaries with success and first-fault budgets; retain the existing u8 exhaustive sweep. No new sequential-core defect was demonstrated."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "machine.rs::{forward_step,inverse_step,inverse_call,inverse_ret} follows the printed \u00a73.6/\u00a73.7 ordering. My separate library probe checks each sum_db(0) forward step followed by its inverse, including call row 3 and ret row 9, against the complete pre-step tuple; all restore exactly. Ten-step prefix reversal clears every frame and restores entry. The recursive ignored sweep also passes.",
+   "change": "Extend tests/step_machine.rs with independently specified recursive call/return records whose displaced locations span several limbs, asserting complete tuple equality after each individual inverse and clean capture/delivery slots."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Traced classical.rs::uncall, undo_frame and undo_record against \u00a77.4: reverse the completed segment in LIFO order, skip already reversed frames and uncall markers, restore activation links and dynamic instances. For classical.bisa::nested, g clock.read is undone by its inner uncall, f is later uncalled without repeating that effect, and whole reversal restores the initial memory digest, clock 0 and empty effect tape; the run has 11 rows and returns 0. CC/R and register suites pass.",
+   "change": "Keep tests/classical.rs and tests/registers.rs checking retained-history equality alongside device and memory equality for nested cancellation; no CC/R correction is required by this review."
+  },
+  {
+   "id": "C6",
+   "score": 5,
+   "evidence": "Reviewed the \u00a74.3-\u00a74.7 dispatch, \u00a76 checks, matched opaque-pair/control-set handling and the recorded INV-1/INV-2/INV-3 readings. No new Q-core counterexample was demonstrated. The 17-wire borrow, checked borrow-certificate and 200,000-program discipline sweeps all pass independently in this review; finite empirical coverage is not a proof of the OPEN other-value theorem.",
+   "change": "In tests/r1_fuzz_discipline.rs, retain independent accepted-program cleanliness checks and add deterministic transitive-reader/diagonal-phase cases tied to INV-3 steps 1.2.3 and 1.4.3; this strengthens evidence without claiming the open theorem proved."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Re-ran 425 tests with 0 failures/5 ignored and all five ignored release sweeps with 0 failures. The focused R20 family passes 13 tests. The 102-path inventory has a consumer-coverage hole: certificate.rs::domain is tested on explicit cell intervals, while claims.rs::Object::domain expands cells=all before the guarded enumerate/sample consumers. My count=1 sampled witness aborts there despite all existing tests passing.",
+   "change": "Add an end-to-end Object::parse -> check_hashes -> verify_claim regression for cells=all at A=63 in tests/r1_certificates.rs, isolated in a memory-limited child so the current abort cannot kill the test runner. Require a cited host-limit Result error and normal child exit, and retain a small all-cells control returning Evidence { elements: 1 }."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Audited all 33 SPEC-QUESTIONS entries against the supplied spec and INV-1..5; no new unjustified reading or spec gap was established. Deliverables 8-11 remain staged as disclosed and are not blockers here. The remaining implemented claim path violates the stated fallible-storage/reporting contract: it terminates with allocator SIGABRT instead of a \u00a712.2 host-limit error.",
+   "change": "Repair claims.rs::Object::domain as SOL-R21-B01 specifies, then amend README.md Design (round 20), PROGRESS.md and the extreme-path inventory to distinguish domain-component expansion from exhaustive/sample element collection and record the new end-to-end result."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R21-B01",
+   "section": "S0; ISA \u00a7\u00a73.3, 5.1, 12.1-12.2; src/claims.rs::Object::domain, lines 233-248 (cells=\"all\" expansion)",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "\u00a712.2 explicitly admits region domains with \"cells\": \"all\"; a region[A,W] contains 2^A cells. \u00a712.1 sampled claims require sampler replay as evidence, with components consumed in enumeration order. Thus a one-sample claim over a well-formed action with region[63,1] is a defined consumer input. The finite host may report inability to materialise that domain; neither an arbitrary ISA exponent cap nor an allocator abort is the documented reported outcome. This is an implemented sampled/domain path, not the staged numerical/channel checker.",
+     "by": "clause:ISA-3.3; clause:ISA-5.1; clause:ISA-12.1; clause:ISA-12.2"
+    },
+    {
+     "n": "2",
+     "claim": "Object::domain converts 2^A to usize, then handles \"all\" with for i in 0..cells { components.push((Component::Cell(...), w, BitVector::zero(w)?, ones(w)?)); }. For A=63, 2^63 fits usize on this host, but a Vec of that many nonzero-sized component records cannot fit its byte-capacity limit. There is no checked aggregate component count or fallible reservation before this eager expansion. verify_claim_guarded calls this function before the repaired enumerate/sample_elements guards, so those guards cannot protect it.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:233; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:478"
+    },
+    {
+     "n": "3",
+     "claim": "Independent complete witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled.bisa. Body: action @a (t:wire mut) () (r:region[63,1] in) () (); ^entry():; x t; x t, one instruction per LF-terminated line. Its claim has bundles=[{name:t,width:1,lo:0,hi:1}], borrowed=[], regions=[{name:r,cells:all}], kind=sampled, sampler={algorithm:xoshiro256**,seed:[\"1\",\"2\",\"3\",\"4\"],count:1}. The complete file includes a valid layout and independently pinned certificate: interface=closure f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af; whole-file SHA-256 dfca89aa2073705841586a1c4a76e27be92618417476e9cb3b9016c0e09ab3c4. Object::parse and check_hashes succeed. Running the saved claim-probe under RLIMIT_AS=192 MiB and RLIMIT_CORE=0 exits -6 (SIGABRT), stdout \"parse/check_hashes: ok\", stderr \"memory allocation of 218103808 bytes failed\". No verify_claim Result is returned. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/reproduce-region-all-sampled.py; claim-probe.rs and its compiled executable are alongside the object.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-probe.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/reproduce-region-all-sampled.py; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/all-cells-sampled.log"
+    },
+    {
+     "n": "4",
+     "claim": "The independently repinned region[1,1] control, /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled-small.bisa, passes the same parse/hash checks and returns Ok(Evidence { elements: 1 }) under the same process limit. Separate own 64-bit bundle-domain objects with extreme exhaustive cardinality or sample count return the intended cited host-limit Err normally. Therefore the observed failure is specifically the preceding all-cells domain expansion, not a bad sampler, a hash error, or failure of the repaired element-storage consumers. The branch is unchanged from 85241b8, so this is newly exposed rather than a regression.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled-small.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-probe.log; step:2; step:3"
+    },
+    {
+     "n": "5",
+     "claim": "The defined all-cells claim path still performs unchecked text-driven storage growth and can abort the checker instead of reporting its host limit. This is a contract S0 and prevents whole-crate acceptance; it does not invalidate the resolved const-literal repair or establish a core blocker. It fits no stated theorem of INV-1..INV-5: none models host allocation/reporting during certificate-domain materialisation. No new spec assumption or amendment is needed.",
+     "by": "step:1; step:2; step:3; step:4"
+    }
+   ],
+   "fix": "Change src/claims.rs::Object::domain, especially the Json::String(\"all\") branch. The determining text is \u00a712.2, \"cells\": \"all\" | [ { \"index\", \"lo\", \"hi\" } ], and \u00a712.1 \"replay; evidence\" / \"components are consumed in enumeration order\". Before iterating a virtual cell count, compute the cumulative domain-component count with checked arithmetic and reserve component storage fallibly (or retain the all-cells domain symbolically until a checked consumer materialises it). Propagate a cited host-resource Error; do not impose an ISA A/W cap, truncate the cells, or relabel the legal domain as a range error. For the supplied A=63/count=1 object, verify_claim must return Err containing \u00a712.2 and host limit, without panic, abort or eager partial expansion. Add a subprocess regression under a safe memory limit requiring normal exit and that Err; the current code fails with SIGABRT. Keep the A=1 sampled control at Evidence { elements: 1 }, the independently derived eight-row exhaustive identity control at Proof, and A=64 representation controls. Exercise both the explicit-list and all-cells branches through Object::parse/check_hashes/verify_claim, not only the private admission validator or a preconstructed Domain. Update the inventory and storage claims in PROGRESS.md/README.md to include this missed consumer, then rerun the focused and full gates."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R20-B01",
+   "status": "resolved",
+   "note": "Both exact original objects now parse/check/hash successfully: N=max -> interface=closure 97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1, file 94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344; N=max-1 -> interface=closure 9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318, file 254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367. Each independently reconstructed envelope is 269 bytes; ordinary i8 range rejection and extreme execution host-error controls pass."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1: In tests/support/r20_extremes.rs and the certificate consumer family, supplement the six raw scalar extremes with boundaries of derived sizes: region exponents around 62/63/64 and 127/128, number/string dimensions around 2^53-1, and counts around container byte-capacity boundaries. Enumerate each tagged schema alternative and its actual consumer in the path inventory. Preassign the expected semantic/range/host-resource category, and use isolated child processes where a missing guard could abort. This strengthens the finite sweep without advertising exhaustive coverage of u64 or resource availability."
+ ],
+ "verdict": "revise",
+ "verdict_core": "accept",
+ "path_to_accept": "1. Guard claims.rs::Object::domain all-cells component expansion and propagate a cited host-resource Result error for SOL-R21-B01. 2. Add the memory-limited end-to-end regression plus finite sampled/exhaustive all-cells controls, and update the inventory/reporting to include the consumer. 3. Rerun the focused family, full suite and ignored sweeps. No core repair, ISA amendment, or completion of staged deliverables 8-11 is required for this vote.",
+ "summary": "Reviewed snapshot adf5dff8a0798e41326685669ed32d7469c3c63e against the round-21 rubric, response/inventory, diff from 85241b8, ISA 0.8 and INV-1..5; all 164 embedded packet files compare byte-for-byte with the worktree. SOL-R20-B01 is resolved. Independently verified both exact original check/hash pins first, with 269-byte envelopes, and own i8 256/-129 rejection and 255/-128 admission. Additional own objects confirm large-width signatures and certificate endpoints admit, whole-wire expansion and overflowing region products return cited host errors, and exhaustive/sample element storage guards return cited Err. Method 1: hand-derived inc8(255) at B=2/3, tiny division-first-fault at B=3/4, sum_db(0) at B=9/10 and stack=15/16, and reconstructed the four published identity envelopes/SCC result; all agree. Method 2: traced the full call C5^-1 through C1^-1 and ret R5^-1 through R1^-1 lists, including restored-sp/fp addressing; a separate library probe restores the complete tuple after every individual sum_db step (call row 3, ret row 9) and after the full prefix. Traced the nested classical call/ret/uncall segment and whole reversal: 11 rows, returned 0, clock/tape/memory restored. Method 3: checked all 33 SPEC-QUESTIONS against the supplied clauses and proof gaps; no new spec-gap finding. Method 4: scanned the requested hazard patterns throughout source/tests; source hits are test assertions, parser/validated-state invariants, exact-to-f64 reporting, explicit rejection paths or disclosed staged machinery; no todo!/unimplemented! macro was found. Also traced eager allocations beyond those textual patterns, exposing SOL-R21-B01. Method 5: compared lifted/classical/Q opcode dispatch, fault codes 0-10, frame kinds/inverse lists, metadata schema alternatives, suites A-H and documented CLI commands; staged target/launch/schedule/interval obligations remain disclosed, not newly claimed complete. Validation: focused R20 13/0; full suite 425/0 with 5 ignored across 33 result blocks; ignored release sweeps 5/0, including the 200,000-program discipline family. Own logs and reproducer objects are under /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol. One new contract S0 remains: a legal all-cells sampled claim with count=1 aborts during domain-component expansion before the repaired storage guards. A small control returns Evidence(1); the finite exhaustive control returns Proof. This predates the diff, so no regression is reported. Core acceptance is for this staged snapshot; whole-crate acceptance is withheld. No tracked files were modified, and no commit or push was made."
+}

@@ -1,0 +1,124 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R21-B01",
+    "section": "S0; ISA \u00a7\u00a73.3, 5.1, 12.1-12.2; src/claims.rs::Object::domain, lines 233-248 (cells=\"all\" expansion)",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "\u00a712.2 explicitly admits region domains with \"cells\": \"all\"; a region[A,W] contains 2^A cells. \u00a712.1 sampled claims require sampler replay as evidence, with components consumed in enumeration order. Thus a one-sample claim over a well-formed action with region[63,1] is a defined consumer input. The finite host may report inability to materialise that domain; neither an arbitrary ISA exponent cap nor an allocator abort is the documented reported outcome. This is an implemented sampled/domain path, not the staged numerical/channel checker.",
+      "by": "clause:ISA-3.3; clause:ISA-5.1; clause:ISA-12.1; clause:ISA-12.2"
+     },
+     {
+      "n": "2",
+      "claim": "Object::domain converts 2^A to usize, then handles \"all\" with for i in 0..cells { components.push((Component::Cell(...), w, BitVector::zero(w)?, ones(w)?)); }. For A=63, 2^63 fits usize on this host, but a Vec of that many nonzero-sized component records cannot fit its byte-capacity limit. There is no checked aggregate component count or fallible reservation before this eager expansion. verify_claim_guarded calls this function before the repaired enumerate/sample_elements guards, so those guards cannot protect it.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:233; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:478"
+     },
+     {
+      "n": "3",
+      "claim": "Independent complete witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled.bisa. Body: action @a (t:wire mut) () (r:region[63,1] in) () (); ^entry():; x t; x t, one instruction per LF-terminated line. Its claim has bundles=[{name:t,width:1,lo:0,hi:1}], borrowed=[], regions=[{name:r,cells:all}], kind=sampled, sampler={algorithm:xoshiro256**,seed:[\"1\",\"2\",\"3\",\"4\"],count:1}. The complete file includes a valid layout and independently pinned certificate: interface=closure f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af; whole-file SHA-256 dfca89aa2073705841586a1c4a76e27be92618417476e9cb3b9016c0e09ab3c4. Object::parse and check_hashes succeed. Running the saved claim-probe under RLIMIT_AS=192 MiB and RLIMIT_CORE=0 exits -6 (SIGABRT), stdout \"parse/check_hashes: ok\", stderr \"memory allocation of 218103808 bytes failed\". No verify_claim Result is returned. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/reproduce-region-all-sampled.py; claim-probe.rs and its compiled executable are alongside the object.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-probe.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/reproduce-region-all-sampled.py; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/all-cells-sampled.log"
+     },
+     {
+      "n": "4",
+      "claim": "The independently repinned region[1,1] control, /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled-small.bisa, passes the same parse/hash checks and returns Ok(Evidence { elements: 1 }) under the same process limit. Separate own 64-bit bundle-domain objects with extreme exhaustive cardinality or sample count return the intended cited host-limit Err normally. Therefore the observed failure is specifically the preceding all-cells domain expansion, not a bad sampler, a hash error, or failure of the repaired element-storage consumers. The branch is unchanged from 85241b8, so this is newly exposed rather than a regression.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-region-all-sampled-small.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-sol/claim-probe.log; step:2; step:3"
+     },
+     {
+      "n": "5",
+      "claim": "The defined all-cells claim path still performs unchecked text-driven storage growth and can abort the checker instead of reporting its host limit. This is a contract S0 and prevents whole-crate acceptance; it does not invalidate the resolved const-literal repair or establish a core blocker. It fits no stated theorem of INV-1..INV-5: none models host allocation/reporting during certificate-domain materialisation. No new spec assumption or amendment is needed.",
+      "by": "step:1; step:2; step:3; step:4"
+     }
+    ],
+    "fix": "Change src/claims.rs::Object::domain, especially the Json::String(\"all\") branch. The determining text is \u00a712.2, \"cells\": \"all\" | [ { \"index\", \"lo\", \"hi\" } ], and \u00a712.1 \"replay; evidence\" / \"components are consumed in enumeration order\". Before iterating a virtual cell count, compute the cumulative domain-component count with checked arithmetic and reserve component storage fallibly (or retain the all-cells domain symbolically until a checked consumer materialises it). Propagate a cited host-resource Error; do not impose an ISA A/W cap, truncate the cells, or relabel the legal domain as a range error. For the supplied A=63/count=1 object, verify_claim must return Err containing \u00a712.2 and host limit, without panic, abort or eager partial expansion. Add a subprocess regression under a safe memory limit requiring normal exit and that Err; the current code fails with SIGABRT. Keep the A=1 sampled control at Evidence { elements: 1 }, the independently derived eight-row exhaustive identity control at Proof, and A=64 representation controls. Exercise both the explicit-list and all-cells branches through Object::parse/check_hashes/verify_claim, not only the private admission validator or a preconstructed Domain. Update the inventory and storage claims in PROGRESS.md/README.md to include this missed consumer, then rerun the focused and full gates."
+   }
+  ],
+  "codex": [
+   {
+    "id": "CODEX-R21-B01",
+    "section": "ISA \u00a7\u00a73.3, 4.6, 12.1-12.2; src/claims.rs::Object::domain (approximately lines 232-251), called by verify_claim_guarded",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "region[A,W] denotes 2^A cells of wire[W] (\u00a74.6); \u00a712.2 explicitly admits regions with cells: \"all\", and \u00a712.1 sampled claims require replay. A=63, W=1 and count=1 are legal. The action consisting of x t; x t leaves its read-only region untouched. No ISA range rule makes this input malformed; inability to materialize its domain is a host-resource failure.",
+      "by": "clause:ISA-3.3; clause:ISA-4.6; clause:ISA-12.1; clause:ISA-12.2"
+     },
+     {
+      "n": "2",
+      "claim": "The independently pinned witness has action @a (t:wire mut) () (r:region[63,1] in) () (), body x t; x t, valid layout, and one sampled claim whose domain contains t:[0,1] and r cells:\"all\", seed [\"1\",\"2\",\"3\",\"4\"], count 1. check exits 0/status ok; interface=closure f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af, object_hash 5fa6df63e007ad2bca8ab69c5a0c82e7671c585982048cf99919e59cc48a1e43.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-domain-all.bisa"
+     },
+     {
+      "n": "3",
+      "claim": "Object::domain converts 2^63 to usize successfully, then loops over every cell and pushes into components without reserving or checking that count against element storage. The public verify_claim probe, after successful Object::parse and check_hashes, exits by SIGABRT (-6) under RLIMIT_AS=134217728 and RLIMIT_CORE=0: \"memory allocation of 109051904 bytes failed\"; stdout is empty. The guard limits damage, not ISA semantics. A=0 and A=1 controls return Evidence { elements: 1 }; A=64 returns \"\u00a712.2: host limit: region cells\". Reproduce with env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-reproduce.py.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-claim-probe.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-domain-all.log; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-reproduce.py"
+     },
+     {
+      "n": "4",
+      "claim": "This is S0: a legal certificate causes process abort instead of a reported resource limitation. It is an uncovered domain-component expansion before the newly guarded enumerate/sample_elements consumers, not a regression introduced by their changes. It fits no stated theorem of INV-1 through INV-5: those theorems do not establish host-storage handling for claim-domain materialization.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "fix": "In src/claims.rs::Object::domain, before the cells:\"all\" loop, checked-add the expanded component count and fallibly reserve the additional components (or represent the cell domain lazily). The determining text is \u00a712.2 \"cells: \"all\"\" and \"bounds inclusive, enumeration order as listed, last component fastest\", with \u00a74.6 \"2^A cells of wire[W]\". Preserve admission and the exact witness hashes. With the current eager representation, 2^63 components cannot fit a Rust Vec on this host and must immediately return a \u00a712.2 host-limit Result error, not abort, claim an invalid region range, cap A, or label the claim verified. Add the complete pinned object as a public verify_claim/verify_certificate regression in a subprocess with a resource/core guard (catch_unwind alone cannot catch an allocation abort). Require normal resource-error exit, no panic/abort and no success verdict; include A=0/1 successful one-sample controls and A=64 representation-limit control. Extend the path inventory to distinguish certificate admission from executable domain expansion."
+   },
+   {
+    "id": "CODEX-R21-B02",
+    "section": "ISA \u00a7\u00a74.1, 7.1, 7.3, 10; src/classical.rs::{memory_bytes,effect,step(hostcall)} (approximately lines 626-633, 1102-1110, 1450-1465)",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "\u00a77.1 defines memory as \"Byte-addressed, little-endian, sparse\" and permits alloc n whenever the bump range and allocation-table checks pass. \u00a710 hostcall requires its byte interval to lie in one live allocation; \u00a77.3 console.write(ptr,len) has the same memory-range precondition. With ptr_width=H=64, heap_base=1, heap_limit_max=2^63 and A_tab=1, allocating n=2^63 is legal: the end is 2^63+1 <= 2^64 and one entry fits. The resulting transfer length is legal; concrete host storage may fail but must not become a panic or false memory fault.",
+      "by": "clause:ISA-7.1; clause:ISA-7.3; clause:ISA-10; clause:ISA-4.1"
+     },
+     {
+      "n": "2",
+      "claim": "Two independently pinned canonical objects use n = const.i64 9223372036854775808; p = alloc n. The CC object then executes r = hostcall org.bennett.test p n; ret r, with the service declared. The R object executes effect console.write p n; ret, with console version 0.8 declared. Both check successfully. CC interface=closure 23802c541101025a57a13ffb5f00ca72a7ad5ff95f78e9a4fd565c59f566752d; R interface=closure 2751a25e6e906ea512bc075da07cda7463161576c56cebf06455ba2d9dfab704. The independently constructed envelopes are retained next to the objects.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-cc-length.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-r-length.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-cc-length.envelope; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-r-length.envelope"
+     },
+     {
+      "n": "3",
+      "claim": "For each object, env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/target/debug/bennett-isa-ref run-cc <object> f exits 101 with empty stdout and Rust \"capacity overflow\". No args, entropy or host reply is needed; default CLI fuel suffices (failure is the third instruction). memory_bytes and the console arm use infallible collect over 0..len. Although 2^63 fits usize, a nonzero-sized Vec cannot reserve that many elements because its allocation exceeds isize::MAX. This failure is deterministic, not dependent on available RAM; the recorded executions also used a 128-MiB subprocess guard.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-cc-length-run-cc.log; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r21-codex-r-length-run-cc.log; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:626; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1102"
+     },
+     {
+      "n": "4",
+      "claim": "This is a core S0 resource-reporting failure in defined CC/R instructions, missed by the sweep of widths/counts/lengths. The original R20 constant fix is unaffected, and these collection sites predate the diff. The finding fits no stated INV-1..INV-5 theorem; their Q identities, ownership, discipline, envelope and schedule arguments do not model classical byte-buffer capacity. ISA T4 concerns valid retained traces and is not itself a proof of fallible buffer construction.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "fix": "Change src/classical.rs::memory_bytes and ClassicalMachine::effect(console.write) to reserve transferred bytes fallibly before collecting them; check/reserve cumulative console storage before append and before externally observable mutation. Propagate a \u00a710 host-limit Result for hostcall and a \u00a77.3 host-limit Result for console.write (a shared helper may additionally cite \u00a77.1). The determining text is \u00a77.1 \"sparse\" and its stated alloc checks, \u00a710 \"those bytes are copied into the request\", and \u00a77.3 \"validated ... before any change\". Keep the sparse allocation legal; do not impose an ISA length cap or report FAULT_UB_MEMFAULT for an in-range request. Add both full witnesses as library catch_unwind and CLI regressions: parse/check_hashes succeeds; execution returns a cited host-resource error, CLI exits 1 with no JSON, never 101; no HOST_REQUEST, console append or effect-tape entry is committed for the failed transfer. Include lengths 0/1/8 as executable controls and validate prefix reversal after the failed attempt. Sweep other text/runtime-derived classical transfer buffers reached from these instructions for the same reservation-before-iteration rule."
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 4.5,
+  "C6": 5.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}
