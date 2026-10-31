@@ -1,0 +1,113 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "object.rs and validation.rs retain the closed \u00a716 grammar, tier/operand checks, layout validation and metadata admission. The 179 embedded files match the detached snapshot. The new finding concerns semantic domain coverage, not admission of a legal partial domain.",
+   "change": "In tests/parser.rs, add a clause-indexed table linking every \u00a716.2 production to one independently authored positive and negative canonical object, so grammar coverage can be reviewed without inferring it from test names."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "identity.rs retains structural layout ownership, every colliding dotted leaf and the recorded tie order. Independently reconstructed the 261-byte inc8 envelope and its published 8ce5e64f... hash; check reproduces the other three \u00a716.3 hashes. R21 nine file pins and two literal transfer envelopes pass. INV-4:1.5.3 remains a disclosed specification limitation, not a new identity repair.",
+   "change": "In tests/identity.rs, add a table identifying the exact \u00a79.2 envelope part and independent byte fixture exercised by each identity test, including SCC reference substitution and device/service leaves."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "oracle.rs::run_oracle_vectors covers the \u00a74.2 rows, inherent memory checks, monotonic stack use and explicit nested fault delivery. Hand results agree: inc8(255) at B=3 gives (0,0,3); B=2 gives (0,1,2); B=0 gives (0,1,0). sum_db(0) with zero db, B=10, depth=1 fails at stack=15 with (0,3,3), and succeeds at stack=16 with (0,0,10).",
+   "change": "In tests/oracle.rs, add one compact clause-indexed first-fault table naming the executed row count and expected payload/code for every \u00a75.4 fault source, including explicit FAULT_CALLEE propagation rather than automatic propagation."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "machine.rs::inverse_step, inverse_call and inverse_ret follow \u00a73.6 and C5\u2013C1/R5\u2013R1. Independently traced the sum_db call record and return delivery, checked each of its ten executed steps followed immediately by its inverse, then reversed the whole ten-step prefix: complete tuples match and all frames are clean.",
+   "change": "In tests/step_machine.rs, retain a printed intermediate-tuple fixture for the recursive call/return delivery case, asserting restored fp before R4 inverse and restored sp before C3 inverse, alongside the existing complete snapshot checks."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The exact 2^63-byte CC hostcall and R console witnesses now return \u00a710/\u00a77.3 host-limit Results under RLIMIT_AS=192 MiB, leave the complete prefix unchanged, publish no request/console/tape entry, and reverse to entry. CLI exits 1 with empty stdout. Traced nested call/ret/uncall of clock.read: already reversed inner frames and markers are skipped; clock/tape and final entry snapshot restore exactly.",
+   "change": "In tests/r21_resources.rs, add a small successful transfer followed by an independently pinned oversized transfer in the same R run, checking that the failed second operation preserves the resident console prefix and earlier tape entry before whole-run reversal."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The Q dispatch and static checks retain the INV-1 matched-pair/control-set cases, INV-2 handle/alias rules, and INV-3 window and borrow checks. SPEC-QUESTIONS records the stricter other-value reading; INV-3:1.4.2\u20131.4.3 is not presented as a proved literal-text theorem. No new core divergence was reproduced.",
+   "change": "In tests/r1_fuzz_discipline.rs, add independently derived combined cases that put a matched opaque call pair inside a cell-version cleanup window under inherited controls, and tag each expectation to INV-1:1.4 and INV-3:1.2.2\u20131.2.3; require both basis and externally entangled borrowed-state controls."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Independently reran the full suite: 436 passed, 0 failed, 5 ignored across 34 result blocks; focused R21 is 11/0. The 24-path/186-case inventory distinguishes admission, direct consumers and public execution and correctly discloses lazy huge-sample probes. However, the green suite misses the false full-domain proof in SOL-R22-B01. The five release sweeps are retained editor evidence, not independently rerun in this review.",
+   "change": "In tests/r1_certificates.rs, add SOL-R22-B01 and its renaming/full-domain controls through parse/check_hashes and both claim APIs; extend the cases across missing action mut/in bundles, oracle input/target/fault slots and regions, with borrowed identifiers equal to each omitted interface name."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The R21 resource outcomes are cited and no longer abort or masquerade as memory faults. All 33 SPEC-QUESTIONS entries were checked against the supplied specification/proofs; the known readings and staged deliverables remain disclosed. SOL-R22-B01 nevertheless reports Proof for a partial-domain comparison, contradicting \u00a712.2 and the API documentation.",
+   "change": "Change claims.rs::Object::domain to determine coverage by component kind and resolved interface slot, and make verify_claim/verify_certificate report Evidence { elements: 4 } for the supplied partial-domain witness; a borrowed identifier must never satisfy an interface coverage obligation."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R22-B01",
+   "section": "S0; ISA \u00a7\u00a75.3, 12.1\u201312.2; src/claims.rs::Object::{domain,verify_claim_guarded}, especially lines 251\u2013336 and 642\u2013648",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "\u00a712.1 requires an exhaustive expected-program claim to re-execute its domain and compare full tuples. \u00a712.2 says \"A proof label requires the domain to equal D; otherwise the claim is evidence\". For an action, the declared mutable interface ranges over its basis values; a component in domain.borrowed is a different system from a component in domain.bundles. Enumerating an unrelated borrowed bit cannot establish coverage of an omitted mutable input.",
+     "by": "clause:ISA-12.1; clause:ISA-12.2; clause:ISA-5.3"
+    },
+    {
+     "n": "<1>2",
+     "claim": "Complete independently pinned witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.bisa, SHA-256 c9cf4ac51d800f9a918deec3a14790691d0b9c2d55b395949add620425707cca. @a has mut=(t:wire,u:wire) and body b=qborrow any 1; cx t u; qreturn b. @identity has the same signature, borrows/returns b and applies x u; x u. The exhaustive claim compares @a to @identity with bundles=[{name:u,width:1,lo:0,hi:1}], borrowed=[{name:t,width:1,lo:0,hi:1}], regions=[]. No proof label or schedule is needed. Both parse/check_hashes and both public verifiers succeed, with verify_claim=Ok(Proof) and verify_certificate reporting Proof. Subject interface=closure 73c6ceb0ef826cd5b12afb9197c30c9098689837f28209cce6147cd45da80165; identity interface=closure 5b11805db58657cce47b895f1bf3e348971d0576baab4adfdb2a94aa6594c46e. Literal envelopes and the probe source are alongside the object.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/report.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.log"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Object::domain inserts names from both bundles and borrowed into the same listed BTreeSet. covers_d then checks only whether every required interface name occurs in that set. Thus the borrowed spelling t satisfies the missing interface t obligation. execute_element_audited correctly distinguishes Component::Borrowed from Component::Bundle, so the missing interface t is zero-filled on every replay. The four tested rows vary u and the borrowed bit only. CNOT and identity agree on those rows because interface t is always zero.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:251; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:336; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:358; step:<1>2"
+    },
+    {
+     "n": "<1>4",
+     "claim": "On the omitted input t=1,u=0 with borrowed b=0, \u00a74.4 gives @a output (1,1,0), while @identity gives (1,0,0). Independent run-action executions reproduce mut=[1,1] versus [1,0]. Renaming only domain.borrowed[0].name from t to b changes the verdict to Evidence { elements: 4 } without changing the systems enumerated. Adding the actual t bundle yields a \u00a712.1 expected-program mismatch at element 4. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/reproduce-false-proof.py; all children run under 192 MiB/core=0 and exit normally.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/reproduce-false-proof.py; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-renamed-control.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-full-control.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.log; clause:ISA-4.4; step:<1>2; step:<1>3"
+    },
+    {
+     "n": "<1>5",
+     "claim": "This is a contract S0: the implemented exhaustive checker upgrades a partial-domain comparison to a false full-domain proof. It is independent of the resolved R21 allocation repairs and predates adf5dff, so it is newly exposed, not a regression. It fits no stated INV-1..INV-5 theorem: none establishes this checker's domain-coverage classifier; INV-3:1.5.2 assumes a T3 claim over the full domain rather than proving that premise. The witness establishes no new core execution defect and needs no specification assumption or amendment.",
+     "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+    }
+   ],
+   "fix": "Change src/claims.rs::Object::domain, replacing the role-insensitive listed-name coverage test with coverage over resolved component identities: interface bundles must be covered by Component::Bundle(group,slot), and regions by their own cell/region coverage; Component::Borrowed must never discharge either obligation. Keep borrowed identifiers legal without inventing a cross-role name ban. The determining \u00a712.2 sentence is \"A proof label requires the domain to equal D; otherwise the claim is evidence\", together with \u00a712.1 \"compare full tuples\". For false-cnot-proof.bisa, parse/check_hashes should remain successful, and both verify_claim and verify_certificate must return Evidence { elements: 4 }, exactly like the renamed control; the full-domain control must still fail \u00a712.1 at element 4. Add those three complete fixtures with independent pins to tests/r1_certificates.rs and a role-collision family covering omitted action mut/in slots, oracle ins/tgt/fault slots and regions. Assert that changing an irrelevant borrowed identifier cannot change coverage or Proof/Evidence status. Preserve complete-domain Proof controls, sampled Evidence controls, R21 resource errors and reversals, then rerun focused and full gates. No spec edit is required."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R21-B01",
+   "status": "resolved",
+   "note": "Exact sol region[63,1]/cells=all/count=1 object now returns a \u00a712.2 host-limit Result through verify_claim and verify_certificate under 192 MiB/core=0; region[1,1] still returns Evidence(1). No abort or panic."
+  },
+  {
+   "id": "CODEX-R21-B01",
+   "status": "resolved",
+   "note": "Same repaired domain site as SOL-R21-B01; the focused public-consumer tests pass for the pinned codex A=63 object and A=0/1/64 controls, including independent file pins."
+  },
+  {
+   "id": "CODEX-R21-B02",
+   "status": "resolved",
+   "note": "Exact pinned hostcall/console transfers return \u00a710/\u00a77.3 host-limit errors before mutation; complete prefixes match, no request/output/tape is committed, reversal restores entry, and both CLI runs exit 1 with empty stdout."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1: In tests/r21_resources.rs, add independently pinned public regressions equivalent to /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/own-action-replay.bisa and own-oracle-replay.bisa. The explicit last-cell domain on region[61,3] must reach the action replay cell reservation; the schedule-bound region[61,8] oracle claim must reach the oracle replay byte reservation. Require parse/check_hashes success and cited \u00a712.2 host-limit errors through both public APIs in a memory-limited subprocess. The existing mutated-function unit test remains useful but does not exercise the oracle replay guard through complete object admission."
+ ],
+ "verdict": "revise",
+ "verdict_core": "accept",
+ "path_to_accept": "1. Repair typed domain coverage in claims.rs::Object::domain so the supplied CNOT-versus-identity partial-domain claim returns Evidence(4), never Proof. 2. Add the three complete witnesses and the cross-role coverage family, preserving independent pins and both public consumers; keep the R21 resource and reversal controls green. 3. Rerun the focused certificate/resource tests and the required full gates, and update the evidence record. With that single contract S0 resolved and no new blocker, I would accept this staged snapshot. Deliverables 8\u201311 remain staged as disclosed; their completion and a new specification decision are not prerequisites of this vote.",
+ "summary": "Reviewed snapshot 9851a9c05f6fd026b4d74a93915f9a9091ab2356 against the supplied rubric, prior findings, editor response/inventory, adf5dff diff, ISA 0.8 and INV-1..5. All 179 embedded files (46,438 declared lines) match the detached working copy. R21 blockers are resolved; one newly exposed contract S0 remains: SOL-R22-B01, a false full-domain Proof caused by conflating borrowed identifiers with interface coverage. No new spec gap or regression is reported. Core accept, whole-crate revise. Deliverables 8\u201311 are accepted as staged under the council rules, not certified complete. Method 1: independently derived inc8(255) at B=3/2/0 as (payload,code,executed rows)=(0,0,3)/(0,1,2)/(0,1,0); sum_db(0) with 16 zero db bytes, B=10, heap=0, depth=1 gives (0,3,3) at stack=15 and (0,0,10) at stack=16. Reconstructed the exact 261-byte inc8 envelope, including final LF and no closure lines, and independently SHA-256-pinned it to the published 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. The other three published hashes and all R21 file/envelope pins match. Method 2: traced C1 capture through C5 counters for sum_db call, and the inverse C5 exchanges/clears, C4 unbind, C3 record erasure at restored sp/fp, C2 location restoration, C1 capture erasure; traced return R5 restoration before R4 delivery and R3/R2/R1 cleanup. Each executed step and the full ten-step prefix restore complete snapshots. Traced \u00a77.4 nested clock.read call/ret/uncall: inner reversed frames and markers are skipped, the pure load retains zero, and whole-run reversal restores entry. Method 3: audited all 33 SPEC-QUESTIONS entries; known INV-3 other-value, INV-4 dotted-path and INV-5 binding/default limitations remain disclosed readings/spec obligations, not newly raised editor blockers. Method 4: scanned the whole crate excluding build/temp products for the required sentinels (152 source-line hits, 1,537 test-line hits, 15 document/seed hits). Test assertions are evidence scaffolding; production expect/unwrap sites are dominated by validated shapes, positive widths/nonempty collections, finite float rendering, matched history or internal schema/Tarjan invariants. The unsupported model branch is a cited rejection; unknown-opcode fallbacks sit behind closed validation. No todo!/unimplemented! execution stub was found. Method 5: compared \u00a74.1/4.2/4.8 opcode families, gates, fault codes 0\u201310, \u00a73.6 slots, \u00a77.4 frame/undo cases, nine metadata sections and recursive fields, suites A\u2013H versus staging, and the eight data CLI commands plus help with dispatch. Independently ran exact prior resource witnesses first under RLIMIT_AS=192 MiB/RLIMIT_CORE=0: sol all-cells A=63 returns \u00a712.2 without abort, A=1 is Evidence(1); both 2^63 transfers return \u00a710/\u00a77.3 before mutation and CLI exit 1 with no JSON. Own complete extreme objects separately reach new action-cell and oracle-byte replay guards with \u00a712.2 errors. Independently reran focused R21 11/0 and full suite 436/0/5 ignored, 34 blocks; the five ignored release sweeps were not rerun here and remain retained editor evidence. Reproduction sources, independently pinned envelopes, objects and logs are in /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/. No tracked file was changed, committed or pushed."
+}

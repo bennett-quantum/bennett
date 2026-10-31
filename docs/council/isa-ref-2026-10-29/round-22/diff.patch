@@ -1,0 +1,2325 @@
+--- round-21/doc.md
++++ round-22/doc.md
+@@ -1,11 +1,11 @@
+-# Bennett ISA reference interpreter, council round 21 (acceptance vote after the round-20 fix and extreme-width sweep; sol + codex)
+-
+-Snapshot of `reference-interpreter/` at commit `adf5dff8a0798e41326685669ed32d7469c3c63e`. 164 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 556 lines, sha256 9d9d47607e38
+-- `PROGRESS.md` 126 lines, sha256 82678de14348
++# Bennett ISA reference interpreter, council round 22 (acceptance vote after the round-21 fixes and the cardinality/length sweep; sol + codex)
++
++Snapshot of `reference-interpreter/` at commit `9851a9c05f6fd026b4d74a93915f9a9091ab2356`. 179 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 590 lines, sha256 1e47e851a567
++- `PROGRESS.md` 125 lines, sha256 7ee82c9dc0eb
+ - `SPEC-QUESTIONS.md` 332 lines, sha256 f9d92d1588ac
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-20.md` 212 lines, sha256 5f992f05fd20
++- `council/response-round-21.md` 208 lines, sha256 c7f26f6a75e2
+ - `src/metadata_schema.rs` 353 lines, sha256 3a691d09a0b0
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+@@ -22,4 +22,5 @@
+ - `council/response-round-18.md` 211 lines, sha256 331ef032ec52
+ - `council/response-round-2.md` 260 lines, sha256 ad3b4b794b86
++- `council/response-round-20.md` 212 lines, sha256 5f992f05fd20
+ - `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+ - `council/response-round-4.md` 347 lines, sha256 aa70294bbb53
+@@ -35,6 +36,6 @@
+ - `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+ - `src/certificate.rs` 389 lines, sha256 8dc519b08717
+-- `src/claims.rs` 868 lines, sha256 d4c8df691774
+-- `src/classical.rs` 1624 lines, sha256 0aacce3a8e69
++- `src/claims.rs` 929 lines, sha256 8736030bf650
++- `src/classical.rs` 1661 lines, sha256 483be615acab
+ - `src/controls.rs` 19 lines, sha256 8820f7e9c67f
+ - `src/exact/measurement.rs` 356 lines, sha256 22e4c29864ce
+@@ -43,8 +44,8 @@
+ - `src/identity.rs` 472 lines, sha256 c62a0551dacf
+ - `src/json.rs` 411 lines, sha256 22f03bcb2698
+-- `src/lib.rs` 73 lines, sha256 3f947a720eee
++- `src/lib.rs` 125 lines, sha256 4bd368f8628b
+ - `src/linking.rs` 403 lines, sha256 b773eff53f8d
+ - `src/machine.rs` 1294 lines, sha256 d9025a9de849
+-- `src/main.rs` 2010 lines, sha256 09b10c5cacf0
++- `src/main.rs` 2057 lines, sha256 fb55962dbada
+ - `src/metadata/schedule_domains.rs` 477 lines, sha256 65c3e9badbab
+ - `src/metadata.rs` 421 lines, sha256 2d0d7d7d0676
+@@ -52,7 +53,7 @@
+ - `src/metadata_types.rs` 7 lines, sha256 2aef2d060fa5
+ - `src/object.rs` 1802 lines, sha256 7d494ac9223c
+-- `src/oracle.rs` 861 lines, sha256 d4705f8b33cf
++- `src/oracle.rs` 908 lines, sha256 02944bff6834
+ - `src/quantum.rs` 897 lines, sha256 672c4d95a31d
+-- `src/registers.rs` 258 lines, sha256 d0e263c64ed6
++- `src/registers.rs` 266 lines, sha256 4ff6438c14b3
+ - `src/schema.rs` 235 lines, sha256 c3adc93c4e10
+ - `src/sha256.rs` 89 lines, sha256 b46088d112ae
+@@ -80,4 +81,16 @@
+ - `tests/fixtures/nested.bisa` 31 lines, sha256 8e6e852c4717
+ - `tests/fixtures/nested.comments` 1 lines, sha256 4d816294e8c6
++- `tests/fixtures/r21/cc-length.bisa` 18 lines, sha256 80d62127c4a2
++- `tests/fixtures/r21/cc-length.envelope` 17 lines, sha256 23802c541101
++- `tests/fixtures/r21/codex-claim-probe.rs` 8 lines, sha256 50aec99c27a1
++- `tests/fixtures/r21/domain-all-A0.bisa` 16 lines, sha256 dd24d74d29c1
++- `tests/fixtures/r21/domain-all-A1.bisa` 16 lines, sha256 717934a41afd
++- `tests/fixtures/r21/domain-all-A64.bisa` 16 lines, sha256 13e471aa26b3
++- `tests/fixtures/r21/domain-all.bisa` 16 lines, sha256 5162fbe154f7
++- `tests/fixtures/r21/r-length.bisa` 18 lines, sha256 a6c5dd7f71d0
++- `tests/fixtures/r21/r-length.envelope` 17 lines, sha256 2751a25e6e90
++- `tests/fixtures/r21/sol-claim-region-all-sampled-small.bisa` 16 lines, sha256 0d6659a6fe44
++- `tests/fixtures/r21/sol-claim-region-all-sampled.bisa` 16 lines, sha256 dfca89aa2073
++- `tests/fixtures/r21/sol-claim-region-all-small.bisa` 16 lines, sha256 a9b7c6d75df9
+ - `tests/fixtures/r9-codex-oracle.bisa` 24 lines, sha256 49ad3ba6c411
+ - `tests/fixtures/r9-codex-oracle.comments` 1 lines, sha256 7d8924a4a92b
+@@ -115,4 +128,5 @@
+ - `tests/r1_rules.rs` 519 lines, sha256 1e4e08b46209
+ - `tests/r1_widths.rs` 503 lines, sha256 d0e52f29ae41
++- `tests/r21_resources.rs` 406 lines, sha256 327fa8a2785c
+ - `tests/r2_validation.rs` 84 lines, sha256 7804bd497504
+ - `tests/registers.rs` 360 lines, sha256 f3affd1b3b71
+@@ -165,10 +179,11 @@
+ - `tests/support/r20_extremes.rs` 529 lines, sha256 817c7168470f
+ - `tests/support/r20_pins.py` 19 lines, sha256 500da441429f
++- `tests/support/r21_pins.py` 15 lines, sha256 cd21b4652803
+ - `tests/support/r9_pins.py` 47 lines, sha256 46a27f6d9112
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 45334 lines.
+-
+-## `README.md` (556 lines)
++Total embedded: 46438 lines.
++
++## `README.md` (590 lines)
+ 
+ ````markdown
+@@ -699,6 +714,6 @@
+ at huge widths needs no destination-sized storage. `Function::signature` emits
+ large dimensions as decimal strings under §9.1. Concrete wire names, region
+-images/cells, quantum identities, claim elements and CLI interface buffers
+-reserve storage fallibly, with checked products/cardinalities. Range errors
++images/cells, quantum identities, claim elements and selected CLI interface buffers
++received fallible reservations, with checked products/cardinalities. Range errors
+ cite their ISA clause; representation/allocation failures additionally name the
+ host limit, without an ISA width cap.
+@@ -712,7 +727,41 @@
+ legal and allocation-dependent outcomes before execution. Its R20 siblings
+ cover text descriptors, casts, counts, bounds, region products, storage,
+-schedules and certificate domains: 102 fixture-qualified paths / 1,113 cases
++schedules and certificate **admission** domains, plus selected direct enumeration
++consumers: 102 fixture-qualified paths / 1,113 cases
+ total, with catch_unwind and cited range/resource distinctions. This is a
+-finite extreme-value sweep, not an exhaustive proof over all objects.
++finite extreme-value sweep. It missed executable all-cells domain expansion
++and classical transfer lengths; it was not a complete storage-safety audit.
++
++**Design (round 21).** `claims::Object::domain` checked-adds and fallibly reserves
++the cumulative all-cells component count before expanding 2^A. The current
++replay engine materializes every region cell, so this repair retains the eager
++domain representation and reports a §12.2 host limit when it cannot fit. A
++count=1 sample does not imply that its complete input state fits the host.
++Admission and the reviewer hashes are unchanged, with no ISA A/W/count cap.
++Both the all-cells and explicit-list branches reach checked replay storage.
++Nested oracle region transfers and memory loads reserve before iteration.
++
++Classical hostcall (§10), console.write (§7.3), entropy, reply and undo buffers
++reserve before filling; cumulative console storage and the effect-tape entry
++reserve before device mutation. A failed hostcall publishes no request; a
++failed console transfer appends neither output nor a tape entry, and the
++instruction prefix reverses exactly. Sparse allocation remains legal through
++the pointer range. Invalid ranges and exhausted entropy retain their ISA fault
++semantics. Qreg slicing/concatenation and CLI hex output check derived storage;
++trace records reserve incrementally, and step-check retains its lazy odometer.
++
++The R21 extension covers **24 tagged consumer paths / 186 generated cases**,
++separately from the retained R20 family (the path sets overlap). It distinguishes
++admission, exponent-derived cardinality, concrete materialization and sparse
++or lazy consumers. Exponents include 62/63/64 and 127/128; lengths include
++2^63−1, 2^63 and 2^64−1, with successful small controls. Resource regressions
++use catch_unwind inside fresh Linux subprocesses with RLIMIT_AS=256 MiB and
++RLIMIT_CORE=0; an allocator abort cannot be caught by catch_unwind alone.
++Full reviewer objects, independent pins and public verify_claim /
++verify_certificate / library / CLI consumers are retained in
++`tests/fixtures/r21`, `tests/r21_resources.rs` and `tests/support/r21_pins.py`.
++The huge CLI sample-count probes stop at a downstream frame-storage error;
++they test lazy entry, not completion of huge replays. Resident collection sizes
++and general allocator exhaustion are not a full-ISA resource-availability proof.
+ 
+ | Schema / rule | Load-time validator | Positive and negative controls |
+@@ -731,5 +780,5 @@
+ ````
+ 
+-## `PROGRESS.md` (126 lines)
++## `PROGRESS.md` (125 lines)
+ 
+ ````markdown
+@@ -738,93 +787,92 @@
+ Resume here. The whole accepted ISA 0.8 remains in scope; staged deliverables
+ are not complete. Sole implementation sub-agent; owned interpreter and external
+-round-20 response only. Never push. Every cargo invocation uses the headless
++round-21 response only. Never push. Every cargo invocation uses the headless
+ prefix and TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
+ 
+-## Round-20 fixes (2026-10-31)
+-
+-Clean isolated baseline **412 passed / 0 failed / 5 ignored**, **118.60 s**
+-runner sum across all **33** result blocks. Final **425 passed / 0 failed /
+-5 ignored**, **176.88 s**, **16 unit + 409 integration**, 0 doctests. All round
+-4–20 controls retained. The first before log observed one rebuilt R20 binary;
+-it is superseded by the isolated baseline, not used for before/after totals.
++## Round-21 fixes (2026-10-31)
++
++Baseline **425 passed / 0 failed / 5 ignored**, **105.24 s** runner sum across
++**33** result blocks. Final **436 passed / 0 failed / 5 ignored**, **139.44 s**
++across **34** blocks: **18 unit + 418 integration**, 0 doctests. All round 4–21
++controls retained. Focused R21: **11 passed / 0 failed**, **0.49 s** runner sum.
+ 
+ | Blocker | RED tests | Status | Commit |
+ |---|---|---|---|
+-| SOL-R20-B01 | r1_literals::r20_pinned_extreme_const_widths_parse_and_hash_without_panic; cli_xam::r20_cli_pinned_extreme_const_widths_check_and_hash | GREEN | af52c9c |
+-
+-Exact original const_literal RED: library 0/1; max−1 CLI exits 1 with a false
+-§3.3 range error; max CLI exits 101 on unchecked N+1. Both reviewer files now
+-parse/check/hash, preserve their 269-byte envelope pins and whole-file SHA-256s.
+-`r20_pins.py` independently reconstructs them; reviewer cmp checks pass.
+-`r20_extreme_const_execution_reports_host_resource` checks both execution
+-engines return a cited host limit for actual unrepresentable storage.
+-Ordinary i8 256/-129 still reject, 255/-128 still admit.
+-
+-Design: object::const_literal parses only the decimal spelling's magnitude and
+-compares its bit length to N; a negative N-bit magnitude must be a power of two.
+-No N+1 arithmetic or destination-sized admission allocation remains. Fault-code
+-and certificate endpoint admission share the unsigned magnitude check; errors
+-propagate with range/resource separation. Signature dimensions follow §9.1's
+-number/string boundary. Wire names, region images/cells, quantum identities,
+-CLI buffers and claim-element storage reserve fallibly; products/cardinalities
+-are checked. Representation/allocation failures cite the § and name the host
+-limit. No ISA width/count cap or new spec reading is introduced.
+-
+-The sweep reproduced additional false large-width signature mismatches,
+-wire-expansion capacity panics and certificate small-endpoint allocation with
+-a misleading range wrapper. The arithmetic audit also repaired unchecked
+-region products and eager exhaustive/sample collection, and normalized cited
+-resource diagnostics for frames, counters, borrowed-capacity sums and CLI
+-storage. Bead b-isa-spec-61i records this class.
+-
+-**102 fixture-qualified paths / 1,113 generated cases**, plus separate pinned
+-admission/execution controls. Every scalar path receives 0, 1, 2^63−1, 2^63,
+-2^64−2, 2^64−1 in grammar-admitted spellings. Twenty descriptor spelling
+-negatives include 00/+1/-0/1.0/2^64. All are under catch_unwind with preassigned
+-admit/range/resource expectations and § citation. See the full path/validation/
+-case inventory in external round-20 response.md.
++| CODEX-R21-B01 ≡ SOL-R21-B01 | r21_resources::r21_b01_claims_public_consumers: allocator SIGABRT child | GREEN | f931307 |
++| CODEX-R21-B02 | r21_resources::r21_b02_hostcall_public_consumer / r21_b02_console_public_consumer: allocator SIGABRT; r21_b02_cli_pinned_transfers: exact CLI capacity panic / exit 101 | GREEN | f931307 |
++
++`claims::Object::domain` now checked-adds and fallibly reserves all-cells
++components before expanding 2^A. Replay still materializes complete region
++states, so this uses the allowed checked-eager repair and returns a §12.2
++host-limit Result when unavailable, including count=1 on huge regions. No ISA
++A/W/count cap or range relabelling. Both seats' complete witnesses and small
++controls are retained byte-for-byte with independent pins. Small samples remain
++Evidence(1), and sol's eight-row exhaustive identity remains Proof.
++
++Classical memory/hostcall/console transfers reserve before reading bytes;
++console growth and the tape entry reserve before mutation. Failed transfers
++publish no request/output/tape entry, leave the complete prefix unchanged and
++reverse exactly. Sparse alloc remains legal through the 64-bit pointer range.
++Memory-range faults and entropy fault 10 keep their ISA meanings. Hostcall
++errors cite §10, console errors §7.3, direct memory queries §7.1.
++
++The wider audit reproduced another allocator abort in `oracle::region_bytes`.
++Nested transfers, replay region bytes/cells, memory loads, undo/reply/entropy,
++qreg slice/concat, CLI hex output and incremental trace growth now reserve
++fallibly or retain sparse/lazy traversal. Bead **b-isa-spec-3va** records the
++class and is closed. No spec gap or theorem assumption was introduced.
++
++**24 tagged consumer paths / 186 generated cases**, separate from the retained
++R20 **102 fixture-qualified paths / 1,113 cases** (overlapping paths, not an
++additive 126-path claim). R20 checked scalar arithmetic and selected admission /
++direct consumers; it missed executable all-cells domains and classical transfer
++lengths. README corrects that coverage description. Full path/guard/case rows
++are in external round-21 response.md.
+ 
+ | Family / consumers | Paths | Cases |
+ |---|---:|---:|
+-| r13_generated_derived_width_extremes_family: five fixtures' layout scalars + depth | 42 | 591 |
+-| r20_generated_text_width_count_index_extremes | 8 | 90 |
+-| r20_generated_descriptor_budget_storage_extremes | 15 | 110 |
+-| r20_generated_qreg_descriptor_arithmetic_extremes | 4 | 24 |
+-| r20_generated_cast_length_region_product_extremes | 5 | 30 |
+-| r20_generated_borrow_capacity_sum_extremes | 1 | 6 |
+-| r20_generated_certificate_width_bound_count_table_extremes | 10 | 60 |
+-| r20_region_domain_extremes (direct semantic consumer) | 5 | 30 |
+-| r20_exhaustive_domain_cardinality_extremes (exhaustive/sample direct consumers) | 2 | 12 |
+-| r20_generated_schedule_count_selector_extremes | 8 | 48 |
+-| r20_cli_interface_region_storage_extremes | 2 | 12 |
+-
+-S1 applied: all original **507** R13 inputs retained, **84** added. Independent
+-§§7.1–7.2 range/non-overlap/capacity and §§3.7/5.4 width formulas assign legal,
+-layout rejection, deterministic representation or allocation-dependent storage
+-before production. Observed **167 constructed / 342 layout rejections / 82
+-resource diagnostics**. Allocation-dependent cases allow success or a cited
+-host allocation failure; this is finite boundary coverage, not an exhaustive
+-resource-availability or full-u64 proof.
+-
+-All **5 ignored release sweeps passed / 0 failed**, **106.12 s** runner sum:
++| All-cells and explicit-list domains, both public claim entry points | 2 | 32 |
++| Exhaustive powers/products; samples; direct oracle replay | 4 | 30 |
++| Hostcall / console / memory query / undo / entropy / cumulative console | 6 | 42 |
++| Nested region transfer / memory load / symbolic table capacity / sparse allocation | 4 | 27 |
++| Sparse memory digest/snapshot consumers | 1 | 12 |
++| Qreg allocate/slice and dense amplitudes | 3 | 17 |
++| CLI region cells / sparse output / hex expansion / lazy sample count | 4 | 26 |
++| **Total** | **24** | **186** |
++
++Region exponents include 0/1/3/62/63/64/127/128; value exponents include
++1/2/3/62/63/64/127/128. Transfer lengths include 0/1/8/2^63−1/2^63/2^64−1.
++Every resource family runs under catch_unwind in a fresh Linux child with
++RLIMIT_AS=256 MiB and RLIMIT_CORE=0. The family distinguishes admission,
++cardinality, materialization, sparse/lazy traversal and range/fault results.
++Huge CLI sample counts enter lazily and stop on a downstream frame-storage
++error; no completed astronomical replay or general OOM proof is claimed.
++Pinned controls, exact reversals and successful concat controls are additional.
++Sol S1 applied; codex's nonblocking structured Error-category migration deferred
++because the public Error(pub String) API and contextual wrappers need a
++coordinated change. Display/CLI semantics remain unchanged.
++
++All **5 ignored release sweeps passed / 0 failed**, **88.31 s** runner sum:
+ 
+ | Sweep | Full domain | Result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 1.09 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 5.81 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 23.01 s |
+-| §6 differential | 200,000 programs: 70,931 accepted clean / 129,069 rejected | 1/0; 74.22 s |
+-| recursive prefix reversal | 256 inputs × every completion/first-fault prefix | 1/0; 1.99 s |
+-
+-Fmt/fmt --check, strict offline all-target Clippy (0 warnings), unchanged Python
+-seed (2 examples / 2 envelopes), independent R20 pins and byte comparisons pass.
+-Production/test inputs stayed fixed throughout the final full run and sweeps.
+-Implementation commit **af52c9cd42965c1f7fd3fa0bcd4139673074e10c**; this block records final evidence.
+-Logs: interpreter .tmp/r20-{baseline-clean,exact-red,class-red,allocation-red,
+-cert-red,focused,widths,final,final-clippy,sweeps}.log.
+-
+-No new spec gap; no user decision needed for this repair. Deliverables 8–11
+-remain staged/Unverified. Only owned paths committed; Beads auto-export left
+-for the orchestrator. No foreign changes, worklog edits, push or Dolt sync.
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 0.39 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.12 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 12.16 s |
++| §6 differential | 200,000 programs: 70,931 accepted clean / 129,069 rejected | 1/0; 71.22 s |
++| recursive prefix reversal | 256 inputs × every completion/first-fault prefix | 1/0; 2.42 s |
++
++Fmt/fmt --check and strict offline all-target Clippy pass with zero warnings.
++Unchanged Python seed: 2 examples / 2 envelopes. Independent R20 pins and R21
++pins (9 complete objects / 2 envelopes) pass; all 9 reviewer-file byte comparisons
++pass. Production and test inputs stayed fixed throughout final tests/sweeps.
++Implementation commit **f931307a002877317fb6d35813e97023f0aa2917**. Logs: interpreter
++.tmp/r21-{baseline,red,transfer-consumer-red,nested-region-red,family,final,sweeps,
++final-clippy}.log. Early exploratory transfer logs with invalid generated pins
++are superseded by transfer-consumer-red and are not used as RED evidence.
++
++No user decision needed. Deliverables 8–11 remain staged/Unverified; the full ISA
++and open other-value theorem obligations remain. Only owned paths committed;
++Beads auto-export and worklog left for the orchestrator. No push or Dolt sync.
+ 
+ ## Resume here: outstanding work, in priority order
+@@ -842,5 +890,5 @@
+    are centralized and tested in metadata_schema.rs).
+    Imports resolve by signature and pin, including data; linking is tested.
+-3. Continue generalized-width and host-resource verification beyond the R20
++3. Continue generalized-width and host-resource verification beyond the R21
+    finite boundary family. Lifted widths are u64 descriptors; concrete vectors
+    and Q basis execution already exceed128. Audit remaining JSON/JCS numeric
+@@ -1264,201 +1312,197 @@
+ ````
+ 
+-## `council/response-round-20.md` (212 lines)
++## `council/response-round-21.md` (208 lines)
+ 
+ ````markdown
+-# Editor response: council round 20
+-
+-**SOL-R20-B01 is resolved; S1 is applied.** No blocker is declined or partial.
+-The literal range and unrestricted positive lifted widths remain unchanged.
+-Only interpreter paths and this response are committed; no push. No accepted
+-0.8 spec, draft spec or conformance file was edited by this implementer.
+-
+-Implementation commit: af52c9cd42965c1f7fd3fa0bcd4139673074e10c.
+-
+-Final evidence commit: **2a32dfbeb29d0c204bba5a6c81f3e84df1f086b0**.
+-
+-## SOL-R20-B01 — resolved
+-
+-Determining clauses: §§3.3, 4.2, 16.1–16.2; SPEC-QUESTIONS 12/15. A positive
+-literal fits iff its magnitude bit length is at most N. A negative magnitude
+-fits iff its bit length is less than N, or equals N and is a power of two.
+-Thus 1, 0 and -1 fit both supplied positive widths. No theorem assumption or
+-spec amendment is needed.
+-
+-| Blocker | RED tests / observations | Fix | Commit |
++# Editor response: council round 21
++
++**CODEX-R21-B01 / SOL-R21-B01 and CODEX-R21-B02 are resolved.**
++SOL-R21-B01 ≡ CODEX-R21-B01: both seats identified the same all-cells expansion,
++repaired once. Admission, sparse allocation and the independently pinned
++identities are preserved. No ISA width, exponent, transfer-length or sample cap
++was introduced. No specification amendment or new theorem assumption is needed.
++
++Implementation commit: f931307a002877317fb6d35813e97023f0aa2917.
++Interpreter evidence commit: 0522df13e67f68f398242706b5284e2fc866dd1f.
++
++## Blocker disposition
++
++| Blocker | RED tests / observations | Fix location | Commit |
+ |---|---|---|---|
+-| SOL-R20-B01 | `r1_literals::r20_pinned_extreme_const_widths_parse_and_hash_without_panic`; `cli_xam::r20_cli_pinned_extreme_const_widths_check_and_hash`. Original N=max−1: exit 1, false §3.3 range error. Original N=max: exit 101, unchecked-add panic. | `object.rs::{const_literal,literal_magnitude,unsigned_literal}` | af52c9cd42965c1f7fd3fa0bcd4139673074e10c |
+-
+-The original function was reinstalled temporarily, tested, and restored in a
+-`finally` block to obtain isolated RED evidence for both exact CLI witnesses:
+-`.tmp/r20-exact-red.log`. The library test failed 0/1; CLI stdout was empty in
+-both cases. An earlier focused library/CLI RED also rejected max−1.
+-
+-GREEN: both full reviewer files are copied byte-for-byte into
+-`tests/support/r20-const-width-*.bisa`. Library admission runs under
+-`catch_unwind`, then `check_hashes`, and asserts both interface and closure.
+-CLI `check`/`hash` exit 0 with those identities; check status is `ok`.
+-`r20_extreme_const_execution_reports_host_resource` requires both sequential
+-execution and reversible-machine construction to return a cited host limit,
+-never panic or describe literal 1 as out of range.
+-
+-| N | Interface = closure | Whole-file SHA-256 |
+-|---|---|---|
+-| 18446744073709551614 | 9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318 | 254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367 |
+-| 18446744073709551615 | 97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1 | 94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344 |
+-
+-`tests/support/r20_pins.py` independently reconstructs each 269-byte envelope
+-using Python json/hashlib, without the interpreter or rehash helper. Both
+-reviewer files compare equal with `cmp`. Existing i8 256 / -129 negatives and
+-255 / -128 positives remain; the generated family adds 0, 1, -1, -2, 255,
+-256, -128, -129 against every extreme width, with independent expectations.
+-
+-## Design and additional defects found by the sweep
+-
+-1. Magnitude parsing reserves four bits per decimal digit plus
+-   limb padding, and scans only those bits. Neither N+1 nor N-bit storage is
+-   used at admission. Parser/resource errors propagate; only a mathematical
+-   range failure becomes the §3.3 out-of-range diagnostic.
+-2. Fault-code admission and certificate bundle/borrowed/cell endpoints had the
+-   same destination-sized allocation pattern. They now share the spelling-sized
+-   unsigned check. Canonical decimal endpoint ordering uses length then lexical
+-   order. The certificate family reproduced the old legal small-endpoint host
+-   failure with a misleading "outside bundle width" wrapper; that wrapper is
+-   gone. Actual claim execution still allocates concrete vectors fallibly.
+-3. `Function::signature` emitted large wire/reg and region A/W dimensions as
+-   JSON numbers, causing false §9.1 signature mismatches for canonical strings.
+-   It now emits numbers only through 2^53−1, decimal strings above it. The text
+-   family reproduced this mismatch before repair. Published identities remain
+-   unchanged; both new reviewer pins are preserved.
+-4. `Discipline::wires` and `borrow::Compiler::{fresh,declare_regions,
+-   borrow_compiler}` expanded scalar counts through infallible collect/push or
+-   unchecked cells*W. A large whole-wire operand reproduced a caught capacity
+-   overflow panic after the signature defect was repaired. Wire names, images
+-   and cell vectors now reserve fallibly; region products are checked.
+-5. The audit found unchecked storage growth in exhaustive claim enumeration
+-   and sample collection. Exhaustive interval cardinality, product, usize
+-   conversion and vector reservation are checked before enumeration. Sample
+-   counts reserve fallibly before drawing. These are host-resource failures,
+-   never an arbitrary ISA count cap. The unit family exercises the cardinality
+-   and reservation consumers directly, avoiding an unsafe pre-fix OOM run.
+-6. Quantum wire identities now reserve before collecting; CLI interface cells
+-   reserve before iteration and check cells*cell_bytes. Resource diagnostics in
+-   these paths, derived machine frames/indices, borrow-capacity sums and depth
+-   counters name the host limit and cite the relevant §. Qreg descriptor-sum
+-   overflow is distinguished from an invalid slice's mathematical range.
+-
+-No new specification gap was exposed. Bead **b-isa-spec-61i** records the
+-recurring class; full-ISA staged work remains separate.
+-
+-## Extreme-width path inventory
+-
+-**102 fixture-qualified paths, 1,113 generated cases.** Every scalar path is
+-driven by 0, 1, 2^63−1, 2^63, 2^64−2, 2^64−1. Text uses canonical unsigned
+-INT; metadata uses numbers through 2^53−1 and decimal strings above it. Twenty
+-additional descriptor spelling controls include 00, +1, -0, 1.0 and 2^64.
+-The retained R13 values and its three u128 depth boundaries remain included.
+-Counts below exclude the two pinned objects and their execution/CLI controls.
+-
+-| Path(s) | Where validated / consumed | Paths | Cases |
++| CODEX-R21-B01 ≡ SOL-R21-B01 | `r21_resources::r21_b01_claims_public_consumers`: child SIGABRT, allocator failure during `cells:"all"` expansion | `claims.rs::Object::domain`; `lib.rs::reserve_more` | f931307a002877317fb6d35813e97023f0aa2917 |
++| CODEX-R21-B02 | `r21_resources::{r21_b02_hostcall_public_consumer,r21_b02_console_public_consumer,r21_b02_cli_pinned_transfers}`: library children SIGABRT at length 2^63−1; original pinned CLI transfer exits 101 / capacity overflow | `classical.rs::{transfer_bytes,memory_bytes,effect,step}`; `lib.rs::{reserved,reserve_more}` | f931307a002877317fb6d35813e97023f0aa2917 |
++
++### All-cells claims
++
++Determining clauses: §§4.6, 12.1–12.2. A region has 2^A cells; `cells:"all"`
++is legal, and replay consumes components in listed order. `reserve_more`
++checks the cumulative component count and reserves fallibly before the first
++cell push. The existing replay engine constructs the complete cell state even
++for count=1, so this repair keeps the eager representation and returns a
++§12.2 host-limit Result when storage is unavailable. This is the expressly
++allowed checked-eager repair; symbolic replay of an enormous complete region
++has not been implemented or claimed. No cells are truncated or relabelled as
++an invalid mathematical range. Host resource errors are neither Proof nor
++Evidence nor Unverified verdicts.
++
++The codex A=63 witness retains interface=closure
++`f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af` and object_hash
++`5fa6df63e007ad2bca8ab69c5a0c82e7671c585982048cf99919e59cc48a1e43`.
++The sol A=63 file retains SHA-256
++`dfca89aa2073705841586a1c4a76e27be92618417476e9cb3b9016c0e09ab3c4`.
++Both complete witnesses, the codex A=0/1/64 files, sol's sampled A=1 control,
++and sol's eight-row exhaustive identity control are copied byte-for-byte to
++`tests/fixtures/r21/`. All parse/check_hashes successfully. Public verify_claim
++and verify_certificate both return cited host limits for large domains; small
++sampled controls remain Evidence { elements: 1 }, and the eight-row table
++remains Proof. Generated variants cover both all-cells and explicit-cell lists.
++
++The original abort was observed before the repair (`.tmp/r21-red.log`).
++The copied reviewer probe source is retained beside the fixtures. Tests run a
++fresh executable through Python's resource guard with RLIMIT_AS=256 MiB and
++RLIMIT_CORE=0, and catch_unwind inside the child. The parent asserts normal
++successful test-process exit; a signal, panic, missing error or false verdict
++fails the regression. No unsafe code or dependency was added.
++
++### Classical transfers
++
++Determining clauses: §7.1 sparse memory and allocation checks; §10 copies the
++request bytes; §7.3 validates before any change. `transfer_bytes` reserves the
++entire transfer before reading bytes. The caller supplies §10 for hostcall,
++§7.3 for console.write; direct memory queries cite §7.1. Console growth uses
++checked cumulative length and a fallible reserve; the effect-tape entry is
++reserved before device mutation. A failed transfer publishes no HOST_REQUEST,
++console bytes or tape entry. Complete snapshots match the pre-instruction
++prefix, and reverse restores the entry snapshot. Out-of-range intervals retain
++memory faults; entropy shortage retains fault 10, without resource relabelling.
++
++The exact CC and R witnesses still parse/check/hash with interface=closure
++`23802c541101025a57a13ffb5f00ca72a7ad5ff95f78e9a4fd565c59f566752d` and
++`2751a25e6e906ea512bc075da07cda7463161576c56cebf06455ba2d9dfab704` respectively.
++Their literal independent envelopes are retained and compared with production
++identity bytes. The library catches no panic; both CLI executions exit 1 with
++empty stdout and a cited host-limit diagnostic, rather than exit 101. Lengths
++0/1/8 still transfer successfully. Sparse allocation remains legal at all six
++length boundaries, including 2^64−1 with a matching 64-bit heap bound.
++
++To obtain valid isolated library RED evidence after the generated controls were
++repinned, the old unreserved transfer materialization was temporarily restored
++and tested, then repaired source restored in a finally block. All three B02
++regressions fail (`.tmp/r21-transfer-consumer-red.log`): two SIGABRT children
++and the exact CLI's capacity-overflow panic. Initial exploratory logs with
++unrepinned generated controls are not used as transfer-consumer evidence.
++
++## Cardinality / transfer-length inventory
++
++**24 tagged paths / 186 generated cases**, plus pinned controls and reversals.
++This is an extension of the retained R20 102-path / 1,113-case family; its
++consumer paths overlap that inventory, so no disjoint 126-path total is claimed.
++R20's scalar-width tests and certificate admission validator did not exercise
++executable all-cells expansion or classical transfer materialization. Its broad
++storage-coverage description is superseded by this distinction in README and
++PROGRESS; the earlier response is immutable under this implementer's ownership.
++
++Exponents: 0/1/3/62/63/64/127/128 for region counts; 1/2/3/62/63/64/127/128 for
++value powers and two-component products. Lengths: 0/1/8/2^63−1/2^63/2^64−1.
++Memory loads use byte-aligned bit widths 8/64/2^63−8/2^63/2^64−8, since N is a
++u64 bit width, not an arbitrary byte count. Dense amplitude exponents are
++1/3/62/63/64. Expectations are assigned before execution: feasible success,
++range/fault, or cited host resource. Allocation-dependent byte failures are
++made deterministic by the subprocess memory limit, not advertised as ISA caps.
++
++| Path(s) | Where guarded / consumed | Paths | Cases |
+ |---|---|---:|---:|
+-| Every layout scalar, qualified by five fixtures (listed below) | `Object::validate_layout`, `DerivedWidths::from_program`, `BitVector::zero`, machine construction | 41 | 574 |
+-| depth+2 / Dc | `DerivedWidths::from_program`, machine construction | 1 | 17 |
+-| constant width × eight signed/unsigned literals | `const_literal` | 1 | 48 |
+-| action wire, qalloc, qborrow, wire index, qloop/bounds list, qregion A, qregion W | `Type::parse`, `validate_action_sequence`, `Discipline::wires`, borrow compiler | 7 | 42 |
+-| iN, reg, wire, qreg, region A/W, plus 20 spelling controls | `Type::parse`, `host_count` | 6 | 56 |
+-| concrete bit storage | `BitVector::zero` | 1 | 6 |
+-| concrete wire storage | `QuantumState::allocate` | 1 | 6 |
+-| B (machine and sequential), heap, stack, depth | `validate_budget`, `DerivedWidths`, `OracleVectorMachine::new`, `run_oracle` | 5 | 30 |
+-| fault width with literal code 1 | signature construction, `unsigned_literal` | 1 | 6 |
+-| allocation length | `validate_row` pointer-range check | 1 | 6 |
+-| zext and trunc destination widths | `lifted_suffix`, `validate_row` | 2 | 12 |
+-| boundscheck length | `validate_row` pointer-range check | 1 | 6 |
+-| local region cells*W | `declare_region`, borrow compiler checked sizing/reservation | 1 | 6 |
+-| local region image size | `declare_region` exact power/product comparison | 1 | 6 |
+-| qreg.new, slice offset, slice length, concat | `validate_classical`, handle-view discipline | 4 | 24 |
+-| borrowed-capacity sum | public `Object::borrow_capacity` consumer, isolated from wire expansion | 1 | 6 |
+-| certificate borrowed width, bundle/borrowed lo/hi, sample count, table cell, frame width, bounds, gate count | TABLE and `validate_certificate_details` / `domain` | 10 | 60 |
+-| certificate region A, W, index, lo, hi | `certificate::domain` (direct semantic consumer) | 5 | 30 |
+-| exhaustive cardinality/product and sampled-element capacity | `claims::{enumerate,sample_elements}` (direct consumers) | 2 | 12 |
+-| schedule B/heap/stack/depth, inherited controls, step, generated ordinal, point ordinal | TABLE, `validate_schedule_details`, symbolic selector domains | 8 | 48 |
+-| CLI interface A and W | `build_action_state`, bit-vector/region allocation | 2 | 12 |
+-| **Total** | | **102** | **1,113** |
+-
+-The 41 layout instances are:
+-
+-- inc8/ptr32 and inc8/ptr128: A_tab, H, S_cells, heap_base, heap_limit_max,
+-  null_size, ptr_width (7 each).
+-- heap: those seven plus globals.g.base and globals.g.size (9).
+-- sum_db: those seven plus globals.zero.base, globals.zero.size,
+-  interface_regions.sum_db.db.base (10).
+-- tiny_memory: those seven plus interface_regions.tiny.db.base (8).
+-
+-Numeric table capacities use checked/exact powers; only actual allocations
+-create entries. Array/table lengths, instruction/program counters, frame-cell
+-counts, ABI slot counts and ordinal worklists otherwise derive from resident
+-parsed collections, not an untrusted virtual length. Scalar lengths do not
+-control an unchecked eager allocation on the audited paths. Pointer lengths,
+-layout base+size, region shifts/products, qreg slices/concats and the guarded
+-selector lo−1/hi+1 operations were inspected. The selectors keep large domains
+-symbolic; loops retain transfer/cycle rules and acquire no trip cap.
+-
+-### S1: independently assigned categories
+-
+-`r13_generated_derived_width_extremes_family` retains all 507 original inputs
+-and adds 84: 41 layout paths × two new 2^63 boundaries plus two depth cases.
+-Expected categories are computed *before* production by independent §§7.1–7.2
+-range/non-overlap/capacity formulas and §§3.7/5.4 width arithmetic:
+-legal, layout rejection, deterministic host representation, or allocation-
+-dependent host storage. Allocation-dependent cases allow a successful concrete
+-construction or a cited host allocation failure; they are not advertised as
+-deterministic representation failures. The observed distribution is
+-**167 constructed / 342 layout rejections / 82 resource diagnostics**.
+-
+-All generated families use `catch_unwind`; admission/range/resource results are
+-asserted against preassigned expectations, with § citation and host-limit
+-separation. The families are finite boundary coverage, not an exhaustive
+-u64-domain or resource-availability proof. Direct capacity/domain tests are
+-identified above; they do not claim completion of staged semantic claims.
++| Executable `cells:"all"` and explicit-list action domains | `claims::Object::domain` cumulative reserve; `execute_element_audited` region-cell reserve; parse/check_hashes → both verify_claim and verify_certificate | 2 | 32 |
++| 2^W exhaustive values; product of two component cardinalities | `claims::enumerate` checked span/product/u128/usize and fallible element/tuple reserves | 2 | 16 |
++| Sample replay count | `claims::sample_elements`, per-tuple reservation before draws | 1 | 6 |
++| Oracle certificate replay region | `claims::execute_element_audited` region-byte and output-cell reserves (direct semantic consumer) | 1 | 8 |
++| Hostcall; console.write transfer | `classical::transfer_bytes`, request publication / console append after reservation | 2 | 12 |
++| Public memory query | `ClassicalMachine::memory_bytes`, in-range check and transfer reserve; both instruction fixtures | 1 | 12 |
++| Retained memory undo bytes | `classical::save_bytes`, cumulative reserve before length loop (direct consumer) | 1 | 6 |
++| Entropy transfer | availability check before undo/transfer reserve and mutation; shortages stay fault 10 | 1 | 6 |
++| Cumulative console bytes | `reserve_more`, checked-add + fallible reserve with eight resident bytes (direct capacity consumer) | 1 | 6 |
++| Nested oracle region transfer | `oracle::region_bytes`, checked power/conversion and fallible byte reserve | 1 | 8 |
++| Memory-load byte storage | `Memory::load`, fallible reserve before reading N/8 bytes | 1 | 5 |
++| Allocation-table exponent | `power_of_two` / `allocation_fails`: symbolic capacity, no 2^A entry expansion | 1 | 8 |
++| Sparse allocation length | `Memory::allocate`, one fallibly reserved entry; never n bytes | 1 | 6 |
++| Sparse memory digest and snapshot trace consumers | `ClassicalSnapshot::memory_digest`, resident addresses/entries/nonzero bytes only, before each CC/R transfer | 1 | 12 |
++| Qreg allocation, qreg slice length, dense amplitude cardinality | `QuantumState::allocate`, checked slice endpoint + fallible slice reserve, `QuantumState::amplitudes` checked power + reserve | 3 | 17 |
++| CLI interface region exponent | `build_action_state`: checked cells/product, value/cell reservations before loops | 1 | 8 |
++| CLI sparse digest/trace/output | `drive` reserves records incrementally, snapshots/deltas/JSON reflect three executed rows and resident entries | 1 | 6 |
++| CLI output byte expansion | `hex_buffer` checked 2*len and fallible String reserve, propagated through console/tape/host output | 1 | 6 |
++| CLI sample replay count | `step_check` lazy current-tuple/odometer, no sample-count output buffer | 1 | 6 |
++| **Total** | | **24** | **186** |
++
++Counts include both public claim entry points, but exclude the 13 pinned claim
++checks, two exact CLI transfer checks, identity-envelope assertions, qreg concat
++control, two completed small CLI sample controls and 12 transfer-prefix reversal
++controls. The huge CLI sample probes stop on the first element at a downstream
++frame-storage host error; they establish lazy entry, not completion of an
++astronomical replay. Slice lengths above a live bundle remain range errors.
++
++Other related consumers were inspected and guarded: host-reply byte copies and
++retained memory undo, entropy buffers, qreg concat checked sum/reservation, and
++CLI region cells. These accept resident payloads/handles, not independently
++constructible virtual slices of huge length. Existing classical/register tests
++exercise successful replies, concat and their exact reversal. Clock/block
++transfers are fixed 8/512-byte operations. Trace limits and CLI odometers remain
++incremental, without an ISA trip cap. Parsed array sizes, resident qreg wire
++lists, sparse hash/delta traversal and already-stored tables do not expand a
++virtual length. This finite family is not a proof against arbitrary host OOM,
++all possible resident-object growth, or every value of u64.
++
++### Further defect exposed
++
++`oracle::region_bytes` still collected 2^A bytes infallibly, and claim replay
++constructed whole region byte/cell vectors without a reservation. Those
++materializations now reserve before iteration. Reinstalling the original
++nested-region collection for the memory-limited direct-consumer regression
++reproduces SIGABRT (`.tmp/r21-nested-region-red.log`); repaired source is restored
++in a finally block. `Memory::load`, undo/reply/entropy, qreg slice/concat and CLI
++hex/trace storage were also hardened while tracing the same class. These are
++implementation resource-reporting repairs, not new spec gaps. Bead
++**b-isa-spec-3va** records the class and the additional nested-transfer abort.
++
++### Suggestions
++
++Sol S1 is applied: derived exponent boundaries, both tagged region alternatives,
++independent result expectations, isolated processes and explicit consumer rows
++are added. Codex's structured Error-category S1 is deferred as nonblocking:
++`Error(pub String)` is a public tuple API used throughout the interpreter and
++contextual wrappers. A category migration preserving that API and wrapper
++semantics needs its own coordinated change; it is not a cheap local repair.
++Existing Display/CLI text and cited range/resource distinctions are preserved.
++The other criterion-level test suggestions are not claimed implemented here.
+ 
+ ## Validation and retained evidence
+ 
+-Clean baseline: **412 passed / 0 failed / 5 ignored**, **118.60 s** runner
+-sum over **33 result blocks**. Final: **425 passed / 0 failed / 5 ignored**,
+-**176.88 s**, **16 unit + 409 integration**, 0 doctests, the same 33 blocks.
+-Focused R20: **13 passed / 0 failed**, 0.15 s runner sum. The 591-case width
+-family reports 167 constructed / 342 layout rejections / 82 resource errors.
+-
+-All five ignored sweeps: **5 passed / 0 failed**, **106.12 s** runner sum,
+-rerun in release mode on final code:
++Baseline: **425 passed / 0 failed / 5 ignored**, **105.24 s** runner sum across
++**33 result blocks**.
++Final: **436 passed / 0 failed / 5 ignored**, **139.44 s** runner sum across
++**34 result blocks**, **18 unit + 418 integration**, 0 doctests.
++All five ignored release sweeps: **5 passed / 0 failed**, **88.31 s** runner sum.
+ 
+ | Sweep | Full domain | Result / runner time |
+ |---|---|---|
+-| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 1.09 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 5.81 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 23.01 s |
+-| §6 differential | 200,000 programs; 70,931 accepted clean / 129,069 rejected | 1/0; 74.22 s |
+-| recursive prefix reversal | 256 inputs × all completion/first-fault prefixes | 1/0; 1.99 s |
+-
+-Fmt/fmt --check and strict all-target offline Clippy pass with **0 warnings**.
+-The unchanged Python seed passes **2 example objects / 2 printed envelopes**.
+-Independent pins and both exact file comparisons pass. Logs under interpreter
+-`.tmp/`: `r20-{baseline-clean,exact-red,class-red,allocation-red,cert-red,
+-focused,widths,final,final-clippy,sweeps}.log`.
+-
+-All round 4–20 tests are retained. In particular the R13 service/block_image
+-controls, R14 Y/table schema family, R15 frame/epsilon controls, R16–17 defaults,
+-R17 union-subtraction schedule oracle, R18 per-invocation deferred/bound budget
+-family, borrow/discipline positives and negatives and exact fixture hashes
+-remain in the full suite. Deliverables 8–11 retain their staged/Unverified
+-status; no literal other-value theorem is newly claimed proved.
+-
+-The clean baseline was rerun in isolation against the unchanged HEAD
+-interpreter, restoring all working files in a finally block. Use
+-`.tmp/r20-baseline-clean.log`; the initial `.tmp/r20-before.log` picked up one
+-rebuilt R20 test binary during concurrent focused compilation and is explicitly
+-superseded. The final gates run on restored repaired code, with no production
+-or test-input changes during those gates.
+-
+-Commands (each cargo command has the mandatory prefix):
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 0.39 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.12 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 12.16 s |
++| §6 differential | 200,000 programs; 70,931 accepted clean / 129,069 rejected | 1/0; 71.22 s |
++| recursive prefix reversal | 256 inputs × all completion/first-fault prefixes | 1/0; 2.42 s |
++
++Fmt/fmt --check and strict all-target offline Clippy pass with zero warnings.
++The unchanged Python seed verifies two example objects and two printed envelopes.
++`r20_pins.py` retains both original extreme literal pins. `r21_pins.py` checks
++nine complete reviewer-file SHA-256s and two literal envelopes independently of
++production code; all nine files also compare byte-for-byte with the read-only
++reviewer originals. The focused R21 family passes **11 / 0**, runner sum 0.49 s.
++
++All round 4–21 tests are retained. Production source and test inputs remained
++fixed during final full tests, sweeps and strict Clippy. Logs are under interpreter
++`.tmp/`: `r21-{baseline,red,transfer-consumer-red,nested-region-red,family,final,
++sweeps,final-clippy}.log`. Initial exploratory transfer logs with invalid
++controls are superseded by the correctly repinned consumer RED log above.
++
++Each cargo invocation used the mandatory headless prefix and project TMPDIR:
+ 
+ ```sh
+@@ -1466,17 +1510,17 @@
+ MANIFEST=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
+ $ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST"
+-$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" r20_ -- --nocapture
+-$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" --test r1_widths -- --nocapture
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" r21_ -- --nocapture
+ $ENV_PREFIX cargo test --offline --release --manifest-path "$MANIFEST" -- --ignored --nocapture
+ $ENV_PREFIX cargo fmt --manifest-path "$MANIFEST"
+ $ENV_PREFIX cargo fmt --manifest-path "$MANIFEST" -- --check
+ $ENV_PREFIX cargo clippy --offline --manifest-path "$MANIFEST" --all-targets -- -D warnings
+-python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r20_pins.py
+ ```
+ 
+-The Python seed is unchanged. Source/test changes belong only to
+-`reference-interpreter/`; the Beads auto-export is left for the orchestrator,
+-not included in the explicit-path commits. No foreign changes were staged or
+-committed by this implementer. Worklog ownership remains with the orchestrator.
++Deliverables 8–11 remain staged/Unverified. No literal other-value theorem is
++newly claimed proved. No user decision is required for this repair. Only
++`reference-interpreter/` and this external response are committed; no spec,
++conformance, worklog, foreign file, push or Dolt sync. Beads' auto-export is left
++for the orchestrator. Both seats' reported R21 blockers are addressed above;
++any further orchestrator steering can be appended here.
+ ````
+ 
+@@ -4722,4 +4766,221 @@
+ ````
+ 
++## `council/response-round-20.md` (212 lines)
++
++````markdown
++# Editor response: council round 20
++
++**SOL-R20-B01 is resolved; S1 is applied.** No blocker is declined or partial.
++The literal range and unrestricted positive lifted widths remain unchanged.
++Only interpreter paths and this response are committed; no push. No accepted
++0.8 spec, draft spec or conformance file was edited by this implementer.
++
++Implementation commit: af52c9cd42965c1f7fd3fa0bcd4139673074e10c.
++
++Final evidence commit: **2a32dfbeb29d0c204bba5a6c81f3e84df1f086b0**.
++
++## SOL-R20-B01 — resolved
++
++Determining clauses: §§3.3, 4.2, 16.1–16.2; SPEC-QUESTIONS 12/15. A positive
++literal fits iff its magnitude bit length is at most N. A negative magnitude
++fits iff its bit length is less than N, or equals N and is a power of two.
++Thus 1, 0 and -1 fit both supplied positive widths. No theorem assumption or
++spec amendment is needed.
++
++| Blocker | RED tests / observations | Fix | Commit |
++|---|---|---|---|
++| SOL-R20-B01 | `r1_literals::r20_pinned_extreme_const_widths_parse_and_hash_without_panic`; `cli_xam::r20_cli_pinned_extreme_const_widths_check_and_hash`. Original N=max−1: exit 1, false §3.3 range error. Original N=max: exit 101, unchecked-add panic. | `object.rs::{const_literal,literal_magnitude,unsigned_literal}` | af52c9cd42965c1f7fd3fa0bcd4139673074e10c |
++
++The original function was reinstalled temporarily, tested, and restored in a
++`finally` block to obtain isolated RED evidence for both exact CLI witnesses:
++`.tmp/r20-exact-red.log`. The library test failed 0/1; CLI stdout was empty in
++both cases. An earlier focused library/CLI RED also rejected max−1.
++
++GREEN: both full reviewer files are copied byte-for-byte into
++`tests/support/r20-const-width-*.bisa`. Library admission runs under
++`catch_unwind`, then `check_hashes`, and asserts both interface and closure.
++CLI `check`/`hash` exit 0 with those identities; check status is `ok`.
++`r20_extreme_const_execution_reports_host_resource` requires both sequential
++execution and reversible-machine construction to return a cited host limit,
++never panic or describe literal 1 as out of range.
++
++| N | Interface = closure | Whole-file SHA-256 |
++|---|---|---|
++| 18446744073709551614 | 9146b47a91b5cade7648cdb4386bab0fc399048bd754674cb4745e79eeccb318 | 254bf985f88a26f94c13ff4e503cb1fff95ea5d4452f17422e194e73bb6eb367 |
++| 18446744073709551615 | 97eb756124446d26628e2abbe5fb74223cbad5eb7902aacd31b7a309069f48f1 | 94416b11560b138ee17b68f5aa930d73c5c9521e343a533842a7d0d6aa0a8344 |
++
++`tests/support/r20_pins.py` independently reconstructs each 269-byte envelope
++using Python json/hashlib, without the interpreter or rehash helper. Both
++reviewer files compare equal with `cmp`. Existing i8 256 / -129 negatives and
++255 / -128 positives remain; the generated family adds 0, 1, -1, -2, 255,
++256, -128, -129 against every extreme width, with independent expectations.
++
++## Design and additional defects found by the sweep
++
++1. Magnitude parsing reserves four bits per decimal digit plus
++   limb padding, and scans only those bits. Neither N+1 nor N-bit storage is
++   used at admission. Parser/resource errors propagate; only a mathematical
++   range failure becomes the §3.3 out-of-range diagnostic.
++2. Fault-code admission and certificate bundle/borrowed/cell endpoints had the
++   same destination-sized allocation pattern. They now share the spelling-sized
++   unsigned check. Canonical decimal endpoint ordering uses length then lexical
++   order. The certificate family reproduced the old legal small-endpoint host
++   failure with a misleading "outside bundle width" wrapper; that wrapper is
++   gone. Actual claim execution still allocates concrete vectors fallibly.
++3. `Function::signature` emitted large wire/reg and region A/W dimensions as
++   JSON numbers, causing false §9.1 signature mismatches for canonical strings.
++   It now emits numbers only through 2^53−1, decimal strings above it. The text
++   family reproduced this mismatch before repair. Published identities remain
++   unchanged; both new reviewer pins are preserved.
++4. `Discipline::wires` and `borrow::Compiler::{fresh,declare_regions,
++   borrow_compiler}` expanded scalar counts through infallible collect/push or
++   unchecked cells*W. A large whole-wire operand reproduced a caught capacity
++   overflow panic after the signature defect was repaired. Wire names, images
++   and cell vectors now reserve fallibly; region products are checked.
++5. The audit found unchecked storage growth in exhaustive claim enumeration
++   and sample collection. Exhaustive interval cardinality, product, usize
++   conversion and vector reservation are checked before enumeration. Sample
++   counts reserve fallibly before drawing. These are host-resource failures,
++   never an arbitrary ISA count cap. The unit family exercises the cardinality
++   and reservation consumers directly, avoiding an unsafe pre-fix OOM run.
++6. Quantum wire identities now reserve before collecting; CLI interface cells
++   reserve before iteration and check cells*cell_bytes. Resource diagnostics in
++   these paths, derived machine frames/indices, borrow-capacity sums and depth
++   counters name the host limit and cite the relevant §. Qreg descriptor-sum
++   overflow is distinguished from an invalid slice's mathematical range.
++
++No new specification gap was exposed. Bead **b-isa-spec-61i** records the
++recurring class; full-ISA staged work remains separate.
++
++## Extreme-width path inventory
++
++**102 fixture-qualified paths, 1,113 generated cases.** Every scalar path is
++driven by 0, 1, 2^63−1, 2^63, 2^64−2, 2^64−1. Text uses canonical unsigned
++INT; metadata uses numbers through 2^53−1 and decimal strings above it. Twenty
++additional descriptor spelling controls include 00, +1, -0, 1.0 and 2^64.
++The retained R13 values and its three u128 depth boundaries remain included.
++Counts below exclude the two pinned objects and their execution/CLI controls.
++
++| Path(s) | Where validated / consumed | Paths | Cases |
++|---|---|---:|---:|
++| Every layout scalar, qualified by five fixtures (listed below) | `Object::validate_layout`, `DerivedWidths::from_program`, `BitVector::zero`, machine construction | 41 | 574 |
++| depth+2 / Dc | `DerivedWidths::from_program`, machine construction | 1 | 17 |
++| constant width × eight signed/unsigned literals | `const_literal` | 1 | 48 |
++| action wire, qalloc, qborrow, wire index, qloop/bounds list, qregion A, qregion W | `Type::parse`, `validate_action_sequence`, `Discipline::wires`, borrow compiler | 7 | 42 |
++| iN, reg, wire, qreg, region A/W, plus 20 spelling controls | `Type::parse`, `host_count` | 6 | 56 |
++| concrete bit storage | `BitVector::zero` | 1 | 6 |
++| concrete wire storage | `QuantumState::allocate` | 1 | 6 |
++| B (machine and sequential), heap, stack, depth | `validate_budget`, `DerivedWidths`, `OracleVectorMachine::new`, `run_oracle` | 5 | 30 |
++| fault width with literal code 1 | signature construction, `unsigned_literal` | 1 | 6 |
++| allocation length | `validate_row` pointer-range check | 1 | 6 |
++| zext and trunc destination widths | `lifted_suffix`, `validate_row` | 2 | 12 |
++| boundscheck length | `validate_row` pointer-range check | 1 | 6 |
++| local region cells*W | `declare_region`, borrow compiler checked sizing/reservation | 1 | 6 |
++| local region image size | `declare_region` exact power/product comparison | 1 | 6 |
++| qreg.new, slice offset, slice length, concat | `validate_classical`, handle-view discipline | 4 | 24 |
++| borrowed-capacity sum | public `Object::borrow_capacity` consumer, isolated from wire expansion | 1 | 6 |
++| certificate borrowed width, bundle/borrowed lo/hi, sample count, table cell, frame width, bounds, gate count | TABLE and `validate_certificate_details` / `domain` | 10 | 60 |
++| certificate region A, W, index, lo, hi | `certificate::domain` (direct semantic consumer) | 5 | 30 |
++| exhaustive cardinality/product and sampled-element capacity | `claims::{enumerate,sample_elements}` (direct consumers) | 2 | 12 |
++| schedule B/heap/stack/depth, inherited controls, step, generated ordinal, point ordinal | TABLE, `validate_schedule_details`, symbolic selector domains | 8 | 48 |
++| CLI interface A and W | `build_action_state`, bit-vector/region allocation | 2 | 12 |
++| **Total** | | **102** | **1,113** |
++
++The 41 layout instances are:
++
++- inc8/ptr32 and inc8/ptr128: A_tab, H, S_cells, heap_base, heap_limit_max,
++  null_size, ptr_width (7 each).
++- heap: those seven plus globals.g.base and globals.g.size (9).
++- sum_db: those seven plus globals.zero.base, globals.zero.size,
++  interface_regions.sum_db.db.base (10).
++- tiny_memory: those seven plus interface_regions.tiny.db.base (8).
++
++Numeric table capacities use checked/exact powers; only actual allocations
++create entries. Array/table lengths, instruction/program counters, frame-cell
++counts, ABI slot counts and ordinal worklists otherwise derive from resident
++parsed collections, not an untrusted virtual length. Scalar lengths do not
++control an unchecked eager allocation on the audited paths. Pointer lengths,
++layout base+size, region shifts/products, qreg slices/concats and the guarded
++selector lo−1/hi+1 operations were inspected. The selectors keep large domains
++symbolic; loops retain transfer/cycle rules and acquire no trip cap.
++
++### S1: independently assigned categories
++
++`r13_generated_derived_width_extremes_family` retains all 507 original inputs
++and adds 84: 41 layout paths × two new 2^63 boundaries plus two depth cases.
++Expected categories are computed *before* production by independent §§7.1–7.2
++range/non-overlap/capacity formulas and §§3.7/5.4 width arithmetic:
++legal, layout rejection, deterministic host representation, or allocation-
++dependent host storage. Allocation-dependent cases allow a successful concrete
++construction or a cited host allocation failure; they are not advertised as
++deterministic representation failures. The observed distribution is
++**167 constructed / 342 layout rejections / 82 resource diagnostics**.
++
++All generated families use `catch_unwind`; admission/range/resource results are
++asserted against preassigned expectations, with § citation and host-limit
++separation. The families are finite boundary coverage, not an exhaustive
++u64-domain or resource-availability proof. Direct capacity/domain tests are
++identified above; they do not claim completion of staged semantic claims.
++
++## Validation and retained evidence
++
++Clean baseline: **412 passed / 0 failed / 5 ignored**, **118.60 s** runner
++sum over **33 result blocks**. Final: **425 passed / 0 failed / 5 ignored**,
++**176.88 s**, **16 unit + 409 integration**, 0 doctests, the same 33 blocks.
++Focused R20: **13 passed / 0 failed**, 0.15 s runner sum. The 591-case width
++family reports 167 constructed / 342 layout rejections / 82 resource errors.
++
++All five ignored sweeps: **5 passed / 0 failed**, **106.12 s** runner sum,
++rerun in release mode on final code:
++
++| Sweep | Full domain | Result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 pairs × 4 = 262,144 executions | 1/0; 1.09 s |
++| 17-wire borrow | 131,072 entries | 1/0; 5.81 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 23.01 s |
++| §6 differential | 200,000 programs; 70,931 accepted clean / 129,069 rejected | 1/0; 74.22 s |
++| recursive prefix reversal | 256 inputs × all completion/first-fault prefixes | 1/0; 1.99 s |
++
++Fmt/fmt --check and strict all-target offline Clippy pass with **0 warnings**.
++The unchanged Python seed passes **2 example objects / 2 printed envelopes**.
++Independent pins and both exact file comparisons pass. Logs under interpreter
++`.tmp/`: `r20-{baseline-clean,exact-red,class-red,allocation-red,cert-red,
++focused,widths,final,final-clippy,sweeps}.log`.
++
++All round 4–20 tests are retained. In particular the R13 service/block_image
++controls, R14 Y/table schema family, R15 frame/epsilon controls, R16–17 defaults,
++R17 union-subtraction schedule oracle, R18 per-invocation deferred/bound budget
++family, borrow/discipline positives and negatives and exact fixture hashes
++remain in the full suite. Deliverables 8–11 retain their staged/Unverified
++status; no literal other-value theorem is newly claimed proved.
++
++The clean baseline was rerun in isolation against the unchanged HEAD
++interpreter, restoring all working files in a finally block. Use
++`.tmp/r20-baseline-clean.log`; the initial `.tmp/r20-before.log` picked up one
++rebuilt R20 test binary during concurrent focused compilation and is explicitly
++superseded. The final gates run on restored repaired code, with no production
++or test-input changes during those gates.
++
++Commands (each cargo command has the mandatory prefix):
++
++```sh
++ENV_PREFIX='env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp'
++MANIFEST=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST"
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" r20_ -- --nocapture
++$ENV_PREFIX cargo test --offline --manifest-path "$MANIFEST" --test r1_widths -- --nocapture
++$ENV_PREFIX cargo test --offline --release --manifest-path "$MANIFEST" -- --ignored --nocapture
++$ENV_PREFIX cargo fmt --manifest-path "$MANIFEST"
++$ENV_PREFIX cargo fmt --manifest-path "$MANIFEST" -- --check
++$ENV_PREFIX cargo clippy --offline --manifest-path "$MANIFEST" --all-targets -- -D warnings
++python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/tests/support/r20_pins.py
++```
++
++The Python seed is unchanged. Source/test changes belong only to
++`reference-interpreter/`; the Beads auto-export is left for the orchestrator,
++not included in the explicit-path commits. No foreign changes were staged or
++committed by this implementer. Worklog ownership remains with the orchestrator.
++````
++
+ ## `council/response-round-3.md` (189 lines)
+ 
+@@ -11473,5 +11734,5 @@
+ ````
+ 
+-## `src/claims.rs` (868 lines)
++## `src/claims.rs` (929 lines)
+ 
+ ````rust
+@@ -11566,7 +11827,10 @@
+     })?;
+     let mut out = crate::reserved(count, "§12.2", "exhaustive domain elements")?;
+-    let mut current: Vec<BitVector> = domain.components.iter().map(|c| c.2.clone()).collect();
++    let mut current = crate::reserved(domain.components.len(), "§12.2", "domain tuple components")?;
++    current.extend(domain.components.iter().map(|c| c.2.clone()));
+     loop {
+-        out.push(current.clone());
++        let mut row = crate::reserved(current.len(), "§12.2", "exhaustive tuple components")?;
++        row.extend(current.iter().cloned());
++        out.push(row);
+         let mut i = domain.components.len();
+         let mut wrapped = true;
+@@ -11603,4 +11867,57 @@
+         .map_err(|_| Error("§12.1: host limit: sample count exceeds usize".into()))?;
+     crate::reserved(count, "§12.1", "sampled domain elements")
++}
++
++#[cfg(test)]
++pub(crate) fn r21_resource_cases() {
++    for width in [1, 2, 3, 62, 63, 64, 127, 128] {
++        for count in [1, 2] {
++            let d = Domain {
++                covers_d: true,
++                components: (0..count)
++                    .map(|i| {
++                        (
++                            Component::Bundle(0, i),
++                            width,
++                            BitVector::zero(width).unwrap(),
++                            ones(width).unwrap(),
++                        )
++                    })
++                    .collect(),
++            };
++            let r = enumerate(&d);
++            if width < 4 {
++                assert_eq!(r.unwrap().len(), 1 << (width * count));
++            } else {
++                let e = r.unwrap_err().to_string();
++                assert!(e.contains("§12.2") && e.contains("host limit"), "{e}");
++            }
++        }
++    }
++    for count in [0, 1, 8, (1u128 << 63) - 1, 1 << 63, u64::MAX as u128] {
++        let r = sample_elements(count);
++        if count <= 8 {
++            assert!(r.unwrap().capacity() >= count as usize);
++        } else {
++            let e = r.unwrap_err().to_string();
++            assert!(e.contains("§12.1") && e.contains("host limit"), "{e}");
++        }
++    }
++    // Direct replay consumer: domain admission is covered separately through
++    // parse/check_hashes/verify_claim, including both region schema branches.
++    let mut o = Object::parse(include_str!("../tests/fixtures/tiny_memory.bisa")).unwrap();
++    let mut f = o.functions["tiny"].clone();
++    for a in [0, 1, 3, 62, 63, 64, 127, 128] {
++        f.params[3][0].ty = Type::Region(a, 8);
++        o.functions.insert("tiny".into(), f.clone());
++        let r = o.execute_element(&f, &[], Some(Budget::steps(0)));
++        if a < 4 {
++            r.unwrap();
++        } else {
++            let e = r.unwrap_err().to_string();
++            assert!(e.contains("§12.2") && e.contains("host limit"), "{e}");
++        }
++    }
++    eprintln!("R21 exhaustive power/product / samples / oracle replay region: 4 paths / 30 cases");
+ }
+ 
+@@ -11713,4 +12030,5 @@
+             match r.get("cells")? {
+                 Json::String(s) if s == "all" => {
++                    crate::reserve_more(&mut components, cells, "§12.2", "domain components")?;
+                     for i in 0..cells {
+                         components.push((
+@@ -11807,7 +12125,8 @@
+             for p in &f.params[3] {
+                 let (cells, w) = region_dims(p)?;
+-                let bytes = (0..cells)
+-                    .map(|i| Ok(cell(&p.name, i, w)?.to_u128()? as u8))
+-                    .collect::<Result<_>>()?;
++                let mut bytes = crate::reserved(cells, "§12.2", "oracle replay region bytes")?;
++                for i in 0..cells {
++                    bytes.push(cell(&p.name, i, w)?.to_u128()? as u8);
++                }
+                 input.regions.insert(p.name.clone(), bytes);
+             }
+@@ -11824,4 +12143,5 @@
+             for p in &f.params[3] {
+                 let (cells, w) = region_dims(p)?;
++                crate::reserve_more(&mut out, cells, "§12.2", "oracle replay output cells")?;
+                 for i in 0..cells {
+                     out.push(cell(&p.name, i, w)?);
+@@ -11854,5 +12174,5 @@
+         for p in &f.params[2] {
+             let (cells, w) = region_dims(p)?;
+-            let mut all = Vec::new();
++            let mut all = crate::reserved(cells, "§12.2", "action replay region cells")?;
+             for i in 0..cells {
+                 let wires = q.allocate(w)?;
+@@ -11995,11 +12315,13 @@
+                     elements = sample_elements(count)?;
+                     for _ in 0..count {
+-                        elements.push(
+-                            domain
+-                                .components
+-                                .iter()
+-                                .map(|(_, w, lo, hi)| rng.draw(*w, lo, hi))
+-                                .collect::<Result<_>>()?,
+-                        );
++                        let mut row = crate::reserved(
++                            domain.components.len(),
++                            "§12.1",
++                            "sample tuple components",
++                        )?;
++                        for (_, w, lo, hi) in &domain.components {
++                            row.push(rng.draw(*w, lo, hi)?);
++                        }
++                        elements.push(row);
+                     }
+                 }
+@@ -12346,5 +12668,5 @@
+ ````
+ 
+-## `src/classical.rs` (1624 lines)
++## `src/classical.rs` (1661 lines)
+ 
+ ````rust
+@@ -12975,10 +13297,13 @@
+     }
+     pub fn memory_bytes(&self, address: u128, len: usize) -> Result<Vec<u8>> {
++        self.transfer_bytes(address, len, "§7.1")
++    }
++    fn transfer_bytes(&self, address: u128, len: usize, rule: &str) -> Result<Vec<u8>> {
+         if !self.state.memory.valid(address, len as u128) {
+             return err("§7.1", "memory query outside live allocation");
+         }
+-        Ok((0..len)
+-            .map(|n| self.state.memory.byte(address + n as u128))
+-            .collect())
++        let mut bytes = crate::reserved(len, rule, "§7.1 transfer bytes")?;
++        bytes.extend((0..len).map(|n| self.state.memory.byte(address + n as u128)));
++        Ok(bytes)
+     }
+     pub fn host_transcript(&self) -> Vec<HostExchange> {
+@@ -13001,5 +13326,7 @@
+             .undo
+             .clone();
+-        self.save_bytes(request.address, count, &mut undo);
++        let mut reply = crate::reserved(payload.len(), "§10", "retained host reply bytes")?;
++        reply.extend_from_slice(payload);
++        self.save_bytes(request.address, count, &mut undo)?;
+         for (n, b) in payload[..count].iter().enumerate() {
+             self.state.memory.set_byte(request.address + n as u128, *b);
+@@ -13019,5 +13346,5 @@
+             .as_mut()
+             .ok_or_else(|| Error("§10: missing retained host request".into()))?
+-            .reply = payload.to_vec();
++            .reply = reply;
+         self.state.pending = None;
+         Ok(())
+@@ -13335,9 +13662,11 @@
+         undo.definitions.push(key);
+     }
+-    fn save_bytes(&self, p: u128, len: usize, undo: &mut Undo) {
++    fn save_bytes(&self, p: u128, len: usize, undo: &mut Undo) -> Result<()> {
++        crate::reserve_more(&mut undo.bytes, len, "§7.1", "retained memory bytes")?;
+         for n in 0..len {
+             undo.bytes
+                 .push((p + n as u128, self.state.memory.byte(p + n as u128)));
+         }
++        Ok(())
+     }
+     fn undo_record(&mut self, undo: Undo) -> Result<()> {
+@@ -13435,6 +13764,7 @@
+             return Ok(Some(7));
+         }
+-        let len = usize::try_from(len)
+-            .map_err(|_| Error("§7.3: device length exceeds host address space".into()))?;
++        let len = usize::try_from(len).map_err(|_| {
++            Error("§7.3: host limit: device length exceeds host address space".into())
++        })?;
+         if dev == "entropy"
+             && self
+@@ -13447,15 +13777,20 @@
+             return Ok(Some(10));
+         }
++        crate::reserve_more(&mut self.state.devices.tape, 1, "§7.3", "effect tape")?;
+         let transferred = match (dev, operation) {
+             ("console", "write") => {
++                let bytes = self.transfer_bytes(p, len, "§7.3")?;
++                crate::reserve_more(
++                    &mut self.state.devices.console,
++                    len,
++                    "§7.3",
++                    "console bytes",
++                )?;
+                 undo.device = Some(DeviceUndo::Console(self.state.devices.console.len()));
+-                let bytes: Vec<_> = (0..len)
+-                    .map(|i| self.state.memory.byte(p + i as u128))
+-                    .collect();
+                 self.state.devices.console.extend(bytes.iter().copied());
+                 bytes
+             }
+             ("clock", "read") => {
+-                self.save_bytes(p, 8, undo);
++                self.save_bytes(p, 8, undo)?;
+                 let c = self.state.devices.clock;
+                 undo.device = Some(DeviceUndo::Clock(c));
+@@ -13465,6 +13800,8 @@
+             }
+             ("entropy", "read") => {
+-                self.save_bytes(p, len, undo);
++                self.save_bytes(p, len, undo)?;
+                 let start = self.state.devices.entropy_position;
++                let mut bytes = crate::reserved(len, "§7.3", "entropy transfer bytes")?;
++                bytes.extend_from_slice(&self.entropy[start..start + len]);
+                 undo.device = Some(DeviceUndo::Entropy(start));
+                 for n in 0..len {
+@@ -13474,8 +13811,8 @@
+                 }
+                 self.state.devices.entropy_position += len;
+-                self.entropy[start..start + len].to_vec()
++                bytes
+             }
+             ("block", "read") => {
+-                self.save_bytes(p, 512, undo);
++                self.save_bytes(p, 512, undo)?;
+                 let bytes = self
+                     .state
+@@ -13630,5 +13967,5 @@
+                     fault = Some(7);
+                 } else {
+-                    self.save_bytes(p, (w / 8) as usize, &mut undo);
++                    self.save_bytes(p, (w / 8) as usize, &mut undo)?;
+                     self.state.memory.store_u128(p, w as u64, v)?;
+                 }
+@@ -13803,7 +14140,7 @@
+                         } else {
+                             let count = usize::try_from(capacity).map_err(|_| {
+-                                Error("§10: request exceeds host address space".into())
++                                Error("§10: host limit: request exceeds host address space".into())
+                             })?;
+-                            let payload = self.memory_bytes(address, count)?;
++                            let payload = self.transfer_bytes(address, count, "§10")?;
+                             self.state.pending = Some(HostRequest {
+                                 service: crate::object::literal_name(&a[0])?,
+@@ -13973,4 +14310,26 @@
+     Error(format!("{TRAP}{}", e.0))
+ }
++
++#[cfg(test)]
++pub(crate) fn r21_resource_cases() {
++    let o = Object::parse(include_str!("../tests/fixtures/r21/cc-length.bisa")).unwrap();
++    let mut m = ClassicalMachine::new(&o, "f", &[], &[]).unwrap();
++    m.step_once().unwrap();
++    m.step_once().unwrap();
++    for len in [0, 1, 8, (1usize << 63) - 1, 1 << 63, usize::MAX] {
++        let mut undo = m.history.last().unwrap().undo.clone();
++        undo.bytes.clear();
++        let result = m.save_bytes(1, len, &mut undo);
++        if len <= 8 {
++            result.unwrap();
++            assert_eq!(undo.bytes.len(), len);
++        } else {
++            let e = result.unwrap_err().to_string();
++            assert!(e.contains("§7.1") && e.contains("host limit"), "{e}");
++            assert!(undo.bytes.is_empty());
++        }
++    }
++    eprintln!("R21 retained memory undo bytes: 1 path / 6 cases");
++}
+ ````
+ 
+@@ -16176,5 +16535,5 @@
+ ````
+ 
+-## `src/lib.rs` (73 lines)
++## `src/lib.rs` (125 lines)
+ 
+ ````rust
+@@ -16245,4 +16604,20 @@
+ pub(crate) fn reserved<T>(count: usize, rule: &str, what: &str) -> Result<Vec<T>> {
+     let mut out = Vec::new();
++    reserve_more(&mut out, count, rule, what)?;
++    Ok(out)
++}
++
++/// Check cumulative storage before a count-driven loop or any visible mutation.
++pub(crate) fn reserve_more<T>(
++    out: &mut Vec<T>,
++    count: usize,
++    rule: &str,
++    what: &str,
++) -> Result<()> {
++    out.len().checked_add(count).ok_or_else(|| {
++        Error(format!(
++            "{rule}: host limit: {what} cumulative count exceeds usize"
++        ))
++    })?;
+     out.try_reserve_exact(count).map_err(|e| {
+         Error(format!(
+@@ -16250,5 +16625,41 @@
+         ))
+     })?;
+-    Ok(out)
++    Ok(())
++}
++
++#[cfg(test)]
++mod r21_tests {
++    use super::*;
++    #[test]
++    fn r21_derived_consumers_memory_limited() {
++        if std::env::var_os("R21_UNIT_CHILD").is_none() {
++            let out = std::process::Command::new("python3").args(["-c",
++                "import os,resource,sys; resource.setrlimit(resource.RLIMIT_AS,(256*1024*1024,)*2); resource.setrlimit(resource.RLIMIT_CORE,(0,0)); os.execv(sys.argv[1],sys.argv[1:])"])
++                .arg(std::env::current_exe().unwrap())
++                .args(["--exact", "r21_tests::r21_derived_consumers_memory_limited", "--nocapture"])
++                .env("R21_UNIT_CHILD", "1").output().unwrap();
++            assert!(out.status.success(), "{out:?}");
++            eprintln!("{}", String::from_utf8_lossy(&out.stderr));
++            return;
++        }
++        std::panic::catch_unwind(|| {
++            crate::oracle::r21_resource_cases();
++            crate::claims::r21_resource_cases();
++            crate::classical::r21_resource_cases();
++            for count in [0, 1, 8, (1usize << 63) - 1, 1 << 63, usize::MAX] {
++                let mut console = vec![0u8; 8];
++                let result = reserve_more(&mut console, count, "§7.3", "console bytes");
++                if count <= 8 {
++                    result.unwrap();
++                } else {
++                    let e = result.unwrap_err().to_string();
++                    assert!(e.contains("§7.3") && e.contains("host limit"), "{e}");
++                }
++                assert_eq!(console, vec![0; 8]);
++            }
++            eprintln!("R21 cumulative console storage: 1 path / 6 cases");
++        })
++        .expect("no derived-cardinality or transfer panic");
++    }
+ }
+ ````
+@@ -17961,5 +18372,5 @@
+ ````
+ 
+-## `src/main.rs` (2010 lines)
++## `src/main.rs` (2057 lines)
+ 
+ ````rust
+@@ -18047,6 +18458,46 @@
+     })
+ }
+-fn hex(bytes: &[u8]) -> String {
+-    bytes.iter().map(|b| format!("{b:02x}")).collect()
++fn hex_buffer(len: usize) -> Result<String> {
++    let count = len
++        .checked_mul(2)
++        .ok_or_else(|| fail("§7.3/§10: host limit: CLI hex byte count exceeds usize"))?;
++    let mut out = String::new();
++    out.try_reserve_exact(count)
++        .map_err(|e| fail(format!("§7.3/§10: host limit: CLI hex bytes: {e}")))?;
++    Ok(out)
++}
++fn hex(bytes: &[u8]) -> Result<String> {
++    let mut out = hex_buffer(bytes.len())?;
++    const DIGITS: &[u8; 16] = b"0123456789abcdef";
++    for b in bytes {
++        out.push(DIGITS[(b >> 4) as usize] as char);
++        out.push(DIGITS[(b & 15) as usize] as char);
++    }
++    Ok(out)
++}
++#[test]
++fn r21_cli_hex_storage_memory_limited() {
++    if std::env::var_os("R21_HEX_CHILD").is_none() {
++        let out = std::process::Command::new("python3").args(["-c",
++            "import os,resource,sys; resource.setrlimit(resource.RLIMIT_AS,(256*1024*1024,)*2); resource.setrlimit(resource.RLIMIT_CORE,(0,0)); os.execv(sys.argv[1],sys.argv[1:])"])
++            .arg(std::env::current_exe().unwrap())
++            .args(["--exact", "r21_cli_hex_storage_memory_limited", "--nocapture"])
++            .env("R21_HEX_CHILD", "1").output().unwrap();
++        assert!(out.status.success(), "{out:?}");
++        return;
++    }
++    std::panic::catch_unwind(|| {
++        for len in [0, 1, 8, (1usize << 63) - 1, 1 << 63, usize::MAX] {
++            let r = hex_buffer(len);
++            if len <= 8 {
++                assert!(r.unwrap().capacity() >= 2 * len);
++            } else {
++                let e = r.unwrap_err().to_string();
++                assert!(e.contains('§') && e.contains("host limit"), "{e}");
++            }
++        }
++        assert_eq!(hex(&[0, 127, 128, 255]).unwrap(), "007f80ff");
++    })
++    .expect("no CLI output length panic");
+ }
+ fn parse_hex(s: &str) -> Result<Vec<u8>> {
+@@ -18137,21 +18588,21 @@
+     }
+ }
+-fn tape_json(m: &ClassicalMachine) -> Json {
+-    Json::Array(
++fn tape_json(m: &ClassicalMachine) -> Result<Json> {
++    Ok(Json::Array(
+         m.effect_tape()
+             .iter()
+             .map(|e| {
+-                object([
++                Ok(object([
+                     (
+                         "args".into(),
+                         Json::Array(e.args.iter().map(|a| number(*a)).collect()),
+                     ),
+-                    ("bytes".into(), string(hex(&e.bytes))),
++                    ("bytes".into(), string(hex(&e.bytes)?)),
+                     ("dev".into(), string(e.dev.clone())),
+                     ("op".into(), string(e.op.clone())),
+-                ])
++                ]))
+             })
+-            .collect(),
+-    )
++            .collect::<Result<_>>()?,
++    ))
+ }
+ fn measurements_json(m: &ClassicalMachine) -> Json {
+@@ -18181,19 +18632,19 @@
+     )
+ }
+-fn host_requests_json(m: &ClassicalMachine) -> Json {
+-    Json::Array(
++fn host_requests_json(m: &ClassicalMachine) -> Result<Json> {
++    Ok(Json::Array(
+         m.host_transcript()
+             .into_iter()
+             .map(|e| {
+-                object([
++                Ok(object([
+                     ("address".into(), number(e.request.address)),
+                     ("capacity".into(), number(e.request.capacity)),
+-                    ("payload".into(), string(hex(&e.request.payload))),
+-                    ("reply".into(), string(hex(&e.reply))),
++                    ("payload".into(), string(hex(&e.request.payload)?)),
++                    ("reply".into(), string(hex(&e.reply)?)),
+                     ("service".into(), string(e.request.service.clone())),
+-                ])
++                ]))
+             })
+-            .collect(),
+-    )
++            .collect::<Result<_>>()?,
++    ))
+ }
+ fn console_json(m: &ClassicalMachine) -> Json {
+@@ -18567,7 +19018,7 @@
+                     "§10: reply mismatch: expected request service={} payload={}, replies file next names service={} payload={}",
+                     request.service,
+-                    hex(&request.payload),
++                    hex(&request.payload)?,
+                     reply.service,
+-                    hex(&reply.payload)
++                    hex(&reply.payload)?
+                 )));
+             }
+@@ -18597,4 +19048,9 @@
+                 "§3.4: reference execution fuel exhausted; CC/R has no ISA step budget",
+             ));
++        }
++        if let Some(trace) = trace.as_deref_mut() {
++            trace
++                .try_reserve(1)
++                .map_err(|e| fail(format!("§7.4: host limit: CLI trace records: {e}")))?;
+         }
+         let before = trace.is_some().then(|| machine.snapshot());
+@@ -18682,5 +19138,5 @@
+         ("clock".into(), number(machine.clock() as u128)),
+         ("console".into(), console_json(&machine)),
+-        ("console_hex".into(), string(hex(machine.console()))),
++        ("console_hex".into(), string(hex(machine.console())?)),
+         (
+             "effect_tape_length".into(),
+@@ -18693,5 +19149,5 @@
+         ),
+         ("faults".into(), faults_json(outcome.fault)),
+-        ("host_requests".into(), host_requests_json(&machine)),
++        ("host_requests".into(), host_requests_json(&machine)?),
+         ("measurements".into(), measurements_json(&machine)),
+         ("memory_digest".into(), string(machine.memory_digest())),
+@@ -18706,5 +19162,5 @@
+         ),
+         ("steps".into(), number(steps as u128)),
+-        ("tape".into(), tape_json(&machine)),
++        ("tape".into(), tape_json(&machine)?),
+         ("trace".into(), Json::Array(trace)),
+     ]))
+@@ -18909,4 +19365,6 @@
+         }
+         let mut all = Vec::new();
++        all.try_reserve_exact(cells)
++            .map_err(|e| fail(format!("§5.1: host limit: CLI region cells: {e}")))?;
+         for _ in 0..cells {
+             let cell = q.allocate(cell_width)?;
+@@ -19156,6 +19614,6 @@
+     check_replies_consumed(&replies)?;
+     let forward = machine.outcome();
+-    let forward_tape = tape_json(&machine);
+-    let forward_requests = host_requests_json(&machine);
++    let forward_tape = tape_json(&machine)?;
++    let forward_requests = host_requests_json(&machine)?;
+     // §10 reverse eligibility is enforced by the machine (measurement in
+     // history is E_NOT_REVERSIBLE; a pending request never reaches here).
+@@ -19167,5 +19625,5 @@
+         ("clock".into(), number(machine.clock() as u128)),
+         ("console".into(), console_json(&machine)),
+-        ("console_hex".into(), string(hex(machine.console()))),
++        ("console_hex".into(), string(hex(machine.console())?)),
+         (
+             "effect_tape_length".into(),
+@@ -19524,6 +19982,6 @@
+         values_json(&outcome.values)?
+     };
+-    let forward_tape = tape_json(&machine);
+-    let forward_requests = host_requests_json(&machine);
++    let forward_tape = tape_json(&machine)?;
++    let forward_requests = host_requests_json(&machine)?;
+     let forward_measurements = measurements_json(&machine);
+     let mut status = if failed { "FAILED" } else { "COMPLETED" };
+@@ -19546,5 +20004,5 @@
+         ("clock".into(), number(machine.clock() as u128)),
+         ("console".into(), console_json(&machine)),
+-        ("console_hex".into(), string(hex(machine.console()))),
++        ("console_hex".into(), string(hex(machine.console())?)),
+         (
+             "effect_tape_length".into(),
+@@ -23272,5 +23730,5 @@
+ ````
+ 
+-## `src/oracle.rs` (861 lines)
++## `src/oracle.rs` (908 lines)
+ 
+ ````rust
+@@ -23417,4 +23875,42 @@
+ pub(crate) fn power_of_two(exponent: u128) -> Option<u128> {
+     (exponent < 128).then(|| 1u128 << exponent)
++}
++#[cfg(test)]
++pub(crate) fn r21_resource_cases() {
++    let mut m = Memory {
++        bytes: BTreeMap::new(),
++        allocations: Vec::new(),
++        heap_base: 1,
++        heap_used: 0,
++        table_capacity: None,
++        addresses: BTreeMap::from([("r".into(), 1)]),
++    };
++    for a in [0, 1, 3, 62, 63, 64, 127, 128] {
++        let r = region_bytes(&m, "r", a);
++        if a < 4 {
++            assert_eq!(r.unwrap(), vec![0; 1 << a]);
++        } else {
++            let e = r.unwrap_err().to_string();
++            assert!(e.contains("§4.2") && e.contains("host limit"), "{e}");
++        }
++        // The table capacity is symbolic, not 2^A eagerly allocated entries.
++        m.table_capacity = power_of_two(a as u128);
++        assert!(!m.allocation_fails(1, 1));
++    }
++    for width in [8, 64, (1u64 << 63) - 8, 1 << 63, u64::MAX - 7] {
++        let r = m.load(1, width);
++        if width <= 64 {
++            assert!(r.unwrap().is_zero());
++        } else {
++            let e = r.unwrap_err().to_string();
++            assert!(e.contains("§7.1") && e.contains("host limit"), "{e}");
++        }
++    }
++    for len in [0, 1, 8, (1u128 << 63) - 1, 1 << 63, u64::MAX as u128] {
++        let base = m.allocate(len).unwrap();
++        assert!(m.valid(base, len));
++        assert!(m.bytes.is_empty());
++    }
++    eprintln!("R21 nested region transfer / symbolic table capacity / load storage / sparse allocation: 4 paths / 27 cases");
+ }
+ impl Memory {
+@@ -23517,7 +24013,8 @@
+     pub fn load(&self, p: u128, width: u64) -> Result<BitVector> {
+         let count = (width / 8) as usize;
+-        let bytes = (0..count)
+-            .map(|i| Ok(self.byte(offset(p, i)?)))
+-            .collect::<Result<Vec<_>>>()?;
++        let mut bytes = crate::reserved(count, "§7.1", "memory load bytes")?;
++        for i in 0..count {
++            bytes.push(self.byte(offset(p, i)?));
++        }
+         BitVector::from_le_bytes(width as usize, &bytes)
+     }
+@@ -23553,4 +24050,10 @@
+             .checked_add(self.heap_used)
+             .ok_or_else(|| Error("§7.1: heap bump exceeds address space".into()))?;
++        crate::reserve_more(
++            &mut self.allocations,
++            1,
++            "§7.1",
++            "sparse allocation entries",
++        )?;
+         self.allocations.push(Allocation {
+             base,
+@@ -23746,7 +24249,9 @@
+         .and_then(|n| usize::try_from(n).ok())
+         .ok_or_else(|| Error("§4.2: host limit: region exceeds host address space".into()))?;
+-    (0..len)
+-        .map(|i| Ok(memory.byte(offset(base, i)?)))
+-        .collect()
++    let mut bytes = crate::reserved(len, "§4.2/§7.1", "nested region transfer bytes")?;
++    for i in 0..len {
++        bytes.push(memory.byte(offset(base, i)?));
++    }
++    Ok(bytes)
+ }
+ 
+@@ -25040,5 +25545,5 @@
+ ````
+ 
+-## `src/registers.rs` (258 lines)
++## `src/registers.rs` (266 lines)
+ 
+ ````rust
+@@ -25208,5 +25713,6 @@
+             .filter(|end| *end <= h.wires.len())
+             .ok_or_else(|| Error("§3.3: qreg slice out of bounds".into()))?;
+-        let wires = h.wires[lo..end].to_vec();
++        let mut wires = crate::reserved(len, "§3.3", "qreg slice wires")?;
++        wires.extend_from_slice(&h.wires[lo..end]);
+         let undo = self.record(&[id, self.next]);
+         self.set_status(id, Status::Viewed)?;
+@@ -25221,6 +25727,13 @@
+             return err("§3.3", "qreg concat operands alias");
+         }
+-        let mut wires = self.ordinary(a)?.wires.clone();
+-        wires.extend(&self.ordinary(b)?.wires);
++        let a_wires = &self.ordinary(a)?.wires;
++        let b_wires = &self.ordinary(b)?.wires;
++        let count = a_wires
++            .len()
++            .checked_add(b_wires.len())
++            .ok_or_else(|| Error("§3.3: host limit: qreg concat count exceeds usize".into()))?;
++        let mut wires = crate::reserved(count, "§3.3", "qreg concat wires")?;
++        wires.extend_from_slice(a_wires);
++        wires.extend_from_slice(b_wires);
+         if wires.iter().collect::<BTreeSet<_>>().len() != wires.len() {
+             return err("§3.3", "qreg concat wires overlap");
+@@ -31487,4 +32000,254 @@
+ ````
+ Hand derivation: inc8(8)=9 in three rows. nested calls it, compares fr to zero, and raises FAULT_CALLEE=9 on an unsuccessful inner budget. cancel calls then uncalls with identical ins/mem/token, so target and fr return to zero even for a callee fault. ignore returns a zero payload when the callee faults without automatic propagation. inc8(255)=0 by 8-bit wrap.
++````
++
++## `tests/fixtures/r21/cc-length.bisa` (18 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=64
++
++section symbols
++{"0":{"interface_hash":"23802c541101025a57a13ffb5f00ca72a7ad5ff95f78e9a4fd565c59f566752d","kind":"cc","name":"f","signature":{"abi":"0.8","kind":"cc","params":[],"results":["i64"],"tier":"cc"}}}
++
++section functions
++fn cc @f () (r:i64) () () ()
++^entry():
++n = const.i64 9223372036854775808
++p = alloc n
++r = hostcall org.bennett.test p n
++ret r
++
++section devices
++{"models":{},"services":{"org.bennett.test":{"version":"1"}}}
++
++section layout
++{"A_tab":1,"H":64,"S_cells":1,"globals":{},"heap_base":1,"heap_limit_max":"9223372036854775808","interface_regions":{},"null_size":1,"ptr_width":64}
++````
++
++## `tests/fixtures/r21/cc-length.envelope` (17 lines)
++
++````
++isa=0.8
++ptr_width=64
++{"abi":"0.8","kind":"cc","params":[],"results":["i64"],"tier":"cc"}
++fn cc @f () (r:i64) () () ()
++^entry():
++n = const.i64 9223372036854775808
++p = alloc n
++r = hostcall org.bennett.test p n
++ret r
++layout A_tab 1
++layout H 64
++layout S_cells 1
++layout heap_base 1
++layout heap_limit_max "9223372036854775808"
++layout null_size 1
++layout ptr_width 64
++device org.bennett.test {"version":"1"}
++````
++
++## `tests/fixtures/r21/codex-claim-probe.rs` (8 lines)
++
++````rust
++use bennett_isa_ref::Object;
++fn main() {
++ let text=std::fs::read_to_string(std::env::args().nth(1).unwrap()).unwrap();
++ let object=Object::parse(&text).unwrap(); object.check_hashes().unwrap();
++ let h=object.identity().unwrap().closure_hashes["a"].clone().unwrap();
++ eprintln!("parsed and hash-checked; verifying claim");
++ match object.verify_claim(&h,0) { Ok(v)=>println!("{v:?}"), Err(e)=>{eprintln!("{e}");std::process::exit(1)} }
++}
++````
++
++## `tests/fixtures/r21/domain-all-A0.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"34f2caae82a52094cde811e28f76994a6ca3ed048d1fb376866e522226c371e0","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":0,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[0,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":1,"H":8,"S_cells":1,"globals":{},"heap_base":1,"heap_limit_max":255,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"34f2caae82a52094cde811e28f76994a6ca3ed048d1fb376866e522226c371e0","dialect_mapping_version":"test.1","interface_hash":"34f2caae82a52094cde811e28f76994a6ca3ed048d1fb376866e522226c371e0","object_hash":"c4cfb4f9f4081610f5163cb6c149c0414bb7407e3afe6ec15895865ad3da487e","reference_program_hash":"34f2caae82a52094cde811e28f76994a6ca3ed048d1fb376866e522226c371e0","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"tests","version":"1"},"regions":{"34f2caae82a52094cde811e28f76994a6ca3ed048d1fb376866e522226c371e0":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"kind":"sampled","sampler":{"algorithm":"xoshiro256**","count":1,"seed":["1","2","3","4"]}}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":0,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/fixtures/r21/domain-all-A1.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[1,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":1,"H":8,"S_cells":1,"globals":{},"heap_base":1,"heap_limit_max":255,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","dialect_mapping_version":"test.1","interface_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","object_hash":"e7dae655c89735d4df6edf0120d511b83b7747033aeb71dec1ad40a7428590e4","reference_program_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"tests","version":"1"},"regions":{"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"kind":"sampled","sampler":{"algorithm":"xoshiro256**","count":1,"seed":["1","2","3","4"]}}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/fixtures/r21/domain-all-A64.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"cc912c7eda248ed73ebf911875fe6cdd5470afb8cbf868819a9f5a3a4a8dc6f8","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":64,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[64,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":1,"H":8,"S_cells":1,"globals":{},"heap_base":1,"heap_limit_max":255,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"cc912c7eda248ed73ebf911875fe6cdd5470afb8cbf868819a9f5a3a4a8dc6f8","dialect_mapping_version":"test.1","interface_hash":"cc912c7eda248ed73ebf911875fe6cdd5470afb8cbf868819a9f5a3a4a8dc6f8","object_hash":"792427874faf9ac5bf7610db84d17a12e9294b93a2e111e12d27e7547115e567","reference_program_hash":"cc912c7eda248ed73ebf911875fe6cdd5470afb8cbf868819a9f5a3a4a8dc6f8","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"tests","version":"1"},"regions":{"cc912c7eda248ed73ebf911875fe6cdd5470afb8cbf868819a9f5a3a4a8dc6f8":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"kind":"sampled","sampler":{"algorithm":"xoshiro256**","count":1,"seed":["1","2","3","4"]}}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":64,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/fixtures/r21/domain-all.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":63,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[63,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":1,"H":8,"S_cells":1,"globals":{},"heap_base":1,"heap_limit_max":255,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","dialect_mapping_version":"test.1","interface_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","object_hash":"5fa6df63e007ad2bca8ab69c5a0c82e7671c585982048cf99919e59cc48a1e43","reference_program_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"tests","version":"1"},"regions":{"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"kind":"sampled","sampler":{"algorithm":"xoshiro256**","count":1,"seed":["1","2","3","4"]}}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":63,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/fixtures/r21/r-length.bisa` (18 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=64
++
++section symbols
++{"0":{"interface_hash":"2751a25e6e906ea512bc075da07cda7463161576c56cebf06455ba2d9dfab704","kind":"r","name":"f","signature":{"abi":"0.8","kind":"r","params":[],"results":[],"tier":"r"}}}
++
++section functions
++fn r @f () () () () ()
++^entry():
++n = const.i64 9223372036854775808
++p = alloc n
++effect console.write p n
++ret
++
++section devices
++{"models":{"console":{"version":"0.8"}},"services":{}}
++
++section layout
++{"A_tab":1,"H":64,"S_cells":1,"globals":{},"heap_base":1,"heap_limit_max":"9223372036854775808","interface_regions":{},"null_size":1,"ptr_width":64}
++````
++
++## `tests/fixtures/r21/r-length.envelope` (17 lines)
++
++````
++isa=0.8
++ptr_width=64
++{"abi":"0.8","kind":"r","params":[],"results":[],"tier":"r"}
++fn r @f () () () () ()
++^entry():
++n = const.i64 9223372036854775808
++p = alloc n
++effect console.write p n
++ret
++layout A_tab 1
++layout H 64
++layout S_cells 1
++layout heap_base 1
++layout heap_limit_max "9223372036854775808"
++layout null_size 1
++layout ptr_width 64
++device console {"version":"0.8"}
++````
++
++## `tests/fixtures/r21/sol-claim-region-all-sampled-small.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[1,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":0,"H":1,"S_cells":0,"globals":{},"heap_base":1,"heap_limit_max":0,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","dialect_mapping_version":"r21.sol","interface_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","object_hash":"845978957a5296f5cccca5f2b9b3ed7b444726e58d88fb909d37fada965e639a","reference_program_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"r21-sol","version":"1"},"regions":{"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"kind":"sampled","sampler":{"algorithm":"xoshiro256**","count":1,"seed":["1","2","3","4"]}}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1},{"class":"any","role":"in","width":2}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/fixtures/r21/sol-claim-region-all-sampled.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":63,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[63,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":0,"H":1,"S_cells":0,"globals":{},"heap_base":1,"heap_limit_max":0,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","dialect_mapping_version":"r21.sol","interface_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","object_hash":"2d99832aa4800ca61e5bc17976931fed374f02ba54abe2e08a31544c72a18859","reference_program_hash":"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"r21-sol","version":"1"},"regions":{"f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"kind":"sampled","sampler":{"algorithm":"xoshiro256**","count":1,"seed":["1","2","3","4"]}}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1},{"class":"any","role":"in","width":"9223372036854775808"}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":63,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/fixtures/r21/sol-claim-region-all-small.bisa` (16 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","kind":"action","name":"a","signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"in"}],"mut":[1],"tier":"q"}}}
++
++section functions
++action @a (t:wire mut) () (r:region[1,1] in) () ()
++^entry():
++x t
++x t
++
++section layout
++{"A_tab":0,"H":1,"S_cells":0,"globals":{},"heap_base":1,"heap_limit_max":0,"interface_regions":{},"null_size":1,"ptr_width":32}
++
++section certificate
++{"bindings":{"closure_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","dialect_mapping_version":"r21.sol","interface_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","object_hash":"845978957a5296f5cccca5f2b9b3ed7b444726e58d88fb909d37fada965e639a","reference_program_hash":"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"r21-sol","version":"1"},"regions":{"fb1c406d3aa99c5a7077f93d16af56860723416d39fc00f023ecc3f40fb26c8c":{"bounds":[],"claims":[{"domain":{"borrowed":[],"bundles":[{"hi":1,"lo":0,"name":"t","width":1}],"regions":[{"cells":"all","name":"r"}]},"expected":{"table":[[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]},"kind":"exhaustive"}],"cleanup":{},"definedness_assumptions":[],"error":{},"frame":{"borrow":{},"interface":[{"class":"any","role":"mut","width":1},{"class":"any","role":"in","width":2}],"retained_history":0,"scheme_ancillae":{},"scratch":{}},"gates_used":{},"kind":"action","resources":{},"signature":{"abi":"0.8","args":[],"bounds":[],"in":[],"kind":"action","mem":[{"A":1,"W":1,"role":"in"}],"mut":[1],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
+ ````
+ 
+@@ -42095,4 +42858,415 @@
+ ````
+ 
++## `tests/r21_resources.rs` (406 lines)
++
++````rust
++//! Resource guards run in a fresh process: catch_unwind cannot catch allocator aborts.
++mod support;
++use bennett_isa_ref::{ClaimVerdict, ClassicalMachine, Object, QuantumRegisters, QuantumState};
++use std::panic::{catch_unwind, AssertUnwindSafe};
++use std::process::{Command, Output};
++
++const CLAIM: &str = include_str!("fixtures/r21/domain-all.bisa");
++const CC: &str = include_str!("fixtures/r21/cc-length.bisa");
++const R: &str = include_str!("fixtures/r21/r-length.bisa");
++
++fn guarded(command: &mut Command) -> Output {
++    // exec, rather than fork a Rust multithreaded test runner. No unsafe/libc dependency.
++    let mut child = Command::new("python3");
++    child.args(["-c", "import os,resource,sys; resource.setrlimit(resource.RLIMIT_AS,(256*1024*1024,)*2); resource.setrlimit(resource.RLIMIT_CORE,(0,0)); os.execv(sys.argv[1],sys.argv[1:])"]);
++    child.arg(command.get_program()).args(command.get_args());
++    for (k, v) in command.get_envs() {
++        if let Some(v) = v {
++            child.env(k, v);
++        }
++    }
++    child.output().unwrap()
++}
++fn family(name: &str) {
++    let out = guarded(
++        Command::new(std::env::current_exe().unwrap())
++            .args(["--exact", "r21_resource_child", "--nocapture"])
++            .env("R21_FAMILY", name),
++    );
++    assert!(out.status.success(), "{name}: {out:?}");
++    eprintln!("{}", String::from_utf8_lossy(&out.stderr));
++}
++fn resource<T: std::fmt::Debug>(r: bennett_isa_ref::Result<T>, section: &str) {
++    let e = r.expect_err("host-resource error required").to_string();
++    assert!(e.contains(section) && e.contains("host limit"), "{e}");
++}
++fn claim(text: &str, small: bool) {
++    let o = Object::parse(text).unwrap();
++    o.check_hashes().unwrap();
++    let h = o.identity().unwrap().closure_hashes["a"].clone().unwrap();
++    let r = catch_unwind(|| o.verify_claim(&h, 0)).expect("no claim panic");
++    if small {
++        assert_eq!(r.unwrap(), ClaimVerdict::Evidence { elements: 1 });
++    } else {
++        resource(r, "§12.2");
++    }
++    let r = catch_unwind(|| o.verify_certificate()).expect("no certificate panic");
++    if small {
++        assert_eq!(
++            r.unwrap()[0].verdict,
++            ClaimVerdict::Evidence { elements: 1 }
++        );
++    } else {
++        resource(r, "§12.2");
++    }
++}
++fn region_claim(a: u64, explicit: bool) -> String {
++    let old = Object::parse(CLAIM).unwrap().identity().unwrap();
++    let (base, cert) = CLAIM.split_once("\nsection certificate\n").unwrap();
++    let base = base
++        .replace("\"A\":63", &format!("\"A\":{a}"))
++        .replace("region[63,1]", &format!("region[{a},1]"));
++    let o = support::rehash(&base);
++    let id = o.identity().unwrap();
++    let mut cert = cert
++        .replace("\"A\":63", &format!("\"A\":{a}"))
++        .replace(&old.interface_hashes["a"], &id.interface_hashes["a"])
++        .replace(&old.object_hash, &id.object_hash);
++    if explicit {
++        cert = cert.replace(
++            "\"cells\":\"all\"",
++            "\"cells\":[{\"hi\":1,\"index\":0,\"lo\":0}]",
++        );
++    }
++    format!("{}\nsection certificate\n{cert}", o.text)
++}
++fn transfer(text: &str, len: u64, host: bool) {
++    let heap = len.max(1);
++    let meta = if heap <= 9_007_199_254_740_991 {
++        heap.to_string()
++    } else {
++        format!("\"{heap}\"")
++    };
++    let text = text
++        .replace("\"9223372036854775808\"", &meta)
++        .replace("const.i64 9223372036854775808", &format!("const.i64 {len}"));
++    let o = if len == 1 << 63 {
++        Object::parse(&text).unwrap()
++    } else {
++        support::rehash(&text)
++    };
++    o.check_hashes().unwrap();
++    let mut m = ClassicalMachine::new(&o, "f", &[], &[]).unwrap();
++    let entry = m.snapshot();
++    m.step_once().unwrap();
++    m.step_once().unwrap(); // alloc stays sparse and legal at every tested length.
++    let prefix = m.snapshot();
++    let digest = m.memory_digest();
++    assert_eq!(digest.len(), 64); // digest iterates resident bytes, never allocation size.
++    let result = catch_unwind(AssertUnwindSafe(|| m.step_once())).expect("no transfer panic");
++    if len > 8 {
++        resource(result, if host { "§10" } else { "§7.3" });
++        assert_eq!(
++            m.snapshot(),
++            prefix,
++            "failed transfer must restore the entire prefix"
++        );
++        assert!(m.host_transcript().is_empty());
++        assert!(m.console().is_empty());
++        assert_eq!(m.effect_tape_len(), 0);
++        resource(m.memory_bytes(1, len as usize), "§7.1");
++    } else {
++        result.unwrap();
++        assert_eq!(
++            m.memory_bytes(1, len as usize).unwrap(),
++            vec![0; len as usize]
++        );
++        if host {
++            assert_eq!(m.outcome().request.unwrap().payload, vec![0; len as usize]);
++            m.reply(&[]).unwrap();
++        } else {
++            assert_eq!(m.console(), vec![0; len as usize]);
++            assert_eq!(m.effect_tape_len(), 1);
++        }
++    }
++    m.reverse().unwrap();
++    assert_eq!(m.snapshot(), entry);
++}
++#[test]
++fn r21_resource_child() {
++    let Ok(name) = std::env::var("R21_FAMILY") else {
++        return;
++    };
++    match name.as_str() {
++        "claims" => {
++            for (text, small) in [
++                (CLAIM, false),
++                (include_str!("fixtures/r21/domain-all-A0.bisa"), true),
++                (include_str!("fixtures/r21/domain-all-A1.bisa"), true),
++                (include_str!("fixtures/r21/domain-all-A64.bisa"), false),
++                (
++                    include_str!("fixtures/r21/sol-claim-region-all-sampled.bisa"),
++                    false,
++                ),
++                (
++                    include_str!("fixtures/r21/sol-claim-region-all-sampled-small.bisa"),
++                    true,
++                ),
++            ] {
++                claim(text, small);
++            }
++            for a in [0, 1, 3, 62, 63, 64, 127, 128] {
++                for explicit in [false, true] {
++                    claim(&region_claim(a, explicit), a < 4);
++                }
++            }
++            eprintln!("R21 executable region domains: 2 paths x 8 exponents x 2 public consumers = 32 cases; 13 pinned controls");
++            let o = Object::parse(include_str!("fixtures/r21/sol-claim-region-all-small.bisa"))
++                .unwrap();
++            o.check_hashes().unwrap();
++            assert_eq!(
++                o.verify_certificate().unwrap()[0].verdict,
++                ClaimVerdict::Proof
++            );
++        }
++        "hostcall" | "console" => {
++            let host = name == "hostcall";
++            for len in [0, 1, 8, (1 << 63) - 1, 1 << 63, u64::MAX] {
++                transfer(if host { CC } else { R }, len, host);
++            }
++            eprintln!("R21 {name}: 6 transfer, 6 memory-query, 6 sparse digest/trace, 6 reversal controls");
++        }
++        "entropy" => {
++            for len in [0, 1, 8, (1u64 << 63) - 1, 1 << 63, u64::MAX] {
++                let text = R
++                    .replace("console", "entropy")
++                    .replace("entropy.write", "entropy.read")
++                    .replace("const.i64 9223372036854775808", &format!("const.i64 {len}"))
++                    .replace(
++                        "\"heap_limit_max\":\"9223372036854775808\"",
++                        "\"heap_limit_max\":\"18446744073709551615\"",
++                    );
++                let o = support::rehash(&text);
++                o.check_hashes().unwrap();
++                let mut m = ClassicalMachine::new(&o, "f", &[], &[1; 8]).unwrap();
++                let entry = m.snapshot();
++                let out = catch_unwind(AssertUnwindSafe(|| m.run(10)))
++                    .expect("no entropy length panic")
++                    .unwrap();
++                assert_eq!(out.fault, if len <= 8 { None } else { Some(10) });
++                assert_eq!(m.effect_tape_len(), if len <= 8 { 1 } else { 0 });
++                m.reverse().unwrap();
++                assert_eq!(m.snapshot(), entry);
++            }
++        }
++        "quantum" => {
++            for n in [0, 1, 8, (1usize << 63) - 1, 1 << 63, usize::MAX] {
++                let mut q = QuantumRegisters::new();
++                let r = catch_unwind(AssertUnwindSafe(|| q.allocate(n))).expect("no qreg panic");
++                if n <= 8 {
++                    assert_eq!(q.bundle(r.unwrap()).unwrap().len(), n);
++                } else {
++                    resource(r, "§4.3");
++                }
++                let mut q = QuantumRegisters::new();
++                let id = q.allocate(8).unwrap();
++                let slice =
++                    catch_unwind(AssertUnwindSafe(|| q.slice(id, 0, n))).expect("no slice panic");
++                if n <= 8 {
++                    assert_eq!(q.bundle(slice.unwrap()).unwrap().len(), n);
++                } else {
++                    let e = slice.unwrap_err().to_string();
++                    assert!(e.contains("§3.3") && !e.contains("host limit"), "{e}");
++                }
++            }
++            let mut q = QuantumRegisters::new();
++            let a = q.allocate(3).unwrap();
++            let b = q.allocate(5).unwrap();
++            let c = q.concat(a, b).unwrap();
++            assert_eq!(q.bundle(c).unwrap().len(), 8);
++            eprintln!(
++                "R21 qreg allocation/slice/dense amplitudes: 3 paths / 17 cases; concat control"
++            );
++            for exponent in [1, 3, 62, 63, 64] {
++                let mut q = QuantumState::new();
++                q.allocate(exponent).unwrap();
++                let r = catch_unwind(|| q.amplitudes()).expect("no dense panic");
++                if exponent < 4 {
++                    assert_eq!(r.unwrap().len(), 1 << exponent);
++                } else {
++                    resource(r, "§4.3");
++                }
++            }
++        }
++        _ => panic!("unknown family {name}"),
++    }
++}
++
++#[test]
++fn r21_cli_cardinality_and_sparse_output() {
++    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".tmp");
++    std::fs::create_dir_all(&dir).unwrap();
++    for a in [0, 1, 3, 62, 63, 64, 127, 128] {
++        let text = region_claim(a, false);
++        let path = dir.join(format!("r21-cli-region-{a}.bisa"));
++        std::fs::write(&path, text).unwrap();
++        let out = guarded(
++            Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .arg("run-action")
++                .arg(&path)
++                .args(["a", "--mut", "0"]),
++        );
++        if a < 4 {
++            assert!(out.status.success(), "{out:?}");
++        } else {
++            assert_eq!(out.status.code(), Some(1), "{out:?}");
++            assert!(out.stdout.is_empty());
++            assert!(
++                String::from_utf8_lossy(&out.stderr).contains("host limit"),
++                "{out:?}"
++            );
++        }
++    }
++    for len in [0, 1, 8, (1u64 << 63) - 1, 1 << 63, u64::MAX] {
++        let text = CC
++            .replace("r = hostcall org.bennett.test p n\nret r", "ret n")
++            .replace("const.i64 9223372036854775808", &format!("const.i64 {len}"))
++            // Full pointer range remains available independent of the chosen n.
++            .replace(
++                "\"heap_limit_max\":\"9223372036854775808\"",
++                "\"heap_limit_max\":\"18446744073709551615\"",
++            );
++        let o = support::rehash(&text);
++        let path = dir.join(format!("r21-cli-sparse-{len}.bisa"));
++        std::fs::write(&path, o.text).unwrap();
++        let out = guarded(
++            Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .arg("run-cc")
++                .arg(&path)
++                .arg("f"),
++        );
++        assert!(out.status.success(), "{out:?}");
++        assert!(
++            out.stdout.len() < 8192,
++            "sparse memory trace must stay sparse"
++        );
++    }
++    eprintln!("R21 CLI region cells / sparse digest+trace+output: 2 paths / 14 cases");
++    let inc = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/inc8.bisa");
++    for count in [0, 1, 8, (1u64 << 63) - 1, 1 << 63, u64::MAX] {
++        // The replay odometer stays lazy. A downstream frame reservation stops
++        // the first element; this does not claim completion of a huge replay.
++        let out = guarded(
++            Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .arg("step-check")
++                .arg(&inc)
++                .args([
++                    "inc8",
++                    "--samples",
++                    &count.to_string(),
++                    "--budget",
++                    "18446744073709551615",
++                ]),
++        );
++        assert_eq!(out.status.code(), Some(1), "{out:?}");
++        assert!(out.stdout.is_empty());
++        let e = String::from_utf8_lossy(&out.stderr);
++        assert!(e.contains('§'), "{e}");
++        assert_eq!(e.contains("host limit"), count != 0, "{e}");
++    }
++    for count in [1, 8] {
++        let out = guarded(
++            Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .arg("step-check")
++                .arg(&inc)
++                .args(["inc8", "--samples", &count.to_string(), "--budget", "3"]),
++        );
++        assert!(out.status.success(), "{out:?}");
++    }
++    eprintln!("R21 CLI lazy sample count: 1 path / 6 cases; 2 completed small controls");
++}
++
++#[test]
++fn r21_independent_witness_pins() {
++    for (text, hash, envelope) in [
++        (
++            CC,
++            "23802c541101025a57a13ffb5f00ca72a7ad5ff95f78e9a4fd565c59f566752d",
++            include_str!("fixtures/r21/cc-length.envelope"),
++        ),
++        (
++            R,
++            "2751a25e6e906ea512bc075da07cda7463161576c56cebf06455ba2d9dfab704",
++            include_str!("fixtures/r21/r-length.envelope"),
++        ),
++    ] {
++        let o = Object::parse(text).unwrap();
++        o.check_hashes().unwrap();
++        let id = o.identity().unwrap();
++        assert_eq!(bennett_isa_ref::sha256_hex(envelope.as_bytes()), hash);
++        assert_eq!(id.envelopes["f"], envelope);
++        assert_eq!(id.interface_hashes["f"], hash);
++        assert_eq!(id.closure_hashes["f"].as_deref(), Some(hash));
++    }
++    let id = Object::parse(CLAIM).unwrap().identity().unwrap();
++    assert_eq!(
++        id.interface_hashes["a"],
++        "f30725fa31cc35b68090b82cfd046681c4342821591cd2d6dd5300ea522499af"
++    );
++    assert_eq!(
++        id.object_hash,
++        "5fa6df63e007ad2bca8ab69c5a0c82e7671c585982048cf99919e59cc48a1e43"
++    );
++    assert_eq!(
++        bennett_isa_ref::sha256_hex(include_bytes!(
++            "fixtures/r21/sol-claim-region-all-sampled.bisa"
++        )),
++        "dfca89aa2073705841586a1c4a76e27be92618417476e9cb3b9016c0e09ab3c4"
++    );
++}
++#[test]
++fn r21_b01_claims_public_consumers() {
++    family("claims");
++}
++#[test]
++fn r21_b02_hostcall_public_consumer() {
++    family("hostcall");
++}
++#[test]
++fn r21_b02_console_public_consumer() {
++    family("console");
++}
++#[test]
++fn r21_entropy_transfer_length_fault_separation() {
++    family("entropy");
++}
++#[test]
++fn r21_quantum_cardinality_and_lengths() {
++    family("quantum");
++}
++
++#[test]
++fn r21_b02_cli_pinned_transfers() {
++    for file in ["cc-length.bisa", "r-length.bisa"] {
++        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
++            .join("tests/fixtures/r21")
++            .join(file);
++        let out = guarded(
++            Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .arg("run-cc")
++                .arg(path)
++                .arg("f"),
++        );
++        assert_eq!(out.status.code(), Some(1), "{out:?}");
++        assert!(out.stdout.is_empty());
++        let e = String::from_utf8_lossy(&out.stderr);
++        assert!(
++            e.contains("host limit")
++                && e.contains(if file.starts_with("cc") {
++                    "§10"
++                } else {
++                    "§7.3"
++                }),
++            "{e}"
++        );
++    }
++}
++````
++
+ ## `tests/r2_validation.rs` (84 lines)
+ 
+@@ -46017,4 +47191,24 @@
+ ````
+ 
++## `tests/support/r21_pins.py` (15 lines)
++
++````python
++#!/usr/bin/env python3
++"""Round-21 reviewer-file pins, independent of interpreter parsing/identity code."""
++from pathlib import Path
++import hashlib
++
++ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "r21"
++PINS = {'cc-length.bisa': '80d62127c4a29f3563e85c518fb86afc12854eaae048dcddeedd4afb3194abad', 'domain-all-A0.bisa': 'dd24d74d29c1db496b4063f9066e83a547945bfb90b6377d7bf41d916e9bb375', 'domain-all-A1.bisa': '717934a41afd1e58a48bb675cd0fa89938d49b718671a5cb98f7c0ddcfbef425', 'domain-all-A64.bisa': '13e471aa26b3b2a2d7f60e7e458b57730d970381df17e9cd67647b414a93b365', 'domain-all.bisa': '5162fbe154f7d5978a21dd48eb3b880879ace59f04cd97b97af9d0e9c67f0ca9', 'r-length.bisa': 'a6c5dd7f71d0d76d7359396d4c4a7e8935977081e0370a597b8e92fde288ed6a', 'sol-claim-region-all-sampled-small.bisa': '0d6659a6fe44e8b2c680d49af705557d8b4db433a26418615b5ec5c915731186', 'sol-claim-region-all-sampled.bisa': 'dfca89aa2073705841586a1c4a76e27be92618417476e9cb3b9016c0e09ab3c4', 'sol-claim-region-all-small.bisa': 'a9b7c6d75df9d58ed95844ef1a9eb9d01f46b85b1653dc587c9cccf9c848dd15'}
++for name, expected in PINS.items():
++    assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, name
++for name, expected in [
++    ("cc-length", "23802c541101025a57a13ffb5f00ca72a7ad5ff95f78e9a4fd565c59f566752d"),
++    ("r-length", "2751a25e6e906ea512bc075da07cda7463161576c56cebf06455ba2d9dfab704"),
++]:
++    assert hashlib.sha256((ROOT / (name + ".envelope")).read_bytes()).hexdigest() == expected, name
++print(f"R21 independent pins: {len(PINS)} complete objects / 2 literal envelopes")
++````
++
+ ## `tests/support/r9_pins.py` (47 lines)
+ 

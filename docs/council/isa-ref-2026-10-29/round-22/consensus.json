@@ -1,0 +1,100 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R22-B01",
+    "section": "S0; ISA \u00a7\u00a75.3, 12.1\u201312.2; src/claims.rs::Object::{domain,verify_claim_guarded}, especially lines 251\u2013336 and 642\u2013648",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a712.1 requires an exhaustive expected-program claim to re-execute its domain and compare full tuples. \u00a712.2 says \"A proof label requires the domain to equal D; otherwise the claim is evidence\". For an action, the declared mutable interface ranges over its basis values; a component in domain.borrowed is a different system from a component in domain.bundles. Enumerating an unrelated borrowed bit cannot establish coverage of an omitted mutable input.",
+      "by": "clause:ISA-12.1; clause:ISA-12.2; clause:ISA-5.3"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Complete independently pinned witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.bisa, SHA-256 c9cf4ac51d800f9a918deec3a14790691d0b9c2d55b395949add620425707cca. @a has mut=(t:wire,u:wire) and body b=qborrow any 1; cx t u; qreturn b. @identity has the same signature, borrows/returns b and applies x u; x u. The exhaustive claim compares @a to @identity with bundles=[{name:u,width:1,lo:0,hi:1}], borrowed=[{name:t,width:1,lo:0,hi:1}], regions=[]. No proof label or schedule is needed. Both parse/check_hashes and both public verifiers succeed, with verify_claim=Ok(Proof) and verify_certificate reporting Proof. Subject interface=closure 73c6ceb0ef826cd5b12afb9197c30c9098689837f28209cce6147cd45da80165; identity interface=closure 5b11805db58657cce47b895f1bf3e348971d0576baab4adfdb2a94aa6594c46e. Literal envelopes and the probe source are alongside the object.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/report.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.log"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Object::domain inserts names from both bundles and borrowed into the same listed BTreeSet. covers_d then checks only whether every required interface name occurs in that set. Thus the borrowed spelling t satisfies the missing interface t obligation. execute_element_audited correctly distinguishes Component::Borrowed from Component::Bundle, so the missing interface t is zero-filled on every replay. The four tested rows vary u and the borrowed bit only. CNOT and identity agree on those rows because interface t is always zero.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:251; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:336; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/claims.rs:358; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "On the omitted input t=1,u=0 with borrowed b=0, \u00a74.4 gives @a output (1,1,0), while @identity gives (1,0,0). Independent run-action executions reproduce mut=[1,1] versus [1,0]. Renaming only domain.borrowed[0].name from t to b changes the verdict to Evidence { elements: 4 } without changing the systems enumerated. Adding the actual t bundle yields a \u00a712.1 expected-program mismatch at element 4. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/reproduce-false-proof.py; all children run under 192 MiB/core=0 and exit normally.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/reproduce-false-proof.py; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-renamed-control.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-full-control.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-sol/false-cnot-proof.log; clause:ISA-4.4; step:<1>2; step:<1>3"
+     },
+     {
+      "n": "<1>5",
+      "claim": "This is a contract S0: the implemented exhaustive checker upgrades a partial-domain comparison to a false full-domain proof. It is independent of the resolved R21 allocation repairs and predates adf5dff, so it is newly exposed, not a regression. It fits no stated INV-1..INV-5 theorem: none establishes this checker's domain-coverage classifier; INV-3:1.5.2 assumes a T3 claim over the full domain rather than proving that premise. The witness establishes no new core execution defect and needs no specification assumption or amendment.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "fix": "Change src/claims.rs::Object::domain, replacing the role-insensitive listed-name coverage test with coverage over resolved component identities: interface bundles must be covered by Component::Bundle(group,slot), and regions by their own cell/region coverage; Component::Borrowed must never discharge either obligation. Keep borrowed identifiers legal without inventing a cross-role name ban. The determining \u00a712.2 sentence is \"A proof label requires the domain to equal D; otherwise the claim is evidence\", together with \u00a712.1 \"compare full tuples\". For false-cnot-proof.bisa, parse/check_hashes should remain successful, and both verify_claim and verify_certificate must return Evidence { elements: 4 }, exactly like the renamed control; the full-domain control must still fail \u00a712.1 at element 4. Add those three complete fixtures with independent pins to tests/r1_certificates.rs and a role-collision family covering omitted action mut/in slots, oracle ins/tgt/fault slots and regions. Assert that changing an irrelevant borrowed identifier cannot change coverage or Proof/Evidence status. Preserve complete-domain Proof controls, sampled Evidence controls, R21 resource errors and reversals, then rerun focused and full gates. No spec edit is required."
+   }
+  ],
+  "codex": [
+   {
+    "id": "CODEX-R22-B01",
+    "section": "ISA \u00a7\u00a77.1, 7.4, 10; src/classical.rs::ClassicalMachine::step, especially pending assignment at 1473 and pending.clone() at 1567",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a77.1 memory is \"Byte-addressed, little-endian, sparse\" and alloc succeeds when its bump and table checks pass. \u00a710 requires an in-range hostcall to copy its bytes into the request, and says \"the frame records the request bytes, the overwritten bytes and the reply bytes\"; \u00a77.4 retains that frame. A 67108864-byte allocation at address 1 in the R21 64-bit layout is legal. Failure to store the required request/history is a reported host-resource limitation, not an ISA range fault or process abort, as in the accepted R21 repair requirement.",
+      "by": "clause:ISA-7.1; clause:ISA-7.4; clause:ISA-10"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The independent complete object changes only the R21 CC constant to n = const.i64 67108864, then p = alloc n; r = hostcall org.bennett.test p n; ret r. Its literal envelope has interface=closure 655e72211b66a9e4e3f8dcaff74c5203da6ec1d834fc43570833f0ab1387a577; object/file SHA-256 is df7f95dd72496eb446c39319d5ef1e6287ebed8fdd6b9a7f92eba31ba1431071. Stock check and hash exit 0. Under RLIMIT_AS=134217728 and RLIMIT_CORE=0, both the public-library probe linked against the built crate and stock run-cc exit -6/SIGABRT with \"memory allocation of 67108864 bytes failed\". The library prints successful parse/check_hashes and completion of the two prefix instructions before aborting; CLI stdout is empty. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/reproduce.py.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/hostcall-64MiB.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/hostcall-64MiB.envelope; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/host-probe.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/reproduction.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/reproduce.py"
+     },
+     {
+      "n": "<1>3",
+      "claim": "The initial fallible transfer_bytes reservation succeeds. step then sets state.pending to the request. Outside the execute closure and its undo-on-Err path, history construction calls self.state.pending.clone(), whose derived HostRequest clone infallibly clones the full Vec<u8>. GDB identifies Vec<u8>::clone -> HostRequest::clone -> Option<HostRequest>::clone -> ClassicalMachine::step at classical.rs:1567. The second 64-MiB allocation exceeds the process limit and invokes the allocator abort handler. There is no recoverable Result and no rollback. This is the obligatory retention stage of the same text-driven transfer, not an arbitrarily pre-filled resident heap.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/hostcall-backtrace.log; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1567; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The original 2^63 hostcall and console inputs now return cited host-limit Results, leave the full snapshot unchanged, publish no request/tape/output and reverse to entry. Their 0/1/8 controls succeed. At 64 MiB the console control also rejects cleanly at its cumulative console reservation and restores the prefix. R21 large transfer tests always reject before pending construction, explaining why all 436 tests and five sweeps pass despite the unguarded history copy.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/moderate-transfer-results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/tests/r21_resources.rs; step:<1>3"
+     },
+     {
+      "n": "<1>5",
+      "claim": "S0 core resource-reporting failure: the hostcall repair is incomplete once initial materialization succeeds but required history retention cannot. This prevents both core and whole-crate acceptance. The clone predates this diff, so this is a newly exposed continuation of CODEX-R21-B02, not a regression of a retained pin. It fits no stated theorem of INV-1..INV-5: those proofs do not establish host allocation/error handling for CC request retention. ISA T4 assumes a valid retained trace and does not justify an infallible allocation while constructing one.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "fix": "In src/classical.rs::ClassicalMachine::step, replace the unguarded retained HostRequest clone at line 1567 with a fallible preparation performed before assigning pending or committing history, reserving the payload and history entry before mutation. Alternatively use shared immutable payload ownership so retention does not duplicate len bytes; audit subsequent request/reply/outcome/snapshot/transcript copies so the same virtual transfer does not immediately hit another infallible materialization. The determining \u00a710 words are \"those bytes are copied into the request\" and \"the frame records the request bytes, the overwritten bytes and the reply bytes\", together with \u00a77.1 sparse allocation. With the current two-buffer representation the supplied 64-MiB object under 128-MiB RLIMIT_AS must return Err containing \u00a710 and host limit, CLI exit 1 without JSON, with no pending request or history/output delta; reverse must restore the entry snapshot. If storage is shared and the transfer fits, normal successful request creation is valid instead. Add a fresh-process regression at a limit/length that permits the first buffer but denies a required subsequent buffer; assert normal reported resource rejection, unchanged snapshot and prefix reversal. Preserve 0/1/8 successes and the original 2^63 errors. Extend the transfer inventory to retention/observer stages, then rerun focused tests, the full suite and five sweeps."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.5,
+  "C2": 5.0,
+  "C3": 4.5,
+  "C4": 4.5,
+  "C5": 4.5,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

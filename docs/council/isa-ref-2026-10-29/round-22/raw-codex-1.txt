@@ -1,0 +1,119 @@
+exit 0 in 21s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "object.rs, schema.rs, validation.rs and metadata_schema.rs cover the ISA 0.8 grammar, opcode arities and recursive metadata admission. The retained R11 register-kind, R13 schema, R14 typed-table/Y and R20 extreme-descriptor tests pass. No new parser divergence found in this review.",
+      "change": "Add a checked clause-to-validator-to-negative-fixture index for §§3.3, 4.8, 9.1 and 16.2 beside tests/parser.rs and metadata_schema/tests.rs; require each grammar alternative to name an admitted fixture and a rejected malformed counterpart."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "identity.rs/linking.rs preserve the published §16.3 hashes and structural layout-leaf selection. R9–R18 identity pins and R20/R21 pins pass. The independent 17-line hostcall envelope, changing only the constant to 67108864, hashes to 655e72211b66a9e4e3f8dcaff74c5203da6ec1d834fc43570833f0ab1387a577, exactly matching check/hash. The known dotted-path noninjectivity is a documented ISA limitation, not a new interpreter deviation.",
+      "change": "Keep the byte-exact 0.8 envelope unchanged. In tests/identity.rs, extend independent multi-member SCC fixtures to combine dotted layout owners with unresolved imports, asserting literal envelope bytes as well as interface and closure hashes."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "oracle.rs dispatch covers §4.2 and faults/budget checks. Independent hand results agree: inc8(255), B=2 gives (0,1,2), B=3 gives (0,0,3); sum_db(n=1,db=1..16) needs 24 rows and 32 stack cells, with stack 15 failing at row 3 and stack 16/31 failing at row 16. Newly guarded region_bytes independently reports §4.2/§7.1 host limits at A=27/61/63 and a representation limit at A=64.",
+      "change": "Extend tests/oracle.rs with a table linking every §4.2 inherent check to its first failing row and the immediately sufficient budget, including nested calls and nonzero mapped-region contents; compare with literal hand-derived payload/code/step triples."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "machine.rs forward_step/inverse_step and inverse_call/inverse_ret preserve the printed exchange ordering, restored addressing and capture/delivery rules. Independent sum_db probes invert every individual step and the whole prefix at five tight stack/budget combinations. Full normal tests and the 256-input recursive-prefix release sweep pass.",
+      "change": "In tests/step_machine.rs add literal expected intermediate frame fields for recursive C1–C5 and R1–R5 boundaries, including an overlapping caller/callee destination, so a shared forward/inverse mistake cannot be hidden by snapshot round trips alone."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "The original 2^63 hostcall and console witnesses now reject atomically with §10 and §7.3 host-limit Results and successful prefix reversal. Lengths 0/1/8 succeed. However CODEX-R22-B01 proves that the retained host-request copy still aborts at a legal 64-MiB transfer under 128-MiB RLIMIT_AS. Independent nested clock/call/ret/uncall tracing agrees with §7.4 and restores entry state.",
+      "change": "Fix ClassicalMachine::step request retention at classical.rs:1567: prepare all length-dependent retained payload storage fallibly before committing pending/history state, or share immutable payload storage without an infallible full copy. Add the supplied 64-MiB subprocess regression and verify unchanged prefix plus exact reversal on a resource Err."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "Q gate/borrow/discipline regressions remain green, including R9 opaque pairs/loop bindings, R10 control sets and R11 discrete versus binary64 identity. Own sparse states with the highest wire set give the correct 4/32-entry dense controls and cited §4.3 errors at 26/61/63 wires without changing the state. Both exhaustive borrow sweeps and the 200,000-program discipline sweep pass. Existing INV-3 other-value proof gaps are not newly claimed solved.",
+      "change": "Add a compact independently derived interference family in tests/quantum_control.rs combining inherited controls, cross-arm local lifetimes and nonzero region images; assert exact amplitudes and clean release for the forward/adjoint pair."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Independently rerun: 436 passed, 0 failed, 5 ignored; all five ignored release sweeps pass. The R21 24-path/186-case family passes but its transfer lengths jump from 8 to 2^63-1, so every large hostcall fails at the first reservation and never tests retained request cloning. The new 64-MiB witness demonstrates that blind spot.",
+      "change": "Extend tests/r21_resources.rs with memory-relative sizes that permit initial transfer materialization but fail a later required copy, plus explicit assertions for history retention. Keep the mathematical exponent boundaries; distinguish first-reservation rejection from later-copy rejection in the inventory and count both as separate consumer stages."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The 33 SPEC-QUESTIONS readings were compared with the specification and INV-1..5; no additional contradictory reading was identified. Staged target/launch/schedule/interval deliverables remain disclosed and were not treated as completed. Resource failures have cited text, but the claim that hostcall transfers reject before publication is incomplete until CODEX-R22-B01 is fixed.",
+      "change": "After repairing the retained copy, update README.md and PROGRESS.md to name initial transfer, pending request, retained history and observer-copy coverage separately. Follow up the deferred Error(pub String) migration with stable resource/range/ISA-fault categories while preserving Display text and contextual rule citations."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "CODEX-R22-B01",
+      "section": "ISA §§7.1, 7.4, 10; src/classical.rs::ClassicalMachine::step, especially pending assignment at 1473 and pending.clone() at 1567",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "§7.1 memory is \"Byte-addressed, little-endian, sparse\" and alloc succeeds when its bump and table checks pass. §10 requires an in-range hostcall to copy its bytes into the request, and says \"the frame records the request bytes, the overwritten bytes and the reply bytes\"; §7.4 retains that frame. A 67108864-byte allocation at address 1 in the R21 64-bit layout is legal. Failure to store the required request/history is a reported host-resource limitation, not an ISA range fault or process abort, as in the accepted R21 repair requirement.",
+          "by": "clause:ISA-7.1; clause:ISA-7.4; clause:ISA-10"
+        },
+        {
+          "n": "<1>2",
+          "claim": "The independent complete object changes only the R21 CC constant to n = const.i64 67108864, then p = alloc n; r = hostcall org.bennett.test p n; ret r. Its literal envelope has interface=closure 655e72211b66a9e4e3f8dcaff74c5203da6ec1d834fc43570833f0ab1387a577; object/file SHA-256 is df7f95dd72496eb446c39319d5ef1e6287ebed8fdd6b9a7f92eba31ba1431071. Stock check and hash exit 0. Under RLIMIT_AS=134217728 and RLIMIT_CORE=0, both the public-library probe linked against the built crate and stock run-cc exit -6/SIGABRT with \"memory allocation of 67108864 bytes failed\". The library prints successful parse/check_hashes and completion of the two prefix instructions before aborting; CLI stdout is empty. Reproduce with the mandatory headless prefix followed by python3 /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/reproduce.py.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/hostcall-64MiB.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/hostcall-64MiB.envelope; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/host-probe.rs; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/reproduction.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/reproduce.py"
+        },
+        {
+          "n": "<1>3",
+          "claim": "The initial fallible transfer_bytes reservation succeeds. step then sets state.pending to the request. Outside the execute closure and its undo-on-Err path, history construction calls self.state.pending.clone(), whose derived HostRequest clone infallibly clones the full Vec<u8>. GDB identifies Vec<u8>::clone -> HostRequest::clone -> Option<HostRequest>::clone -> ClassicalMachine::step at classical.rs:1567. The second 64-MiB allocation exceeds the process limit and invokes the allocator abort handler. There is no recoverable Result and no rollback. This is the obligatory retention stage of the same text-driven transfer, not an arbitrarily pre-filled resident heap.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/hostcall-backtrace.log; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/classical.rs:1567; step:<1>2"
+        },
+        {
+          "n": "<1>4",
+          "claim": "The original 2^63 hostcall and console inputs now return cited host-limit Results, leave the full snapshot unchanged, publish no request/tape/output and reverse to entry. Their 0/1/8 controls succeed. At 64 MiB the console control also rejects cleanly at its cumulative console reservation and restores the prefix. R21 large transfer tests always reject before pending construction, explaining why all 436 tests and five sweeps pass despite the unguarded history copy.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/moderate-transfer-results.json; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/tests/r21_resources.rs; step:<1>3"
+        },
+        {
+          "n": "<1>5",
+          "claim": "S0 core resource-reporting failure: the hostcall repair is incomplete once initial materialization succeeds but required history retention cannot. This prevents both core and whole-crate acceptance. The clone predates this diff, so this is a newly exposed continuation of CODEX-R21-B02, not a regression of a retained pin. It fits no stated theorem of INV-1..INV-5: those proofs do not establish host allocation/error handling for CC request retention. ISA T4 assumes a valid retained trace and does not justify an infallible allocation while constructing one.",
+          "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+        }
+      ],
+      "fix": "In src/classical.rs::ClassicalMachine::step, replace the unguarded retained HostRequest clone at line 1567 with a fallible preparation performed before assigning pending or committing history, reserving the payload and history entry before mutation. Alternatively use shared immutable payload ownership so retention does not duplicate len bytes; audit subsequent request/reply/outcome/snapshot/transcript copies so the same virtual transfer does not immediately hit another infallible materialization. The determining §10 words are \"those bytes are copied into the request\" and \"the frame records the request bytes, the overwritten bytes and the reply bytes\", together with §7.1 sparse allocation. With the current two-buffer representation the supplied 64-MiB object under 128-MiB RLIMIT_AS must return Err containing §10 and host limit, CLI exit 1 without JSON, with no pending request or history/output delta; reverse must restore the entry snapshot. If storage is shared and the transfer fits, normal successful request creation is valid instead. Add a fresh-process regression at a limit/length that permits the first buffer but denies a required subsequent buffer; assert normal reported resource rejection, unchanged snapshot and prefix reversal. Preserve 0/1/8 successes and the original 2^63 errors. Extend the transfer inventory to retention/observer stages, then rerun focused tests, the full suite and five sweeps."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-R21-B01",
+      "status": "resolved",
+      "note": "Same site as CODEX-R21-B01: all-cells cumulative reservation precedes expansion; retained large/small sol fixtures pass the full R21 public-consumer family."
+    },
+    {
+      "id": "CODEX-R21-B01",
+      "status": "resolved",
+      "note": "Own 128-MiB rerun: A=63 returns §12.2 host limit through verify_claim and verify_certificate without panic/abort; A=0/1 return Evidence(1), A=64 remains a representation-limit Err; hashes unchanged."
+    },
+    {
+      "id": "CODEX-R21-B02",
+      "status": "partially",
+      "note": "Both original 2^63 witnesses and all requested small/atomicity/reversal controls are fixed. A subsequent required host-request history copy still aborts at 64 MiB under the same memory limit; see CODEX-R22-B01."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1: In lib.rs and classical.rs introduce an explicit host-resource diagnostic category in a coordinated API migration, preserving existing Display strings and section context; tests should distinguish resource errors from FAULT_UB_MEMFAULT/FAULT_UB_TRAP without substring-based classification.",
+    "S1: In tests/r21_resources.rs add allocation-stage coverage beyond exponent extremes: a feasible first reservation followed by denied retention, and a successful moderate-size transfer. Record which stage was reached so an early host error cannot stand in for exercising every later length-dependent copy."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Repair CODEX-R22-B01 by making all required host-request retention preparation fallible before publication, or eliminating full payload duplication with shared ownership. 2. Retain the independently pinned 64-MiB witness and add a memory-limited regression that reaches later-copy failure, checks a cited resource Result and unchanged prefix, and reverses to entry; preserve original witnesses and small controls. 3. Update the consumer-stage inventory and rerun the focused resource family, full tests and five sweeps. No spec amendment is needed for this blocker. To raise the lowest scores afterward, add literal intermediate frame expectations and a clause/function/test coverage index; the disclosed staged deliverables are not being penalized as new omissions.",
+  "summary": "Reviewed snapshot 9851a9c05f6fd026b4d74a93915f9a9091ab2356 against adf5dff, the R22 rubric, R21 findings/response/inventory, ISA 0.8 and INV-1..5. Programmatically compared all 179 extracted packet files with the checkout: no content mismatch. One S0 core blocker remains, no newly raised spec gap. R21 all-cells is resolved; the two original transfer-length reproductions are fixed, but B02 remains partially resolved because of request-history cloning. Independent 128-MiB AS/zero-core probes cover all three original witnesses, successful A=0/1 and length 0/1/8 controls, full rejected-transfer snapshot equality, absence of pending request/transcript/console/tape and exact prefix reversal. Own direct Memory object has base 32 and resident byte 165 at offset 3: A=2/5 return 4/32 correct bytes; A=27/61/63/64 return cited host limits. Own sparse QuantumStates with the highest allocated wire set produce correct dense controls at 2/5 wires and reject 26/61/63 without state changes. Private-consumer probes compile byte-identical source copies under the review scratch directory; the blocking witness is separately confirmed against the original built public library and stock CLI. Rubric method 1: derived inc8(255) wrapping to zero in three rows, its B=2 budget fault, sum_db(n=1) success at row 24/stack 32 and first stack failures at rows 3/16, then compared executions; all agree. Independently formed and SHA-256 hashed the LF-terminated CC envelope, retaining all sorted layout and service lines; check/hash match the literal pin. Method 2: traced the §3.6 PC exchanges, successor clearing, C5^-1 through C1^-1 and R5^-1 through R1^-1, including callee-fp restoration before delivery; independent per-step and full-prefix snapshot assertions pass. Traced classical nested through 11 rows: clock rises at row 5, inner uncall clears it/tape at row 7, outer uncall skips already reversed frames; full reversal restores entry. Method 3: compared all 33 recorded readings to the relevant clauses and proof hypotheses/refutations; known qif/other-value/dotted-path/nested-token gaps remain documented rather than new blockers. Method 4: source/test keyword audit retained in /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/keyword-audit.txt; source hits are test assertions, guarded internal invariants, parser helpers, explicit errors or diagnostic approximation routines; no new todo!/unimplemented! semantic stub found. This audit does not catch derived Vec cloning, the blocker established independently above. Method 5: compared §4 opcode/row families, §5.4 fault codes, §3.6 and §7.4 frame kinds, §§9/11/12/13 schema dispatch and the eight documented CLI commands with schema.rs, object/validation, oracle/machine, classical/action, metadata_schema/certificate and main; no additional dispatch omission found in implemented scope. Deliverables 8–11 remain explicitly staged/Unverified. Independent cargo results: 436 passed/0 failed/5 ignored, then all five ignored release sweeps passed. All retained R9–R18 and R20–R21 test groups pass (R19 has no separately named group); no prior pin regressed. The new clone witness is pre-existing uncovered behavior. Evidence: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r22-codex/results.json, hand.log, reproduction.json and hostcall-backtrace.log; full logs are ../r22-codex-tests.log and ../r22-codex-sweeps.log. No tracked files changed; no commit or push."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r22-codex.json
