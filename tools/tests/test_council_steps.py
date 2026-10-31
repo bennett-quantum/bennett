@@ -149,7 +149,7 @@ class AggregateRenderTest(unittest.TestCase):
         self.assertIn("**[codex] B2**", gaps)
         self.assertEqual([b["id"] for b in cons["blocking"]["codex"]], ["B1"])
         self.assertEqual([b["id"] for b in cons["spec_gaps"]["codex"]], ["B2"])
-        self.assertIn("core 1 / contract 0 (S0 1)", report)
+        self.assertIn("core 1 / contract 0 (blocking 1)", report)
 
     def test_only_spec_gaps_reaches_consensus(self):
         gap_steps = steps()
