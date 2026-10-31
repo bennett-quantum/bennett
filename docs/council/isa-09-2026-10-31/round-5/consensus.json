@@ -1,0 +1,26 @@
+{
+ "agree": true,
+ "core_agree": true,
+ "verdicts": {
+  "muse": "accept"
+ },
+ "core_verdicts": {
+  "muse": "accept"
+ },
+ "blocking": {
+  "muse": []
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 4.0,
+  "C3": 4.0,
+  "C4": 4.0,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 4.0
+ },
+ "members": [
+  "muse"
+ ]
+}

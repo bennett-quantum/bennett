@@ -1,0 +1,65 @@
+{
+ "blocking": [],
+ "criteria": [
+  {
+   "change": "In \u00a73.3, add one consolidated register-state diagram generated from the handle-transition table, including viewed, consumed, alias and reversal transitions.",
+   "evidence": "\u00a73.1 fixes tiers and the no-wire-dependent-control invariant; \u00a73.2 lists all state components; \u00a73.3 fixes linear SSA, wire distinctness, register ledger states and width checks; \u00a73.6-\u00a73.7 give a complete forward and inverse step relation.",
+   "id": "C1",
+   "score": 4
+  },
+  {
+   "change": "In \u00a74.8, add the result type and width rule for every dotted lift suffix in the opcode table itself, rather than requiring the reader to combine \u00a73.3, \u00a74.2 and \u00a74.8.",
+   "evidence": "\u00a74.1-\u00a74.9 cover classical, lifted, allocation, gate, memory, structured and fault instructions; \u00a74.2 gives class, reads, writes, flags and successors; \u00a74.8 closes tiers, arities and result placement.",
+   "id": "C2",
+   "score": 4
+  },
+  {
+   "change": "In \u00a76.1, add a conservative syntactic sufficient condition for the outstanding-dependence factorisation test, while retaining the exact operator factorisation as the semantic definition.",
+   "evidence": "\u00a73.6 gives dispatch, execute, successor, commit and inverse steps; \u00a75.2 defines F_B, commit and prefix reversal; \u00a73.7 gives C1-C5 and R1-R5 with inverses; \u00a75.6, \u00a76.1, \u00a76.2 and \u00a76.4 define borrow frames, provenance, cleanup windows, matched pairs and unitary cleanup realisations.",
+   "id": "C3",
+   "score": 4
+  },
+  {
+   "change": "In \u00a78.3, publish one additional worked target containing a scheme, a table-indexed epsilon expression and a topology together, with its matched leaves and aggregate resource vector.",
+   "evidence": "\u00a78.1 fixes exact-rational expressions, EPS-DECADE and variable contexts; \u00a78.2 fixes aggregation; \u00a78.3 fixes first-match gates, schemes, capabilities, topology and placement; \u00a717 items 9-12 and 15 give defaults.",
+   "id": "C4",
+   "score": 4
+  },
+  {
+   "change": "In \u00a712.3, replace the abbreviated certificate outline with one complete minimal certificate JSON instance containing bindings.invocation, one region record, one claim and composition.",
+   "evidence": "\u00a79 fixes object sections, signatures, structural layout-leaf identity, hashing, linking and frame records; \u00a710 and \u00a710.1 fix launch and resolved estimates; \u00a711 fixes schedule matching and validation stages; \u00a712-\u00a713 fix claims, domains, composition and coverage.",
+   "id": "C5",
+   "score": 4
+  },
+  {
+   "change": "In \u00a714.3, add to T2 and T5 the same explicit domain and realisation hypotheses now stated in \u00a75.2 and \u00a76.2, so each theorem can be quoted without reconstructing its premises from earlier sections.",
+   "evidence": "\u00a714.1 defines F_B operationally; \u00a714.2 defines allocation order, borrowed systems and measurement; \u00a714.3 states T1-T6 with hypotheses; \u00a715 derives suites A-H and names boundary witnesses for faults, stack exhaustion, SDP pivots and nested budgets.",
+   "id": "C6",
+   "score": 4
+  },
+  {
+   "change": "In \u00a70, add a north-star traceability index mapping each \u00a78 demo rung to the ISA sections and conformance suites that carry it.",
+   "evidence": "The draft preserves three tiers, total lifted oracles with fault registers, quantum actions, virtual allocation classes, target descriptions, linking, launch, scheduling and proof/evidence certificates; deferred routing and pebbling retain explicit-swap and full-history constructions.",
+   "id": "C7",
+   "score": 5
+  },
+  {
+   "change": "Before publication, replace every \u00a716.3 hash placeholder with its computed 64-hex value and publish the \u00a711.1 ref catalog plus the pending controlled-action target, schedule and certificate fixture named in \u00a717 item 7.",
+   "evidence": "A VM author can implement \u00a73-\u00a77 and a specialiser author can implement \u00a75, \u00a78 and \u00a711 from the text; \u00a717 gives a default for every deferred implementation decision. Remaining friction is the unpublished ref serialization, placeholder example hashes and the size of the \u00a711.1 binding language.",
+   "id": "C8",
+   "score": 4
+  }
+ ],
+ "path_to_accept": "Already accept. To raise the lowest criteria from 4 to 5: (1) in \u00a716.3 replace every '<to be computed by the 0.9 precheck: example k, name>' placeholder with the computed 64-hex interface hash and verify each displayed envelope against \u00a79.2; (2) in \u00a711.1 publish ref/ref-0.9.json with the stated 219 recipes and envelope hash 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197; (3) add the pending worked controlled-action target, schedule and certificate fixture referenced by \u00a717 item 7.",
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a716.3 (S1, contract): the normative examples still contain distinct hash placeholders. Fix: in \u00a716.3, state 'Every interface_hash in this section is the 64-hex value computed by \u00a79.2 from the displayed envelope' and replace, for example, example 1's placeholder for inc8 with SHA-256 of the six-line envelope printed immediately below it. This does not change semantics because \u00a79.2 already determines every value.",
+  "\u00a75.5 (S1, core): the sentence 'no intervening row writes those locations, suite F, nor those cells, below' can be read as making an intervening lift.store ill-formed, while the later paragraph says it is not ill-formed. Fix: in \u00a75.5 replace that parenthetical with 'no intervening row writes those ins locations (suite F); intervening writes to mem cells are permitted but mean the uncall is not guaranteed to clear fr', retaining the corrected example that lift.oracle_uncall remains the identical permutation and prefix reversal still restores the caller state.",
+  "\u00a76.1 (S1, core): outstanding dependence is defined exactly by nonexistence of V with M = I_G tensor V, but no decidable sufficient check is named. Fix: in \u00a76.1 add 'A producer MAY establish non-dependence by the dependency-set test: if no live value, interface wire, region cell or uncancelled diagonal phase has a transitive read path from g in the intervening sequence, then M factorises as I_G tensor V; failure of this test does not by itself prove dependence.' The H d0; CCX d0 p d1; CX d1 t; CCX d0 p d1; H d0 witness remains rejected because t has such a path.",
+  "\u00a711.1 and \u00a717 item 7 (S1, contract): the complete ref catalog and controlled-action fixture are named but not reproduced in the specification. Fix: in \u00a711.1 state 'The catalog bound as ref version 0.9 is the file ref/ref-0.9.json whose four-line envelope hashes to 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197' and publish that file and one ctl action fixture with its target leaf events, schedule entries, frame descriptor and certificate. Until then \u00a711 correctly requires E_SCHEDULE_INFEASIBLE from consumers lacking the bound library, so no executor computes a different function."
+ ],
+ "summary": "Accept. The round-5 diff from round 4 changes only the status header and records maintainer ratification of K64 and K65; it introduces no semantic change and no regression. Previous round had no blocking issues, so there are no previous blockers to close. Re-reading the full snapshot against the north star and the 0.8 ISA found no S0 core or contract issue: the step machine and its inverse, F_B and commit, lproc binding instances, coherent control, borrow frames, cleanup discipline, identity envelopes, schedule selection, claim replay and host-limit handling are each given one normative reading, and deferred items keep their capabilities through stated defaults or explicit constructions.",
+ "verdict": "accept",
+ "verdict_core": "accept"
+}
