@@ -1,0 +1,61 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "codex": "revise"
+ },
+ "blocking": {
+  "codex": [
+   {
+    "id": "R18-B01",
+    "section": "\u00a711 Matching (ISA-11-P4); src/metadata/schedule_domains.rs::Object::chain_domain and has_uncovered_tie; src/metadata.rs::Object::validate_schedule_details",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a711 says step/phase are \"per invocation level, so a nested oracle's step is selected by a path element for the nested call\"; among matches the unique maximum applies, and two maximal matching entries invalidate the schedule. Thus the bound on a nested oracle's step is its own token budget, not the outer region's B.",
+      "by": "clause:ISA-11-P4; clause:ISA-5.2; clause:ISA-4.2"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Use the unchanged tests/fixtures/nested.bisa @ignore and @inc8 bodies. @ignore has two rows: lift.oracle_call @inc8 tk, then lift.retval r. With input 8, outer budget (2,0,0,0) and tk=(3,0,0,0), inc8 executes const 1, add 8+1, retval 9 at its own steps 1,2,3; ignore returns (9,0) in two outer rows. Give the schedule two identical gate entries with path [ignore entry:0 iteration=[], inc8 entry:2 iteration=[]], step=3, phase=fwd, generated=\"*\", gate={\"realisation\":\"native\"}. Both match gates of the nested retval row with equal specificity (2,2,1,1,0), and there is no higher entry. The schedule must reject.",
+      "by": "step:<1>1; clause:ISA-4.2; clause:ISA-11-P2; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa"
+     },
+     {
+      "n": "<1>3",
+      "claim": "The witness is the original nested fixture plus that schedule; bindings.region=ignore, closure_hash=9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012, budget=[2,0,0,0], params_hash=SHA256(JCS([{steps:3,heap:0,stack:0,depth:0}])). Its file SHA-256 is 07c617a312f2b1f333689d95b474ccf9b7dea4a570c43ced87a92c089b66d9e7. Both check and hash exit 0 with status=ok and object_hash=8e6e852c4717ad55763ec2162b0582896a948c073b649c40002a8aa64dd0f815. run-oracle ignore --input 8 --budget 2 --arg token:3,0,0,0 returns {code:0,payload:9,steps:2}. Changing only bindings.budget[0] to 3 in the control file makes check/hash exit 1 with empty stdout and \u00a711 multiple maximal matching schedule entries.",
+      "by": "witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/target/debug/bennett-isa-ref check /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa; witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/target/debug/bennett-isa-ref hash /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa; witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/target/debug/bennett-isa-ref run-oracle /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-2.bisa ignore --input 8 --budget 2 --arg token:3,0,0,0; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-nested-budget-3.bisa"
+     },
+     {
+      "n": "<1>4",
+      "claim": "validate_schedule_details passes only the root values[0] into has_uncovered_tie. chain_domain ORs whether any point is an oracle and then assigns the single interval (1, root_budget). For this two-oracle chain that is [1,2]; entry_domain intersects step=3 with it and returns None, so the tie is silently discarded. The external r18-review-probe.rs parses the admitted object and calls resolve_schedule on the concrete nested operation with generated=0: it returns Err(\"\u00a711: multiple maximal matching schedule entries\"). No expansion-library ordinal assumption is needed for admission, because the witness selectors use generated=\"*\" and the retval row contains gates.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/metadata/schedule_domains.rs:76; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/reference-interpreter/src/metadata.rs:302; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r18-review-probe.rs"
+     },
+     {
+      "n": "<1>5",
+      "claim": "By steps 1\u20134 this is an S0 acceptance of a genuinely ambiguous nested schedule, caused by applying the wrong invocation budget. It is a regression in admission, not a request to finish the staged schedule executor: the former pairwise branch rejected these equal-specificity overlapping entries. This finding fits no stated theorem in INV-1, INV-2, INV-3 or INV-4; those concern matched inverses, aliasing, cleanup soundness and identity envelopes, not \u00a711 selector-domain soundness.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "fix": "In src/metadata/schedule_domains.rs::{chain_domain,has_uncovered_tie}, with corresponding context passed from src/metadata.rs::validate_schedule_details, associate each step domain with its owning oracle invocation. The determining \u00a711 sentence is \"both are per invocation level, so a nested oracle's step is selected by a path element for the nested call\". lift.call stays within the enclosing oracle machine; lift.oracle_call/oracle_call introduces a new token-governed invocation. Restrict to root B only for steps governed by that root budget. If admission has only params_hash and cannot recover a nested token, retain a symbolic nested-step range instead of proving it empty using root B; use the resolved token when available. Add the supplied literal witness in tests/metadata.rs and pinned check/hash cases in tests/cli_xam.rs: outer B=2, nested token B=3, two equal gate entries on the nested step 3 must reject with a \u00a711 diagnostic (CLI exit 1, empty stdout), just as the outer-B=3 control does. Removing one entry must admit; adding a genuinely more-specific covering entry must admit and resolve uniquely in every order. Include same-machine lproc, action-root/nested-oracle and differing nested-budget controls, preserving root out-of-budget, zero-trip, union-coverage and all R17 tests. Do not change the reference bodies, token budgets, canonical schedule bytes or object identity to make the witness disappear."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "codex"
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "run": "isa-ref-2026-10-29",
+ "round": 18,
+ "doc": "docs/council/isa-ref-2026-10-29/packet-round-18.md",
+ "doc_sha256": "087eef181f4a7e53be394b9897e23216b06ce565fbfeb9cd61687dce6499cb3d",
+ "prepared": "2026-10-31T09:02:22+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T09:18:37+00:00",
+   "exit": 0,
+   "seconds": 1001,
+   "errors": [],
+   "updated": "2026-10-31T09:35:18+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "Bennett ISA 0.8 reference interpreter, round 18: re-grade after round-17 fixes (\u00a717 defaults table; maximal-match schedule ambiguity)",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-review"
+}
