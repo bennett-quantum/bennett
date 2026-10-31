@@ -1,0 +1,41 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "codex": "revise"
+ },
+ "blocking": {
+  "codex": [
+   {
+    "id": "R15-B01",
+    "section": "\u00a712.1 structural translation_lemma witness; src/metadata_schema.rs::TABLE (translation_witness, points), src/metadata_schema/tests.rs::baseline/samples; src/certificate.rs::Object::validate_claim",
+    "scope": "core",
+    "problem": "The new declarative grammar types translation_witness.frame as points = Array(point), but \u00a712.1 fixes a two-element tuple. Directly running metadata_schema::validate(\"translation_witness\", {\"B\":[],\"V\":[],\"W\":[],\"X\":[],\"frame\":P}) against the unchanged snapshot sources returns Ok for P lengths 0, 1, 2 and 3 (each point [\"0\" repeated 64,\"entry\",0]). The grammar-derived baseline actually produces a one-point frame and asserts it is positive. Reproducer: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r15-schema-probe-src/probe.rs; binary .tmp/r15-schema-probe. This is specifically a wrong table entry, not a claim that full Object::parse accepts it: the retained hand-written length check in validate_claim rejects .tmp/r15-frame-empty.bisa with \u201c\u00a712: \u00a712.1: frame needs first and last points\u201d. The requested table audit makes this structural mismatch blocking despite that downstream safeguard.",
+    "fix": "In src/metadata_schema.rs::TABLE, introduce a translation_frame production with Shape::Tuple(&[\"point\",\"point\"]) and use it for translation_witness.frame; keep V and W as Array(point). Determining \u00a712.1 text: for `translation_lemma`: `{ \"V\": [points], \"W\": [points], \"X\": [wires], \"B\": [wires], \"frame\": [first point, last point] }`. Expected: the table itself rejects lengths 0, 1 and 3 and accepts exactly 2 well-typed points. This needs no object inputs or execution budget. In src/metadata_schema/tests.rs add an independent literal test with the all-zero-hash point above and frames of those four lengths; it must assert Err for 0/1/3 and Ok for 2, and currently fails. Once the grammar enforces this, remove the duplicate cardinality-only check from certificate.rs::validate_claim (or retain it only as a documented redundant invariant). Preserve full-parse rejection and regenerate the family counts. No spec amendment is necessary: [first point, last point] is explicit."
+   },
+   {
+    "id": "R15-B02",
+    "section": "\u00a7\u00a74.4, 5.2, 11; src/metadata.rs::Object::validate_schedule_details, epsilon exactness check",
+    "scope": "core",
+    "problem": "A valid zero decimal is rejected by spelling rather than value. Start with the independently pinned record named schedule-cleanupFalse in tests/support/r13_schema_cases.json; change only schedule.bindings.epsilon from 0 to the JSON string \"0.0\" and JCS-serialize that schedule line. Both check and hash exit 1, print no stdout, and diagnose \u201c\u00a711: \u00a75.2: oracle schedules must be exact\u201d. Controls 0 and \"0\" exit 0/status ok. \"0.000\" also wrongly rejects. Saved witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r15-epsilon-0.0.bisa, SHA-256 1431a1dbbe4991d170e3848995026610ebbffce08e7279ee05a68880f06c82df. The table correctly admits \"0.0\" as Decimal; the subsequent canonical()!= \"0\" && value!=String(\"0\") test narrows it. The object hash remains 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 and inc8 interface/closure remains 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 because \u00a79.2 excludes schedule.",
+    "fix": "In src/metadata.rs::Object::validate_schedule_details replace the lexical zero check with an exact decimal-value zero test after schema validation. Reuse exact::Decimal (e.g. normalize its parsed Number/String text), or inspect validated mantissa digits without binary64 conversion; do not round a tiny positive decimal to zero. Determining \u00a75.2 text: \u201cexact-permutation only (\u03b5 = 0 everywhere, transitively)\u201d; \u00a74.4: \u201cOracles and permutation actions require \u03b5 = 0 for every gate\u201d; \u00a711 exposes epsilon through bennett_sched_request_set_accuracy(..., const char* epsilon_decimal). These prescribe numeric zero, not the single string spelling \"0\". Add tests in tests/metadata.rs and tests/cli_xam.rs using that exact record: 0, \"0\", \"0.0\" and \"0.000\" must parse/check/hash successfully with the pins above; \"0.1\" and \"0.\" followed by 399 zeros and \"1\" must still reject as nonzero for the oracle. No run input or budget is needed: this is admission. JCS canonicalizes JSON numbers, not the contents of JSON strings; neither the spec nor SPEC-QUESTIONS imposes shortest spelling on decimal strings. Therefore rejecting \"0.0\" cannot be justified as canonicalization, and no new narrowing reading should be added."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "codex"
+ ]
+}

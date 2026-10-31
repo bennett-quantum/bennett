@@ -1,0 +1,93 @@
+exit 0 in 12s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "Audited all 162 metadata_schema::TABLE productions against §§8.1, 9.1–9.4, 11, 12.1–12.3 and 13, including the supporting SPEC-QUESTIONS encodings. Both R14 admission defects are fixed. Two localized issues remain: translation_witness.frame has the wrong cardinality in the declarative grammar (although certificate.rs rejects it later), and validate_schedule_details rejects a legal decimal spelling of zero. See R15-B01/B02.",
+      "change": "In src/metadata_schema.rs give translation_witness.frame a two-point Tuple production; in src/metadata.rs::Object::validate_schedule_details compare epsilon by exact numeric value. Add the direct-grammar and full-admission regressions specified below."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "The rewrite does not alter identity.rs or linking.rs. Independently reconstructed the 160-byte singleton action envelope and 261-byte inc8 envelope, reproducing 2fcd5b3d…ab8be and 8ce5e64f…5be93. Removing certificate with its preceding boundary LF reproduces ddc5d672…666f0 and 8093da48…ec5d9. The normal suite passes the four published hashes, SCC, service, address-namespace and dotted-path regressions. SPEC-QUESTIONS 31 correctly distinguishes the recorded serialization limitation from an interpreter defect.",
+      "change": "No corrective change required for this criterion; retain the independent literal envelopes and published-vector assertions while fixing admission."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "Hand-derived inc8(255): const 1, modular add to 0, retval, hence (payload=0,code=0,steps=3) at B=3; at B=2 the missing retval yields (0,1,2), and B=0 yields (0,1,0). All three CLI results agree. The normal arithmetic, allocation, nested-call and arbitrary-width suites pass; no new execution defect was found in this review.",
+      "change": "No corrective change required for this criterion; retain the tight-budget and first-fault regressions unchanged."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Traced machine.rs::inverse_step through pc exchanges, successor cancellation, fault cancellation, reverse exchanges and slot uncomputation. inverse_call restores counters before record addresses; inverse_ret restores callee fp before delivery, matching §3.7. The independently derived two-step inc8 prefix reverses to x=255, one=r=0, pc=pc_prime=0, all counters zero and clean frames. Recursive call/return and every-prefix normal tests pass.",
+      "change": "No corrective change required for this criterion; preserve complete-tuple equality checks rather than reducing them to payload comparisons."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "Traced the classical fixture nested -> f -> g call/ret/uncall segments through classical.rs::undo_frame and undo_record against §7.4. clock.read records its old device state and bytes; reversing the completed g segment restores them, then reversing f skips the already reversed g frames. CLI reverse nested returns 0, clock=0, empty tape, identical entry/final memory digests and equals_entry=true after 11 forward instructions. Normal CC/R, qreg, hostcall and reversal tests pass.",
+      "change": "No corrective change required for this criterion; retain nested cancellation and exact memory/device-state assertions."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The singleton X-action certificate still verifies Evidence { elements: 1 }, as hand-derived from X|0>=|1>. The normal borrow, discipline, exact gate, quantum-control and qinplace tests pass. Numerical/channel realization verification remains explicitly Unverified at the disclosed staged boundary; this review does not promote that boundary to verified execution.",
+      "change": "For the next staged deliverable, implement the §12.1 interval verifier in the claim-verification path, with independently derived controlled-unitary and strictly feasible channel-witness cases; do not change Unverified into success before those obligations are checked."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Full normal cargo test --offline --no-fail-fast passes. The four focused R14 tests also pass. Reproduced the family counts: 162 entries, 9,754 positives, 1,632 typed paths, 26,354 grammar negatives, 1,992 dual-admission negatives, 26 objects, 2,393 parse visits and 17,173 parse negatives. However baseline/samples classify one-point translation frames as grammar-positive because TABLE uses Array; counts alone cannot certify fidelity to the cited clause. The five ignored sweeps were not rerun here; their recorded editor results are distinguished from this review’s runs.",
+      "change": "Correct the frame production and add a clause-derived cardinality regression independent of samples()/TABLE. Add full-object positive controls for decimal zero spellings, so grammar acceptance followed by erroneous semantic rejection is observable."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Reviewed SPEC-QUESTIONS 1–32, including integer spelling, frame/domain encodings, staged executable claims, dotted-path ordering/information loss and the address namespace. Those recorded readings do not justify either new finding. Reporting correctly preserves the staged verifier boundary and corrects the historical R13 completeness claim, but describing the table as the single grammar is premature while fixed tuple cardinality remains outside it.",
+      "change": "After R15-B01, update README.md and PROGRESS.md with the regenerated family counts and distinguish structural grammar coverage from contextual/semantic checks; record the R15 zero-decimal control and its exact result."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R15-B01",
+      "section": "§12.1 structural translation_lemma witness; src/metadata_schema.rs::TABLE (translation_witness, points), src/metadata_schema/tests.rs::baseline/samples; src/certificate.rs::Object::validate_claim",
+      "scope": "core",
+      "problem": "The new declarative grammar types translation_witness.frame as points = Array(point), but §12.1 fixes a two-element tuple. Directly running metadata_schema::validate(\"translation_witness\", {\"B\":[],\"V\":[],\"W\":[],\"X\":[],\"frame\":P}) against the unchanged snapshot sources returns Ok for P lengths 0, 1, 2 and 3 (each point [\"0\" repeated 64,\"entry\",0]). The grammar-derived baseline actually produces a one-point frame and asserts it is positive. Reproducer: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r15-schema-probe-src/probe.rs; binary .tmp/r15-schema-probe. This is specifically a wrong table entry, not a claim that full Object::parse accepts it: the retained hand-written length check in validate_claim rejects .tmp/r15-frame-empty.bisa with “§12: §12.1: frame needs first and last points”. The requested table audit makes this structural mismatch blocking despite that downstream safeguard.",
+      "fix": "In src/metadata_schema.rs::TABLE, introduce a translation_frame production with Shape::Tuple(&[\"point\",\"point\"]) and use it for translation_witness.frame; keep V and W as Array(point). Determining §12.1 text: for `translation_lemma`: `{ \"V\": [points], \"W\": [points], \"X\": [wires], \"B\": [wires], \"frame\": [first point, last point] }`. Expected: the table itself rejects lengths 0, 1 and 3 and accepts exactly 2 well-typed points. This needs no object inputs or execution budget. In src/metadata_schema/tests.rs add an independent literal test with the all-zero-hash point above and frames of those four lengths; it must assert Err for 0/1/3 and Ok for 2, and currently fails. Once the grammar enforces this, remove the duplicate cardinality-only check from certificate.rs::validate_claim (or retain it only as a documented redundant invariant). Preserve full-parse rejection and regenerate the family counts. No spec amendment is necessary: [first point, last point] is explicit."
+    },
+    {
+      "id": "R15-B02",
+      "section": "§§4.4, 5.2, 11; src/metadata.rs::Object::validate_schedule_details, epsilon exactness check",
+      "scope": "core",
+      "problem": "A valid zero decimal is rejected by spelling rather than value. Start with the independently pinned record named schedule-cleanupFalse in tests/support/r13_schema_cases.json; change only schedule.bindings.epsilon from 0 to the JSON string \"0.0\" and JCS-serialize that schedule line. Both check and hash exit 1, print no stdout, and diagnose “§11: §5.2: oracle schedules must be exact”. Controls 0 and \"0\" exit 0/status ok. \"0.000\" also wrongly rejects. Saved witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r15-epsilon-0.0.bisa, SHA-256 1431a1dbbe4991d170e3848995026610ebbffce08e7279ee05a68880f06c82df. The table correctly admits \"0.0\" as Decimal; the subsequent canonical()!= \"0\" && value!=String(\"0\") test narrows it. The object hash remains 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 and inc8 interface/closure remains 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 because §9.2 excludes schedule.",
+      "fix": "In src/metadata.rs::Object::validate_schedule_details replace the lexical zero check with an exact decimal-value zero test after schema validation. Reuse exact::Decimal (e.g. normalize its parsed Number/String text), or inspect validated mantissa digits without binary64 conversion; do not round a tiny positive decimal to zero. Determining §5.2 text: “exact-permutation only (ε = 0 everywhere, transitively)”; §4.4: “Oracles and permutation actions require ε = 0 for every gate”; §11 exposes epsilon through bennett_sched_request_set_accuracy(..., const char* epsilon_decimal). These prescribe numeric zero, not the single string spelling \"0\". Add tests in tests/metadata.rs and tests/cli_xam.rs using that exact record: 0, \"0\", \"0.0\" and \"0.000\" must parse/check/hash successfully with the pins above; \"0.1\" and \"0.\" followed by 399 zeros and \"1\" must still reject as nonzero for the oracle. No run input or budget is needed: this is admission. JCS canonicalizes JSON numbers, not the contents of JSON strings; neither the spec nor SPEC-QUESTIONS imposes shortest spelling on decimal strings. Therefore rejecting \"0.0\" cannot be justified as canonicalization, and no new narrowing reading should be added."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "R14-B01",
+      "status": "resolved",
+      "note": "Exact Y-number file SHA-256 578c913b…68e11 reproduced; check/hash reject with empty stdout and §9.1/§12.1. Four-string zero control checks with unchanged pins and the focused library test confirms Unverified channel execution. All four endpoint-position wrong-kind mutations pass their rejection tests."
+    },
+    {
+      "id": "R14-B02",
+      "status": "resolved",
+      "note": "All four exact malformed-table files reject under check/hash; singleton [[1]] action checks with unchanged pins and verifies Evidence { elements: 1 }. Row/component mutation tests and the canonical 2^128 string admission control pass."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "Retain the round-14 nonblocking width-family follow-up: in tests/r1_widths.rs::r13_generated_derived_width_extremes_family, derive each case’s expected outcome from the layout inequalities and host-representation boundary before running the interpreter, then assert the specific acceptance/layout-error/host-limit class. Keep the 507-case domain and literal boundary controls unchanged. This is stronger evidence, not a newly discovered width divergence."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Replace translation_witness.frame’s unrestricted point array with a two-point Tuple production, add the independent 0/1/2/3-length test and rerun the generated family, updating its counts. 2. Make oracle schedule epsilon exactness numeric, add the pinned zero-spelling positives and tiny-nonzero negatives, and rerun the focused metadata/CLI tests plus the normal suite. Preserve both resolved R14 controls and all literal identity pins. No redesign of execution, identity or the staged interval verifier is required for these findings.",
+  "summary": "Reviewed snapshot fd9fd84196791d86f41957dc753c2cc550c4ea0c against the accepted 0.8 clauses and the e3ae1af diff. R14-B01 and R14-B02 are resolved; verdict is revise because the requested table-level audit found R15-B01 and the surrounding admission reread found R15-B02. Neither is a demonstrated new full-parser regression: the old translation-frame length rejection remains, and the lexical epsilon test predates this diff.\n\nTable audit: checked scalar String/Text/NAME/hash/HEX/integer/seed/decimal/endpoint/number/null/version productions; all five signature alternatives and memory slots; symbols/imports/devices/layout/data projections; schedule bindings, four-component budgets, selectors, paths and payloads; all five claim kinds and three structural rules; expected-program/table/oracle alternatives; domain bundles/cells; recursive expressions; frame slots/count maps/live ranges; certificate versions/bindings/producer/regions/verification/error/composition; and coverage entries. Optional fields were checked against their clauses and recorded encodings. Contextual checks still enforce model compatibility, signature equality, required selected schedule payloads, concrete allocation class, executable subjects, claim indices, expression arity/environment, domains and point bindings. The specific structural error is the translation frame’s Array in place of the explicit two-point tuple. No other field-type/optionality mismatch was established. The table-derived positive family is evidence about the implemented grammar, not an independent oracle for that grammar’s correctness.\n\nRequired method (1): hand-derived inc8(255) at B=3 as (0,0,3), at B=2 as (0,1,2), and at B=0 as (0,1,0); CLI agrees. Reconstructed byte-exact LF envelopes independently with literal signature/body text: singleton X action 160 bytes -> 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be; inc8 261 bytes -> 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. Certificate deletion independently reproduces both object pins. X sends singleton domain t=0 to tuple [1], matching the verified evidence control.\n\nMethod (2): traced inc8’s add inverse: restore old pc, cancel successor, swap r back to its old value, XOR the recomputed modular sum out of its slot; CLI reversal of two steps restores the entire entry tuple and clean frames. Also checked mixed call/ret inverse ordering against §3.7 and traced nested/f/g’s §7.4 completed-segment reversal, including clock and memory restoration and skipping already-cancelled frames. CLI nested reversal reports equals_entry and memory_equals_entry with identical d200538a…4c memory digests.\n\nMethod (3): reviewed SPEC-QUESTIONS 1–32 against their cited rules; no new contradictory reading was established. In particular entries 11, 17 and 21 explain sketch encodings, canonical integer representations and full tuples; they do not change the explicit translation-frame cardinality or make \"0.0\" nonzero. Entries 31–32 retain the settled dotted-path limitation and namespace reading.\n\nMethod (4): searched production Rust for todo!/unimplemented!/unwrap/expect/panic/unreachable and unsupported/TODO/simplification/assumption/approximation markers. Hits divide into test assertions, validated representation/container invariants, internal graph/history invariants, explicit unsupported-model diagnostics and approximate display routines alongside exact semantic decisions; no new panic/fallback witness was established. Staged Unverified claim outcomes remain disclosed.\n\nMethod (5): compared §4.1–4.8 instruction families, §5.4 faults, §3.6–3.7 slot/frame forms, all metadata productions and documented CLI command dispatch; no additional missing dispatch was established. Rereading focused on the schema rewrite and its reachable admission, identity, execution and reversal paths; passing tests is not a proof of every ISA behavior.\n\nValidation performed here: full normal cargo test --offline --no-fail-fast exits 0; all four focused R14 tests pass; generated family reproduced 162/9754/1632/26354/1992/26/2393/17173 counts (43,527 distinct negative cases without recounting dual assertions). Replayed all six original R14 files with check/hash and independently hashed their bytes; positive Y control succeeds and negative Y rejects. Direct unchanged-source grammar probe accepts translation frames of lengths 0,1,2,3, while full parse rejects the malformed frame; zero-epsilon witness rejects under both CLI commands while 0 and \"0\" controls succeed. The five ignored sweeps were not rerun in this review; the editor’s recorded successful runs remain historical evidence. All invoked work was headless/offline as applicable; no tracked source was changed and no commit or push was made."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r15-codex.json
