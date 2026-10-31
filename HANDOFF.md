@@ -3,13 +3,10 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-10-31, ~20:30Z
+## 2026-10-31, ~21:30Z
 
-**Running**: isa-ref round-21 fix (sol editor: claims.rs::domain cells=all, hostcall/console.write
-transfer lengths; class sweep over exponent-derived counts and lengths under RLIMIT_AS); dialect
-`outline-0.3` editor (sol: the 0.1-narrowing epic b-dialect-spec-8wf as an outline for maintainer
-ruling, per the dialect's convention). Process watcher every 8 h (fires only when idle; run by hand
-if overdue).
+**Running**: isa-ref round 22 (two-seat acceptance vote on 9851a9c after the R21 fixes and the 24-path
+cardinality/length sweep; 436 tests); ISA main gate push (background).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
@@ -38,8 +35,13 @@ witness now uses stable labels.
 maintainer ratification**; muse seat held. Interpreter round 21: both seats found host-resource
 aborts (same class as R20); fix running; round 22 = two-seat acceptance vote.
 
-**Next**: collect the round-21 fix -> round 22; collect the dialect outline-0.3 -> maintainer rulings ->
-0.3 drafting (astra alone; first round on the structured schema, add
+**Dialect outline-0.3 is ready for rulings** (`bennett-dialect-spec/spec/outline-0.3.md`, 1,266 lines, 45
+items mapped, 22 numbered decisions D01-D22 with recommendations, rulings section empty; pushed 967db73).
+
+**Waiting on the maintainer**: K64/K65 ratification (ISA 0.9); D01-D22 rulings (dialect 0.3); muse's votes.
+
+**Next**: collect round 22 -> if both accept, the interpreter leaves the loop and suite cases are re-imported
+from the accepted snapshot; after rulings, draft 0.2.11 then 0.3 from the outline (astra alone; first round on the structured schema, add
 `--context ../bennett-conformance/proofs/INDEX.md` and `proofs/INV-*.md`); if accept -> sol
 acceptance vote -> interpreter leaves the loop; then re-import suite cases from the accepted
 snapshot. Verify the §11.1 completion (library hash Rust = Python; §11.1 marker written). Dialect:
