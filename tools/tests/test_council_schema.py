@@ -27,7 +27,9 @@ class CouncilSchemaTest(unittest.TestCase):
         r = good()
         r["blocking"] = [dict(ITEM)]
         self.assertEqual(council.validate(r), [])
-        self.assertEqual(council.schema_errors(r, council.schema()), [])
+        # The legacy `problem` item is rejected by a new-round schema, which requires `steps`
+        # (structured items are tested in test_council_steps.py).
+        self.assertTrue(any("steps: required" in e for e in council.schema_errors(r, council.schema())))
 
     def test_item_with_legacy_severity_still_validates(self):
         r = good()

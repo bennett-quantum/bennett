@@ -34,6 +34,54 @@ CRITERIA = [f"C{i}" for i in range(1, 9)]
 MEMBERS = ("codex", "muse", "opus", "fable", "sol")  # known members; a run names its own subset
 VERDICTS = ("accept", "revise", "reject")
 BACKOFF = (60, 180, 420)
+KINDS = ("implementation", "spec-gap")
+MIN_STEPS, MAX_STEPS = 3, 6
+
+
+def is_spec_gap(b):
+    return isinstance(b, dict) and b.get("kind") == "spec-gap"
+
+
+def by_parts(by):
+    return [p.strip() for p in by.split("; ")]
+
+
+def steps_errors(b):
+    """Shape rules for a structured blocking item (Lamport-style steps)."""
+    who = f"blocking {b.get('id')!r}"
+    st = b["steps"]
+    if not isinstance(st, list) or not MIN_STEPS <= len(st) <= MAX_STEPS:
+        return [f"{who}: steps must be a list of {MIN_STEPS}-{MAX_STEPS} steps"]
+    if not all(isinstance(x, dict) and all(isinstance(x.get(k), str) and x[k].strip()
+                                           for k in ("n", "claim", "by")) for x in st):
+        return [f"{who}: every step needs non-empty string n, claim and by"]
+    errs, seen = [], []
+    for i, x in enumerate(st):
+        if x["n"] in seen:
+            errs.append(f"{who}: duplicate step number {x['n']!r}")
+        for part in by_parts(x["by"]):
+            if part.startswith("step:"):
+                for ref in (r.strip() for r in part[5:].split(",")):
+                    if ref not in seen:
+                        errs.append(f"{who}: step {x['n']} cites step:{ref}, which is not an earlier step")
+        seen.append(x["n"])
+    first = st[0]["by"].strip()
+    if not first.startswith(("clause:", "ASSUMED:")):
+        errs.append(f"{who}: step 1 must say what the spec requires: its `by` must start with "
+                    f"`clause:` or `ASSUMED:`, got {first[:60]!r}")
+    if not any(p.startswith("witness:") for x in st for p in by_parts(x["by"])):
+        errs.append(f"{who}: at least one step must have a `witness:` justification "
+                    "(what the implementation does, reproducibly)")
+    if not any(p.startswith("step:") for p in by_parts(st[-1]["by"])):
+        errs.append(f"{who}: the last step is the conclusion; its `by` must cite earlier steps with `step:`")
+    kind = b.get("kind", "implementation")
+    if first.startswith("ASSUMED:") and kind != "spec-gap":
+        errs.append(f"{who}: step 1 is ASSUMED (the spec is silent), so the item must carry "
+                    '"kind": "spec-gap"')
+    if kind == "spec-gap" and not first.startswith("ASSUMED:"):
+        errs.append(f"{who}: kind spec-gap requires step 1 to be `ASSUMED:`; with a clause in "
+                    "step 1 the item is an implementation blocker")
+    return errs
 
 
 # ---------------------------------------------------------------- schema
@@ -46,13 +94,23 @@ def schema():
                            "evidence": {"type": "string"},
                            "change": {"type": "string"}},
             "required": ["id", "score", "evidence", "change"]}
+    step = {"type": "object", "additionalProperties": False,
+            "properties": {"n": {"type": "string"}, "claim": {"type": "string"},
+                           "by": {"type": "string"}},
+            "required": ["n", "claim", "by"]}
+    # New rounds: a blocking item is a structured argument (`steps`); `problem` is gone from
+    # the schema (old rounds keep their saved schema.json and still validate). `kind` is
+    # required here only because strict output schemas want every property required; a missing
+    # `kind` in older JSON means "implementation" (see validate()).
     issue = {"type": "object", "additionalProperties": False,
              "properties": {"id": {"type": "string"},
                             "section": {"type": "string"},
                             "scope": {"type": "string", "enum": ["core", "contract"]},
-                            "problem": {"type": "string"},
+                            "kind": {"type": "string", "enum": list(KINDS)},
+                            "steps": {"type": "array", "minItems": MIN_STEPS,
+                                      "maxItems": MAX_STEPS, "items": step},
                             "fix": {"type": "string"}},
-             "required": ["id", "section", "scope", "problem", "fix"]}
+             "required": ["id", "section", "scope", "kind", "steps", "fix"]}
     prev = {"type": "object", "additionalProperties": False,
             "properties": {"id": {"type": "string"},
                            "status": {"type": "string",
@@ -98,10 +156,18 @@ def validate(r):
         errs.append("blocking missing")
     else:
         for b in bl:
-            if not isinstance(b, dict) or not all(
-                    isinstance(b.get(k), str) for k in ("id", "section", "problem", "fix")):
+            # Legacy items carry `problem`; structured items carry `steps` instead.
+            need = ("id", "section", "fix") if isinstance(b, dict) and "steps" in b \
+                else ("id", "section", "problem", "fix")
+            if not isinstance(b, dict) or not all(isinstance(b.get(k), str) for k in need):
                 errs.append(f"blocking entry malformed: {b!r}"[:200])
-    if r.get("verdict") == "accept" and bl:
+            elif "steps" in b:
+                errs.extend(steps_errors(b))
+            elif "kind" in b and b["kind"] != "implementation":
+                errs.append(f"blocking {b.get('id')!r}: kind {b['kind']!r} requires `steps`")
+            if isinstance(b, dict) and b.get("kind", "implementation") not in KINDS:
+                errs.append(f"blocking {b.get('id')!r}: kind {b['kind']!r} not in {KINDS}")
+    if r.get("verdict") == "accept" and any(not is_spec_gap(b) for b in (bl if isinstance(bl, list) else [])):
         errs.append("verdict accept with non-empty blocking list")
     if not isinstance(r.get("suggestions"), list):
         errs.append("suggestions missing")
@@ -204,6 +270,13 @@ def rubric_text(path=None):
     return Path(path or RUBRIC).read_text(encoding="utf-8")
 
 
+def item_text(b):
+    """A blocking item's argument as one line: its steps, or the legacy `problem`."""
+    if b.get("steps"):
+        return " ".join(f"{s['n']} {s['claim']} ({s['by']})" for s in b["steps"])
+    return b["problem"]
+
+
 def previous_round_context(run, rnd):
     if rnd <= 1:
         return ""
@@ -218,7 +291,7 @@ def previous_round_context(run, rnd):
              "", "Blocking issues raised last round:"]
     for m, issues in c["blocking"].items():
         for b in issues:
-            parts.append(f"- [{m}] {b['id']} ({b['section']}): {b['problem']} "
+            parts.append(f"- [{m}] {b['id']} ({b['section']}): {item_text(b)} "
                          f"Fix proposed: {b['fix']}")
     if not any(c["blocking"].values()):
         parts.append("- none")
@@ -268,6 +341,20 @@ CONVERGENCE = (
     "procedure are stated. Block only on a statement that is false, unsound or ambiguous.\n")
 
 
+STRUCTURED = (
+    "Blocking items are structured arguments, not free text: omit `problem`; give `steps`, 3 to 6 objects "
+    '{"n": "<1>1", "claim": "...", "by": "..."}.\n'
+    "Shape: <1>1 what the spec requires; <1>2 what the implementation does, with a reproducible witness; "
+    "<1>3 an input on which they differ; last step: conclusion (the fix goes in `fix`).\n"
+    "`by` is `clause:<ID>` (a clause id such as ISA-17-P9, or a section such as ISA-17), "
+    "`witness:<path or command>`, `step:<1>1` (an earlier step),\n"
+    "`ASSUMED: <why the spec is silent>` or `OPEN: <what is missing>`; separate several with `; `.\n"
+    "Step 1 starts with `clause:` or `ASSUMED:`; some step has `witness:`; the last step cites earlier steps with `step:`.\n"
+    "If step 1 is `ASSUMED:` the spec is silent: set `kind` to `spec-gap` (otherwise `implementation`); "
+    "a spec gap goes to the spec owner,\n"
+    "is not an editor blocker and does not count against `accept`.\n")
+
+
 def build_prompt(doc_text, run, rnd, subject=None, rubric=None, contexts=(), diff_text=None,
                  task_file=None):
     task = (
@@ -310,7 +397,7 @@ def build_prompt(doc_text, run, rnd, subject=None, rubric=None, contexts=(), dif
         ctx.append(f"# Background (not graded): `{Path(c).name}`\n\n"
                    + Path(c).read_text(encoding="utf-8"))
     return "\n\n".join(p for p in [
-        "# Council", task, convergence, previous_round_context(run, rnd),
+        "# Council", task, convergence, STRUCTURED, previous_round_context(run, rnd),
         "# Rubric", rubric_text(rubric), *ctx,
         f"# The document under review (round {rnd} snapshot)",
         doc_text] if p)
@@ -571,6 +658,14 @@ def status_cmd(a):
 
 # ------------------------------------------------------------- aggregate
 
+def render_item(m, b):
+    head = f"- **[{m}] {b['id']}** ({b['section']}; {b.get('scope', '?')}): "
+    if b.get("steps"):
+        return [head + f"*Fix:* {b['fix']}"] + [
+            f"  {x['n']} {x['claim']}  — {x['by']}" for x in b["steps"]]
+    return [head + f"{b['problem']} *Fix:* {b['fix']}"]
+
+
 def aggregate_cmd(a):
     rdir = round_dir(a.run, a.round)
     outs = {}
@@ -605,7 +700,8 @@ def aggregate_cmd(a):
         lines.append(f"| {cid} | " + " | ".join(map(str, v)) +
                      f" | {mean} | {'yes' if max(v) - min(v) >= 2 else ''} |")
     verdicts = {m: outs[m]["verdict"] for m in names}
-    blocking = {m: outs[m]["blocking"] for m in names}
+    blocking = {m: [b for b in outs[m]["blocking"] if not is_spec_gap(b)] for m in names}
+    spec_gaps = {m: [b for b in outs[m]["blocking"] if is_spec_gap(b)] for m in names}
     agree = (len(names) == len(expected) and all(v == "accept" for v in verdicts.values())
              and not any(blocking.values()))
     core_verdicts = {m: outs[m].get("verdict_core") for m in names}
@@ -635,10 +731,14 @@ def aggregate_cmd(a):
     for m in names:
         for b in blocking[m]:
             n += 1
-            lines.append(f"- **[{m}] {b['id']}** ({b['section']}; {b.get('scope', '?')}): "
-                         f"{b['problem']} *Fix:* {b['fix']}")
+            lines += render_item(m, b)
     if n == 0:
         lines.append("- none")
+    if any(spec_gaps.values()):
+        lines += ["", "## Spec gaps (not editor blockers)", ""]
+        for m in names:
+            for b in spec_gaps[m]:
+                lines += render_item(m, b)
     for m in names:
         r = outs[m]
         lines += ["", f"## {m}", "", r["summary"], "",
@@ -649,7 +749,8 @@ def aggregate_cmd(a):
     atomic_write(rdir / "report.md", "\n".join(lines) + "\n")
     atomic_write(rdir / "consensus.json", json.dumps(
         {"agree": agree, "core_agree": core_agree, "verdicts": verdicts, "core_verdicts": core_verdicts,
-         "blocking": blocking, "means": dict(zip(CRITERIA, means)), "members": names}, indent=1))
+         "blocking": blocking, **({"spec_gaps": spec_gaps} if any(spec_gaps.values()) else {}),
+         "means": dict(zip(CRITERIA, means)), "members": names}, indent=1))
     print(f"wrote {rdir / 'report.md'}; consensus agree={agree} verdicts={verdicts}")
 
 

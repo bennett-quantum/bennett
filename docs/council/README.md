@@ -152,3 +152,23 @@ next round with `--precheck "python3 tools/isa_check.py"`.
 - **A recurring blocker family gets a generated test, not another round**: when two rounds
   patch instances of one defect (R11-B02 and R12-B01, dotted-name layout leaves), the editor
   adds a deterministic family over the whole input class before any further review.
+
+## Structured blockers (2026-10-31)
+
+Blocking items are short Lamport-style arguments (step syntax from
+`bennett-conformance/proofs/FORMAT.md`) instead of a free-text `problem`. A new-round
+`schema.json` requires, per `blocking` item, `steps` (3 to 6 objects `{"n": "<1>1",
+"claim": "...", "by": "..."}`) and `kind` (`implementation` or `spec-gap`); `problem` is gone
+from it, and `fix` is unchanged. `by` is `clause:<ID>` (a clause or section id from the clause
+graph, `bennett-conformance/clauses/README.md`), `witness:<path or command>`, `step:<n>`,
+`ASSUMED: <why the spec is silent>` or `OPEN: <what is missing>`, several separated by `; `.
+`validate` enforces: step 1 starts with `clause:` or `ASSUMED:` (what the spec requires); at
+least one step has a `witness:` (what the implementation does, reproducibly); the last step
+cites earlier steps with `step:` (and every `step:` cites an earlier step's `n`).
+
+An item whose step 1 is `ASSUMED:` must carry `"kind": "spec-gap"` (and only such items may). The
+report lists spec gaps under "Spec gaps (not editor blockers)", `consensus.json` keeps them in
+`spec_gaps` (present only when non-empty), and they do not count toward a member's blocking
+total, so `verdict: accept` with only spec gaps is valid. Report items print as the header
+line followed by `  <1>1 claim  — by` lines. Old rounds keep their saved schema; JSON with
+`problem` and no `steps` still validates and renders as before.

@@ -167,3 +167,13 @@ severity S0, problem with its witness, and the concrete fix),
 `verdict_core`, `verdict`, `summary` (including which hand reproductions
 you did and their results). Consensus is reached when every member
 returns `accept` with an empty blocking list.
+
+**Shape of a blocking item.** Give `steps`, not `problem`: 3 to 6 numbered steps
+`{"n": "<1>1", "claim": "...", "by": "..."}`. Step 1 is what the spec requires (`by`
+starts with `clause:<ID>`, a clause or section id from the clause graph, or with
+`ASSUMED: <why the spec is silent>`); then what the code does, with a `witness:<path or
+command>` that reproduces it; then an input on which the two differ; the last step is the
+conclusion, citing earlier steps with `step:<n>`. `OPEN: <what is missing>` marks a step you
+cannot justify. If step 1 is `ASSUMED:` the item is a spec gap: set `"kind": "spec-gap"`; it is
+reported to the spec owner and is neither an editor blocker nor counted against `accept`.
+The `fix` field is unchanged.
