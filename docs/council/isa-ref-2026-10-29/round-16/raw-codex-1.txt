@@ -1,0 +1,86 @@
+exit 0 in 14s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "R15-B01/B02 are resolved: all 163 metadata productions were revisited, including the new two-point translation_frame and the structural/semantic decimal boundary. Direct grammar and full-object cardinality controls pass. The remaining admission narrowing is schedule_bindings.expansion: TABLE requires it although §17 item 7 explicitly defines its omission. See R16-B01.",
+      "change": "In src/metadata_schema.rs::TABLE make schedule_bindings.expansion optional, with the §17 item 7 default documented alongside the production; implement the positive and negative controls in R16-B01."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "Independently checked the literal 261-byte LF-terminated inc8 envelope and the two R15 witness file digests. Interface=closure remains 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93; deletion of schedule/certificate with its preceding boundary LF gives object hash 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9. The four published hashes, SCC/linking, namespace and dotted-path regression tests pass.",
+      "change": "No corrective identity change is required. When admitting omitted expansion, preserve the supplied schedule bytes and hash those bytes under §9.2; do not insert a synthetic expansion object into the canonical document."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "Hand-derived inc8(255): const 1, modular add to 0, retval, yielding (payload,code,steps)=(0,0,3) at B=3; B=2 gives (0,1,2), B=0 gives (0,1,0), B=4 still reports three executed rows. CLI agrees. At B=1, udiv(7,0) gives (0,5,1) and sdiv(128,255) gives (0,6,1), also reproduced. Normal arithmetic, memory, budget, nested-call and arbitrary-width tests pass.",
+      "change": "No corrective execution change is required; retain these tight-budget and first-fault assertions in tests/oracle.rs and the existing CLI regressions."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "Traced machine.rs::inverse_step and inverse_call/inverse_ret against §§3.6–3.7: pc exchanges and successor cancellation precede fault/effect undo; reverse assignment exchanges precede slot uncomputation; counters are restored before call-record addresses and return delivery. inc8 step-check exhaustively passes all 256 inputs at B=3. The separately rerun exhaustive_recursive_prefixes sweep passes all 256 inputs and every tested prefix through completion/first fault.",
+      "change": "No corrective reversal change is required; retain the complete-state and clean-frame assertions in tests/step_machine.rs, including the recursive call/return sweep."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "Traced nested -> f -> g through call/ret, clock.read, segment uncall and whole-run undo_record/undo_frame under §7.4. The inner uncall restores clock/memory/tape; reversing f skips already reversed g frames and its marker. CLI reverse nested returns 0 after 11 instructions, clock=0, empty tape, equals_entry=true and identical d200538a3f99cb418e35b18dffcc60039675a6b257e089a679cce7290b4af44c memory digests. Normal CC/R, hostcall, handle and fault-reversal tests pass.",
+      "change": "No corrective CC/R change is required; preserve the nested cancellation and device/memory restoration controls in tests/classical.rs."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The normal borrow, exact-gate, coherent-control, qinplace, discipline and certificate tests pass, including the retained singleton X-action evidence control and R14 interval/table admission controls. No new Q-semantic divergence was established. Numerical/channel realisation verification remains explicitly Unverified at the previously disclosed staged boundary; this review does not certify that later machinery.",
+      "change": "For the existing next-stage verifier work in src/claims.rs, implement §12.1 outward-rounded unitary and strictly feasible channel-witness checks with independent controlled-interference cases; retain Unverified until those obligations are implemented."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Normal suite: 384 passed, 0 failed, 5 ignored. All five focused R15 tests pass; recursive prefix sweep separately passes. Generated family reproduces 163 productions, 9806 positives, 1653 typed paths, 26545 grammar negatives, 1992 dual-admission negatives (subset), 26 pinned objects, 2393 parse visits, 17173 full-parse negatives: 43718 total negatives without recounting dual assertions. R13 widths reproduce 507=159+286+62. However tests/metadata.rs explicitly asserts rejection after removing expansion; that expected outcome contradicts §17 item 7.",
+      "change": "In tests/metadata.rs::schedule_requires_typed_bindings_selectors_and_unique_maxima replace the missing-expansion rejection with a clause-derived positive; retain malformed-present-expansion negatives and add pinned CLI positives. Regenerate family counts after the optionality change. Keep the independent width-outcome follow-up below."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Reviewed SPEC-QUESTIONS 1–32 and the disclosed staged verifier boundary. The R15 reporting accurately distinguishes grammar enforcement from semantic constraints and reports the reproduced counts. No entry records or justifies rejecting §17 item 7’s default; the §11 sketch was treated as mandatory without applying the explicit default. This predates the current diff.",
+      "change": "Document omitted expansion = ref at the object ISA version in README.md’s metadata design discussion and beside the TABLE entry; cite §17 item 7. Update PROGRESS.md with the corrected test expectation and regenerated counts, without claiming target/schedule execution is complete."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R16-B01",
+      "section": "§17 item 7 default expansion binding; §11 schedule schema; src/metadata_schema.rs::TABLE(schedule_bindings), tests/metadata.rs::schedule_requires_typed_bindings_selectors_and_unique_maxima",
+      "scope": "core",
+      "problem": "A schedule with the normative default expansion is rejected at admission. Starting with the independently pinned schedule-cleanupFalse record in tests/support/r13_schema_cases.json, remove only bindings.expansion and JCS-serialize the schedule line. check and hash both exit 1 with empty stdout and a §9.1/§11 diagnostic ending “missing field expansion”. Witness: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r16-default-expansion.bisa, file SHA-256 8344b91cdba546f8bf29db14c4c239011cd088660863e015727c76ea8df25bfa. Its object hash remains 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 and interface/closure remains 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. TABLE declares expansion as required, and the existing metadata test specifically removes it and expects rejection. This is a schema/default omission, not a request to complete the staged schedule executor.",
+      "fix": "In src/metadata_schema.rs::TABLE change schedule_bindings from \"expansion\":\"expansion\" to \"expansion?\":\"expansion\", retaining the existing closed name/version/hash production whenever the field is supplied. Determining §17 item 7 sentence: “a schedule that names no expansion binds ref at the ISA’s own version.” Thus absence means ref/0.8 for this object, while a present malformed descriptor still rejects. §11’s sketch lists expansion and can be read in isolation as requiring every listed binding; §17 explicitly supplies the omitted-field case, so the implementation must apply that exception. No spec amendment or new narrowing reading is needed. In tests/metadata.rs::schedule_requires_typed_bindings_selectors_and_unique_maxima replace the bindings.remove(\"expansion\") rejection assertion with successful parse/check_hashes, and add a direct schedule_bindings grammar-positive omission case independent of TABLE generation. In tests/cli_xam.rs add the pinned witness above: both check/hash must exit 0/status ok with the unchanged object/interface/closure pins. Add present null, empty object and invalid hash controls that still exit 1 with empty stdout and §9.1/§11. No run input or execution budget is needed: this is admission; the existing budget [3,0,0,0] stays unchanged. Preserve the original canonical schedule instead of synthesizing a hash or rewriting its bytes: its §9.2 schedule hash is d5ba44577e812d158265a048d8e4f8843b5a472cad120f47a893c6bbc9dfb99d. Document the semantic default for later schedule consumers and regenerate the derived family counts. The test currently fails on absence and should pass after this change."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "R15-B01",
+      "status": "resolved",
+      "note": "translation_witness.frame now references translation_frame=Tuple(point,point); the certificate.rs::validate_claim cardinality-only guard is removed. Literal direct-grammar and full-admission controls accept exactly length 2, rejecting 0/1/3; V/W remain arrays. Empty-frame file digest bf88ce59f34ccca4a5e930028d51a8daa0ef9d1c5f78027a85893a19df70b27d and all identity pins reproduce."
+    },
+    {
+      "id": "R15-B02",
+      "status": "resolved",
+      "note": "Validated mantissa digits determine exact zero without binary64 conversion. Library/CLI tests and independent check/hash controls accept 0, \"0\", \"0.0\", \"0.000\" (also \"000.000\") with unchanged pins and reject \"0.1\" and exact 10^-400. Focused tests also reject numeric 1e-300 as nonzero. Original \"0.0\" file digest 1431a1dbbe4991d170e3848995026610ebbffce08e7279ee05a68880f06c82df reproduces."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "Retain the prior nonblocking width-family follow-up: in tests/r1_widths.rs::r13_generated_derived_width_extremes_family derive each expected acceptance/layout-error/host-limit class independently from the layout inequalities and host representation boundary before invoking the interpreter, then assert that class. Preserve the 507-case domain and literal boundary controls. This improves evidence; no width divergence was found."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Admit an absent schedule bindings.expansion under §17 item 7 while retaining validation of present descriptors. 2. Replace the existing contradictory rejection test, add direct-grammar and pinned check/hash omission positives plus malformed-present negatives, and preserve schedule bytes/identity. 3. Rerun the generated family and normal suite and update their reported counts. Both R15 fixes must remain green. Completing the staged interval verifier or the nonblocking width-family follow-up is not required to resolve R16-B01.",
+  "summary": "Reviewed detached snapshot d43b2b6f8cf60026f0d49ef4ef2b36aab9f2ef80 and the fd9fd84 diff. All 142 embedded packet files match the worktree byte-for-byte. R15-B01 and R15-B02 are resolved. One newly identified S0 remains: the grammar and an existing test reject the explicitly defaulted omission of schedule expansion. The same required field exists at fd9fd84, so this is a newly found pre-existing defect, not a regression caused by the R15 fixes.\n\nRequired method (1): derived inc8(255) at B=0/2/3/4 as (0,1,0)/(0,1,2)/(0,0,3)/(0,0,3); derived udiv(7,0), B=1 as (0,5,1), and sdiv(128,255), B=1 as (0,6,1). All CLI results agree. Reconstructed/checked the literal §16.3 261-byte LF-terminated inc8 envelope, SHA-256 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93; no references means closure=interface. Removing the schedule/certificate and its boundary LF independently gives 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9. Both copied R15 witness file hashes match their published pins.\n\nMethod (2): traced a complete add inverse: restore old pc via the two exchanges, cancel successor, exchange r with its saved assignment slot, then XOR the old-state x+one into that slot; pc_prime and the frame clear. Traced mixed call inverse C5 through C1 and return inverse R5 through R1 against §3.7, checking restored sp/fp before address/condition evaluation. Exhaustive inc8 step-check passes 256 inputs at B=3; the separately rerun recursive every-prefix sweep passes. Traced the nested/f/g call-ret-uncall segments through classical.rs::undo_frame/undo_record: restore clock and overwritten bytes, retire the effect tape entry, skip previously reversed inner frames and uncall markers. CLI reverse nested restores the complete entry snapshot and memory digest.\n\nMethod (3): revisited SPEC-QUESTIONS 1–32 against their cited clauses, including metadata encodings, decimal/integer representations, tuple conventions, qif lifetime order, measurement order, the dotted-path limitation and address namespace. The two R15 repairs need no new reading. No recorded reading covers expansion omission. The explicit §17 default determines R16-B01 despite §11’s schematic field list.\n\nMethod (4): searched production Rust and crate text for todo!, unimplemented!, unwrap/expect/panic/unreachable, unsupported and approximation/assumption markers. Classified the production hits as validated container/type invariants, graph/history invariants, explicit unsupported-device diagnostics or approximate display routines alongside exact decisions; test hits are assertions/fixture constructors. Inspected the borrow-history unwrap guards, epoch-rank construction, running-control guard, exact-number conversion and schema-reference invariant. No new panic or silent-fallback witness was established. Staged Unverified claims remain distinct from successful verification.\n\nMethod (5): revisited §4.1–§4.8 row/opcode families, §5.4 faults, §3.6–§3.7 frame/slot forms, §7.4 history forms, metadata field/alternative coverage, CLI dispatch and suite obligations. The table has 163 productions: scalar leaves, signatures and memory slots, object sections, schedule paths/selectors/payloads, all five claim kinds and three structural rules, domains, expected tuples, expressions, frames, composition and coverage. The new translation tuple is correct. Cross-checking defaults in §17 revealed the expansion optionality defect; generated grammar tests alone cannot detect a wrong required-field declaration. No additional execution/reversal defect was established. The reread concentrated on the changed grammar/semantic boundary and reachable admission, dispatch and reversal paths; passing tests is not a proof of every ISA behavior.\n\nObserved validation: focused R15 tests 5 passed; normal cargo test --offline --no-fail-fast 384 passed/0 failed/5 ignored. Schema family: 163/9806/1653/26545/1992/26/2393/17173, totaling 43718 negative cases without recounting dual-admission assertions. Width family: 507 cases, 159 constructed, 286 layout rejections, 62 resource diagnostics. Separately ran exhaustive_recursive_prefixes: 1 passed/0 failed, 256 inputs across every prefix through completion/first fault. The other four ignored sweeps were not rerun here; their editor-recorded successful runs remain historical evidence. Independently exercised 22 CLI assertions covering frame lengths and decimal zero/nonzero controls; all match the R15 fixes. Reproduced R16-B01 under both check and hash and saved the exact witness. Commands used the requested headless environment and offline cargo manifest. No tracked files were modified; no commit or push was made."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r16-codex.json

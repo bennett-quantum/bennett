@@ -1,0 +1,1246 @@
+--- round-15/doc.md
++++ round-16/doc.md
+@@ -1,12 +1,12 @@
+-# Bennett ISA reference interpreter, council round 15 (re-grade after round-14 fixes; codex seat only)
+-
+-Snapshot of `reference-interpreter/` at commit `fd9fd84196791d86f41957dc753c2cc550c4ea0c`. 137 files; each embedded verbatim below. Line counts and sha256 per file:
+-
+-- `README.md` 476 lines, sha256 e3746665f064
+-- `PROGRESS.md` 125 lines, sha256 35a97329bf02
++# Bennett ISA reference interpreter, council round 16 (re-grade after round-15 fixes; codex seat only)
++
++Snapshot of `reference-interpreter/` at commit `d43b2b6f8cf60026f0d49ef4ef2b36aab9f2ef80`. 142 files; each embedded verbatim below. Line counts and sha256 per file:
++
++- `README.md` 483 lines, sha256 f66dbbda9264
++- `PROGRESS.md` 108 lines, sha256 fc735e27e685
+ - `SPEC-QUESTIONS.md` 296 lines, sha256 c5d6d6eb56e0
+ - `BRIEF.md` 60 lines, sha256 702994e9abe7
+-- `council/response-round-14.md` 222 lines, sha256 5546c4504c49
+-- `src/metadata_schema.rs` 350 lines, sha256 9c24520dabce
++- `council/response-round-15.md` 182 lines, sha256 b3d829e5cf53
++- `src/metadata_schema.rs` 351 lines, sha256 7aed98ebf115
+ - `.gitignore` 1 lines, sha256 9b9916f48757
+ - `Cargo.toml` 7 lines, sha256 62f73d0d28a5
+@@ -16,4 +16,5 @@
+ - `council/response-round-12.md` 225 lines, sha256 f618b9e53fed
+ - `council/response-round-13.md` 261 lines, sha256 5bacacd4336c
++- `council/response-round-14.md` 222 lines, sha256 5546c4504c49
+ - `council/response-round-2.md` 260 lines, sha256 ad3b4b794b86
+ - `council/response-round-3.md` 189 lines, sha256 3831e81a7913
+@@ -29,5 +30,5 @@
+ - `src/borrow.rs` 1990 lines, sha256 a7e4e8e0c997
+ - `src/call_discipline.rs` 390 lines, sha256 1d1f739b45b7
+-- `src/certificate.rs` 337 lines, sha256 0148a389480c
++- `src/certificate.rs` 332 lines, sha256 c04a9e92dfff
+ - `src/claims.rs` 790 lines, sha256 c88aa17340d2
+ - `src/classical.rs` 1624 lines, sha256 0aacce3a8e69
+@@ -42,6 +43,6 @@
+ - `src/machine.rs` 1293 lines, sha256 a3692f5e18a6
+ - `src/main.rs` 2001 lines, sha256 2d378567ac42
+-- `src/metadata.rs` 319 lines, sha256 29a98788e2dd
+-- `src/metadata_schema/tests.rs` 333 lines, sha256 2679e4bc7f44
++- `src/metadata.rs` 323 lines, sha256 0ae20f8bc825
++- `src/metadata_schema/tests.rs` 356 lines, sha256 655488ce206d
+ - `src/metadata_types.rs` 7 lines, sha256 2aef2d060fa5
+ - `src/object.rs` 1774 lines, sha256 c99a4ca0d870
+@@ -56,5 +57,5 @@
+ - `tests/classical.rs` 84 lines, sha256 3d2192b944bc
+ - `tests/cli.rs` 204 lines, sha256 c4a20ced990c
+-- `tests/cli_xam.rs` 2129 lines, sha256 29aa51491285
++- `tests/cli_xam.rs` 2169 lines, sha256 2632091b0dd2
+ - `tests/discipline.rs` 250 lines, sha256 c111b1f9c7de
+ - `tests/fixtures/actions.bisa` 39 lines, sha256 1b4250b0ee08
+@@ -92,5 +93,5 @@
+ - `tests/identity.rs` 614 lines, sha256 119066ed630d
+ - `tests/linking.rs` 133 lines, sha256 ca9f81880cc9
+-- `tests/metadata.rs` 355 lines, sha256 be52dc2a6f0f
++- `tests/metadata.rs` 402 lines, sha256 9e3d173de076
+ - `tests/oracle.rs` 301 lines, sha256 a441482548ea
+ - `tests/parser.rs` 434 lines, sha256 8449dc9e827d
+@@ -113,5 +114,5 @@
+ - `tests/step_machine.rs` 187 lines, sha256 246f97372d34
+ - `tests/structured.rs` 77 lines, sha256 b79a5f348022
+-- `tests/support/mod.rs` 776 lines, sha256 644a4b51076f
++- `tests/support/mod.rs` 777 lines, sha256 72c4495fdd21
+ - `tests/support/r10_cases.json` 1 lines, sha256 ac147d3409d3
+ - `tests/support/r10_pins.py` 66 lines, sha256 f9753b4c0606
+@@ -138,10 +139,14 @@
+ - `tests/support/r14_pins.json` 50 lines, sha256 263d5332dfda
+ - `tests/support/r14_pins.py` 39 lines, sha256 22dfe89dcc71
++- `tests/support/r15-witnesses/r15-epsilon-0.0.bisa` 15 lines, sha256 1431a1dbbe49
++- `tests/support/r15-witnesses/r15-frame-empty.bisa` 15 lines, sha256 bf88ce59f34c
++- `tests/support/r15.rs` 43 lines, sha256 ff0ac1b88e38
++- `tests/support/r15_pins.py` 46 lines, sha256 2d21c53ceefc
+ - `tests/support/r9_pins.py` 47 lines, sha256 46a27f6d9112
+ - `tests/wide_oracle.rs` 250 lines, sha256 98790a28e591
+ 
+-Total embedded: 40423 lines.
+-
+-## `README.md` (476 lines)
++Total embedded: 40825 lines.
++
++## `README.md` (483 lines)
+ 
+ ````markdown
+@@ -584,5 +589,5 @@
+ The complete round-11 sidecar audit is in tests/support/r11-comment-audit.md.
+ 
+-**Design (metadata, round 14).** `src/metadata_schema.rs::TABLE` is the
++**Design (metadata, round 15).** `src/metadata_schema.rs::TABLE` is the
+ single declarative recursive grammar for all seven JSON metadata sections,
+ signatures and the textual data NAME/HEX projection. Every production cites
+@@ -591,7 +596,9 @@
+ there are no parallel hand-written field/type schemas. Y endpoints are
+ signed finite decimal strings; exhaustive tables contain arrays of canonical
+-§9.1 integers of arbitrary size. Semantic checks remain in `object.rs`
+-(layout ranges, image resolution), `metadata.rs` (schedule paths, payload
+-agreement and overlap; coverage points), `certificate.rs` (domain bindings,
++§9.1 integers of arbitrary size. The translation frame is a two-point tuple
++in the grammar; V and W remain point arrays. Semantic checks remain in
++`object.rs` (layout ranges, image resolution), `metadata.rs` (schedule paths,
++payload agreement and overlap, exact decimal-value zero for oracle epsilon;
++coverage points), `certificate.rs` (domain bindings,
+ indices, expression environments/arity, live-range overlap and certificate
+ bindings), and `validation.rs` (device model compatibility). These checks
+@@ -602,4 +609,9 @@
+ nested arrays/maps, tests every production and alternative, walks all supplied
+ paths, and rejects malformed types before hashing or claim execution.
++Round 15 observes 163 productions, 9,806 generated positives, 1,653 unique
++typed paths and 26,545 grammar negatives (1,992 also through both admission
++validators); 26 pinned objects add 2,393 parse visits and 17,173 parse negatives.
++This tests enforcement of the table; independent clause-derived controls
++check frame cardinality and numeric zero through full admission.
+ 
+ `DerivedWidths::from_program` checks H+2, A_tab+1 and S_cells+1; a legal layout
+@@ -624,5 +636,5 @@
+ ````
+ 
+-## `PROGRESS.md` (125 lines)
++## `PROGRESS.md` (108 lines)
+ 
+ ````markdown
+@@ -631,93 +643,76 @@
+ Resume here. The whole accepted ISA 0.8 remains in scope; staged deliverables
+ are not complete. Sole implementation sub-agent; owned interpreter and external
+-round-14 response only. Never push. Every cargo invocation uses the headless
++round-15 response only. Never push. Every cargo invocation uses the headless
+ prefix and TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp.
+ 
+-## Round-14 fixes (2026-10-31)
+-
+-Baseline **375 passed / 0 failed / 5 ignored**, summed over all binaries.
+-Combined witness RED **0 passed / 4 failed**: parse admitted both malformed
+-certificate types, CLI check returned exit 0/status ok. Witnesses and all
+-round 4–13 positives/negatives retained; the R13 type family is replaced.
++## Round-15 fixes (2026-10-31)
++
++Baseline **379 passed / 0 failed / 5 ignored**, summed over all binaries,
++20.67 s runner sum. Combined R15 RED **2 passed / 3 failed**: direct grammar
++admits frame lengths [0,1,2,3], expected [2]; library/CLI reject legal "0.0"
++with §11: §5.2. The two full-admission frame regressions already pass because
++of the old downstream guard. Combined GREEN **5 passed / 0 failed** (0.06 s).
++All round 4–15 positives/negatives and previous family tests are retained.
+ 
+ | Blocker | RED tests | Status | Commit |
+ |---|---|---|---|
+-| R14-B01 | metadata::r14_y_endpoints_require_decimal_strings; cli_xam::r14_cli_rejects_numeric_y_endpoints | GREEN | 7f834d0 |
+-| R14-B02 | metadata::r14_table_rows_and_components_are_typed_at_admission; cli_xam::r14_cli_rejects_malformed_table_rows_and_cells | GREEN | 7f834d0 |
+-
+-Design: src/metadata_schema.rs::TABLE is the sole recursive grammar, with
+-clauses on all productions. It covers every accepted JSON metadata section
+-and the textual data NAME/HEX projection. Admission preflight, signatures,
+-certificate details and validate_claim consume it; previous hand-written
+-field/type schemas are removed. Metadata helper checks also delegate to it.
+-Only contextual/range checks remain in object.rs, metadata.rs, certificate.rs
+-and validation.rs, with their § citations. Expected tuples use arbitrary-size
+-canonical integers; Y endpoints use signed finite decimal strings.
+-Service strings, layout extrema, integer/decimal alternatives, expression
+-ASTs and optional fields are retained. Numerical/channel verification stays
++| R15-B01 | metadata_schema::tests::r15_translation_frame_is_first_and_last_point_tuple; retained-admission controls metadata::r15_translation_frame_cardinality_is_checked_at_admission, cli_xam::r15_cli_rejects_empty_translation_frame | GREEN | 9283db7 |
++| R15-B02 | metadata::r15_oracle_schedule_epsilon_uses_exact_decimal_value; cli_xam::r15_cli_oracle_schedule_epsilon_is_exact_by_value | GREEN | 9283db7 |
++
++Design: src/metadata_schema.rs::TABLE is the sole recursive structural grammar.
++New translation_frame = Tuple(point, point) expresses §12.1 first/last
++cardinality; V/W remain Array(point). The duplicate cardinality-only check
++in certificate.rs::validate_claim is removed. Contextual claim-index checks
++remain. metadata.rs::Object::validate_schedule_details checks numeric oracle
++epsilon zero after decimal validation: all mantissa digits must be zero,
++regardless of scale/exponent, with no binary64 conversion for the decision.
++README's metadata Design paragraph reflects this structural/semantic split.
++No spec reading/waiver is added; numerical/channel verification remains
+ explicitly Unverified at the existing staged boundary.
+ 
+-Six exact reviewer witnesses are copied under tests/support/r14-witnesses/,
+-not the valid fixture inventory. tests/support/r14_pins.py independently
+-assembles literal LF envelopes and verifies file/interface/closure/object
+-pins; no interpreter or rehash defines expectations. Inc8 is 8ce5e64f…5be93,
+-object 8093da48…ec5d9; action is 2fcd5b3d…ab8be, object ddc5d672…666f0.
+-The singleton X action still verifies as Evidence { elements: 1 }. A component
+-above u128 remains admissible; table truth/cardinality remain verifier work.
+-CLI negatives exit 1 with empty stdout and §9.1/§12 diagnostics.
+-
+-The derived family is metadata_schema::tests::r14_generated_metadata_schema_type_family
+-(src/metadata_schema/tests.rs), derived from **162 productions**. It exercises
+-**9,754 generated positives, 1,632 unique typed paths, 26,354 grammar negatives**;
+-**1,992** of those run through BOTH admission validators (and certificate
+-negatives also call validate_certificate_details directly). Another **26 pinned
+-objects, 2,393 parse path visits, 17,173 full-parse negatives** exercise real
+-admission before identities. Total negative cases: **43,527** (dual-validator
+-assertions are a subset, not added again). Empty/nonempty containers, optional
+-absence, every union/enum alternative, canonical large integers and decimal
+-edges are represented. Wrong-kind expectations derive from Shape independently
+-of observed validator results. The old R13 family/union is removed, not retained
+-as a second schema. The width family remains **507: 159 constructed, 286 layout
+-rejections, 62 resource diagnostics**. The reviewer's nonblocking S1 request
+-for stronger independent width-outcome assertions is left as future work;
+-no width behavior or existing assertion is changed this round.
+-
+-Observed normal gates: 379/0/5 after replacement and 379/0/5 after final
+-schema/positive-family changes. Initial full run failed only because malformed
+-reviewer objects were placed in the valid fixture inventory; moved them to
+-support without weakening the fixture audit. The first pin script assumed
+-r14-table-bool was action-based; corrected it to read its inc8 symbol. All
+-supplied pins match unchanged. Clippy's redundant unit-expression finding
+-was corrected. Final post-style suite: **379 passed / 0 failed / 5 ignored**,
+-9 unit + 370 integration, 0 doctests, 22.84 s summed runner time. Baseline was
+-18.32 s. Fmt and strict all-target Clippy pass (0 warnings). The final family
+-and width gate passed 5 tests (two generated families plus three retained width
+-regressions); 5.21 s schema + 0.07 s widths.
+-
+-All **5 ignored sweeps passed / 0 failed**, **100.56 s** summed runner time.
++Two exact reviewer witnesses in tests/support/r15-witnesses/ match their
++read-only originals byte-for-byte. r15_pins.py independently assembles the
++literal 261-byte LF envelope and hashes it, without interpreter/rehash.
++Interface=closure 8ce5e64f…5be93, object 8093da48…ec5d9 remain unchanged.
++The epsilon witness SHA is 1431a1db…2df; the empty-frame file is bf88ce59…b27d.
++Library/CLI positives 0, "0", "0.0", "0.000" parse/check/hash with those pins.
++Nonzero "0.1", "0.000001", exact decimal-string 10^-400 and numeric 1e-300
++reject §5.2. String "1e-300" is outside the existing decimal-string grammar
++and rejects §9.1. CLI negatives exit 1 with empty stdout and cited diagnostics.
++Only two-point frames parse/check; empty/one/three-point frames reject §12.1.
++
++The retained metadata_schema::tests::r14_generated_metadata_schema_type_family
++now exercises **163 productions, 9,806 generated positives, 1,653 unique typed
++paths, 26,545 grammar negatives**; **1,992** negatives also run through BOTH
++admission validators (a subset, not added again). **26 pinned objects, 2,393
++parse path visits and 17,173 full-parse negatives** remain. Total negatives
++without recounting dual assertions: **43,718**. Table-derived baselines now
++have two frame points. The independent literal cardinality test checks the
++clause separately; generated counts establish enforcement of TABLE.
++The width family remains **507: 159 constructed, 286 layout rejections,
++62 resource diagnostics**. Its independent outcome-classification follow-up
++remains nonblocking future work, as the reviewer permits.
++
++Observed first full suite: **384 passed / 0 failed / 5 ignored**, 20.60 s.
++Final full suite: **384 passed / 0 failed / 5 ignored**, 19.65 s runner sum; 10 unit + 374 integration, 0 doctests.
++Final family/width gate: **6 passed / 0 failed**, 5.19 s schema + 0.07 s widths.
++Fmt and strict all-target Clippy pass (0 warnings). Independent pin script and
++copy checks pass. No production/test edits after final suite or sweep start.
++
++All **5 ignored sweeps passed / 0 failed**, **97.21 s** summed runner time.
+ 
+ | Sweep | Full domain | Observed result / runner time |
+ |---|---|---|
+ | u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.52 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 2.71 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.81 s |
+-| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 80.11 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.41 s |
+-
+-No production/test edits after the final normal suite or sweep start.
+-All three generated corpora reproduce byte-identically; all six copied
+-reviewer files match the originals. Owned diff --check is clean.
+-
+-Supplemental exact RED replay builds e3ae1af sources with headless rustc under
+-reference-interpreter/.tmp (no checkout/current-source changes): 0/2 library
+-tests on exact Y-number/row-bool; all ten exact negative check/hash calls
+-wrongly exit 0. The same ten calls on the current binary exit 1, empty stdout,
+-with §9.1/§12; the singleton positive pin is unchanged.
+-Logs: .tmp/r14-exact-{red-replay,cli-green}.log.
+-
+-Logs: repo .tmp/r14-{before,red,green,schema-full,family,full,final,final2,
+-clippy,clippy-final,families-final,sweeps}.log. No spec/conformance edits or execution, dependency,
++| 17-wire borrow | 131,072 entries | 1/0; 2.74 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.99 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.54 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.42 s |
++
++Logs: interpreter .tmp/r15-{before,red,green,full,final,family,clippy,sweeps}.log.
++Owned diffs pass --check. No spec/conformance edits or execution, dependency,
+ Beads mutation/export, push or Dolt sync. Concurrent changes are untouched.
+-Historical round evidence is in council/response-round-N.md and git history.
++Historical round evidence is in council/response-round-N.md, external council
++responses and git history.
+ 
+ ## Resume here: outstanding work, in priority order
+@@ -1120,232 +1115,192 @@
+ ````
+ 
+-## `council/response-round-14.md` (222 lines)
++## `council/response-round-15.md` (182 lines)
+ 
+ ````markdown
+-# Editor response: council round 14
+-
+-Both S0 blockers, **R14-B01 and R14-B02**, are resolved; none declined or
++# Editor response: council round 15
++
++Both S0 blockers, **R15-B01 and R15-B02**, are resolved; none declined or
+ partial. Sole implementation sub-agent; binding round-7–14 briefs, repository
+ instructions and the full codex report/JSON read. Implementation commit
+-**7f834d0**; final evidence/correction commit **198c08a**. Only owned interpreter paths and this response are committed;
+-no push. Concurrent spec/conformance work is untouched.
++**9283db7**; final progress/evidence commit **738c67f**. Only owned interpreter paths and this response are
++committed; no push. Concurrent spec/conformance work is untouched.
+ 
+ ## Design
+ 
+-1. `src/metadata_schema.rs::TABLE` is the single recursive admission grammar:
+-   **162 named productions**, each with the determining clause.
+-2. It covers all seven JSON metadata sections: symbols, imports, devices,
+-   layout, schedule, certificate and coverage; every signature alternative;
+-   and the textual data section's NAME/HEX projection (§9.1/§16.2).
+-3. Productions cover §9.1 sections/signatures/integers, §9.2 hashes/points,
+-   §9.4 frame descriptors, §8.1 expressions, §11 schedules, §12.1 claims and
+-   interval encoding, §12.2 domains/tuple enumeration and §12.3 composition,
+-   as well as §13 coverage. Optional keys, closed objects, arrays, maps, tuples,
+-   enum alternatives and recursive expression operands are explicit.
+-4. `metadata_types::Object::validate_metadata_types` validates the metadata
+-   root before identities. `validate_certificate_details` and `validate_claim`
+-   consume the same table. Signature admission and data-line parsing also use
+-   it. Metadata hash/text/decimal helpers delegate to table productions.
+-5. Previous hand-written field/type schemas in object.rs, validation.rs,
+-   metadata.rs and certificate.rs are removed; no second schema remains.
+-6. Semantic checks remain where context is available: object.rs resolves
+-   images and layout intervals; metadata.rs resolves schedule/coverage points,
+-   checks payload agreement and entry overlap; certificate.rs checks domain
+-   names/ranges, claim indices, expression arity/environments, live ranges and
+-   certificate bindings; validation.rs checks device model compatibility.
+-   These checks cite their determining clauses.
+-7. Table components are arbitrary-size canonical §9.1 unsigned integers.
+-   Their truth, cardinality, widths and complete-result comparisons remain
+-   verifier obligations, not load-time execution.
+-8. Y entries are four signed finite decimal strings. Ordinary nonnegative
+-   decimals retain number/string forms; §8.1 expressions retain numeric and
+-   closed recursive AST forms. No ISA exponent or integer-width cap is added.
+-9. The derived family walks generated grammar examples and real pinned objects,
+-   recursively including array elements and object fields. Wrong-kind
+-   expectations derive from Shape independently of observed validator results.
+-10. Every production, enum/union alternative and optional absence is generated;
+-    positive substitutions exercise each accepted alternative at visited paths.
+-    Table rows/components are populated, including a component above u128.
+-11. The R13 path-specific union and family are replaced. The historical local
+-    round-13 response has a correction withdrawing its completeness claim.
+-12. Numerical/channel execution remains explicitly Unverified at the staged
+-    interval-verifier boundary. Scope and the recorded §9.2 dotted-path
+-    limitation are unchanged; no new spec reading or waiver is needed.
+-
+-## R14-B01 — resolved
+-
+-Determining clause: §12.1 explicitly encodes Y entries as decimal strings.
+-The exact reviewer object is copied byte-for-byte as
+-`tests/support/r14-witnesses/r14-Y-number.bisa`, full-file SHA-256
+-`578c913bb276d1446e2e038af0ab0a77017d9abe5ec351e3e20b69c307068e11`.
++1. `src/metadata_schema.rs::TABLE` remains the single recursive structural
++   admission grammar, now **163 named productions**, each citing its clause.
++2. `translation_witness.frame` uses the new `translation_frame` production:
++   `Shape::Tuple(&["point", "point"])`, implementing §12.1's first/last points.
++   V and W retain `Array(point)`, including empty and longer arrays.
++3. `certificate.rs::validate_claim` consumes the grammar and no longer repeats
++   frame cardinality. Claim-index and other contextual checks remain there.
++4. Oracle schedule exactness is a semantic value constraint (§§4.4, 5.2, 11).
++   After decimal validation, zero means every mantissa digit is zero; the
++   decimal scale/exponent cannot change that decision. No binary64 conversion
++   is used for the zero decision, and no exponent/precision cap is added.
++5. README's metadata Design paragraph records that structural/semantic split
++   and the regenerated counts. The family tests enforcement of TABLE, while
++   the independent literal cardinality/value controls test the cited rules.
++6. Identity, execution, borrowed-frame obligations and interval verification
++   are unchanged. Numerical/channel claims remain explicitly Unverified at
++   the existing staged boundary; no new spec reading or waiver is needed.
++
++## R15-B01 — resolved
++
++Determining clause: §12.1 explicitly encodes `frame: [first point, last point]`.
++
++RED test: `metadata_schema::tests::r15_translation_frame_is_first_and_last_point_tuple`
++constructs literal all-zero-hash points independently of TABLE, samples and
++baseline. It failed with accepted lengths **[0, 1, 2, 3]**, expected **[2]**.
++GREEN accepts only length 2; lengths 0, 1 and 3 reject. A separate loop retains
++variable-length point-array acceptance for V/W's production.
++
++Full-admission controls:
++
++- `metadata::r15_translation_frame_cardinality_is_checked_at_admission` checks
++  all four lengths on the reviewer object. Only length 2 parses/checks and
++  preserves the object pin; the other lengths reject with §12.1.
++- `cli_xam::r15_cli_rejects_empty_translation_frame` replays the exact copied
++  reviewer negative under check/hash: exit 1, empty stdout, §12.1 diagnostic.
++
++These two full-admission regressions already passed before the fix because
++the old semantic guard existed. They remain green after its removal. The
++cardinality-only hand-written guard expresses nothing beyond Tuple, so it is
++removed rather than retained as a redundant invariant. Fix: TABLE's
++`translation_witness -> translation_frame`; `certificate.rs::validate_claim`.
++Commit **9283db7**.
++
++## R15-B02 — resolved
++
++Determining clauses: §5.2 requires numeric ε=0, §4.4 requires exact oracle
++gates, and §11 carries accuracy as decimal text. JCS does not canonicalize
++the contents of JSON strings.
+ 
+ RED tests:
+ 
+-- `metadata::r14_y_endpoints_require_decimal_strings`
+-- `cli_xam::r14_cli_rejects_numeric_y_endpoints`
+-
+-Both failed: parse admitted numeric endpoints; CLI check returned exit 0,
+-status ok and the reviewer's object hash. GREEN rejects the exact object and
+-each of four endpoint positions independently changed to number, bool, null,
+-array or object. Check and hash exit 1, empty stdout, §9.1/§12.1 diagnostic.
+-The otherwise identical four-string zero control still parses/checks, retains
+-its literal envelope/interface/closure/object pins and reports Unverified on
+-explicit channel verification.
+-
+-Fix: TABLE's `channel -> dual -> dual_witness -> Y -> interval -> endpoint`;
+-`endpoint` is `SignedDecimalString`. Both admission paths consume it; the
+-previous Number|String hand-written check and test union are gone. Commit
+-**7f834d0**. No restriction is applied to ordinary decimal fields or numeric
+-§8.1 expressions.
+-
+-## R14-B02 — resolved
+-
+-Determining clauses: §§9.1, 12.1–12.2, SPEC-QUESTIONS 21's existing full-tuple
+-encoding. The smaller singleton X action and all adjacent reviewer negatives
+-are exact copies in `tests/support/r14-witnesses/`.
+-
+-RED tests:
+-
+-- `metadata::r14_table_rows_and_components_are_typed_at_admission`
+-- `cli_xam::r14_cli_rejects_malformed_table_rows_and_cells`
+-
+-Both failed: malformed rows/components were admitted; check returned exit 0
+-and the pinned action object hash. GREEN rejects the exact witnesses and rows
+-changed to number/string/bool/null/object, plus bool/null/array/object,
+-fractional/negative integers and malformed/noncanonical integer strings as
+-components. Parse fails before any verification; check/hash exit 1, empty
+-stdout, cited §9.1/§12 diagnostic. The original inc8 table-bool witness also
+-rejects. The populated [[1]] singleton control still parses, checks and
+-verifies as `Evidence { elements: 1 }`: X maps t=0 to t=1.
+-A canonical decimal-string component 2^128 is admitted without host narrowing.
+-
+-Fix: TABLE's `exhaustive -> expected -> table_expected -> table -> uints -> uint`;
+-`uint` uses uint_text, not a bounded integer. `r13_pins.py` now populates the
+-original table branch and adds the independently pinned singleton action.
+-Both admission validators use the table. Commit **7f834d0**.
++- `metadata::r15_oracle_schedule_epsilon_uses_exact_decimal_value`
++- `cli_xam::r15_cli_oracle_schedule_epsilon_is_exact_by_value`
++
++Both failed on **"0.0"**, with **§11: §5.2: oracle schedules must be exact**.
++They use the independently pinned `schedule-cleanupFalse` record, altering
++only bindings.epsilon and serializing its schedule line canonically. Its
++"0.0" form equals the exact reviewer file byte-for-byte.
++
++GREEN library parse/check and CLI check/hash admit **0, "0", "0.0", "0.000"**
++with unchanged literal interface/closure/object pins. They reject nonzero
++**"0.1", "0.000001", exact decimal-string 10^-400 and numeric 1e-300** with
++§5.2. The string spelling **"1e-300"** is outside the existing decimal-string
++grammar and rejects with §9.1; the non-exponent 10^-400 string is admitted by
++the grammar and rejected as nonzero semantically. Thus underflow cannot
++silently make a tiny positive value exact. Every negative check/hash call
++requires exit 1 and empty stdout.
++
++Fix: `metadata.rs::Object::validate_schedule_details` inspects validated
++mantissa digits instead of comparing canonical JSON/string spellings.
++Commit **9283db7**.
+ 
+ ## Independent witness pins
+ 
+-`tests/support/r14_pins.py` assembles literal LF-terminated envelopes with
+-Python json/hashlib, without interpreter or rehash helpers. Reference-free
+-singleton SCCs have closure=interface; actions exclude layout; inc8 has no
+-layout. Removing the certificate section, including its leading boundary LF,
+-gives the whole-object bytes below. All supplied pins match unchanged.
+-Library controls also compare complete envelopes against the independent
+-records. All six copied files match the read-only originals byte-for-byte.
+-
+-| Witness group | Interface = closure | Object hash |
+-|---|---|---|
+-| Y-number / original inc8 table-bool | 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 | 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 |
+-| Singleton action table-positive / row-bool / cell-bool / cell-object | 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be | ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0 |
+-
+-Three corpora regenerate byte-identically: 8 R13 witness records, 26 schema
+-exemplars and 6 R14 pin records. The first script draft assumed table-bool
+-was action-based; corrected it to use its actual inc8 symbol before asserting
+-the pins. No supplied pin or implementation identity changed.
++Exact copies live in `tests/support/r15-witnesses/`, outside the valid fixture
++inventory. `tests/support/r15_pins.py` independently constructs the literal
++261-byte LF-terminated inc8 envelope with Python json/hashlib, without the
++interpreter or a rehash helper. Inc8 has no references, so closure=interface.
++Excluding schedule/certificate with its leading boundary LF reproduces the
++object hash in both files. Both copies match the read-only originals.
++
++| Witness | File SHA-256 |
++|---|---|
++| r15-frame-empty.bisa | bf88ce59f34ccca4a5e930028d51a8daa0ef9d1c5f78027a85893a19df70b27d |
++| r15-epsilon-0.0.bisa | 1431a1dbbe4991d170e3848995026610ebbffce08e7279ee05a68880f06c82df |
++
++Both use interface=closure
++`8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93`
++and object
++`8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9`.
++No supplied pin or implementation identity changed.
+ 
+ ## Generated family
+ 
++The retained test name is
+ `metadata_schema::tests::r14_generated_metadata_schema_type_family`, in
+-`src/metadata_schema/tests.rs`, replaces the R13 family rather than duplicating
+-it. Counts observed with --nocapture:
+-
+-| Coverage | Count |
+-|---|---:|
+-| Declarative productions, all exercised | 162 |
+-| Generated positive controls/substitutions | 9,754 |
+-| Unique generated typed paths | 1,632 |
+-| Grammar-derived negative mutations | 26,354 |
+-| Those negatives through BOTH admission validators | 1,992 (subset) |
+-| Independent pinned object exemplars | 26 |
+-| Full-parse typed path visits | 2,393 |
+-| Full-parse negative mutations | 17,173 |
+-| Total negative cases, without recounting dual assertions | **43,527** |
+-
+-Wrong JSON kinds come from the declared Shape and union alternatives;
+-integer negatives include -1, 1.5, unsafe raw 2^53/2^64 spellings and invalid
+-integer strings. Decimal negatives include nonfinite names, malformed signs,
+-empty/fractional spellings and disallowed string exponents. Positive examples
+-cover canonical large strings through 2^128, number/string decimals, every
+-union and enum alternative, empty/nonempty containers, optional absence and
+-recursive expressions. Both admission validators and direct certificate
+-admission reject generated malformed metadata; full parse negatives require
+-§9.1 before caller-side identities or execution.
++`src/metadata_schema/tests.rs`; its observed R15 counts are:
++
++| Coverage | R14 | R15 |
++|---|---:|---:|
++| Declarative productions, all exercised | 162 | **163** |
++| Generated positive controls/substitutions | 9,754 | **9,806** |
++| Unique generated typed paths | 1,632 | **1,653** |
++| Grammar-derived negative mutations | 26,354 | **26,545** |
++| Those negatives through BOTH admission validators (subset) | 1,992 | **1,992** |
++| Independent pinned object exemplars | 26 | **26** |
++| Full-parse typed path visits | 2,393 | **2,393** |
++| Full-parse negative mutations | 17,173 | **17,173** |
++| Total negative cases, without recounting dual assertions | 43,527 | **43,718** |
++
++The extra Tuple gives generated baselines two points, instead of the old
++one-point frame. The family asserts that TABLE is enforced, not that TABLE
++is an independent oracle for the spec. The new clause-derived test catches
++this cardinality defect independently of that generation.
+ 
+ The retained R13 width family reproduces **507 cases: 159 constructed,
+-286 cited layout rejections, 62 cited resource diagnostics**. Nonblocking S1's
+-stronger independently classified width-outcome assertions are deferred as the
+-reviewer permits; this round changes no width behavior or existing assertion.
++286 cited layout rejections, 62 cited resource diagnostics**. The nonblocking
++independent width-outcome classification follow-up remains deferred, as the
++reviewer permits; this short round changes no width behavior or assertions.
+ 
+ ## Retained checks and observed verification
+ 
+-All round 4–14 positives/negatives remain, except the expressly replaced R13
+-family. This includes service versions/block images, maximum-exponent layout
+-admission and B=0, exact recursive tuple/prefix reversal, first-fault and
+-budget boundaries, borrow frame/return equations, non-permutation negatives,
+-zero-trip/reallocated lifetimes, opaque inverse histories and changed
+-input/token/control negatives, exact Born support, fixture sidecars and the
+-recorded cross-object dotted-path limitation. RNGs/seeds are unchanged.
++All round 4–15 tests are retained. That includes R14's signed-string Y
++endpoints, table-row/component negatives, singleton X Evidence control and
++2^128 admission; prior identity/envelope pins, arbitrary widths, exact
++recursive tuple/prefix reversal, first-fault/budget boundaries, borrowed
++frame/return obligations, non-permutation negatives, zero-trip/reallocated
++lifetimes, opaque inverse histories, changed input/token/control negatives,
++Born support, fixture sidecars and the recorded dotted-path limitation.
++No RNG distribution, seed, sweep domain or earlier assertion changed.
+ 
+ | Gate | Observed result |
+ |---|---|
+-| Baseline, summed over all binaries | **375 passed / 0 failed / 5 ignored**, 18.32 s runner sum |
+-| Combined exact witness RED | **0 passed / 4 failed** across metadata and CLI |
+-| Combined witness GREEN | **4 passed / 0 failed** |
+-| Replaced-family full suite | **379 passed / 0 failed / 5 ignored**, 21.61 s |
+-| Final post-style full suite | **379 passed / 0 failed / 5 ignored**, 22.84 s; 9 unit + 370 integration, 0 doctests |
+-| Final family/width gate | **5 passed / 0 failed** (two families + three retained width regressions); 5.21 s schema, 0.07 s widths |
++| Baseline, summed over all binaries | **379 passed / 0 failed / 5 ignored**, 20.67 s runner sum |
++| Combined R15 RED | **2 passed / 3 failed**; two pre-existing full-admission safeguards pass |
++| Combined R15 GREEN | **5 passed / 0 failed**, 0.06 s runner sum |
++| First full suite after fixes | **384 passed / 0 failed / 5 ignored**, 20.60 s runner sum |
++| Final full suite | **384 passed / 0 failed / 5 ignored**, 19.65 s runner sum; 10 unit + 374 integration, 0 doctests |
++| Family and width gate | **6 passed / 0 failed**; 5.19 s schema + 0.07 s widths |
+ | fmt --check | pass |
+ | Strict all-target Clippy | pass, 0 warnings |
+-| Independent regeneration / copied witnesses | three corpora byte-identical; six exact copies |
+-
+-The initial full run failed only the valid-fixture audit after malformed
+-reviewer files were placed in that inventory. They were moved to support;
+-the audit and all original fixture assertions remain intact. Clippy found one
+-redundant unit expression; removed it, reran Clippy and the full suite. No
+-production or test changes followed the final post-style suite.
+-
+-All **5 ignored sweeps passed / 0 failed**, **100.56 s** summed runner time.
++| Independent pin script / copied witnesses | pass / two byte-identical copies |
++
++All **5 ignored sweeps passed / 0 failed**, **97.21 s** summed runner time.
+ 
+ | Sweep | Full domain | Observed result / runner time |
+ |---|---|---|
+ | u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.52 s |
+-| 17-wire borrow | 131,072 entries | 1/0; 2.71 s |
+-| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.81 s |
+-| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 80.11 s |
+-| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.41 s |
+-
+-A supplementary exact-witness RED replay builds the reviewed e3ae1af sources
+-using headless rustc in reference-interpreter/.tmp (not a checkout; current
+-sources are untouched). Two library rejection assertions on the exact
+-Y-number and row-bool objects fail (0/2), and all ten check/hash calls on the
+-five exact negative files wrongly exit 0/status ok. Replaying those same ten
+-CLI calls against the current binary gives exit 1, empty stdout and §9.1/§12
+-for every case; the singleton positive still checks with its literal pin.
+-This supplements the original pre-fix cargo RED rather than changing its
+-reported count. Logs: .tmp/r14-exact-{red-replay,cli-green}.log.
+-
+-
+-Every cargo call used this prefix, absolute manifest and offline mode;
+-test optimization 1 retains assertions, overflow checks and complete domains:
++| 17-wire borrow | 131,072 entries | 1/0; 2.74 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.99 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 76.54 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.42 s |
++
++Every cargo call used the headless prefix below, absolute manifest and offline
++mode for tests/Clippy. Test optimization 1 retains assertions, overflow checks
++and the complete sweep domains:
+ 
+ ~~~sh
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test metadata --test cli_xam r15_ --no-fail-fast -- --nocapture
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test r1_widths r1 -- --nocapture
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --ignored --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast -- --ignored --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
+ ~~~
+ 
+-RED/GREEN filters used the same prefix/manifest with --test metadata --test
+-cli_xam r14_ --no-fail-fast. Python generators also ran headlessly with the
+-repository TMPDIR. Logs: ISA repo .tmp/r14-{before,red,green,schema-full,
+-family,full,final,final2,families-final,clippy,clippy-final,sweeps}.log.
+-No spec/conformance/include/Python-seed edits or foreign test execution,
+-dependency, Beads mutation/export, push or Dolt sync. Commits use explicit
+-owned paths, absolute git -C and BEADS_HOOK_TIMEOUT=20.
++Logs: interpreter `.tmp/r15-{before,red,green,full,final,family,clippy,sweeps}.log`.
++No production/test edits after the final suite or sweep start. Owned diffs
++pass --check. No spec/conformance/include/Python-seed edits or foreign test
++execution, dependency, Beads mutation/export, push or Dolt sync. Commits use
++explicit owned paths, absolute git -C and BEADS_HOOK_TIMEOUT=20.
+ ````
+ 
+-## `src/metadata_schema.rs` (350 lines)
++## `src/metadata_schema.rs` (351 lines)
+ 
+ ````rust
+@@ -1502,5 +1457,6 @@
+     entry!("empty", "§12.1 adjoint witness", obj!()),
+     entry!("library_witness", "§12.1 library witness", obj!("library_closure_hash":"hash","claim_index":"uint")),
+-    entry!("translation_witness", "§12.1 translation witness", obj!("V":"points","W":"points","X":"texts","B":"texts","frame":"points")),
++    entry!("translation_witness", "§12.1 translation witness", obj!("V":"points","W":"points","X":"texts","B":"texts","frame":"translation_frame")),
++    entry!("translation_frame", "§12.1 first and last points", Tuple(&["point", "point"])),
+     entry!("points", "§12.1 program points", Array("point")),
+     entry!("point", "§9.2/§12.1/§13 program point", Tuple(&["hash","text","uint"])),
+@@ -3222,4 +3178,231 @@
+ edit, dependency, foreign test execution, Beads export, push or Dolt sync.
+ All commits use explicit owned path lists and BEADS_HOOK_TIMEOUT=20.
++````
++
++## `council/response-round-14.md` (222 lines)
++
++````markdown
++# Editor response: council round 14
++
++Both S0 blockers, **R14-B01 and R14-B02**, are resolved; none declined or
++partial. Sole implementation sub-agent; binding round-7–14 briefs, repository
++instructions and the full codex report/JSON read. Implementation commit
++**7f834d0**; final evidence/correction commit **198c08a**. Only owned interpreter paths and this response are committed;
++no push. Concurrent spec/conformance work is untouched.
++
++## Design
++
++1. `src/metadata_schema.rs::TABLE` is the single recursive admission grammar:
++   **162 named productions**, each with the determining clause.
++2. It covers all seven JSON metadata sections: symbols, imports, devices,
++   layout, schedule, certificate and coverage; every signature alternative;
++   and the textual data section's NAME/HEX projection (§9.1/§16.2).
++3. Productions cover §9.1 sections/signatures/integers, §9.2 hashes/points,
++   §9.4 frame descriptors, §8.1 expressions, §11 schedules, §12.1 claims and
++   interval encoding, §12.2 domains/tuple enumeration and §12.3 composition,
++   as well as §13 coverage. Optional keys, closed objects, arrays, maps, tuples,
++   enum alternatives and recursive expression operands are explicit.
++4. `metadata_types::Object::validate_metadata_types` validates the metadata
++   root before identities. `validate_certificate_details` and `validate_claim`
++   consume the same table. Signature admission and data-line parsing also use
++   it. Metadata hash/text/decimal helpers delegate to table productions.
++5. Previous hand-written field/type schemas in object.rs, validation.rs,
++   metadata.rs and certificate.rs are removed; no second schema remains.
++6. Semantic checks remain where context is available: object.rs resolves
++   images and layout intervals; metadata.rs resolves schedule/coverage points,
++   checks payload agreement and entry overlap; certificate.rs checks domain
++   names/ranges, claim indices, expression arity/environments, live ranges and
++   certificate bindings; validation.rs checks device model compatibility.
++   These checks cite their determining clauses.
++7. Table components are arbitrary-size canonical §9.1 unsigned integers.
++   Their truth, cardinality, widths and complete-result comparisons remain
++   verifier obligations, not load-time execution.
++8. Y entries are four signed finite decimal strings. Ordinary nonnegative
++   decimals retain number/string forms; §8.1 expressions retain numeric and
++   closed recursive AST forms. No ISA exponent or integer-width cap is added.
++9. The derived family walks generated grammar examples and real pinned objects,
++   recursively including array elements and object fields. Wrong-kind
++   expectations derive from Shape independently of observed validator results.
++10. Every production, enum/union alternative and optional absence is generated;
++    positive substitutions exercise each accepted alternative at visited paths.
++    Table rows/components are populated, including a component above u128.
++11. The R13 path-specific union and family are replaced. The historical local
++    round-13 response has a correction withdrawing its completeness claim.
++12. Numerical/channel execution remains explicitly Unverified at the staged
++    interval-verifier boundary. Scope and the recorded §9.2 dotted-path
++    limitation are unchanged; no new spec reading or waiver is needed.
++
++## R14-B01 — resolved
++
++Determining clause: §12.1 explicitly encodes Y entries as decimal strings.
++The exact reviewer object is copied byte-for-byte as
++`tests/support/r14-witnesses/r14-Y-number.bisa`, full-file SHA-256
++`578c913bb276d1446e2e038af0ab0a77017d9abe5ec351e3e20b69c307068e11`.
++
++RED tests:
++
++- `metadata::r14_y_endpoints_require_decimal_strings`
++- `cli_xam::r14_cli_rejects_numeric_y_endpoints`
++
++Both failed: parse admitted numeric endpoints; CLI check returned exit 0,
++status ok and the reviewer's object hash. GREEN rejects the exact object and
++each of four endpoint positions independently changed to number, bool, null,
++array or object. Check and hash exit 1, empty stdout, §9.1/§12.1 diagnostic.
++The otherwise identical four-string zero control still parses/checks, retains
++its literal envelope/interface/closure/object pins and reports Unverified on
++explicit channel verification.
++
++Fix: TABLE's `channel -> dual -> dual_witness -> Y -> interval -> endpoint`;
++`endpoint` is `SignedDecimalString`. Both admission paths consume it; the
++previous Number|String hand-written check and test union are gone. Commit
++**7f834d0**. No restriction is applied to ordinary decimal fields or numeric
++§8.1 expressions.
++
++## R14-B02 — resolved
++
++Determining clauses: §§9.1, 12.1–12.2, SPEC-QUESTIONS 21's existing full-tuple
++encoding. The smaller singleton X action and all adjacent reviewer negatives
++are exact copies in `tests/support/r14-witnesses/`.
++
++RED tests:
++
++- `metadata::r14_table_rows_and_components_are_typed_at_admission`
++- `cli_xam::r14_cli_rejects_malformed_table_rows_and_cells`
++
++Both failed: malformed rows/components were admitted; check returned exit 0
++and the pinned action object hash. GREEN rejects the exact witnesses and rows
++changed to number/string/bool/null/object, plus bool/null/array/object,
++fractional/negative integers and malformed/noncanonical integer strings as
++components. Parse fails before any verification; check/hash exit 1, empty
++stdout, cited §9.1/§12 diagnostic. The original inc8 table-bool witness also
++rejects. The populated [[1]] singleton control still parses, checks and
++verifies as `Evidence { elements: 1 }`: X maps t=0 to t=1.
++A canonical decimal-string component 2^128 is admitted without host narrowing.
++
++Fix: TABLE's `exhaustive -> expected -> table_expected -> table -> uints -> uint`;
++`uint` uses uint_text, not a bounded integer. `r13_pins.py` now populates the
++original table branch and adds the independently pinned singleton action.
++Both admission validators use the table. Commit **7f834d0**.
++
++## Independent witness pins
++
++`tests/support/r14_pins.py` assembles literal LF-terminated envelopes with
++Python json/hashlib, without interpreter or rehash helpers. Reference-free
++singleton SCCs have closure=interface; actions exclude layout; inc8 has no
++layout. Removing the certificate section, including its leading boundary LF,
++gives the whole-object bytes below. All supplied pins match unchanged.
++Library controls also compare complete envelopes against the independent
++records. All six copied files match the read-only originals byte-for-byte.
++
++| Witness group | Interface = closure | Object hash |
++|---|---|---|
++| Y-number / original inc8 table-bool | 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 | 8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9 |
++| Singleton action table-positive / row-bool / cell-bool / cell-object | 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be | ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0 |
++
++Three corpora regenerate byte-identically: 8 R13 witness records, 26 schema
++exemplars and 6 R14 pin records. The first script draft assumed table-bool
++was action-based; corrected it to use its actual inc8 symbol before asserting
++the pins. No supplied pin or implementation identity changed.
++
++## Generated family
++
++`metadata_schema::tests::r14_generated_metadata_schema_type_family`, in
++`src/metadata_schema/tests.rs`, replaces the R13 family rather than duplicating
++it. Counts observed with --nocapture:
++
++| Coverage | Count |
++|---|---:|
++| Declarative productions, all exercised | 162 |
++| Generated positive controls/substitutions | 9,754 |
++| Unique generated typed paths | 1,632 |
++| Grammar-derived negative mutations | 26,354 |
++| Those negatives through BOTH admission validators | 1,992 (subset) |
++| Independent pinned object exemplars | 26 |
++| Full-parse typed path visits | 2,393 |
++| Full-parse negative mutations | 17,173 |
++| Total negative cases, without recounting dual assertions | **43,527** |
++
++Wrong JSON kinds come from the declared Shape and union alternatives;
++integer negatives include -1, 1.5, unsafe raw 2^53/2^64 spellings and invalid
++integer strings. Decimal negatives include nonfinite names, malformed signs,
++empty/fractional spellings and disallowed string exponents. Positive examples
++cover canonical large strings through 2^128, number/string decimals, every
++union and enum alternative, empty/nonempty containers, optional absence and
++recursive expressions. Both admission validators and direct certificate
++admission reject generated malformed metadata; full parse negatives require
++§9.1 before caller-side identities or execution.
++
++The retained R13 width family reproduces **507 cases: 159 constructed,
++286 cited layout rejections, 62 cited resource diagnostics**. Nonblocking S1's
++stronger independently classified width-outcome assertions are deferred as the
++reviewer permits; this round changes no width behavior or existing assertion.
++
++## Retained checks and observed verification
++
++All round 4–14 positives/negatives remain, except the expressly replaced R13
++family. This includes service versions/block images, maximum-exponent layout
++admission and B=0, exact recursive tuple/prefix reversal, first-fault and
++budget boundaries, borrow frame/return equations, non-permutation negatives,
++zero-trip/reallocated lifetimes, opaque inverse histories and changed
++input/token/control negatives, exact Born support, fixture sidecars and the
++recorded cross-object dotted-path limitation. RNGs/seeds are unchanged.
++
++| Gate | Observed result |
++|---|---|
++| Baseline, summed over all binaries | **375 passed / 0 failed / 5 ignored**, 18.32 s runner sum |
++| Combined exact witness RED | **0 passed / 4 failed** across metadata and CLI |
++| Combined witness GREEN | **4 passed / 0 failed** |
++| Replaced-family full suite | **379 passed / 0 failed / 5 ignored**, 21.61 s |
++| Final post-style full suite | **379 passed / 0 failed / 5 ignored**, 22.84 s; 9 unit + 370 integration, 0 doctests |
++| Final family/width gate | **5 passed / 0 failed** (two families + three retained width regressions); 5.21 s schema, 0.07 s widths |
++| fmt --check | pass |
++| Strict all-target Clippy | pass, 0 warnings |
++| Independent regeneration / copied witnesses | three corpora byte-identical; six exact copies |
++
++The initial full run failed only the valid-fixture audit after malformed
++reviewer files were placed in that inventory. They were moved to support;
++the audit and all original fixture assertions remain intact. Clippy found one
++redundant unit expression; removed it, reran Clippy and the full suite. No
++production or test changes followed the final post-style suite.
++
++All **5 ignored sweeps passed / 0 failed**, **100.56 s** summed runner time.
++
++| Sweep | Full domain | Observed result / runner time |
++|---|---|---|
++| u8 division/remainder | 65,536 operand pairs × 4 = 262,144 executions | 1/0; 0.52 s |
++| 17-wire borrow | 131,072 entries | 1/0; 2.71 s |
++| checked borrow certificate | 262,144 elements, subject and expected program | 1/0; 14.81 s |
++| §6 differential | 200,000 programs: 70,931 accepted (all clean), 129,069 rejected | 1/0; 80.11 s |
++| recursive prefix reversal | 256 inputs × every prefix through completion/first fault | 1/0; 2.41 s |
++
++A supplementary exact-witness RED replay builds the reviewed e3ae1af sources
++using headless rustc in reference-interpreter/.tmp (not a checkout; current
++sources are untouched). Two library rejection assertions on the exact
++Y-number and row-bool objects fail (0/2), and all ten check/hash calls on the
++five exact negative files wrongly exit 0/status ok. Replaying those same ten
++CLI calls against the current binary gives exit 1, empty stdout and §9.1/§12
++for every case; the singleton positive still checks with its literal pin.
++This supplements the original pre-fix cargo RED rather than changing its
++reported count. Logs: .tmp/r14-exact-{red-replay,cli-green}.log.
++
++
++Every cargo call used this prefix, absolute manifest and offline mode;
++test optimization 1 retains assertions, overflow checks and complete domains:
++
++~~~sh
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --no-fail-fast
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --lib --test r1_widths r1 -- --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp CARGO_PROFILE_TEST_OPT_LEVEL=1 cargo test --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --ignored --nocapture
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo fmt --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml -- --check
++env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp cargo clippy --offline --manifest-path /home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/Cargo.toml --all-targets -- -D warnings
++~~~
++
++RED/GREEN filters used the same prefix/manifest with --test metadata --test
++cli_xam r14_ --no-fail-fast. Python generators also ran headlessly with the
++repository TMPDIR. Logs: ISA repo .tmp/r14-{before,red,green,schema-full,
++family,full,final,final2,families-final,clippy,clippy-final,sweeps}.log.
++No spec/conformance/include/Python-seed edits or foreign test execution,
++dependency, Beads mutation/export, push or Dolt sync. Commits use explicit
++owned paths, absolute git -C and BEADS_HOOK_TIMEOUT=20.
+ ````
+ 
+@@ -9825,5 +10008,5 @@
+ ````
+ 
+-## `src/certificate.rs` (337 lines)
++## `src/certificate.rs` (332 lines)
+ 
+ ````rust
+@@ -10147,9 +10330,4 @@
+                 for claim in c.get("subclaims")?.array()? {
+                     index(claim, position)?;
+-                }
+-                if c.get("rule")?.string()? == "translation_lemma"
+-                    && c.get("witness")?.get("frame")?.array()?.len() != 2
+-                {
+-                    return err("§12.1", "frame needs first and last points");
+                 }
+             }
+@@ -18570,5 +18748,5 @@
+ ````
+ 
+-## `src/metadata.rs` (319 lines)
++## `src/metadata.rs` (323 lines)
+ 
+ ````rust
+@@ -18754,8 +18932,12 @@
+                     depth: values[3],
+                 })?;
+-                // Exact permutation regions have no approximation budget.
+-                if b.get("epsilon")?.canonical() != "0"
+-                    && b.get("epsilon")? != &Json::String("0".into())
+-                {
++                // §§4.4/5.2: exact permutations have no approximation budget.
++                // Schema validation above guarantees a nonnegative decimal.
++                // Its value is zero iff every mantissa digit is zero, whatever
++                // its scale/exponent; never round a tiny nonzero via binary64.
++                let zero = matches!(b.get("epsilon")?, Json::Number(s) | Json::String(s)
++                    if s.split(['e', 'E']).next().is_some_and(|mantissa|
++                        mantissa.bytes().filter(u8::is_ascii_digit).all(|d| d == b'0')));
++                if !zero {
+                     return err("§5.2", "oracle schedules must be exact");
+                 }
+@@ -18894,5 +19076,5 @@
+ ````
+ 
+-## `src/metadata_schema/tests.rs` (333 lines)
++## `src/metadata_schema/tests.rs` (356 lines)
+ 
+ ````rust
+@@ -18903,4 +19085,27 @@
+ fn j(s: &str) -> Json {
+     Json::parse(s).unwrap()
++}
++#[test]
++fn r15_translation_frame_is_first_and_last_point_tuple() {
++    // Literal §12.1 cardinality oracle, independent of TABLE/samples/baseline.
++    let point =
++        j(r#"["0000000000000000000000000000000000000000000000000000000000000000","entry",0]"#);
++    let mut accepted = Vec::new();
++    for len in 0..=3 {
++        let mut witness = j(r#"{"B":[],"V":[],"W":[],"X":[],"frame":[]}"#);
++        let Json::Object(fields) = &mut witness else {
++            unreachable!()
++        };
++        fields.insert("frame".into(), Json::Array(vec![point.clone(); len]));
++        if validate("translation_witness", &witness).is_ok() {
++            accepted.push(len);
++        }
++    }
++    assert_eq!(accepted, [2], "§12.1: frame is [first point, last point]");
++    // V and W remain variable-length point arrays, including empty arrays.
++    for len in 0..=3 {
++        let points = Json::Array(vec![point.clone(); len]);
++        validate("points", &points).unwrap();
++    }
+ }
+ fn samples(name: &str) -> Vec<Json> {
+@@ -19227,5 +19432,5 @@
+         }
+     }
+-    eprintln!("R14 schema: {} entries; {positives} generated positives; {} unique typed paths; {negatives} grammar negatives, {admissions} through BOTH admission validators; {} pinned objects, {parse_paths} parse path visits, {parse_negatives} full-parse negatives",TABLE.len(),paths.len(),corpus.array().unwrap().len());
++    eprintln!("R15 schema: {} entries; {positives} generated positives; {} unique typed paths; {negatives} grammar negatives, {admissions} through BOTH admission validators; {} pinned objects, {parse_paths} parse path visits, {parse_negatives} full-parse negatives",TABLE.len(),paths.len(),corpus.array().unwrap().len());
+     assert_eq!(visited.len(), TABLE.len());
+ }
+@@ -25908,5 +26113,5 @@
+ ````
+ 
+-## `tests/cli_xam.rs` (2129 lines)
++## `tests/cli_xam.rs` (2169 lines)
+ 
+ ````rust
+@@ -28039,4 +28244,44 @@
+         "ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0"
+     );
++}
++
++#[test]
++fn r15_cli_rejects_empty_translation_frame() {
++    let path = tmp_file("r15-frame-empty.bisa", support::r15::FRAME);
++    for command in ["check", "hash"] {
++        fails(&[command, &path], "§12.1");
++    }
++}
++
++#[test]
++fn r15_cli_oracle_schedule_epsilon_is_exact_by_value() {
++    use support::r15::*;
++    for (i, epsilon) in zeros().into_iter().enumerate() {
++        let path = tmp_file(&format!("r15-epsilon-zero-{i}.bisa"), &schedule(epsilon));
++        for command in ["check", "hash"] {
++            let result = ok(&[command, &path]);
++            assert_eq!(text(&result, "object_hash"), OH);
++            if command == "check" {
++                assert_eq!(text(&result, "status"), "ok");
++            } else {
++                let inc8 = field(&result, "symbols").get("inc8").unwrap();
++                assert_eq!(text(inc8, "interface_hash"), IH);
++                assert_eq!(text(inc8, "closure_hash"), IH);
++            }
++        }
++    }
++    for (i, epsilon) in nonzeros().into_iter().enumerate() {
++        let path = tmp_file(&format!("r15-epsilon-nonzero-{i}.bisa"), &schedule(epsilon));
++        for command in ["check", "hash"] {
++            fails(&[command, &path], "§5.2");
++        }
++    }
++    let path = tmp_file(
++        "r15-epsilon-string-exponent.bisa",
++        &schedule(support::json(r#""1e-300""#)),
++    );
++    for command in ["check", "hash"] {
++        fails(&[command, &path], "§9.1");
++    }
+ }
+ ````
+@@ -30031,5 +30276,5 @@
+ ````
+ 
+-## `tests/metadata.rs` (355 lines)
++## `tests/metadata.rs` (402 lines)
+ 
+ ````rust
+@@ -30388,4 +30633,51 @@
+         assert!(e.to_string().contains("§12"), "{e}");
+     }
++}
++
++#[test]
++fn r15_translation_frame_cardinality_is_checked_at_admission() {
++    use support::r15::*;
++    // The exact reviewer negative remains rejected after moving the rule
++    // into the grammar. A two-point control preserves every identity pin.
++    for len in 0..=3 {
++        let point = format!(r#"["{IH}","entry",0]"#);
++        let frame = format!("[{}]", vec![point; len].join(","));
++        let text = FRAME.replace(r#""frame":[]"#, &format!(r#""frame":{frame}"#));
++        assert!(FRAME.contains(r#""frame":[]"#));
++        if len == 2 {
++            let o = Object::parse(&text).unwrap();
++            o.check_hashes().unwrap();
++            assert_eq!(o.identity().unwrap().object_hash, OH);
++        } else {
++            let e = Object::parse(&text).unwrap_err();
++            assert!(e.to_string().contains("§12.1"), "{e}");
++        }
++    }
++}
++
++#[test]
++fn r15_oracle_schedule_epsilon_uses_exact_decimal_value() {
++    use support::r15::*;
++    assert_eq!(schedule(json(r#""0.0""#)), EPSILON);
++    assert_eq!(
++        bennett_isa_ref::sha256_hex(EPSILON.as_bytes()),
++        "1431a1dbbe4991d170e3848995026610ebbffce08e7279ee05a68880f06c82df"
++    );
++    for epsilon in zeros() {
++        let o = Object::parse(&schedule(epsilon.clone()))
++            .unwrap_or_else(|e| panic!("zero {}: {e}", epsilon.canonical()));
++        o.check_hashes().unwrap();
++        let id = o.identity().unwrap();
++        assert_eq!(id.object_hash, OH);
++        assert_eq!(id.interface_hashes["inc8"], IH);
++        assert_eq!(id.closure_hashes["inc8"].as_deref(), Some(IH));
++    }
++    for epsilon in nonzeros() {
++        let e = Object::parse(&schedule(epsilon)).unwrap_err();
++        assert!(e.to_string().contains("§5.2"), "{e}");
++    }
++    // The string exponent form is outside §9.1's decimal-string grammar.
++    let e = Object::parse(&schedule(json(r#""1e-300""#))).unwrap_err();
++    assert!(e.to_string().contains("§9.1"), "{e}");
+ }
+ ````
+@@ -39030,5 +39322,5 @@
+ ````
+ 
+-## `tests/support/mod.rs` (776 lines)
++## `tests/support/mod.rs` (777 lines)
+ 
+ ````rust
+@@ -39809,4 +40101,5 @@
+ 
+ pub mod r14;
++pub mod r15;
+ ````
+ 
+@@ -40944,4 +41237,143 @@
+ ````
+ 
++## `tests/support/r15-witnesses/r15-epsilon-0.0.bisa` (15 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","kind":"oracle","name":"inc8","signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}}
++
++section functions
++oracle @inc8 (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()
++regs { one:reg[8], r:reg[8] }
++^entry():
++one = lift.const.i8 1
++r = lift.add x one
++lift.retval r
++
++section schedule
++{"bindings":{"budget":[3,0,0,0],"closure_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","epsilon":"0.0","expansion":{"hash":"1111111111111111111111111111111111111111111111111111111111111111","name":"ref","version":"0.8"},"inherited_controls":0,"params_hash":"2222222222222222222222222222222222222222222222222222222222222222","region":"inc8","scheduler":{"name":"test","version":"1"},"target_hash":"3333333333333333333333333333333333333333333333333333333333333333","variant":"forward"},"entries":[{"cleanup":{"realisation":"reverse"},"generated":0,"kind":"cleanup","path":[{"iteration":[],"point":"entry:0","symbol":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"phase":"fwd","step":1}]}
++````
++
++## `tests/support/r15-witnesses/r15-frame-empty.bisa` (15 lines)
++
++````
++bennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","kind":"oracle","name":"inc8","signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"}}}
++
++section functions
++oracle @inc8 (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()
++regs { one:reg[8], r:reg[8] }
++^entry():
++one = lift.const.i8 1
++r = lift.add x one
++lift.retval r
++
++section certificate
++{"bindings":{"closure_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","dialect_mapping_version":"test.1","interface_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","object_hash":"8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9","reference_program_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","schedule_hash":"4444444444444444444444444444444444444444444444444444444444444444","target_hash":"3333333333333333333333333333333333333333333333333333333333333333"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93:forward:0":"18446744073709551615"}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"none"},"name":"tests","version":"1"},"regions":{"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93":{"bounds":[],"claims":[{"domain":{"borrowed":[{"hi":1,"lo":0,"name":"b","width":1}],"bundles":[{"hi":255,"lo":0,"name":"x","width":8}],"regions":[]},"expected":{"table":[[1,"340282366920938463463374607431768211456"]]},"kind":"exhaustive","label":"proof"},{"domain":{"borrowed":[{"hi":1,"lo":0,"name":"b","width":1}],"bundles":[{"hi":255,"lo":0,"name":"x","width":8}],"regions":[]},"expected":{"program":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"},"kind":"exhaustive"},{"domain":{"borrowed":[{"hi":1,"lo":0,"name":"b","width":1}],"bundles":[{"hi":255,"lo":0,"name":"x","width":8}],"regions":[]},"expected":"oracle","kind":"exhaustive","subject":{"closure_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","inherited_controls":0,"schedule_hash":"4444444444444444444444444444444444444444444444444444444444444444","variant":"forward"}},{"domain":{"borrowed":[{"hi":1,"lo":0,"name":"b","width":1}],"bundles":[{"hi":255,"lo":0,"name":"x","width":8}],"regions":[]},"kind":"sampled","label":"evidence","sampler":{"algorithm":"xoshiro256**","count":10,"seed":["1","0","0","0"]}},{"kind":"structural","rule":"adjoint_table","subclaims":[0],"witness":{}},{"kind":"structural","rule":"inverse_pair_library","subclaims":[],"witness":{"claim_index":0,"library_closure_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}},{"kind":"structural","rule":"translation_lemma","subclaims":[],"witness":{"B":["b"],"V":[["8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","entry",0]],"W":[["8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","entry",0]],"X":["x"],"frame":[]}},{"bound":"0.001","kind":"numerical","metric":"operator_norm","precision_bits":128,"subject":{"closure_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","inherited_controls":0,"schedule_hash":"4444444444444444444444444444444444444444444444444444444444444444","variant":"forward"}},{"bound":0,"dual":[{"Y":[["-1","0","0","1"]],"mu":0}],"kind":"channel","metric":"diamond","precision_bits":128,"subject":{"closure_hash":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","inherited_controls":0,"schedule_hash":"4444444444444444444444444444444444444444444444444444444444444444","variant":"forward"}}],"cleanup":{"forward:0":[{"path":[{"iteration":[],"point":"entry:0","symbol":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"realisation":"reverse"}]},"definedness_assumptions":["defined"],"error":{"forward:0":{"inclusive":{"diamond":0,"operator_norm":0},"local":{"diamond":"0","operator_norm":0}}},"frame":{"borrow":{"any":0},"interface":[{"class":"any","name":"x","role":"in","width":8},{"class":"any","role":"tgt","width":8},{"class":"any","role":"fault","width":4}],"live_ranges":[{"end":1,"frame":"f","start":0}],"retained_history":{"args":[0,{"var":"c"}],"op":"+"},"scheme_ancillae":{"any":0},"scratch":{"any":{"clean":0,"dirty":{"var":"c"}}}},"gates_used":{"h":{"count":0,"epsilon":"0","scheme":"native"}},"kind":"oracle","resources":{"gates":0},"signature":{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle","mem":[],"tgt":8,"tier":"q"},"verification":{"borrow_frames":[0],"channel":[8],"fault_rate":{"domain":{"borrowed":[{"hi":1,"lo":0,"name":"b","width":1}],"bundles":[{"hi":255,"lo":0,"name":"x","width":8}],"regions":[]},"faults_by_code":{"1":0},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[{"claim":0,"g":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93","ginv":"8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93"}],"oracle":0,"unitary":[0]}}},"versions":{"cert":"0.8","coverage":"0.8","isa":"0.8","launch":"0.8","object":"0.8","sched":"0.8","target":"0.8"}}
++````
++
++## `tests/support/r15.rs` (43 lines)
++
++````rust
++//! Clause-derived R15 controls with literal reviewer identity pins.
++use super::json;
++use bennett_isa_ref::json::Json;
++
++pub const IH: &str = "8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93";
++pub const OH: &str = "8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9";
++pub const FRAME: &str = include_str!("r15-witnesses/r15-frame-empty.bisa");
++pub const EPSILON: &str = include_str!("r15-witnesses/r15-epsilon-0.0.bisa");
++
++pub fn schedule(epsilon: Json) -> String {
++    let corpus = json(include_str!("r13_schema_cases.json"));
++    let case = corpus
++        .array()
++        .unwrap()
++        .iter()
++        .find(|c| c.get("name").unwrap().string().unwrap() == "schedule-cleanupFalse")
++        .unwrap();
++    let text = case.get("object").unwrap().string().unwrap();
++    let (prefix, section) = text.split_once("section schedule\n").unwrap();
++    let mut value = json(section.trim());
++    let Json::Object(root) = &mut value else {
++        unreachable!()
++    };
++    let Json::Object(bindings) = root.get_mut("bindings").unwrap() else {
++        unreachable!()
++    };
++    bindings.insert("epsilon".into(), epsilon);
++    format!("{prefix}section schedule\n{}\n", value.canonical())
++}
++
++pub fn zeros() -> Vec<Json> {
++    ["0", r#""0""#, r#""0.0""#, r#""0.000""#].map(json).to_vec()
++}
++pub fn nonzeros() -> Vec<Json> {
++    vec![
++        json(r#""0.1""#),
++        json(r#""0.000001""#),
++        // Decimal strings admit no exponent; this is exact 10^-400, below
++        // binary64's range. The nonzero mantissa must never round to zero.
++        Json::String(format!("0.{}1", "0".repeat(399))),
++        json("1e-300"),
++    ]
++}
++````
++
++## `tests/support/r15_pins.py` (46 lines)
++
++````python
++"""Independently check R15 witness bytes and §9.2 pins; no interpreter/rehash."""
++import hashlib
++import json
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent
++IH = '8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93'
++OH = '8093da48bad04d6564325faf01ea1304a84b5ac5a120e685eee9951f5daec5d9'
++
++
++def sha(text):
++    return hashlib.sha256(text.encode()).hexdigest()
++
++
++def j(value):
++    return json.dumps(value, sort_keys=True, separators=(',', ':'))
++
++
++# Literal, LF-terminated inc8 envelope. No references: closure = interface.
++envelope = (
++    'isa=0.8\nptr_width=32\n'
++    '{"abi":"0.8","args":[],"fault":4,"in":[8],"kind":"oracle",'
++    '"mem":[],"tgt":8,"tier":"q"}\n'
++    'oracle @inc8 (x:wire[8] in) (t:wire[8]) (f:wire[4]) () ()\n'
++    'regs { one:reg[8], r:reg[8] }\n^entry():\n'
++    'one = lift.const.i8 1\nr = lift.add x one\nlift.retval r\n'
++)
++assert len(envelope.encode()) == 261
++assert sha(envelope) == IH
++case = next(c for c in json.loads((ROOT / 'r13_schema_cases.json').read_text())
++            if c['name'] == 'schedule-cleanupFalse')
++prefix, schedule = case['object'].split('section schedule\n')
++schedule = json.loads(schedule)
++schedule['bindings']['epsilon'] = '0.0'
++epsilon = prefix + 'section schedule\n' + j(schedule) + '\n'
++assert epsilon == (ROOT / 'r15-witnesses/r15-epsilon-0.0.bisa').read_text()
++assert sha(epsilon) == '1431a1dbbe4991d170e3848995026610ebbffce08e7279ee05a68880f06c82df'
++for path in sorted((ROOT / 'r15-witnesses').glob('*.bisa')):
++    text = path.read_text()
++    section = 'certificate' if 'frame' in path.name else 'schedule'
++    # §9.2 excludes these sections, including their leading boundary LF.
++    base, _ = text.split('\nsection ' + section + '\n')
++    assert sha(base) == OH
++    symbol = json.loads(text.split('section symbols\n')[1].splitlines()[0])['0']
++    assert symbol['interface_hash'] == IH
++    print(f'{path.name}: file {sha(text)}, interface/closure {IH}, object {OH}')
++````
++
+ ## `tests/support/r9_pins.py` (47 lines)
+ 
