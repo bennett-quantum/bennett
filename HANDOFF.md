@@ -11,8 +11,9 @@ reference implementation and differential oracle; its worklog chunks
 added tonight: Fable drains the Claude weekly budget 2x faster than Opus, so Claude-side children go to Opus and Fable
 turns stay lean; concurrency cap two xhigh codex jobs; never launch when Codex would pass +3% of linear (`quota`); log
 each child's cost as a meter delta. Observed tonight: sol/astra reviewers mostly ~1 point, but **astra's round-12
-review cost 3 points** (41% -> 44%, pace +2.6% -> +5.3% ahead), so launches are paused until the pace is back under
-+2.5% (a background wait polls `quota` every 5 min; re-arm it if the session restarts). Muse: the quota app cannot
+review cost 3 points** (41% -> 44%, pace +2.6% -> +5.3% ahead), so launches were paused; at 03:24Z the pace was still +4.1% ahead and the
+orchestrator stopped waiting (no child running, no wait armed). On resume: check `quota`; when Codex is within +2.5% of
+linear launch the round-12 editor first, the ref-library resume second. Muse: the quota app cannot
 read its allowance (server_sent_no_usage) since ~22:30Z; its seat untouched; maintainer decides when it votes.
 
 **Interpreter**: rounds 9, 10, 11 closed and fixed by one sol editor each (315 -> 327 -> 338 -> 353 tests; briefs
