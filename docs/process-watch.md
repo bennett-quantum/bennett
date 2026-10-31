@@ -31,3 +31,19 @@
 - One reviewer on fix rounds. R13–R19 reached an accept single-seat, saving seven sol reads of ~2.5 MB.
 
 **Trend:** last entry's cuts held: HANDOFF is 38 lines and fix rounds run single-seat. Five proofs refuted 8 steps; council rounds find 1–2 blockers. The new growth is generated output without readers: dialect statements, `.dot` files, coverage counts and the committed diff.
+
+## 2026-10-31 ~12:50Z (third run; the orchestrator had mis-stamped this as 2026-11-01 03:00Z, skim-level, 14 tool calls)
+
+1. **Rule 12 `[deps:]`: cut, and close bead 82i.** The markers caught errors only in themselves. In isa-09 R1, SOL S1 found stale P21 targets, which produced K66 (marker retargeting only) and open bead 82i (audit the K1–K27 markers). In dialect R10, SOL-R10-S1 found four markers naming ISA 0.8 clauses that do not exist, and nothing followed. No marker changed a decision.
+2. **`bennett/HANDOFF.md`: one Running/Next/Waiting block, rewritten only at session end.** It had 16 commits in 24h, yet it says K64/K65 both "await ratification" and are "ratified", says "collect round 22" after R24 accepted, and lists plugin M1 as both Running and Held. Its "03:00Z" stamp sits on a 12:53Z commit. The conformance HANDOFF still lists INV-1..4 and an import already done. Nobody reads these closely.
+3. **Council `steps`: drop the requirement, keep `kind`.** R20–R24: 8 blockers, all `implementation`, every step 1 a section cite (`clause:ISA-3.3`), 0 spec gaps. isa-09 R2–R4 and dialect R10: 0 blockers. ASSUMED → spec-gap fired once (isa-09 R1) and relabelled INV-5 gaps 3/8, already open as 8ka/23g. I withdraw last pass's credit.
+4. **`isa-0.9.PROGRESS.md`: carry out verdict 2.** It was taken but grew from 1,380 to 1,695 lines and has no resume block. 55 of 98 isa-spec commits in 24h touch worklog/PROGRESS, and the "record dispositions" commits repeat response.md.
+5. **Acceptance tail: at the second host-resource blocker, build the sweep before voting again.** The R23 injector (64 scenarios/340 stages) closed the class. Built at R21, it would have saved the host-resource halves of R22–R23 (~4 seats).
+6. **Proof → K rows: check existing text first, and let a consumer choose the next pass.** isa-09 R4 found 3 of 12 INV-6 gaps already closed by K13. No code cites K29–K75: the interpreter is 0.8, and the VM has been held since 10-30.
+
+**Keep, it earned it**
+- Proofs: INV-6 §1.3.4 decided the R22 role-sensitive coverage fix (`claims.rs`).
+- Two-seat acceptance votes on semantics: codex missed SOL-R22-B01 (a false certificate); sol missed CODEX-R21-B02 and CODEX-R22-B01.
+- Outline with numbered rulings: D01–D22 became 0.2.11 in one pass; R10 had 0 blockers from both seats.
+
+**Trend:** pass-1 cuts held (interpreter PROGRESS 1,874→100 lines). Half of pass 2's cuts landed. The councils converge (0 blockers across five spec rounds) and the records do not: churn moved from PROGRESS into a HANDOFF that is now less accurate.
