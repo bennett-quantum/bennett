@@ -3,11 +3,10 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-10-31, ~23:30Z
+## 2026-11-01, ~00:30Z
 
-**Running**: isa-ref round 23 (two-seat acceptance vote on 5e9fa30; 451 tests; INV-6 in context);
-isa-09 round 4 (astra alone; re-review after editorial pass III, K68-K75); dialect **draft 0.2.11**
-editor (sol; compatible track from the ruled outline, 33 items); ISA main gate push (background).
+**Running**: isa-ref round-23 fix (sol editor: transactional step under host-resource errors, stage-indexed
+failure-injection family); dialect **draft 0.2.11** editor (sol; compatible track, 33 items).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
@@ -32,7 +31,9 @@ drafted as K64/K65 **pending maintainer ratification**, library hash rebound to 
 of 1; hold 5 and 6 one round); ISA main pushed through its gate (f59cb86 + docs); draft diff
 witness now uses stable labels.
 
-**Draft 0.9 ACCEPTED by sol (r3) and codex (r2)** on snapshot 59eee9ad0d96, 0 blocking; **K64/K65 await
+**Draft 0.9 ACCEPTED** (codex r2, sol r3 on 59eee9ad0d96; reopened by pass III for the INV-6 §12 gaps, K68-K75;
+codex r4 accept on 3e4aa324d8b0, 0 blocking; K64/K65 ratified). Publication waits only on muse (required for
+0.9). ISA main pushed through its gate at 7f640c6 + docs 82e012d. **K64/K65 await
 maintainer ratification**; muse seat held. Interpreter round 21: both seats found host-resource
 aborts (same class as R20); fix running; round 22 = two-seat acceptance vote.
 
