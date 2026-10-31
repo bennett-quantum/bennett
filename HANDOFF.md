@@ -3,9 +3,10 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-11-01, ~02:00Z
+## 2026-11-01, ~03:00Z
 
-**Running**: dialect round 10 (sol + codex) on draft 0.2.11.
+**Running**: bennett-plugin M1 third pass (sol; re-pin to dialect 0.2.10 @ 023f5a7; brief 1b items 3-5);
+dialect main gate push (background); process watcher pass 3 (by hand).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
