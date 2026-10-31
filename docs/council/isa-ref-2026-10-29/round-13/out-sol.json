@@ -1,0 +1,95 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "src/object.rs::Object::parse/validate, src/schema.rs and src/validation.rs cover canonical text, tiers, arities, widths, imports and schema fields. The normal parser/discipline gates pass. However, validate_metadata checks the presence of devices.services.*.version without checking its JSON type: five non-string versions pass check (SOL-R13-B01).",
+   "change": "In src/validation.rs::Object::validate_metadata, validate every device/service version with Json::string before model-specific checks. Add literal inc8 objects in tests/metadata.rs and a tests/cli_xam.rs negative requiring a \u00a79.1 error for version=7; retain the string-version positive. See SOL-R13-B01 for the exact bytes and expected exit status."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "src/identity.rs now retains LayoutLeaf.keys/path/value, selects by exact structured ownership, and orders ties by original components. Independently assembled SOL CC/R envelopes at bases 16/17 reproduce all four supplied main pins and stored-H object hashes; hash/check succeed. Both equal-valued companion CC/R objects also match their pins. The self-named interface address has the direct 05827c10... envelope/hash, without a self-SCC. Existing FIPS, four \u00a716.3 pins, SCC/import/linking and exclusion tests pass.",
+   "change": "No corrective identity change requested. Retain tests/identity.rs::r12_cc_r_layout_paths_preserve_colliding_leaves, r12_cc_r_colliding_dotted_leaves, r12_interface_address_is_not_a_function_dependency and the CLI counterparts as literal-envelope/pin gates; preserve the two coincident lines and exact-owner selection in future refactors."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "src/oracle.rs::run_oracle_vectors has dispatch for every \u00a74.2 row, exact-width arithmetic, inherent memory checks, monotonic stack charging and first-fault delivery. Independently derived @o local-address execution returns (payload,code,steps)=(16,0,2) at B=2 and (0,1,1) at B=1; both names o/db reproduce these results. Recursive sum_db(2) over db=01..10 returns (3,0,38). B=0 on the large-exponent witness still correctly returns (0,1,0). Normal oracle and wide-oracle gates pass.",
+   "change": "No \u00a714.1 semantic change requested. Preserve tests/oracle.rs and tests/wide_oracle.rs plus the literal R12 B=1/B=2 CLI assertions; do not fix SOL-R13-B02 by rejecting the legal layout during Object::parse or by changing run_oracle_vectors' B=0 result."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "src/machine.rs follows the printed C1\u2013C5/R1\u2013R5 forward and inverse lists. A separate temporary harness verified forward/inverse/forward equality at every one of 40 steps of sum_db(2), including call counters [0,2,16,0,1] and the first return [0,2,48,32,3] -> [0,2,48,16,2]. Normal recursive/prefix and wide-frame gates pass. DerivedWidths::from_program nevertheless performs unchecked s+1 and a+1: legal, independently pinned layouts cause arithmetic panics before allocation (SOL-R13-B02).",
+   "change": "In src/machine.rs::DerivedWidths::from_program, derive Sc and Ac with checked_add and propagate an explicit host-resource Error when the width cannot be represented; audit the adjacent derived-width arithmetic. Add no-panic library/CLI tests using the exact SOL-R13-B02 layouts, preserving successful admission and \u00a714.1 B=0 behavior."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "src/classical.rs explicitly retains definitions, branch control, overwritten bytes, allocation/free state, device/tape records, region calls and call boundaries. undo_frame skips reversed frames/uncall markers and uncall selects the latest completed live segment. The nested fixture was independently traced and executed: g's clock.read is undone by inner uncall, outer uncall skips it, clock/tape remain zero, and whole-run reversal restores the complete entry snapshot. Normal classical/register/host-reply tests pass.",
+   "change": "No corrective CC/R change requested. Retain tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once and faults_are_atomic_terminal_and_reversible, including exact clock/tape and full-snapshot equality rather than only returned values."
+  },
+  {
+   "id": "C6",
+   "score": 5,
+   "evidence": "src/action.rs implements the gate/allocation/copy/memory/call families, complete-expansion adjoints and lifetime widths; quantum.rs/exact.rs keep exact support separate from diagnostic amplitudes. The \u00a76 and borrow machinery retains all-operand causal histories, per-return factorisation, closed-window checks and borrowed-touch rejection. Normal quantum, quantum_control, borrow, certificate, changing-width/zero-trip and fuzz-discipline gates pass; no new concrete Q-semantic S0 was established.",
+   "change": "No corrective Q-tier change requested. Preserve the R9\u2013R12 zero-trip, opaque-history, Bell-reference, rounded-phase/exact-minus-I and per-return borrow tests; keep exact-support assertions in tests/quantum_control.rs independent of rounded amplitude display."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The complete normal cargo test command passed: 365 passed, 0 failed, 5 ignored. PROGRESS and the embedded editor response record all five ignored sweeps as run; I did not rerun those long sweeps. The R12 tests use independently pinned literal envelopes and retain prior controls. Two uncovered boundaries remain: service-version JSON types and representable exponents whose derived width overflows. A broader typed-field negative matrix would make these gaps easier to prevent.",
+   "change": "Add the mandatory SOL-R13-B01/B02 regression tests, then extend tests/metadata.rs with a reusable valid-object/field/type mutation table. Each negative should fail during admission with a cited schema rule, while the unmutated object retains its original pin and successful check. This additional matrix is S1 beyond the two concrete fixes."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "SPEC-QUESTIONS 1\u201332 supply explicit readings; 31 is a defensible tie-order refinement and 32 narrowly records the actual-global/interface ambiguity while permitting function/import overlap. README/PROGRESS truthfully stage deliverables 8\u201311 and do not claim them complete. No new contradictory reading was identified. Reporting still fails at the two concrete witnesses: invalid service metadata is silently admitted, and a width-boundary failure escapes the Result/CLI diagnostic path as exit 101.",
+   "change": "Implement the \u00a79.1 typed service-version rejection in validate_metadata and the explicit host-resource diagnostic in DerivedWidths::from_program. CLI negatives must exit 1 with empty stdout and an actionable stderr error; the boundary error must distinguish a host representation limit from an ISA well-formedness prohibition."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R13-B01",
+   "section": "\u00a79.1 devices schema; \u00a715 suite F; reference-interpreter/src/validation.rs::Object::validate_metadata (1228\u20131242)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "The service version field has no type validation. Starting with the committed LF-terminated tests/fixtures/inc8.bisa, append exactly \\nsection devices\\n{\"models\":{},\"services\":{\"org.bennett.test\":{\"version\":7}}}\\n (the displayed \\n denotes an LF). The existing inc8 pin 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 remains correct because an oracle has no device-envelope entries. Independently reproduced CLI check exits 0/status ok with object_hash a63cb1dd51929e217eb8e16e261707a4103a92ff54c20caf2bb614ba73e65734 and empty stderr. Replacing 7 by false, null, [], or {} also exits 0/status ok. The code calls v.fields for both groups, but calls version.string only inside the models branch. Consequently a complete required schema field accepts every JSON type. These are not speculative service-version compatibility restrictions: they violate the field's declared string representation even for an unused service.",
+   "fix": "Change reference-interpreter/src/validation.rs::Object::validate_metadata so each models/services entry first checks v.get(\"version\")?.string()?, and only then applies the fixed 0.8 rule to known device models. Determining \u00a79.1 schema: devices includes \"services\": {\"<reverse-dns id>\": {\"version\": \"\u2026\"}}; \u00a715 suite F explicitly includes \"schemas\". Expected: reject number, bool, null, array and object versions with a \u00a79.1 schema error during Object::parse, regardless of whether the service is used; retain arbitrary string versions rather than imposing model version 0.8 on host services. Add tests/metadata.rs::r13_service_versions_require_strings and tests/cli_xam.rs::r13_cli_rejects_nonstrings_in_service_versions using the unchanged literal inc8 object plus the exact appended section above, without support::rehash. Assert parse/check/hash rejection, CLI exit 1, empty stdout and stderr containing \u00a79.1; test all five non-string values. Positive version=\"0.8\" must still check successfully, keep the inc8 interface/closure pin, and produce object_hash 3bc26d4621ba2411e29615a854bce6bb4299fe85a68df89479c325fcb0836b11. No execution input/budget is needed. Current code admits every negative; the type check makes them fail at admission."
+  },
+  {
+   "id": "SOL-R13-B02",
+   "section": "\u00a7\u00a73.7, 5.2, 7.2; reference-interpreter/src/machine.rs::DerivedWidths::from_program (81, 85)",
+   "scope": "core",
+   "severity": "S0",
+   "problem": "Legal exponent metadata can panic in derived-width arithmetic, without attempting a large allocation. Copy tests/fixtures/inc8.bisa, replace its stored pin by dc736293ea943fd3d8f902ae1589e3e1cbc461ca42bd9229518b33ec65b724b1, and append exactly \\nsection layout\\n{\"A_tab\":0,\"H\":6,\"S_cells\":\"18446744073709551615\",\"globals\":{},\"heap_base\":48,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\\n. This pin was independently SHA-256 derived from the unchanged inc8 definition/signature and seven ordered scalar layout lines. Object hash is f581d1d9418da1213057fb7e6cc95c3d35619aa478f9c6fc275502a5371bd44a. check exits 0/status ok. run-oracle <object> inc8 --input 8 --budget 0,0,0,0 returns {\"code\":1,\"payload\":0,\"steps\":0}, as required. reverse with the same arguments exits 101, empty stdout, and panics at src/machine.rs:81:18, \"attempt to add with overflow\": s fits usize but s+1 does not. The analogous A_tab=\"18446744073709551615\", S_cells=0 object, independently pinned dc2c21a6b7c2a0fea8a6881564f80b44c3742d681e71576ec6f4d66fa058f683 (object cf57de219961a2cc9e02b768a8b59b984b2ba2c5aa40b48c333b1ffcbb405ef0), also checks successfully and panics at machine.rs:85:17 in a+1. This is an unchecked arithmetic failure on legal input, not host memory exhaustion or an invalid ISA exponent.",
+   "fix": "Change reference-interpreter/src/machine.rs::DerivedWidths::from_program to checked-add the derived widths (in particular s.checked_add(1), a.checked_add(1)), propagating a descriptive host-resource Error before constructing counters/slots. Audit the adjacent size/width calculations for the same boundary. Determining \u00a73.7 text: \"sp, fp : wire[Sc], Sc \u2265 S_cells + 1\" and \"atop : wire[Ac], Ac \u2265 A_tab + 1\"; \u00a77.2 defines the size exponents without an upper bound on A_tab/S_cells. \u00a75.2 says F_B is (0,FAULT_BUDGET_STEPS) when not halted after B steps, so B=0 remains (0,1). The spec does not prescribe a host-resource error spelling: the implementation's existing explicit host-limit convention is a defensible way to report a width the host cannot represent; a panic/wrapped width or a newly invented ISA exponent cap is not. Add tests/r1_widths.rs::r13_derived_counter_width_overflow_reports_host_limit and tests/cli_xam.rs::r13_cli_counter_width_limit_is_a_diagnostic. On this 64-bit host, use both literal correctly pinned objects above, B=0, heap/stack/depth=0 and input 8. Assert parse/check succeed and sequential run-oracle returns exactly (0,1,0); DerivedWidths::derive and OracleVectorMachine::new must return a host-resource Err without unwinding. CLI reverse must exit 1 with empty stdout and a host-limit diagnostic, never exit 101/panic. A representation that handles these zero-budget counters sparsely may instead successfully reverse to entry; either implementation must preserve the abstract result and never narrow legal layout admission. Retain ordinary S_cells=9 recursive-call reversal as the positive control. Current code panics on both supplied boundary objects."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "SOL-R12-B01",
+   "status": "resolved",
+   "note": "Independently spelled both layout lines and SHA-256 hashed all four SOL CC/R base-16/base-17 envelopes and stored-H objects; every supplied pin matches and all four hash/check invocations succeed."
+  },
+  {
+   "id": "R12-B01",
+   "status": "resolved",
+   "note": "The companion equal-valued CC and R objects retain both structural leaves; interface/closure pins a298a106... / 8247f2de... and object pins d478a37d... / d955f727... match successful hash/check reproductions."
+  },
+  {
+   "id": "R12-B02",
+   "status": "resolved",
+   "note": "The self-named @o address and db control reproduce direct envelope/interface/closure/object pins, successful admission, B=1/B=2 outcomes and clean reversal; current identity graph/replacement share contextual reference classification."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1 \u2014 Extend reference-interpreter/tests/metadata.rs beyond the mandatory service-version regression with a typed-field mutation matrix for the implemented \u00a79.1/\u00a711/\u00a712/\u00a713 schemas. Keep a literal correctly pinned valid object per schema and substitute each incompatible JSON kind at one required field at a time; every negative should reject during admission with a cited rule and the unmutated control should still pass. This is additional coverage, not a demand to implement the truthfully staged target/launch/schedule-consumer/interval-checker deliverables."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Enforce the service-version string type in validate_metadata and add the independently pinned admission/CLI negative and positive controls in SOL-R13-B01. 2. Replace the unchecked derived-counter width arithmetic with checked host-limit reporting (or a representation that supports the zero-budget case), adding both SOL-R13-B02 exponent witnesses while preserving legal admission and the sequential B=0 result. 3. Run the targeted metadata/width/CLI tests and the normal offline suite; retain every R12 literal pin, contextual-reference and prior reversal/borrow control. No R12 fix needs to be reverted and no accepted-spec edit is required. The broader schema mutation matrix is nonblocking.",
+ "summary": "R13 SOL review: revise overall and core, for two new reproduced S0 issues; all previous round-12 blockers are resolved. Verified all 118 embedded packet files byte-for-byte against the working copy (40,203 embedded lines). Method 1: independently derived and reproduced the local-address oracle's (16,0,2) tight-budget success and (0,1,1) budget fault, the self-named/db envelope hashes, and the four SOL lossless-layout CC/R envelope/object hashes; companion equal-valued CC/R pins also reproduce. sum_db(2), db=01..10, derives 14*2+10=38 rows and payload 1+2=3, and the machine agrees. Method 2: traced C1\u2013C5/C5^-1\u2013C1^-1 and R1\u2013R5/R5^-1\u2013R1^-1, including restored sp/fp address evaluation, then verified every immediate inverse across 40 sum_db steps with a separate temporary harness. Traced/executed nested call/ret/uncall: the clock effect is undone once, reversed inner frames are skipped, clock and tape end at zero, and whole-run reversal restores entry. Method 3: audited the recorded SPEC-QUESTIONS 1\u201332 against the corresponding rules; no new contradictory reading was established, including the defensible equal-path tie refinement and narrow global/interface ambiguity. Method 4: scanned the crate for every requested marker (57 source hits, 1,320 test hits plus documentation/seed hits). Explicit panic/todo/unimplemented macros do not implement admitted opcode paths; unknown-opcode/sampler/model/cleanup errors are rejection guards, approximate values are diagnostic alongside exact support, and source unwrap/expect sites inspected rely on checked invariants or test-only setup. The separate unchecked width arithmetic produces the actual panic witness B02 despite the absence of an explicit panic macro. Method 5: compared \u00a74.1/\u00a74.2/\u00a74.4\u20134.8 opcode families and \u00a75.4 codes with oracle/machine/classical/action dispatch, \u00a77.4 frames with undo traversal, nine section names and metadata fields with validators, and documented CLI commands with main dispatch. The concrete schema omission found is B01. PROGRESS explicitly stages deliverables 8\u201311; these were not converted into new blockers. Full normal headless offline cargo test passed (365 passed, 0 failed, 5 ignored); long ignored sweeps were not rerun in this review, and their prior executions are recorded in the packet. Both new issues are pre-existing outside the R12 diff; no regression introduced by those fixes was established. All reproduction files/harnesses were untracked under the designated review .tmp; no tracked file was modified, committed or pushed."
+}

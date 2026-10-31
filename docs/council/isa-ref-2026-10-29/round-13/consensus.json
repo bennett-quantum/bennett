@@ -1,0 +1,56 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R13-B01",
+    "section": "\u00a79.1 devices schema; \u00a715 suite F; reference-interpreter/src/validation.rs::Object::validate_metadata (1228\u20131242)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The service version field has no type validation. Starting with the committed LF-terminated tests/fixtures/inc8.bisa, append exactly \\nsection devices\\n{\"models\":{},\"services\":{\"org.bennett.test\":{\"version\":7}}}\\n (the displayed \\n denotes an LF). The existing inc8 pin 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93 remains correct because an oracle has no device-envelope entries. Independently reproduced CLI check exits 0/status ok with object_hash a63cb1dd51929e217eb8e16e261707a4103a92ff54c20caf2bb614ba73e65734 and empty stderr. Replacing 7 by false, null, [], or {} also exits 0/status ok. The code calls v.fields for both groups, but calls version.string only inside the models branch. Consequently a complete required schema field accepts every JSON type. These are not speculative service-version compatibility restrictions: they violate the field's declared string representation even for an unused service.",
+    "fix": "Change reference-interpreter/src/validation.rs::Object::validate_metadata so each models/services entry first checks v.get(\"version\")?.string()?, and only then applies the fixed 0.8 rule to known device models. Determining \u00a79.1 schema: devices includes \"services\": {\"<reverse-dns id>\": {\"version\": \"\u2026\"}}; \u00a715 suite F explicitly includes \"schemas\". Expected: reject number, bool, null, array and object versions with a \u00a79.1 schema error during Object::parse, regardless of whether the service is used; retain arbitrary string versions rather than imposing model version 0.8 on host services. Add tests/metadata.rs::r13_service_versions_require_strings and tests/cli_xam.rs::r13_cli_rejects_nonstrings_in_service_versions using the unchanged literal inc8 object plus the exact appended section above, without support::rehash. Assert parse/check/hash rejection, CLI exit 1, empty stdout and stderr containing \u00a79.1; test all five non-string values. Positive version=\"0.8\" must still check successfully, keep the inc8 interface/closure pin, and produce object_hash 3bc26d4621ba2411e29615a854bce6bb4299fe85a68df89479c325fcb0836b11. No execution input/budget is needed. Current code admits every negative; the type check makes them fail at admission."
+   },
+   {
+    "id": "SOL-R13-B02",
+    "section": "\u00a7\u00a73.7, 5.2, 7.2; reference-interpreter/src/machine.rs::DerivedWidths::from_program (81, 85)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "Legal exponent metadata can panic in derived-width arithmetic, without attempting a large allocation. Copy tests/fixtures/inc8.bisa, replace its stored pin by dc736293ea943fd3d8f902ae1589e3e1cbc461ca42bd9229518b33ec65b724b1, and append exactly \\nsection layout\\n{\"A_tab\":0,\"H\":6,\"S_cells\":\"18446744073709551615\",\"globals\":{},\"heap_base\":48,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\\n. This pin was independently SHA-256 derived from the unchanged inc8 definition/signature and seven ordered scalar layout lines. Object hash is f581d1d9418da1213057fb7e6cc95c3d35619aa478f9c6fc275502a5371bd44a. check exits 0/status ok. run-oracle <object> inc8 --input 8 --budget 0,0,0,0 returns {\"code\":1,\"payload\":0,\"steps\":0}, as required. reverse with the same arguments exits 101, empty stdout, and panics at src/machine.rs:81:18, \"attempt to add with overflow\": s fits usize but s+1 does not. The analogous A_tab=\"18446744073709551615\", S_cells=0 object, independently pinned dc2c21a6b7c2a0fea8a6881564f80b44c3742d681e71576ec6f4d66fa058f683 (object cf57de219961a2cc9e02b768a8b59b984b2ba2c5aa40b48c333b1ffcbb405ef0), also checks successfully and panics at machine.rs:85:17 in a+1. This is an unchecked arithmetic failure on legal input, not host memory exhaustion or an invalid ISA exponent.",
+    "fix": "Change reference-interpreter/src/machine.rs::DerivedWidths::from_program to checked-add the derived widths (in particular s.checked_add(1), a.checked_add(1)), propagating a descriptive host-resource Error before constructing counters/slots. Audit the adjacent size/width calculations for the same boundary. Determining \u00a73.7 text: \"sp, fp : wire[Sc], Sc \u2265 S_cells + 1\" and \"atop : wire[Ac], Ac \u2265 A_tab + 1\"; \u00a77.2 defines the size exponents without an upper bound on A_tab/S_cells. \u00a75.2 says F_B is (0,FAULT_BUDGET_STEPS) when not halted after B steps, so B=0 remains (0,1). The spec does not prescribe a host-resource error spelling: the implementation's existing explicit host-limit convention is a defensible way to report a width the host cannot represent; a panic/wrapped width or a newly invented ISA exponent cap is not. Add tests/r1_widths.rs::r13_derived_counter_width_overflow_reports_host_limit and tests/cli_xam.rs::r13_cli_counter_width_limit_is_a_diagnostic. On this 64-bit host, use both literal correctly pinned objects above, B=0, heap/stack/depth=0 and input 8. Assert parse/check succeed and sequential run-oracle returns exactly (0,1,0); DerivedWidths::derive and OracleVectorMachine::new must return a host-resource Err without unwinding. CLI reverse must exit 1 with empty stdout and a host-limit diagnostic, never exit 101/panic. A representation that handles these zero-budget counters sparsely may instead successfully reverse to entry; either implementation must preserve the abstract result and never narrow legal layout admission. Retain ordinary S_cells=9 recursive-call reversal as the positive control. Current code panics on both supplied boundary objects."
+   }
+  ],
+  "codex": [
+   {
+    "id": "R13-B01",
+    "section": "\u00a7\u00a79.1, 7.3, 15 suite F; reference-interpreter/src/object.rs::Object::validate_layout (1450\u20131568), src/classical.rs::ClassicalMachine::construct (410\u2013419)",
+    "scope": "core",
+    "severity": "S0",
+    "problem": "The optional layout.block_image field is admitted without validating its type or data reference. validate_layout merely permits the key; identity only happens to inspect it for oracle/CC/R envelopes, so action-only (also layout-independent) objects bypass this check. This complete LF-terminated object is independently pinned:\nbennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be\",\"kind\":\"action\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}}}\n\nsection functions\naction @a (t:wire mut) () () () ()\n^entry():\nx t\n\nsection layout\n{\"A_tab\":0,\"H\":6,\"S_cells\":0,\"block_image\":42,\"globals\":{},\"heap_base\":48,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n\nActual `check /dev/stdin` and `hash /dev/stdin` both exit 0/status ok, with action interface=closure 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be and object_hash 3531fb9b077a90c0fef79688391192df706d99c369a21b0a9a1bc8e35ee75642. `run-action /dev/stdin a --mut 0` also exits 0 and returns mut:[1]. No execution budget is needed to expose the admission failure. Replacing 42 with null, true, {}, [], \"\", or \"missing\" likewise returns check status ok; the undeclared-name variant has object_hash 04e497abf45bd7012b5341da012a51c7f79a47b5efce0fcc5a7f35af1639b7de. Removing block_image is a valid control (object_hash ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0), and adding a declared 512-byte zero data image named disk is another passing control. The same missing-reference admission has a library failure: construct a no-argument `fn r @main () () () () ()` with ^entry(): ret, matching r signature and a syntactically valid 64-zero stored hash, the same layout and block_image:\"missing\"; Object::parse returns Ok, then ClassicalMachine::new(&o,\"main\",&[],&[]) panics at src/classical.rs:412:40, \"no entry found for key\", exit 101. This auxiliary API probe deliberately does not call check_hashes; the parse/new API must still report malformed metadata rather than panic.",
+    "fix": "Change reference-interpreter/src/object.rs::Object::validate_layout to validate block_image whenever present: require a string satisfying the data NAME syntax and an existing defined data image, independent of symbol kinds, closure selection or whether any effect uses block. The determining \u00a79.1 schema is `\"block_image\"?: \"<data name>\"`; \u00a77.3 specifies `sector map from the block_image (else empty), 512-byte sectors`; \u00a715 suite F includes `schemas`. Optional absence is legal; present numbers, null, booleans, arrays/objects, empty names and undeclared names are load errors. Keep existing complete-512-byte-sector validation and preferably perform that image-shape validation at the same admission boundary. In src/classical.rs::ClassicalMachine::construct, replace object.data[image.string()?] with a checked get returning a cited \u00a77.3/\u00a79.1 error, so the public constructor has no panic path here. Add tests/parser.rs::r13_block_image_schema_is_checked_without_a_layout_consumer using the exact action-only object above: Object::parse must return Err for 42 and the listed malformed variants. Add tests/cli_xam.rs::r13_cli_rejects_invalid_block_image with hash/check/run-action: expected exit 1, empty stdout, a cited diagnostic, before execution. Add absent-field and declared disk=512 zero bytes positive controls; both must still check and execute X|0>=|1>, and the action envelope/hash must remain unchanged because \u00a79.2 excludes its layout. Add a library constructor regression for the missing-image R variant requiring a reported error rather than unwinding (after the parser fix, the ordinary parse path should reject first). These admission assertions fail on 932f19b. This is not among staged deliverables 8\u201311 and requires no new restriction on legal symbol/interface names."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 4.5,
+  "C5": 4.5,
+  "C6": 5.0,
+  "C7": 4.0,
+  "C8": 4.5
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

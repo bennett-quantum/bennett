@@ -1,0 +1,88 @@
+exit 0 in 157s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "src/object.rs::validate_symbols, validate_function, validate_header, validate_row and src/schema.rs cover the admitted tiers and operand shapes; the R12 namespace fix admits local interface names shared with function/data/import symbols. However, validate_layout lists optional block_image without validating its value or resolving its data name. The independently pinned action-only witness in R13-B01 passes check with block_image=42, null, true, {}, [], an empty string, or an undeclared name. This is a concrete schema omission, not staged work.",
+      "change": "In src/object.rs::Object::validate_layout, validate an optional block_image as a legal data-name string resolving to a defined data entry, regardless of which function kinds occur or use the block device. Add the literal parser and CLI negatives specified in R13-B01."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "src/identity.rs now preserves original components, dotted rendering and value for every leaf; sorting uses rendered path then components. Exact-owner oracle and exact-global lproc selection survive. symbol_references handles a declaring oracle's lift.addr separately in both the dependency graph and replacement. Independently recomputed literal CC envelope SHA-256 a298a106...; all 36 layout and 20 address corpus objects pass CLI hash/check, including the eight supplied exact objects. All four published hashes, SCC ordering, import and linking regressions pass. No new identity divergence found.",
+      "change": "In tests/identity.rs, retain the full literal envelopes and both interface/closure assertions when extending the identity corpus; add a valid block_image action-only control asserting that the action envelope still excludes layout while the data symbol has its own identity."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "src/oracle.rs::run_oracle_vectors dispatches the §4.2 rows with independent dynamic activations and inherent memory checks. Hand-derived local-address outcomes are (payload,code,steps)=(16,0,2) at B=2 and (0,1,1) at B=1. sum_db(0) takes 10 rows, sum_db(2) takes 38 and returns 3; stack=47 or depth=2 faults at row 29, while stack=48/depth=3 succeeds. All reproduced exactly. Wide-vector and arithmetic tests pass.",
+      "change": "In tests/oracle.rs, preserve the literal 10-row base case and 14*n+10 recursion formula beside the stack/depth boundary assertions, and cross-reference the corresponding machine tests so their independent expected values remain explicit."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "src/machine.rs::inverse_step restores old pc, clears successor scratch, undoes faults, reverses effects, then clears flag/succ. inverse_call restores depth/sp/fp before clearing C5, then undoes C4/C3/C2/C1; inverse_ret restores callee fp before delivery, location restoration, result and successor uncomputation. Traced these against §§3.6–3.7. Recursive one-step inverse tests pass. CLI reversal restores the complete tuple and clean frames for local-address B=0..3 and the reproduced sum_db success, budget, stack and depth boundaries.",
+      "change": "In tests/step_machine.rs::recursive_call_and_ret_each_invert_the_complete_pre_step_tuple, annotate the selected recursive call/return transitions with the C5–C1 and R5–R1 state dependencies already asserted by complete snapshots; retain the full-tuple assertions."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "src/classical.rs::step, undo_record, undo_frame and reverse implement dynamic instances, effect records and the common LIFO traversal. Hand-traced nested g/f cancellation: clock.read increments once, inner uncall restores memory/clock/tape, outer uncall skips the reversed g frames and marker; nested returns 0 in 11 instructions with clock/tape zero, and whole reversal restores entry. However ClassicalMachine::construct indexes object.data[block_image] after admission has failed to validate that reference; the public parse/new sequence reproduced exit 101 at classical.rs:412 for a missing image (R13-B01).",
+      "change": "In src/classical.rs::ClassicalMachine::construct, replace the unchecked block-image map index with a checked lookup returning a cited error, alongside the load-time validation in R13-B01; retain the existing complete-sector validation and block presence-bit reversal."
+    },
+    {
+      "id": "C6",
+      "score": 5,
+      "evidence": "The Q opcode, adjoint and transfer inventories in action.rs, quantum.rs, validation.rs, borrow.rs and call_discipline.rs retain all gate, memory, control, lifetime and region-call families. Exact-support decisions remain separate from approximate diagnostic amplitudes. Normal tests retain zero-trip/changing-width lifetimes, each-return borrow checks, effective-control polarity/version checks, opaque inverse histories, interference and qinplace fault-before-mutation coverage. No new Q-semantic counterexample found.",
+      "change": "In README.md's design section, add direct references to borrow.rs::decide_frames, validation.rs::validate_action_sequence and quantum.rs::audit_borrow_boundary, explaining which checks establish static cleanup, full-frame factorisation and runtime return obligations."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "The normal offline suite reproduced 365 passed, 0 failed, 5 ignored; a separate --ignored run completed all five sweeps with 5 passed and 0 failed. The new R12 tests use stored literal envelopes/pins, not support::rehash for their expected identities; independently hashing all 56 corpus records confirms their stored envelope/object digests. A fresh schema mutation family exposes the absent block_image negatives. tests/r1_linking.rs::interface_region_names_cannot_alias_symbols also retains a name that describes the removed blanket prohibition although it now tests only a global collision.",
+      "change": "Add tests/parser.rs::r13_block_image_schema_is_checked_without_a_layout_consumer and a tests/cli_xam.rs counterpart using R13-B01, then rename the existing linking negative to interface_region_names_cannot_alias_layout_globals without changing its assertions."
+    },
+    {
+      "id": "C8",
+      "score": 5,
+      "evidence": "Reviewed SPEC-QUESTIONS 1–32 against their cited provisions. The coincident-path tie rule (31) preserves every leaf and is value-independent; the narrow actual-global ambiguity (32) does not prohibit symbol/import overlap. The remaining recorded refinements are defensible; the full launch, target, schedule-consumer and interval-checker deliverables remain explicitly staged in PROGRESS, with unverified claims reported as such. R13-B01 is an unrecorded validation omission, not an acceptable alternative reading.",
+      "change": "In README.md, add a compact rule-to-validator/test index for optional layout fields, including block_image and its new negative controls, so schema checks can be audited independently of envelope consumers."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "R13-B01",
+      "section": "§§9.1, 7.3, 15 suite F; reference-interpreter/src/object.rs::Object::validate_layout (1450–1568), src/classical.rs::ClassicalMachine::construct (410–419)",
+      "scope": "core",
+      "severity": "S0",
+      "problem": "The optional layout.block_image field is admitted without validating its type or data reference. validate_layout merely permits the key; identity only happens to inspect it for oracle/CC/R envelopes, so action-only (also layout-independent) objects bypass this check. This complete LF-terminated object is independently pinned:\nbennett-object isa=0.8 object=0.8 launch=0.8 sched=0.8 cert=0.8 coverage=0.8 target=0.8 ptr_width=32\n\nsection symbols\n{\"0\":{\"interface_hash\":\"2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be\",\"kind\":\"action\",\"name\":\"a\",\"signature\":{\"abi\":\"0.8\",\"args\":[],\"bounds\":[],\"in\":[],\"kind\":\"action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}}}\n\nsection functions\naction @a (t:wire mut) () () () ()\n^entry():\nx t\n\nsection layout\n{\"A_tab\":0,\"H\":6,\"S_cells\":0,\"block_image\":42,\"globals\":{},\"heap_base\":48,\"heap_limit_max\":0,\"interface_regions\":{},\"null_size\":1,\"ptr_width\":32}\n\nActual `check /dev/stdin` and `hash /dev/stdin` both exit 0/status ok, with action interface=closure 2fcd5b3d60b42ba6092447586a2157bf44ba3a6479ab2eb319bb67665feab8be and object_hash 3531fb9b077a90c0fef79688391192df706d99c369a21b0a9a1bc8e35ee75642. `run-action /dev/stdin a --mut 0` also exits 0 and returns mut:[1]. No execution budget is needed to expose the admission failure. Replacing 42 with null, true, {}, [], \"\", or \"missing\" likewise returns check status ok; the undeclared-name variant has object_hash 04e497abf45bd7012b5341da012a51c7f79a47b5efce0fcc5a7f35af1639b7de. Removing block_image is a valid control (object_hash ddc5d6729a98484acc2d5e8feb585c155799293bd36f31fd96cbc510f77666f0), and adding a declared 512-byte zero data image named disk is another passing control. The same missing-reference admission has a library failure: construct a no-argument `fn r @main () () () () ()` with ^entry(): ret, matching r signature and a syntactically valid 64-zero stored hash, the same layout and block_image:\"missing\"; Object::parse returns Ok, then ClassicalMachine::new(&o,\"main\",&[],&[]) panics at src/classical.rs:412:40, \"no entry found for key\", exit 101. This auxiliary API probe deliberately does not call check_hashes; the parse/new API must still report malformed metadata rather than panic.",
+      "fix": "Change reference-interpreter/src/object.rs::Object::validate_layout to validate block_image whenever present: require a string satisfying the data NAME syntax and an existing defined data image, independent of symbol kinds, closure selection or whether any effect uses block. The determining §9.1 schema is `\"block_image\"?: \"<data name>\"`; §7.3 specifies `sector map from the block_image (else empty), 512-byte sectors`; §15 suite F includes `schemas`. Optional absence is legal; present numbers, null, booleans, arrays/objects, empty names and undeclared names are load errors. Keep existing complete-512-byte-sector validation and preferably perform that image-shape validation at the same admission boundary. In src/classical.rs::ClassicalMachine::construct, replace object.data[image.string()?] with a checked get returning a cited §7.3/§9.1 error, so the public constructor has no panic path here. Add tests/parser.rs::r13_block_image_schema_is_checked_without_a_layout_consumer using the exact action-only object above: Object::parse must return Err for 42 and the listed malformed variants. Add tests/cli_xam.rs::r13_cli_rejects_invalid_block_image with hash/check/run-action: expected exit 1, empty stdout, a cited diagnostic, before execution. Add absent-field and declared disk=512 zero bytes positive controls; both must still check and execute X|0>=|1>, and the action envelope/hash must remain unchanged because §9.2 excludes its layout. Add a library constructor regression for the missing-image R variant requiring a reported error rather than unwinding (after the parser fix, the ordinary parse path should reject first). These admission assertions fail on 932f19b. This is not among staged deliverables 8–11 and requires no new restriction on legal symbol/interface names."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "R12-B01",
+      "status": "resolved",
+      "note": "Both CC/R equal-leaf envelopes retain two identical rendered lines; independent CC/R pins a298a106.../8247f2de... and object pins d478a37d.../d955f727... match. All six exact layout witnesses and the 30-member sensitivity/tie-order family pass hash/check; structural-owner filtering remains intact."
+    },
+    {
+      "id": "R12-B02",
+      "status": "resolved",
+      "note": "The self-named o interface and db control reproduce hashes 05827c10.../cb28a958..., object pins 44158d33.../94499ff5..., (16,0,2) at B=2 and (0,1,1) at B=1. Reversal at B=0..3 restores entry/clean frames. All 20 address corpus cases pass, including every defined/imported kind and retained real call/global/image dependencies."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1: Rename tests/r1_linking.rs::interface_region_names_cannot_alias_symbols to interface_region_names_cannot_alias_layout_globals and revise its nearby comment to cite SPEC-QUESTIONS 32. Keep its fixture and rejection assertion unchanged; the R12 positive family should continue accepting function, non-global data and import overlap. The current name describes the prohibition R12-B02 correctly removed.",
+    "S1: Add a concise schema-to-validator/test table to README.md for §9.1 optional fields and their cross-references, starting with layout.block_image, imports.pinned_closure_hash and coverage classification payloads. Name the load-time validator and a positive/negative test for each; distinguish those checks from the explicitly staged target/launch/interval work. This makes omission of a field that no current envelope consumes visible during review."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Validate optional block_image at object admission and replace the constructor's unchecked lookup as specified in R13-B01. 2. Add the literal action-only malformed-field family, valid absent/disk controls and no-panic library regression; rerun the normal crate suite and the R12 identity/address tests. Both previous blockers are resolved; no other blocking change is requested. S1 suggestions are not conditions of acceptance.",
+  "summary": "Reviewed commit 932f19bb3b0c908f71843a914c0adf4773f04e7f; verified all 118 embedded packet files against the detached working copy. R12-B01 and R12-B02 are resolved. One new core S0 remains: optional block_image schema/reference validation is omitted, with successful malformed CLI admission and a public-library missing-key panic. It predates the R12 changes, so no regression is asserted. Method (1): independently assembled the duplicate-leaf CC envelope including both layout interface_regions.a.b.c lines and final LF; SHA-256 is a298a1060aa5dcf96e3e0d1c0d5251e6ad1acd44c776cf88caa9d25b6981c7bd. Rehashed all 56 stored full-envelope/object records and ran CLI hash/check on all of them. Derived and reproduced local addr/retval at B=2 -> (payload,code,steps)=(16,0,2), B=1 -> (0,1,1). Independently counted sum_db(0)=10 rows, sum_db(2)=38 returning 3; stack 47 or depth 2 faults on the third call at row 29, while stack 48/depth 3 succeeds. Method (2): traced C5 inverse counter restoration through C1 capture uncomputation and R5 restored-callee-fp through R1 succ cleanup; recursive one-step inverse tests pass. CLI prefix reversals on all reproduced oracle cases restore full entry and clean frames. Traced nested g clock.read/call/ret/uncall inside f and the outer call/ret/uncall: output 0, 11 instructions, clock=0/tape=0; whole-run reversal restores entry. Method (3): audited all 32 SPEC-QUESTIONS entries; the new tie-order and narrow address-namespace readings are defensible. Method (4): searched the packet/crate for every requested placeholder/panic/approximation marker. Test assertions and historical/seed hits are not production fallbacks; production expect/unwrap/unreachable sites have the local validated/cardinality/control invariants described by their callers, unsupported sampler/device/cleanup branches reject non-0.8 variants, and approximate amplitudes are diagnostic, not cleanliness predicates. The unchecked block-image map index is the concrete additional panic found. Method (5): compared lifted/classical/Q dispatch, fault codes, frame/undo families, metadata fields, suites and documented CLI paths; the optional block_image omission is the new mismatch. Explicitly staged deliverables 8–11 are not counted as new S0 omissions. Normal offline tests: 365 passed, 0 failed, 5 ignored. All five ignored sweeps also passed independently: u8 division/remainder (65,536 operand pairs x four operations), 17-wire borrow (131,072 entries), checked borrow certificate (262,144 elements), 200,000-program discipline differential, and recursive prefix reversal for all 256 inputs. Summed sweep runner time was 345.76 seconds in the unoptimized test profile; log: /home/tobias/Projects/bennett-workspace/bennett-isa-spec-review/.tmp/r13-codex-sweeps.log. All reproduction commands were headless; no tracked files changed."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-ref-2026-10-29-r13-codex.json
