@@ -712,10 +712,10 @@ def aggregate_cmd(a):
               "", "Verdicts: " + ", ".join(f"**{m}: {v}**" for m, v in verdicts.items()),
               "", "Core verdicts: " + ", ".join(f"**{m}: {v}**" for m, v in core_verdicts.items()),
               "", f"**Consensus: {'YES' if agree else 'no'}**   **Core consensus: {'YES' if core_agree else 'no'}**",
-              "", "Blocking by scope/severity: " + ", ".join(
+              "", "Blocking by scope: " + ", ".join(
                   f"{m}: core {sum(1 for b in blocking[m] if b.get('scope') == 'core')} / "
                   f"contract {sum(1 for b in blocking[m] if b.get('scope') == 'contract')}"
-                  f" (S0 {len(blocking[m])})" for m in names), ""]
+                  f" (blocking {len(blocking[m])})" for m in names), ""]
     regs = {m: outs[m].get("regressions") or [] for m in names}
     if any(regs.values()):
         lines += ["## Regressions reported", ""] + [f"- **[{m}]** {r}" for m in names for r in regs[m]] + [""]
