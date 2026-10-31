@@ -1,0 +1,39 @@
+{
+ "run": "isa-09-2026-10-31",
+ "round": 4,
+ "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md",
+ "doc_sha256": "3e4aa324d8b0e3ed8a9dfcc2c8312b886bfe8956160821a9207d2e701fe59e64",
+ "prepared": "2026-10-31T11:53:10+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T12:06:13+00:00",
+   "exit": 0,
+   "seconds": 24,
+   "errors": [],
+   "updated": "2026-10-31T12:06:37+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "Bennett ISA draft 0.9, round 4 (codex seat only): re-review after editorial pass III (K68-K75: \u00a712 certificate domain coverage by component identity, borrowed by position, omission, validity, expected correspondence, label ownership, unchecked host-limit outcome; from proof INV-6)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-isa-spec/spec/isa-0.9.PROGRESS.md",
+  "../bennett-isa-spec/spec/ref-0.9-draft.README.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/proofs/INV-6-certificate-soundness.md",
+  "../bennett-conformance/clauses/ISA-0.9-draft.statements.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
