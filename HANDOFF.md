@@ -3,10 +3,11 @@
 Current state only. History is in `worklog/` and `docs/process-watch.md`; per-repo state in
 each repo's `HANDOFF.md`. Rules: each repo's `CLAUDE.md`; council: `docs/council/README.md`.
 
-## 2026-10-31, ~21:30Z
+## 2026-10-31, ~23:30Z
 
-**Running**: isa-ref round 22 (two-seat acceptance vote on 9851a9c after the R21 fixes and the 24-path
-cardinality/length sweep; 436 tests); ISA main gate push (background).
+**Running**: isa-ref round 23 (two-seat acceptance vote on 5e9fa30; 451 tests; INV-6 in context);
+isa-09 round 4 (astra alone; re-review after editorial pass III, K68-K75); dialect **draft 0.2.11**
+editor (sol; compatible track from the ruled outline, 33 items); ISA main gate push (background).
 
 **Landed today**: interpreter rounds 12-16 (353 -> 390 tests; single declarative metadata schema);
 ISA main pushed through its gate (1b6e3cb; both crates green); §11.1 complete: 219 recipes, library hash fcb2f1e6…f5ce bound in §11.1, Rust = Python
@@ -38,7 +39,12 @@ aborts (same class as R20); fix running; round 22 = two-seat acceptance vote.
 **Dialect outline-0.3 is ready for rulings** (`bennett-dialect-spec/spec/outline-0.3.md`, 1,266 lines, 45
 items mapped, 22 numbered decisions D01-D22 with recommendations, rulings section empty; pushed 967db73).
 
-**Waiting on the maintainer**: K64/K65 ratification (ISA 0.9); D01-D22 rulings (dialect 0.3); muse's votes.
+**Maintainer rulings 2026-10-31 evening**: K64/K65 ratified; D01-D22 all yes (D14 both paths; D15 with the
+conservative finite-domain caution); muse advisory for 0.2.10, required for 0.9; acceptance-tail policy
+(declare accepted on the proven core, move host-resource classes to the conformance suite); watcher
+items 5/6 held one pass, item 1 taken in part (dialect statements and .dot no longer committed).
+
+**Waiting on the maintainer**: nothing. Waiting on muse: 0.9 publication vote.
 
 **Next**: collect round 22 -> if both accept, the interpreter leaves the loop and suite cases are re-imported
 from the accepted snapshot; after rulings, draft 0.2.11 then 0.3 from the outline (astra alone; first round on the structured schema, add
