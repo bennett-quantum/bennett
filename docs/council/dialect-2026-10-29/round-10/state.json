@@ -1,0 +1,44 @@
+{
+ "run": "dialect-2026-10-29",
+ "round": 10,
+ "doc": "../bennett-dialect-spec/spec/Bennett-Dialect-Spec.md",
+ "doc_sha256": "67157631837887fabb412b762d571157f71dbb79bb9ff13331ec692ce7ad82ba",
+ "prepared": "2026-10-31T12:40:11+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T12:47:30+00:00",
+   "exit": 0,
+   "seconds": 22,
+   "errors": [],
+   "updated": "2026-10-31T12:47:53+00:00"
+  },
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T12:48:49+00:00",
+   "exit": 0,
+   "seconds": 32,
+   "errors": [],
+   "updated": "2026-10-31T12:49:22+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "Bennett LLVM dialect draft 0.2.11, round 10: compatible track from the ruled outline-0.3 (35 narrowing repairs, D01-D14 and D20-D22; ISA 0.8 target; gate 2767 -> 2834; 33 evidence closures tracked in b-dialect-spec-oxs)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md",
+  "../bennett-dialect-spec/spec/outline-0.3.md",
+  "../bennett-dialect-spec/spec/Bennett-Dialect-Spec-0.2.PROGRESS.md",
+  "../bennett-conformance/clauses/DLT-0.2.11-draft.statements.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-dialect-spec"
+}

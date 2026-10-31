@@ -1,0 +1,64 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "DLT-4.1, DLT-6.1-P1, DLT-7.4-P5, DLT-10 and DLT-18 retain the accepted tier/state model. The new confirmations preserve allocation-generation identity, shared globals, direct-body generation for reversible markers inside actions, and the Cl/M/Co partition. No new state-transition ambiguity found.",
+   "change": "No change required for this round."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "DLT-5.2-P13 supplies the missing atomic update and conditional-store transfer; the five new PT12 state witnesses cover xor, successful/failed cmpxchg and qualified address-space spellings. DLT-12.2-P11 retains complete N9 lowering. The distinction between evaluating an atomic update as one correlated expression and applying ordinary PT3 union to its generated selects deserves an explicit explanation.",
+   "change": "In DLT-5.2-P13 add: For finite integer operand sets, evaluate the complete atomic update for each operand tuple, preserving correlations between its comparison and selected value, then union the stored results and apply K to the distinct results. This is the PT12 transfer, not independent PT3 union of the arms of its virtual N9 selects. Keep ordinary source select analysis unchanged; see suggestion R10-CODEX-S2."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "D14 is followed in DLT-8.7-P2/P3/P5/P6/P7/P8 and the matching DLT-7.1-P6 and DLT-18.3-P19 rows. Exhaustive/library authority permits the native ISA-0.8 path; sampling retains the CC oracle/swap/inverse construction, including the empty-binding and finite-ARG cases. Universal inverse and sound B_bound obligations remain explicit; sampling and T-CLEAN are not promoted to proof. Preserved parameters, predicated calls and unconditional allocation/free keep the expansion coherent. Deferred channel records retain their accepted observation boundary and adjoint/compute placement.",
+   "change": "No semantic change required. The optional execution improvement is specified in R10-CODEX-S3."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "DLT-3.4-P29/P30 preserve named classes and full-table dispatch; DLT-9.2-P11 and DLT-9.4-P3 preserve the one-shot selection_identity overlay, frozen layout, final-identity token binding and all four budget units. Wrapper/replay/helper rows and shadow-stack heap backing remain charged. No new resource default removes a capability.",
+   "change": "No resource-semantic change required; rebase the budget and class dependency tags as specified in R10-CODEX-S1."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "DLT-front, DLT-16.2, DLT-19.9 and DLT-23 keep the ISA-0.8 object/map contract and consistently select full dialect version 0.2.11. D22 is reflected in DLT-25.2-P11/P12: existing metadata channels, checker-owned strict-subdomain evidence labels, and an explicit separation from the ISA-0.9 invocation-binding migration. Dependency provenance is imperfect: some unqualified ISA paragraph references were copied from the 0.9 graph and do not identify their intended 0.8 authority.",
+   "change": "Rebase the new ISA dependency declarations to the explicitly pinned ISA-0.8 graph; retain separately version-qualified historical references only in the 0.9 migration ledger. Concrete replacements are in R10-CODEX-S1."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The requested headless gate independently completed 2834/2834, with zero failures or blocked/unavailable checks; receipt: bennett-dialect-spec/scripts/.tmp/r10-codex.json. D20 has both first-operand orderings; D21 has the xor/cmpxchg execution and abstract-domain witnesses. The progress record distinguishes retained checks, the new collection witness and textual confirmations from the 33 unclosed broader evidence obligations. Those disclosed closures do not invalidate the conditional semantic statements.",
+   "change": "Prioritize an independently executed sampled-path CC expansion witness under D14, with control, inverse orientation, parameter preservation, clean scratch and insufficient-bound checks; retain the open closure until those results exist, as specified in R10-CODEX-S3."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The D01-D14 and D20-D22 resolutions retain the north-star capabilities and all eight demo rungs. Full lifted closure, seven FP formats, device models, callbacks/collections, varargs/EH/platform transforms, and driver paths remain specified. D15-D19 and the bz6/cbe migration stay on the separately ruled 0.3 track; no new rejection or silent capability loss was introduced to obtain a passing gate.",
+   "change": "No change required; keep the full-program ladder obligations and the disclosed evidence backlog intact."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The new obligations are placed beside their governing mechanisms and the progress ledger provides per-item dispositions. All 53 declarations are present, but four distinct ISA references do not resolve against ISA 0.8 and several resolving references name the wrong subject. The supplied statement view itself reports four unresolved references, whereas the progress receipt says all 243 references resolve. This is a navigation/provenance defect rather than a demonstrated divergent machine.",
+   "change": "Correct the dependency tags and the progress receipt, and add a target-version-aware cross-reference check that also tests the intended clause subject; see R10-CODEX-S1."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "R10-CODEX-S1 (S1; dependency declarations and progress receipt). State in the front matter: Unless explicitly version-qualified as migration context, ISA dependency IDs in this draft refer to ISA 0.8; DLT IDs refer to the accompanying 0.2.11 statement graph. Rebase the tags accordingly. Against the supplied ISA-0.8 graph, ISA-3.3-P21, ISA-4.9, ISA-5.4-P3 and ISA-5.4-P4 are absent. In DLT-6.4-P4 cite the existing DLT-5.2-P10 and DLT-6.5-P1/P2 transport construction, ISA-3.2 and ISA-4.1-P10/P11, retaining the disclosed DLT-25.2 transport wording item rather than importing 0.9 P21. In DLT-14.4-P11 replace ISA-4.9 with DLT-11.5, DLT-17.5 and DLT-25.1 for the actual 0.8 fault disposition. In DLT-9.2-P11 and DLT-9.4-P3 cite ISA-5.4-P1 for budget tuples/validation: P3 is absent and P2 only says F >= 4. In DLT-11.3-P7 cite ISA-5.4-P1, ISA-4.2 and the retained DLT-25.2 code-10 wording item instead of absent P4. Also change the allocation-class citation in DLT-3.4-P29 from ISA-3.3-P8 (free) to P7 (new)/ISA-4.3, and the clean-release citations in DLT-8.7-P7/P8 from ISA-3.3-P9 (slice) to P8 (free). DLT-8.4-P3 should cite DLT-16.2-P11 and ISA-4.7-P1 for ARG forwarding; ISA-12.3-P2 in 0.8 is an error-composition rule, not the exact-argument binding rule from 0.9. Check all remaining references by content, not existence alone, and amend the progress claim that all 243 references resolve. The operative dialect rules already provide these obligations, so these citation defects do not establish S0.",
+  "R10-CODEX-S2 (S1; DLT-5.2-P13). Make the correlated atomic-transfer interpretation explicit with the sentence proposed under C2. A useful explanatory vector is an i8 cell initially 1 followed by atomicrmw uinc_wrap with limit 2: the complete atomic transfer has least fixed-point old/stored domain {0,1,2}. Treating its virtual icmp/add/select as independent ordinary PT3 unions can introduce values outside that set. A read-only probe of the current checker gives {0,1,2} for the atomic source but TOP for the explicitly expanded source. Different source syntax can legitimately receive different reference precision; this probe is not an execution disagreement or an S0 allegation. Document that distinction rather than changing PT3 globally. The existing failed-cmpxchg witness already establishes that an impossible successful store must not add the proposed new value.",
+  "R10-CODEX-S3 (S1; D14 evidence priority within b-dialect-spec-oxs). Add a checked small-width instance forced onto the sampled path by lowering the configured exhaustive threshold, plus an above-default-threshold admission case. Execute the emitted CC oracle/swap/inverse calls independently for forward and adjoint orientations, preserved IN/MEM_IN/ARG bindings, controls 0/1 and a superposed control, and verify the full final tuple and clean scratch. A bound below the recorded sound B_bound must produce T-BUDGET before mutation; sampling must never emit native qinplace proof authority. Keep this labelled sampled evidence with universal-inverse/sound-bound obligations, not a proof inferred from clean ancillas. This strengthens the deliberately open I03/I14 evidence closure; it is not a condition for accepting the specification text."
+ ],
+ "verdict": "accept",
+ "verdict_core": "accept",
+ "path_to_accept": "Already accept: no S0 blockers or new spec gaps. To raise the lowest-scoring clarity/contract criteria from 4 to 5, first rebase and validate the dependency declarations against ISA 0.8 and correct the receipt, then spell out the PT12 correlated update transfer. The D14 execution witness would strengthen C6 without narrowing admission or treating the disclosed staging backlog as a blocker.",
+ "summary": "Accept draft 0.2.11 on the ruled ISA-0.8 compatible track. Round 9 had no blockers, so previous_status is empty. No new S0 semantic regression or spec gap was established. D14 retains both exhaustive/library native and sampled CC paths; D20 preserves and tests first-region-operand ordering; D21 implements actual atomic update/store propagation; D22 preserves metadata fallbacks and checker-owned strict-subdomain evidence labels while leaving 0.9 invocation binding on its migration track. The requested gate passed 2834/2834. Three nonblocking suggestions address target-version dependency citations, PT12 explanatory precision, and the priority of sampled-path execution evidence. The 33 disclosed evidence closures remain staging work, not claims of completed full-program validation."
+}

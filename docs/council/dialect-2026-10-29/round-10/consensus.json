@@ -1,0 +1,30 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [],
+  "codex": []
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 4.0,
+  "C3": 4.5,
+  "C4": 4.5,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}
