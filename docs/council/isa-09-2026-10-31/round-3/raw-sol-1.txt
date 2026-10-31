@@ -1,0 +1,86 @@
+exit 0 in 18s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "§3.3 and §3.7 pin register identity, aliases, reversible ledger transitions and finite fixed-binding instances. K63 serializes the integer binding key in paths, context keys and scratch chains without restoring dynamic lift.call histories. Equal entry values do not merge distinct keys.",
+      "change": "No normative repair is needed. For navigation append to §3.7: \"The binding key is serialized as instance in §11 paths and §12.1 context keys; lift.call itself adds no invocation edge.\""
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "Instruction forms, lifted parameter groups, faults and certified qinplace obligations are explicit. K62 makes source replacement precede recipe instantiation, and the bound adj adapter splices that body. The n=1/F=4 trace agrees in the text and actual bound recipes.",
+      "change": "No instruction-semantic repair is needed. In §15 H explicitly require: \"The scheduled adjoint of qinplace G H allocates t[1] at 0 and f[4] at 1, calls H, exchanges at 2, calls G, and releases t at 3 and f at 4; a generated=0 allocation-class decision selects t.\""
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "K29 preserves cross-arm unconditional lifetimes. K31 makes version restoration conditional on legal cleanup. K37–K44 pin windows, control versions, joint residual dependence and release. The INV-3 entangling-reader witness remains rejected after intermediate scratch is cleaned. No new unsound statement was demonstrated; the residual-operator rule lacks a nearby worked circuit.",
+      "change": "After ISA-6.1-P18 add a non-normative example: \"With p=1, CCX(d0,p,d1); CX(d1,t); CCX(d0,p,d1) restores d1 but induces CX(d0,t). Hence M is not I_d0 tensor V, so H alone cannot clean an H-produced d0. An intervening S;SDG instead has M=I and leaves no outstanding phase.\""
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "§8 and §10.1 specify exact rational matching/aggregation, deterministic placements, class-separated rows and upward display rounding. K62 removes the divergent allocation-class outcomes. K64 annotates the existing leaves and K65 adds no charged event. The complete controlled-action scheduling/accounting fixture remains pending.",
+      "change": "Add the §17 item 7 controlled-action fixture to §15 E/H, binding the complete ref hash and an explicit target. Print resolved classes and exact per-class resources; require the K62 private classes t:special and f:default and agreement between execution and estimation. Use full oracle.construct expansions for callee costs, not synthetic one-CX fixtures."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "K62–K65 resolve the conflicting adjoint contract and the absent scheduling identities/carriers. K63 distinguishes repeated semantic calls and fixed instances. K64 covers support-point domains including B=0. K65 selects whole cleanups before expansion, including empty ones. Both proposed clauses are sound for maintainer ratification. Independent interchange evidence remains the main improvement.",
+      "change": "Extend §15 H with concrete path/decision vectors requiring: \"qinplace G G has call_index 0/1; equal-valued instances [0]/[1] stay distinct; B=0 has $construct/$commit/$release but no $step; B=1 starts $step with allocation at at generated=0; reverse and recompute use the same ordinal-0 cleanup carrier, also for an empty inverse sequence.\""
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "INV-1..5 are analyses of 0.8 with explicit assumptions/refutations, not completed proofs of this draft. K29–K61 repair their named statement defects. K64/K65 now close INV-5 1.1.6 and 1.2.4.2. K55 changes the unbound-admission premise rather than asserting the refuted theorem. Targeted checks establish constructor/hash consistency, not 0.9 executor conformance.",
+      "change": "Beside §14 add: \"The supplied proofs target 0.8. Draft repairs are INV-1 1.3.6.4: K29; INV-3 1.4.2–3: K40/K41; INV-4 1.5.2–3: K46/K47; INV-5 1.1.6/1.2.4.2: K64/K65. Admission follows K55 and defaults follow K58–K61. These are statement repairs, not a claim that the old proofs have been rerun.\""
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The revised contracts retain the north-star constructions for runtime registers/budgets, reversible failed prefixes, parameterized bijections, nested coherent execution and padded estimates. K62 consistently changes the canonical trace; K63–K65 add addressing/selection metadata without removing capability. No new narrowing of a demo rung was found. Accepted 0.8 and ratified §0 decisions are not reopened.",
+      "change": "No scope change is needed. In §0.3 add north-star §8 rung cross-references to the construction column, including logical snapshots/continuations for rung 7 and mapped input regions for rung 8, to make future deferral audits easier."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The adjoint precedence and selector rules now remove the round-1 reconciliation choices. K66 repairs the specifically identified dependency targets and K67 supplies a legal mapped replay witness. The historical K1–K27 dependency audit remains explicitly advisory. The ref README still labels the former fcb2f1e6…f5ce value as a complete-library hash, while §11.1 and the catalog correctly bind 5de4e499…d197.",
+      "change": "In spec/ref-0.9-draft.README.md replace the unqualified current complete-library hash with 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197; retain the former hash only under an explicitly historical pre-K62 label. Complete b-isa-spec-82i by checking dependency targets against sentence contents without changing normative semantics."
+    }
+  ],
+  "blocking": [],
+  "previous_status": [
+    {
+      "id": "SOL09-R1-B01",
+      "status": "resolved",
+      "note": "ISA-5.3-P8 and ISA-11.1-P32 require source replacement before instantiation. Bound adj/qinplace tests pass with caller ordinals 0..4, H then G, t[1]/f[4], t-then-f releases and ordinal-0 class selection. Only adj changed among 219 recipes; the new binding hash is reproduced."
+    },
+    {
+      "id": "SOL09-R1-G01",
+      "status": "resolved",
+      "note": "K64 / ISA-11-P10 closes the 8ka text gap with the exact construction/step partition, source-row/callee exclusions, inverse retention and B=0 behavior. Sound for maintainer ratification; ratification remains pending."
+    },
+    {
+      "id": "SOL09-R1-G02",
+      "status": "resolved",
+      "note": "K65 / ISA-11-P11 closes the 23g text gap with a stable non-emitting carrier, pre-expansion whole-pair selection, empty-cleanup coverage and separate emitted-leaf decisions. Sound for maintainer ratification; ratification remains pending."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "SOL09-R3-S01 (S1, documentation accuracy; fits no stated theorem). In spec/ref-0.9-draft.README.md, Evidence and limits, replace the unqualified complete-library hash fcb2f1e6d61aced0bf9689eab5f6d82c4ae42e9fea8d1b21ae9c7ffccda6f5ce with 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197. Preserve the former value only as an explicitly historical pre-K62 checkpoint. This is nonblocking: §11.1 defines the binding, the actual bytes reproduce the new hash, and the README cannot alter operations.",
+    "SOL09-R3-S02 (S1, conformance evidence). In §15 H and the pending §17 item 7 controlled-action fixture publish full paths and expected decisions for K62 ordinal-0 class selection, qinplace G G call_index 0/1, equal-valued instances [0]/[1], B=0 support points, B=1 $step allocation at ordinal 0, and reverse/recompute/empty-cleanup carriers. Bind an actual source oracle and full ref expansion for callee costs. Expected K62 private trace: alloc t[1](0), alloc f[4](1), H, swap(2), G, release t(3), release f(4), with t:special and f:default. This strengthens evidence for INV-5 1.1.6 and 1.2.4.2, now resolved in the text; it demonstrates no current theorem violation.",
+    "SOL09-R3-S03 (S1, explanation). After ISA-6.1-P18 insert the residual-operator example in C3.change: at p=1 the middle CCX/CX/CCX sequence is CX(d0,t) with d1 clean and fails I_d0 tensor V, whereas S;SDG has residual identity. This illustrates the repaired INV-3 1.4.2/1.4.3 obligations, not a remaining counterexample.",
+    "SOL09-R3-S04 (S1, dependency maintenance; fits no stated theorem). Complete the recorded b-isa-spec-82i historical K1–K27 premise audit. Require every marker target to state the premise actually used; retain ISA-11.1-P29.S3 for inverse ordinal retention, P29.S5 for scratch release, and ISA-11-P6/P7 for maximal matching/staging. Rebuild the statement view after annotation-only edits and check content as well as unresolved ids. The specifically cited round-1 dependency errors are already repaired by K66; this asks only for the acknowledged remaining audit."
+  ],
+  "verdict": "accept",
+  "verdict_core": "accept",
+  "path_to_accept": "No blocking change is required: accept this snapshot with verdict_core=accept and zero outstanding spec gaps. K64 and K65 are both sound as written for maintainer ratification; this review recommends ratification and does not assert it has occurred. To raise the lowest scores (4) by one point, publish the full controlled-action/schedule/certificate and boundary vectors in S02 (C4/C5), add the residual-operator example and draft-specific proof-status map (C3/C6), and finish the current-binding documentation and content-based dependency audit in S01/S04 (C8). These improve evidence and implementation clarity rather than condition acceptance.",
+  "summary": "sol, round 3: accept overall and accept core; 0 S0 blockers, 0 outstanding spec gaps, 4 S1 suggestions. K62 resolves SOL09-R1-B01: both source-table and bound-recipe consumers use alloc t[1](0), alloc f[4](1), H, swap(2), G, release t(3), release f(4) for the certified identity-inverse-pair witness; generated=0 selects t:special and f remains default. Raw inverse constructors retain forward ordinals when reversing already expanded rows. The former ordinal disagreement fits no stated theorem about generated traces; INV-1 1.2.6 proves the interface inverse, not trace identity. Under the required headless prefix, python3 -I conformance/tools/ref_catalog.py --check reports 219 recipes and SHA-256 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197. Comparing the pre-K62 catalog confirms only adj changed. Independent Rust ref_catalog tests pass 12/12 and ref_qinplace_contract passes 2/2. The packet draft equals the working draft; accepted 0.8 retains SHA-256 90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e. K63 distinguishes repeated semantic calls and fixed instances in serialized edges, retains forward occurrence numbers under inverse traversal and preserves specificity. K64 partitions the existing support event stream without changing operations or charges. K65 selects whole cleanups on stable carriers without emitting events or charges. Both clauses are sound for maintainer ratification and close INV-5 1.1.6/1.2.4.2 at the text level. Round-1 suggestions S1/S2/S3 are addressed by K66/K63/K62 respectively. Reviewing the full revised draft against the accepted baseline, north star, progress record, ref contract, INV-1..5 and 1,594-statement view yielded no new S0. Constructor/hash checks are not a claim of full 0.9 executor conformance or completed mechanisation."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-09-2026-10-31-r3-sol.json

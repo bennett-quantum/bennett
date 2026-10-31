@@ -1,0 +1,38 @@
+{
+ "run": "isa-09-2026-10-31",
+ "round": 3,
+ "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9-draft.md",
+ "doc_sha256": "59eee9ad0d96d34b6c6fd8be0acb041a56c652e8be821393c153f83cde5df96b",
+ "prepared": "2026-10-31T10:54:36+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-10-31T11:08:01+00:00",
+   "exit": 0,
+   "seconds": 18,
+   "errors": [],
+   "updated": "2026-10-31T11:08:19+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "Bennett ISA draft 0.9, round 3: sol acceptance vote on the round-2 snapshot (codex accepted in round 2; K62 canonical action adjoint resolves SOL09-R1-B01; K64/K65 drafted for maintainer ratification)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-isa-spec/spec/isa-0.9.PROGRESS.md",
+  "../bennett-isa-spec/spec/ref-0.9-draft.README.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/clauses/ISA-0.9-draft.statements.md"
+ ],
+ "member_list": [
+  "sol"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
