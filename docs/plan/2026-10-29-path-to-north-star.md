@@ -99,3 +99,15 @@ The demo ladder is the acceptance gate: rungs 1 → 2 → 3 → 4, then 5–8.
 
 Agents commit their own paths regularly (unstable network); nothing is pushed
 without the maintainer's say-so.
+
+## Ladder status (kept current by the orchestrator; evidence in `bennett-conformance/ladder/rung-N/RESULTS.md`)
+
+| Rung | Status | Date | Evidence |
+|---|---|---|---|
+| 2 hashtable | **complete**: gate exit 0, every stage PASS on LLVM 18 and 23, both executors (forward = native on ten cases, byte-exact reversal) | 2026-11-01T13:06Z | `ladder/rung-2/RESULTS.md`; blockers closed in order: brt-3sa, bp-au6, bp-1us, bp-tav, bp-9fo, bp-bux, bennett-vm-ol3, b-isa-spec-n8j, bennett-vm-fw8 |
+| 3 musl hello-world | gate built; seven ordered blockers filed (brt-1ft musl sysroot, brt-cgb console device, bp-ivy R integration, bennett-driver-cyg driver M1, b-isa-spec-221 typed R faults, b-isa-spec-04d / bennett-vm-u8m saved-tape interfaces); runtimes, driver and ISA passes running | 2026-11-01 | `ladder/rung-3/RESULTS.md` |
+| 1 scalar C/Rust/Julia | no ladder gate yet (the plugin's legality corpus covers C at Int8; Rust/Julia and "both executors" unverified as a gate) | — | to build after rung 3's first pass, reusing `ladder/common/` |
+| 4 Grover over SQLite | spike done 2026-10-29 (no ISA change needed); gate not started | — | `bennett-dialect-spec/docs/spikes/sqlite/REPORT.md` |
+
+The consumer chooses the next pass: each rung's gate files the blockers in the owning repos, and those beads are the work
+plan (maintainer 2026-10-31).
