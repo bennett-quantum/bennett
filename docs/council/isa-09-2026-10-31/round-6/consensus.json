@@ -1,0 +1,62 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "codex": "revise"
+ },
+ "blocking": {
+  "codex": [
+   {
+    "id": "R6-CODEX-1",
+    "section": "\u00a75.6 Entry-state analysis, rule 1; \u00a72 effective control context; \u00a78.3 own versus total controls",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a75.6 first disables an operation when an \u201ceffective control\u201d is known false, then makes an X-family target unknown unless all operands are known. \u00a72 defines the effective control context as active predicates plus inherited controls, and \u00a78.3 distinguishes these from a gate\u2019s own controls. \u00a75.6 forbids a stronger analysis from narrowing D_F.",
+      "by": "clause:ISA-5.6 (entry-state rule 1 and opening paragraph); clause:ISA-2-P10; clause:ISA-8.3"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Use a perm_action with interface t:wire mut and u:wire in, no arguments, bounds or memory, and this complete body after ^entry():\nz = qalloc any 1\nc = qalloc any 1\nccx z u c\nb = qborrow any 1\ncx c b\nqreturn b\nccx z u c\nqfree c\nqfree z\nThe current reference check accepted this object through /dev/stdin, returning status ok. It used the 0.8 header and signature abi under the binding erratum; the probe interface hash was eb30a43722acc6c124c4c4bea0e3649915b964ea4e08806933e96cc4c37581f6 and object hash 64de1ae460626ce409f99b798e654b3c9bf05b3a9d53ded0fdb93a0a416f019c. No file or repository modification was needed.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref check /dev/stdin; witness:reference-interpreter/src/borrow.rs EntryAnalysis::condition and EntryAnalysis::apply"
+     },
+     {
+      "n": "<1>3",
+      "claim": "On the literal contextual-control reading, ccx z u c has an empty effective control context. Since u is unknown, not all operands are known, so the rule makes c unknown. At the subsequent single-gate frame, D_F includes c=1,b=0; cx c b sends b to 1. No P\u2032 acting independently of B can satisfy the required identity on B over that domain. The later cleanup does not repair a failed individual frame obligation.",
+      "by": "step:<1>1; step:<1>2; clause:ISA-5.6 (Cartesian-product domain and restricted factorisation)"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The reference tests all controls, including the explicit z operand of ccx. It skips the operation because z=0, retaining c=0, and the frame is identity on its resulting domain {c=0} \u00d7 {b=0,1}. This explains the observed admission and agrees with the intended known-false transfer, but is stronger than the contextual-control reading of rule 1.",
+      "by": "step:<1>2; witness:reference-interpreter/src/borrow.rs EntryAnalysis::condition and EntryAnalysis::apply; clause:ISA-4.4"
+     },
+     {
+      "n": "<1>5",
+      "claim": "Thus the published control terminology and the aligned reference lead to different D_F and different validity decisions for one finite object. This is an S0 normative admission ambiguity, rather than a choice of proof format or a missing optimisation; both candidate domains conservatively contain the reachable entry state.",
+      "by": "step:<1>1; step:<1>3; step:<1>4"
+     }
+    ],
+    "problem": "Rule 1 does not explicitly include the operation\u2019s own controls in the known-false shortcut, although the reference does. Elsewhere the specification distinguishes own controls from effective control context. With a known-false own control and another unknown operand, the literal rule loses a local constant that the reference retains; because D_F is normative and cannot be narrowed by stronger analysis, this changes acceptance of a borrow frame.",
+    "fix": "In \u00a75.6 rule 1, replace \u201cAn effective control known false disables the operation.\u201d with: \u201cIf any control literal is known false, counting the operation\u2019s own controls together with its effective control context, the operation is disabled: preserve all abstract values and record no causal event.\u201d Keep the existing all-operands-known rule after this shortcut. Add the body in step <1>2 as a suite F/frame_domain case with expected acceptance and c=0 at frame entry. The alternative is to restrict the reference shortcut to contextual controls and require this object to fail; I recommend the text repair because it preserves the implemented, sound known-false analysis and the maintainer\u2019s chosen admission boundary."
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 4.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 4.0
+ },
+ "members": [
+  "codex"
+ ]
+}

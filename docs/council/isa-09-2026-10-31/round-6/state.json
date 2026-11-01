@@ -1,0 +1,40 @@
+{
+ "run": "isa-09-2026-10-31",
+ "round": 6,
+ "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md",
+ "doc_sha256": "7b77c96e08a1f7e40d8a70155bef703bb4e7d2e9c850a95e3579a7ee7ae288ce",
+ "prepared": "2026-11-01T08:56:54+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-01T09:08:02+00:00",
+   "exit": 0,
+   "seconds": 24,
+   "errors": [],
+   "updated": "2026-11-01T09:08:26+00:00"
+  }
+ },
+ "rubric": "/home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md",
+ "subject": "Bennett ISA 0.9 (published 2026-11-01), round 6: one-reviewer fix round on editorial passes IV and V; new \u00a75.6 normative frame entry domain D_F and K76 (bead 73y); K1-K75 unchanged",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-isa-spec/spec/errata-0.8.md",
+  "../bennett-isa-spec/spec/isa-0.9.PROGRESS.md",
+  "../bennett-isa-spec/docs/briefs/2026-11-01-isa-09-pass-v-73y.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/proofs/INV-6-certificate-soundness.md",
+  "../bennett-conformance/clauses/ISA-0.9.statements.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
