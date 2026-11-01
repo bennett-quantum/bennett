@@ -221,3 +221,12 @@ proofs are spec gaps and are filed as beads in the owning spec repo, not as edit
 - **Gate**: the pre-push hook itself checks out the pushed sha in a clean worktree and gates that, so the
   orchestrator pushes normally and `--no-verify` is retired for code pushes.
 - **Watcher cadence**: once a day (maintainer 2026-10-31), plus by-hand passes at milestones.
+
+### Ruling 2026-11-01 (orchestrator, extending watcher pass 4): push gates test the pushed sha, never the live tree
+
+A push gate runs against a clean detached worktree of the sha being pushed (bennett-plugin pattern), in every repo
+where an editor may be mid-change while the orchestrator pushes: bennett-isa-spec (pass VIII push failed on an
+unrelated half-edited `classical.rs`), bennett-vm (worktree beside the repo, since its tests resolve
+`../bennett-isa-spec`), bennett-arith and bennett-runtimes already did. Also found today: `bd init` points
+`core.hooksPath` at `.beads/hooks` with a frozen copy of `scripts/pre-push`; six repos ran stale gates. The hook in
+`.beads/hooks/pre-push` must be the chaining wrapper (`exec "$root/scripts/pre-push" "$@"`).
