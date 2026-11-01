@@ -100,6 +100,8 @@ The demo ladder is the acceptance gate: rungs 1 → 2 → 3 → 4, then 5–8.
 Agents commit their own paths regularly (unstable network); nothing is pushed
 without the maintainer's say-so.
 
+**Executors:** bennett-vm gains a dense state-vector engine (bead bennett-vm-bjm, qHiPSTER-style blocking, fusion and threads, std-only, evidence-labelled `numerical`) beside the exact sparse engine, for rung 4(b), 7(b), 8(b); the exact engine stays the semantic reference.
+
 ## Ladder status (kept current by the orchestrator; evidence in `bennett-conformance/ladder/rung-N/RESULTS.md`)
 
 | Rung | Status | Date | Evidence |
