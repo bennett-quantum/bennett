@@ -4,7 +4,17 @@
  "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md",
  "doc_sha256": "9cfba0edcf76ebcd1e0eca8fc14f8028e2e1b0bc098af8d4a8514e8e2f0cb833",
  "prepared": "2026-11-01T09:46:03+00:00",
- "members": {},
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-01T09:54:22+00:00",
+   "exit": 0,
+   "seconds": 55,
+   "errors": [],
+   "updated": "2026-11-01T09:55:16+00:00"
+  }
+ },
  "rubric": "/home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md",
  "subject": "Bennett ISA 0.9 (published), round 7: one-reviewer fix round on passes VI (round-6 response: \u00a75.6 rule 1 own controls, rule 3 canonical D_F, \u00a712.2) and VII (new oracle_invocation binding channel, K77; bead 5xm); K1-K76 otherwise unchanged",
  "context": [

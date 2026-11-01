@@ -1,0 +1,70 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "\u00a71.1, \u00a7\u00a73\u20137 and \u00a714.3 describe one classical/reversible/coherent machine shared by VM and bounded specialisation. Passes VI and VII preserve that ambition: they determine admission and invocation bindings without removing a north-star capability.",
+   "change": "No substantive change required. Retain \u00a71.1\u2019s \u201cone semantics\u201d commitment and \u00a714.3 T6\u2019s explicit exact-oracle and bounded-error action/channel conclusions."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The \u00a75.6 rule-1 repair explicitly includes own controls, so the round-6 ccx z u c witness retains c=0 when z=0 despite unknown u. Rule 3 fixes the canonical union D_F, and \u00a712.2 correctly distinguishes a frame obligation from a region claim; none licenses polynomial reasoning to narrow D_F.",
+   "change": "No substantive change required. Preserve \u00a75.6 rule 1\u2019s sentence \u201cIf any control literal is known false, counting the operation's own controls together with its effective control context, the operation is disabled: preserve all abstract values and record no causal event,\u201d together with rule 3\u2019s prohibition on treating failure over a coarser superset as a counterexample on D_F."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "\u00a7\u00a73.6\u20133.7 specify padded steps, activation history and ordered reversal; \u00a7\u00a75.2\u20135.4 retain total budgeted oracle semantics; \u00a7\u00a77\u201311 expose memory, effects and scheduled resources. K77 now makes the per-invocation budget that determines frames and widths explicit without changing that machine.",
+   "change": "No substantive change required. Retain \u00a711.1 K77\u2019s rule that the builder uses each captured tuple and the linked source/layout to derive B, frames and every token-dependent limit or width supplied to oracle.construct."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "\u00a7\u00a78\u201312 separate target, object/link, launch, scheduler and certificate contracts. K77 supplies the missing source-to-catalog binding boundary: the registry binds source/interface, while each invocation carries its own validated token context outside K24\u2019s declared argument vector; forwarding and inverse traversal do not depend on ambient consumer state.",
+   "change": "No substantive change required. Preserve \u00a711.1\u2019s explicit separation: \u201cThe invocation token is not an additional formal or vector entry,\u201d and the requirement to reject missing, ill-typed or source-inconsistent oracle_invocation context before concrete expansion."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "\u00a71.1 places LLVM delivery upstream in the dialect reference semantics; the ISA itself retains arbitrary-width data, pointer/layout contracts, lifted calls and recursion, explicit tokens, and host/device interaction. The repairs introduce no language restriction or new LLVM premise, and the full reread found no new narrowing of the north-star demo scope.",
+   "change": "No substantive change required. Retain \u00a74.7/\u00a716.2\u2019s separation of the explicit tk operand from declared args, and \u00a75.4\u2019s sentence that the enclosing oracle\u2019s token is not implicitly substituted for a nested call\u2019s explicit token."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "\u00a7\u00a712\u201315 distinguish full-domain proof, partial evidence, host limits and forward correctness from round trips. I reran all five frame_domain tests and the two-token oracle regression successfully; the latter covers all 256 inputs and inverse restoration, but exercises source execution rather than the complete K77 catalog-adapter lifecycle.",
+   "change": "In \u00a715 suite H, add: \u201cK77 conformance includes the same inc8 closure and positional vector captured with B=2 and B=3, forwarded through invoke/call and captured body/template adapters under a conflicting apply-site context; nested calls use their own explicit tuples and restore the outer binding, and inverse traversal retains forward occurrence identities.\u201d Specify two and three frames, final (t,f)=(x+1 mod 256,1) from zero seeds, exact inverse restoration, and rejection of missing, malformed or source-inconsistent context. This is an additional conformance vector, not a request for a new binding rule."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The supplied north star \u00a77 gives appropriately narrow novelty claims and attributes structural adjoints, uncomputation, bounded coherent control and resource estimation. The ISA\u2019s contracts are consistent with that account, but a reader entering directly at \u00a71.1 has no concise pointer connecting those adopted ideas to their provenance.",
+   "change": "Add a non-normative sentence to \u00a71.1: \u201cFor the provenance of structural adjoint/control, uncomputation validity, bounded coherent control and resource estimation, see Bennett-NorthStar \u00a77; this specification defines their shared machine and interchange contracts.\u201d This is a navigation improvement, not a new novelty claim."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The new \u00a711.1 text is sufficiently complete to bind tk identically through forwarding, template application, nested calls, source adjoints and raw inverse traversal, and \u00a716.2 removes the tempting extra-formal interpretation. The remaining clarity work is the acknowledged post-round statement-layer/dependency refresh, particularly around revised \u00a75.6 and \u00a712.2 premises.",
+   "change": "For \u00a70.2 dependency annotations and the \u00a75.6/\u00a712.2/\u00a714.3 statement references, regenerate the final 0.9 statement layer and resolve the INV-3 citations against the restricted-domain formulation. Add a non-normative index note: \u201cEach dependency records its release snapshot; historical 0.8 premises are distinguished from revised 0.9 statements.\u201d Preserve or explicitly map existing identifiers instead of silently retargeting them by paragraph position."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "R6-CODEX-1",
+   "status": "resolved",
+   "note": "\u00a75.6 rule 1 adopts the requested own-controls-plus-context shortcut, preserving c=0 and recording no event for ccx z u c when z=0; the exact witness passes and its c=1 control fails. Rule 3 and \u00a712.2 retain the normative admission boundary, so this resolution does not authorise a stronger analysis."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "S1 \u2014 \u00a715 suite H / \u00a711.1 K77: add the adapter-level conformance vector described under C6. State: \u201cCaptured oracle_invocation follows the source call\u2019s arguments and body/template capture, irrespective of unrelated apply-site context; nested calls restore the enclosing context on exit.\u201d Reuse inc8 at B=2 and B=3, assert frame counts 2 and 3 and (t,f)=(x+1 mod 256,1) from zero seeds, retain forward call_index values during inverse traversal, and reject absent, malformed or source-inconsistent records. The current source-level regression is useful evidence but does not itself exercise all these catalog-binding paths; the normative rules already settle them.",
+  "S1 \u2014 \u00a70.2 dependency annotations, \u00a75.6, \u00a712.2 and \u00a714.3: perform the acknowledged final statement-layer regeneration and INV-3 citation resolution. Record: \u201cEach dependency records its release snapshot; historical 0.8 premises are distinguished from revised 0.9 statements.\u201d Keep an explicit mapping for retained identifiers and verify that frame references resolve to support in span(D_F) and restricted factorisation, rather than silently retaining a whole-region-D premise. No mechanised proof is required for acceptance.",
+  "S1 \u2014 \u00a71.1: add the non-normative provenance pointer proposed under C7 to Bennett-NorthStar \u00a77. Keep the ISA\u2019s normative obligations self-contained; this pointer should explain adoption and interoperability, not assert additional novelty."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already accept; no S0 changes are required. To raise C6 from 4 to 5, first add the explicit K77 forwarding/template/nesting/inverse conformance vector to \u00a715 with the expected values and rejection cases above, then attach a source-builder expansion witness that checks those bindings and occurrence identities. The existing source execution test alone should not be described as that adapter witness.",
+ "summary": "Accept core and overall with no blocking items or identified regression after checking the diff first and rereading the complete supplied document and context. R6-CODEX-1 is resolved: rule 1 now explicitly tests own controls as well as the effective control context, so z=0 disables ccx z u c and preserves c=0; this is the amended normative transfer, not permission to use a stronger analysis. Rule 3 preserves the canonical finite-transfer union D_F under acceleration, and \u00a712.2 correctly makes the individual frame obligation use D_F. K77 is sufficiently specified for independent implementers: its one-field token record contains the canonical four-string tuple resolved from the source tk (or explicit root launch/schedule budget), is validated before concrete expansion, follows arguments and body/template captures through forwarding, cannot be replaced by unrelated apply-site context, resolves nested calls in their own fixed bindings and restores the outer context, and retains captured tuples and forward occurrence identities under inverse traversal. Source-adjoint replacements still precede instantiation. The \u201cno implicit bindings or defaults\u201d rule holds because this is required explicit source-builder input, not a reserved name, extra positional formal or ambient fallback. K24\u2019s closure-bound positional arguments and exact token-value encoding remain intact; K28\u2019s instruction-defined release order, separate callee ordinal spaces and recipe-scratch LIFO rule are unchanged, and the context adds no leaf or ordinal. I independently confirmed that spec/ref-0.9.json is byte-identical to the pre-pass-VI/VII version: 219 recipes, byte SHA-256 52dbc3f8f0c91d587fd933a43080385fd5284abcfec0ce84788229fcb15c53d8, and unchanged catalog envelope 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197. The five frame_domain tests and pass_vii_same_oracle_and_arguments_keep_distinct_invocation_tokens passed; the latter covers all 256 inc8 inputs with nonzero target/fault seeds and inverse restoration. I did not rerun the full suites, and that source-level test does not establish catalog-adapter implementation coverage. Remaining suggestions concern conformance coverage, citation refresh and navigation, not unresolved semantics.",
+ "verdict_core": "accept"
+}
