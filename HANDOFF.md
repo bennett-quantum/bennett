@@ -5,10 +5,10 @@ pointer; the narrative lives in the worklog top block). Rules: each repo's CLAUD
 `docs/council/README.md` (tail); ladder status and the ISA 0.9 adoption decision: `docs/plan/2026-10-29-path-to-north-star.md`.
 Clock: read `date -u` before any timestamp.
 
-## Session 2026-11-01 (ended 17:25Z; worklog block "Session log - 2026-11-01" in `worklog/` is the narrative)
+## Session 2026-11-01 (ended ~17:20Z; worklog block "Session log - 2026-11-01" in `worklog/` is the narrative)
 
 **Nothing is running.** The last four Codex passes reported at wind-up and were landed; the gated pushes started at
-17:20Z should have left each `main` at the sha below (check `git -C <repo> rev-list --left-right --count origin/main...HEAD`
+17:14Z should have left each `main` at the sha below (check `git -C <repo> rev-list --left-right --count origin/main...HEAD`
 is `0 0`; if a push failed, its log is `<repo>/.tmp/push-main.log`):
 - bennett-isa-spec a3222b7: reference 0.9 milestone (bead b-isa-spec-fuk) slices .1/.2 closed, .3 in progress (K77 capture
   API, typed expander, K79-K81 vector byte locks; the unmodified controlled fixture still rejects), .4-.7 open. 524 tests.
