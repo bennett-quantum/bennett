@@ -106,7 +106,21 @@ def backup(st, cd):
 
 def commit(st, cd, paths, label):
     try:
-        subprocess.run(["git", "add", "-A", "--", *paths], cwd=cd, check=True, capture_output=True, timeout=120)
+        # `git add` exits 128 on a path that does not exist yet and 1 on an ignored one, and then commits
+        # nothing at all (2026-11-01: three jobs lost every checkpoint this way), so stage them one by one.
+        added = 0
+        for p in paths:
+            ignored = subprocess.run(["git", "check-ignore", "-q", "--", p], cwd=cd).returncode == 0
+            tracked = subprocess.run(["git", "ls-files", "--", p], cwd=cd, capture_output=True, text=True).stdout.strip()
+            if ignored and not tracked:
+                continue
+            if not os.path.exists(os.path.join(cd, p)) and not tracked:
+                continue
+            subprocess.run(["git", "add", "-A", "--", p], cwd=cd, check=True, capture_output=True, timeout=120)
+            added += 1
+        if not added:
+            log(st, f"commit ({label}): no owned path exists yet")
+            return
         if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cd).returncode == 0:
             return
         msg = f"wip(codex job {os.path.basename(st)}): {label}{TRAILER}"
