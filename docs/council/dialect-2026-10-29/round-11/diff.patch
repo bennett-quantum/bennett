@@ -1,0 +1,222 @@
+--- round-10/doc.md
++++ round-11/doc.md
+@@ -1,12 +1,17 @@
+-# Bennett LLVM Dialect — Specification, draft 0.2.11
+-
+-**Date:** 2026-10-31. **Status:** draft 0.2.11, from outline-0.3 rulings of 2026-10-31, not yet graded.
+-This draft supersedes accepted 0.2.10, retained in git at spec SHA-256 `d4f3c1a88391cc147f8c8fa4f80f82852e3ebe6f880610fc16cd5151f33d7206`.
++# Bennett LLVM Dialect — Specification, draft 0.2.12
++
++**Date:** 2026-11-01. **Status:** draft 0.2.12, from consumer-named gaps of 2026-11-01; awaiting council review.
++This draft supersedes 0.2.11, accepted by the council's sol and codex seats in round 10
++(2026-10-31; gate 2834/2834), retained at git `eaad067` with accepted-text SHA-256
++`05101a18e04098cfca5fdfb52edc9d9027723455adf2569da2fa49ef7a47c7c1`.
++Its pre-acceptance freeze receipt records spec SHA-256
++`67157631837887fabb412b762d571157f71dbb79bb9ff13331ec692ce7ad82ba`.
++Accepted 0.2.10 and its SHA are retained by `errata-0.2.10.md`; its text is unchanged.
+ The grading target remains Bennett ISA **0.8**. [deps: DLT-front-P2, DLT-1.3, DLT-23]
+ 
+-**Versioning.** Dialect 0.2.11: markers 0.2, handles 0.2.8, regions 0.2.8, oracle-abi 0.2.4, tdl 0.2.4, effects 0.2.4, norm 0.2.8, map 0.2.9, asm 0.2, platform 0.2.1, driver 0.2.1, corpus 0.2; targets ISA 0.8. [deps: DLT-front-P2, DLT-23]
+-The **full version string** (`0.2.11`) is the compatibility unit (§23): drafts are not compatible with each other. [deps: DLT-front-P2, DLT-23]
++**Versioning.** Dialect 0.2.12: markers 0.2, handles 0.2.8, regions 0.2.8, oracle-abi 0.2.4, tdl 0.2.4, effects 0.2.4, norm 0.2.8, map 0.2.9, asm 0.2, platform 0.2.1, driver 0.2.1, corpus 0.2; targets ISA 0.8. [deps: DLT-front-P2, DLT-23]
++The **full version string** (`0.2.12`) is the compatibility unit (§23): drafts are not compatible with each other. [deps: DLT-front-P2, DLT-23]
+ The compatible track MUST retain existing marker signatures, canonical map and externally visible reference behaviour while clarifying inherited rules and supplying closure evidence. [deps: DLT-front-P2, DLT-3.2, DLT-16, DLT-23]
+-Every new or changed normative sentence MUST end with a dependency declaration naming its DLT or ISA statement or clause dependencies. [deps: DLT-1.5, DLT-23]
++Declared dependency markers are retained for historical context; the council withdrew the requirement on 2026-10-31 (CLAUDE.md rule 12).
+ ISA 0.9 adoption remains in the separate 0.3 track described by `outline-0.3.md`, D15–D19; this draft does not adopt those operations.
+ 
+@@ -237,7 +242,7 @@
+ | Prefix | Who defines | Who may reference it |
+ |---|---|---|
+-| `__bennett_nz_` | nobody: **primitives**, lowered by the map (§16.4) and the CC/R lowering (§17.4) | the normaliser (§12) and runtimes bitcode |
++| `__bennett_nz_` | production: nobody; comparison-only native support exception (§17.7); **primitives**, lowered by the map (§16.4) and the CC/R lowering (§17.4) | the normaliser (§12) and runtimes bitcode |
+ | `__bennett_sf_` | `bennett-arith` bitcode (§13) | the normaliser and runtimes bitcode |
+-| `__bennett_rt_` | `bennett-runtimes` bitcode (§11, §14, §17, §20); the driver's layout objects `__bennett_rt_blk.<f>` (§14.9) | the normaliser, the driver's synthesised code (§19) and runtimes bitcode |
++| `__bennett_rt_` | `bennett-runtimes` bitcode (§11, §14, §17, §20); the driver's layout objects `__bennett_rt_blk.<f>` (§14.9) and comparison-only `__bennett_rt_native_layout` (§19.5) | the normaliser, the driver's synthesised code (§19) and runtimes bitcode |
+ | `__bennett_dev_` | `bennett-runtimes` bitcode: device-model entry points and device state (§11.3) | the plugin's L lowering of effect markers and runtimes bitcode |
+ 
+@@ -2522,4 +2527,8 @@
+ the host stops it; 0.1's `BD-E-REGION-THUNK` is deleted).
+ 
++**N0 and resolution order.** Before testing the forwarding-thunk predicate or freezing candidates, the plugin MUST apply the N0 passes of §12.2 to the virtual device bodies used by S2; §7.2 resolution then uses those bodies, and §7.3 hashes their materialised closures.
++
++The plugin MUST retain A(S) for every original source function or alias whose address reaches the region operand, dispatching that address to its post-N0 resolved candidate even when N0 removes the forwarding call; a declaration remaining after N0 is still F(8), but an intrinsic call removed by N0 MUST NOT turn its containing defined body into an external candidate.
++
+ **Dispatch.** The region operand is classical data. The plugin compiles a body for every
+ candidate. At run time the operand's value is compared, by the compare tree of §14.2 over the
+@@ -2592,5 +2601,5 @@
+   separate from clean workspace (TDL-7). Standalone adj uses the deterministic
+   latest-before-reversed-consumer placement of §18.2, including source-wire lifetime extension. The coverage report has a
+-  `lowered` entry with source `dialect-0.2.11:7.5a` for every such call, and the certificate lists
++  `lowered` entry with source `dialect-0.2.12:7.5a` for every such call, and the certificate lists
+   the id `deferred_measurement` in the region's `definedness_assumptions` (ISA §12.3; §25.2
+   records the wording item). [deps: DLT-7.5, DLT-19.9, DLT-25.2]
+@@ -3938,5 +3947,5 @@
+ ### 9.2 The budget table
+ 
+-The budget-table JSON schema version remains 0.2; it is separate from full dialect 0.2.11. [deps: DLT-9.2, DLT-23]
++The budget-table JSON schema version remains 0.2; it is separate from full dialect 0.2.12. [deps: DLT-9.2, DLT-23]
+ 
+ The **budget table** is a driver input (`--bennett-budgets=<file>`), one JSON document in RFC
+@@ -4613,4 +4622,8 @@
+ | files | a runtimes VFS over the block device, or over a data-image file system linked as a global |
+ 
++**Console syscall framing.** For virtual stdout/stderr, runtimes MUST implement `writev` by validating the vector count and total length before the first effect, then emitting one `console.write` per nonempty vector in source order (zero-length writes emit no record), returning the total byte count; the descriptor ABI limits are 0..1024 vectors and total at most target SSIZE_MAX, with invalid counts/overflow returning EINVAL and a null nonempty vector table returning EFAULT.
++
++The console shim MUST return ENOTTY for `ioctl(TIOCGWINSZ)`, ESPIPE for seeking, and success for closing a virtual stdout/stderr descriptor, with no extra device effect or terminal metadata; this close releases no host resource and does not disable the virtual byte sink.
++
+ Device models beyond the four arrive with an ISA version (ISA §17 item 3, a mechanics
+ deferral, §24): until then an effect on another device is `FAULT_EFFECT_UNMODELLED`.
+@@ -4637,4 +4650,6 @@
+ 
+ Modelled libc effects MUST retain the tier-specific host, reversible-tape or lifted-state realisation, and coherent device state MUST be initialised from the descriptor and reversed with the oracle prefix. [deps: DLT-4.5, DLT-11.1, DLT-11.2, DLT-11.3, ISA-7.3, ISA-7.4, ISA-5.4-P4]
++
++**Model history.** R console writes MUST use only the ISA effect tape, while L model state is ordinary reversible memory initialised from descriptor bindings, private and discarding only under the oracle rules of §11.3; action console capacity exhaustion MUST fault before mutation under TDL-12, and a standalone native-model test undo log MUST NOT substitute for either tier's history. No second production model-history ABI is required.
+ 
+ ### 11.4 Host calls from CC
+@@ -6823,4 +6838,12 @@
+ | `fneg`, `llvm.fabs`, `llvm.copysign`, `bitcast`, `load`, `store`, `select`, `phi` | unchanged: bit-exact operations (LangRef) | – |
+ 
++**Arbitrary-format naming and carriers.** Format metadata MUST be the LLVM-major LangRef interpretation MDString, not a user-defined precision/exponent record; the integer carrier is exactly the interpretation's storage width, scalarised lane by lane by N21. LLVM 23's names are `Float8E5M2`, `Float8E5M2FNUZ`, `Float8E4M3`, `Float8E4M3FN`, `Float8E4M3FNUZ`, `Float8E4M3B11FNUZ`, `Float8E3M4`, `Float8E8M0FNU` (i8), `Float6E3M2FN`, `Float6E2M3FN` (i6), and `Float4E2M1FN` (i4). These intrinsics are absent on LLVM 18; the name set is the major's published set, not a list of formats that its current APFloat converter happens to implement.
++
++For each such name fmt and each B of §13.1, N32 MUST emit `iN @__bennett_sf_convert_to_<fmt>_B(C_B, i32 R, i1 Sat)` for to-arbitrary (format MDString removed, rounding encoded by §13.5, immediate saturation retained), and `C_B @__bennett_sf_convert_from_<fmt>_B(iN)` for from-arbitrary; fmt is spelled exactly as its case-sensitive MDString, N is its listed bit width, and results are integer bits / bitcast B respectively. Finite conversions use the named format's rounding, saturation and nonfinite rules with canonical NaNs; N1 defines a source-poison conversion result as zero bits, including unsaturated out-of-range FP4/FP6 inputs. A missing APFloat lowering is an implementation obligation, never permission to reject a valid named format or emit an unresolved numerical placeholder.
++
++**Static instantiation request v1.** The driver MUST collect required concrete arith instances before the final link and supply a UTF-8 JSON object with exactly `schema: "bennett-arith-instantiations-1"`, `llvm_major` (integer), `target_triple` (string), `data_layout` (LLVM string), and `entries` (array); a conversion entry has exactly `op: "convert_to" | "convert_from"`, `format` (the MDString above), and `base` (B suffix), and a powi entry has exactly `op: "powi"`, `base`, and `exponent_bits` (integer K, 1..8388608). A powi entry requests both `C_B @__bennett_sf_powi_<B>_i<K>(C_B, iK)` and `C_B @__bennett_sf_powi_<B>_i<K>_rm(C_B, iK, i32 R)` (the suffix `_rm` is last); a conversion entry requests its exact signature above. Duplicate entries denote one instance; canonical request bytes are JCS with entries sorted by (op, base, format or empty string, exponent_bits or zero).
++
++The arith distribution MUST provide a documented offline generator accepting that request and producing matching-major ordinary bitcode plus a JCS manifest containing `schema: "bennett-arith-instances-1"`, the request SHA-256 as `request_sha256`, `bitcode_sha256`, and `exports` (array of objects with exact `symbol` and LLVM `function_type` strings sorted by symbol); every requested definition and its reachable closure MUST be present, with no hardware FP or host libm import, and linked before normalisation identically in both builds. Default prebuilt exponent widths are a cache, never a capability bound; generation failure is an explicit implementation blocker, not a successful link, unsupported-format verdict, or silent narrower substitute.
++
+ **Wide integer sides (M>128).** The preceding i128 conversion rows apply only
+ to M≤128. For fptosi/fptoui, their .sat forms and lround/llround/lrint/llrint,
+@@ -6868,4 +6891,12 @@
+ the contract is correct rounding, so `fma` needs its own implementation.
+ 
++**PPCDoubleDouble priority and rounding.** The reference to the LLVM major's APFloat `PPCDoubleDouble` names its two-binary64 value representation and operation conventions, not permission to violate this section's explicit numerical guarantees: implementations MUST preserve the exact real value high + low for conversions and the correctly-rounded requirements for `sqrt`, `fma` and rounding-to-integral operations, and MUST NOT substitute the legacy consecutive-106-bit fallback when it changes such a result.
++
++For these guarantees, a finite canonical double-double is a nonoverlapping pair (h,l) of binary64 values with h = roundTiesToEven(h+l) and l the exact residual (positive zero when the residual is zero), zero represented as (signed zero,+0); the result MUST be the canonical pair whose exact sum is nearest the exact mathematical result (or its directed neighbour for §13.5), with ties to the even low-component significand, using the high significand when the low component is zero, and NaN/inf represented in the high component with low +0. Overflow is determined by rounding with an unbounded high exponent first and then applying binary64's high-component exponent limit with IEEE overflow outcomes for the active mode (the finite maximum or infinity as appropriate); underflow uses tininess after rounding of the exact pair sum, with subnormal threshold 2^-1022.
++
++Cross-format conversion MUST use the exact sum of both components, be exact whenever that sum is representable in the destination, and otherwise round once to the destination format under the requested mode; it MUST NOT drop a representable low component, saturate an in-range positive total because its low component is negative, or introduce intermediate-conversion flags. For example, high = 1 and low = 2^-60 convert to x86_fp80 as exactly 1 + 2^-60, not 1. The `fpext` exactness statement describes true numerical widening; a cross-format pair whose value sets are not nested still uses this conversion rule, regardless of equal storage width.
++
++Constrained operations covered by these guarantees MUST derive invalid/divbyzero/overflow/underflow/inexact from the mathematical operation and final rounding, not the status of an inaccurate APFloat fallback or an intermediate high/low operation; for sqrt/fma/conversion, inexact means the final pair's exact sum differs from the exact finite result, and underflow requires both tininess after rounding and inexactness. Rounding-to-integral follows the named IEEE operation: rint/lrint/llrint signal inexact on a nonintegral finite operand, nearbyint suppresses inexact, and floor/ceil/trunc/round/roundeven/lround/llround do not raise inexact merely for discarding a fractional part. Other PPC operations retain their named major-specific APFloat semantics subject to the explicit canonical-NaN rules above.
++
+ ### 13.2 Vector floating point
+ 
+@@ -6876,6 +6907,5 @@
+ ### 13.3 Formats beyond binary32 and binary64
+ 
+-All seven formats of §13.1 are covered by the same table and contract (NS §3.2: "coverage-report
+-lines until the library covers them"; `bennett-arith` covers them, so they are `lowered`). musl's
++All seven formats of §13.1 are required by the same table and contract (NS §3.2). A producer MUST report a route as `lowered` only when its linked implementation satisfies that complete contract; a missing numerical implementation is an implementation blocker, never permission to reject, trap or silently narrow the format capability. musl's
+ `fmt_fp` (`printf("%Lf")`, rung 3) uses `x86_fp80` on x86-64 and `fp128` on AArch64 and RISC-V64.
+ 
+@@ -6925,4 +6955,10 @@
+ normalised by this same pipeline, not new ISA primitives or unresolved host calls.
+ 
++**Accuracy envelope.** For each finite mathematical result of a §13.4 own-format carrier transcendental, the implementation MUST return a B value within one local ulp of that exact result, over the entire finite input domain; local ulp is the spacing of B's adjacent finite values bracketing the exact result, taking an exactly representable result as the lower endpoint (the upper endpoint at the largest finite value), with the least positive subnormal spacing at zero or in the subnormal interval. For ppcf128 use §13.1's ordered canonical-pair values. Special values, domain errors, poles, signed zeros and overflow results follow the named operation's mathematical/IEEE semantics rather than this finite-result envelope. At overflow the result is the correctly rounded overflow outcome for the requested mode. This is an error bound, not a general correct-rounding claim.
++
++The bound MUST apply separately to both fields of sincos/sincospi; modf MUST split the input exactly with truncation toward zero and preserve required zero signs, and powi MUST retain its specified repeated-squaring sequence with each multiplication/division rounded under §13.1, rather than claiming the one-ulp bound for the whole sequence.
++
++For `_rm` carrier transcendentals, implementations MUST choose a result within the same envelope on the requested side of the exact result for directed modes, use nearest-side selection for the two nearest modes, and raise IEEE invalid for a domain error or signaling NaN, divbyzero for a pole, overflow when the correctly rounded mathematical result overflows B, underflow when that result is tiny after rounding and inexact, and inexact iff the returned finite value differs from the exact mathematical result; approximation work alone MUST NOT set a flag on an exactly representable mathematical result. For nearest-side selection, compare the distances to the two B neighbours bracketing the exact result, with ties to even or away as requested; this constrained case is correctly rounded. Unconstrained carrier operations retain the one-ulp allowance. Flags for modf/powi follow their exact split/sequenced arithmetic semantics. The native-format musl libm accuracy policy remains the recorded, versioned musl implementation; the quantitative carrier envelope applies to every own-format carrier route.
++
+ ### 13.5 Constrained intrinsics, `strictfp` and the floating-point environment
+ 
+@@ -6938,4 +6974,10 @@
+ to nearest and raise no flags, as LLVM assumes of the default environment. A `strictfp` call-site
+ attribute on a marker is benign (§3.6).
++
++**Quiet and signaling comparison ABI.** N32 MUST lower `llvm.experimental.constrained.fcmp` to `i1 @__bennett_sf_cmp_B_rm(C_B, C_B, i32 P, i32 R)` and `llvm.experimental.constrained.fcmps` to the distinct `i1 @__bennett_sf_cmps_B_rm(C_B, C_B, i32 P, i32 R)`, with P exactly the 0..15 predicate encoding of §13.1 and R = 0 (these intrinsics have exception metadata but no rounding metadata); vector forms scalarise first, and no predicate-bit extension encodes signalingness.
++
++Both entries MUST compute the same LLVM predicate truth value, while quiet `cmp` raises invalid only for a signaling NaN operand and signaling `cmps` raises invalid for either quiet or signaling NaN, even for predicates false/true; neither raises divbyzero, overflow, underflow or inexact, and no comparison canonicalises or modifies its input bits.
++
++For `fpexcept.ignore`, the normaliser MUST use `i1 @__bennett_sf_cmp_B(C_B, C_B, i32 P)` for either intrinsic so the observable fenv is unchanged; for `fpexcept.maytrap` or `fpexcept.strict` it MUST use the corresponding `_rm` entry, OR invalid into the sticky flags and return the predicate without a host trap (the dialect's deterministic exception convention), identically on LLVM 18 and 23. The plain cmp entry therefore has no flag side effect, and every `_rm` comparison entry always records the flags it raises.
+ 
+ All seven formats MUST retain own-format arithmetic and transcendental semantics, with vector operations scalarised first and identical deterministic carrier implementations in the materialised native and lifted builds. [deps: DLT-13.1, DLT-13.2, DLT-13.3, DLT-13.4, DLT-13.5, DLT-12.1-P1, ISA-4.2]
+@@ -9461,6 +9503,6 @@
+ ### 16.9 Example: rung 2 (heap, phis, a loop, `free`)
+ 
+-A linked list of n nodes built with `malloc` (the runtimes allocator over `lift.alloc`, shown with
+-its code), summed and freed. n comes from a 2-wire `IN` register zero-extended to `i8`:
++A linked list of n nodes built with `malloc` (a specialised 16-byte-call witness of the runtimes allocator over `lift.alloc`, shown with
++its code; the general C wrapper is specified in §17.1), summed and freed. n comes from a 2-wire `IN` register zero-extended to `i8`:
+ 
+ ```llvm lift=listsum region=@listsum desc=IN(2,zext);tgt=8
+@@ -9978,4 +10020,12 @@
+ - **Single thread**: atomics and volatile are sequentialised (N9; NS §3.2; §24 D24).
+ 
++**C allocation alignment.** The `__bennett_nz_alloc(n)` primitive MUST retain ISA §7.1's exact byte bump by max(n,1), zero fill, requested-size allocation record and nonreclaiming history; neither backend may insert hidden alignment into that primitive.
++
++The C `malloc`/`calloc` wrappers MUST provide the target ABI's `max_align_t` alignment by requesting a rounded extent from that primitive: with a = ABI alignment of `max_align_t`, allocate a × ceil(max(n,1)/a) bytes, checking multiplication/rounding overflow as fault 2 before mutation; `free` passes the returned base, and both builds use the same wrapper and history.
++
++If another runtime allocation leaves the next primitive address unaligned, runtimes MUST first allocate the minimal positive padding to reach the next a-aligned address, as an explicit ordinary primitive allocation charged to the same heap/history; it MUST track the next byte address across every runtime primitive allocation, and neither backend may conceal that padding or round a primitive result. Overflow/padding-budget failure faults before the corresponding allocation mutation. A heap with no intervening unaligned request needs no padding allocation.
++
++The §16.9 thin wrapper is a specialised witness for its only allocation size, 16 bytes (already aligned on its target), not a replacement for C allocation alignment after arbitrary odd-sized requests. Padding belongs to the wrapper's live allocation and budget charge; it does not change the primitive. Aligned allocation with a stronger requested alignment remains a runtimes operation, not a new primitive.
++
+ ### 17.2 Layout
+ 
+@@ -10159,4 +10209,12 @@
+ not trap it inserts, after materialisation and outside the materialised module, a check that
+ calls `__bennett_nz_fault` with code 5 or 6. Results compare by the outcome table of §18.7.
++
++**Comparison-only support exception.** Only after the materialised device module has been fixed, the native comparison backend MAY define the three `__bennett_nz_` primitives of §3.1 as native support, and the driver MUST emit `__bennett_rt_native_layout` as specified in §19.5; these definitions MUST NOT enter producer inputs, production device bitcode, region identity or the materialised module used by the ISA map.
++
++The native primitive support MUST reproduce the resolved device addresses, zero fill, live allocation sizes, nonreclaiming allocation/free history and fault outcomes of §§17.1/17.5, with capacity for every history admitted by the resolved heap budget (at most one heap record per byte since max(n,1) ≥ 1), without an arbitrary smaller record cap; host setup/resource failure MUST terminate comparison with an explicit infrastructure failure, never silently relocate the heap, choose defaults, use host malloc, or report a successful dialect outcome.
++
++**Definedness classifiers.** The comparison binary MUST detect the materialised memory faults of §17.5 (out-of-live-allocation access, use after free and invalid/double free), division by zero and signed division overflow, and reached explicit fault/unreachable paths; instrumentation or a checked memory adapter may supply these checks outside the materialised module, and UBSan-only coverage MUST NOT be reported as satisfying the memory-fault obligation.
++
++The harness MUST separately classify source inputs using instrumented original-input builds or a checked reference interpreter as in NS §3.2, report flagged inputs as undefined/excluded, and record the classifier's actual detection coverage; no classifier claims source UB erased by optimisation is detectable in the comparison binary.
+ 
+ ## 18. Reference semantics
+@@ -11111,5 +11169,5 @@
+ 
+ ```
+-opt -load-pass-plugin=libbennett-plugin-<M>.so -passes='lto<O3>,bennett' -bennett-dialect=0.2.11 …
++opt -load-pass-plugin=libbennett-plugin-<M>.so -passes='lto<O3>,bennett' -bennett-dialect=0.2.12 …
+ ```
+ 
+@@ -11133,4 +11191,8 @@
+   deterministic from the tape and the entropy;
+ - a `measure` reachable in the program is `BD-E-REVERSIBLE-MEASURE` (§7.5b).
++
++**Process context.** Before entering `<sym>`, the driver/runtimes preparation MUST establish a static single-thread musl process context with the supplied argc/argv/envp bytes, a null-terminated argv and envp, `environ`, program name, initial fenv and the libc/stdio state needed by the linked program; comparison-only Linux `_start` is permitted, but Linux ELF crt/TLS/auxv entry is not required in device tiers.
++
++For a C `main` entry, the runtimes entry wrapper MUST treat normal return as `exit(status)`, running registered exit handlers and flushing stdio exactly once under §14.7 before the launch stub catches the exit pseudo-exception; explicit `exit` follows that same path, and `_Exit` bypasses handlers/flush as §14.7 specifies.
+ 
+ ### 19.3 Mode `--bennett-oracle=<sym>` ("oracle from program")
+@@ -11179,4 +11241,6 @@
+ *(non-normative)* With data low and text high, H covers the data, heap and regions; function
+ addresses are values only and never occupy device memory.
++
++**Native layout ABI v1.** The driver MUST define exactly one external constant `@__bennett_rt_native_layout = constant { i64, i64, i64 } { i64 1, i64 heap_base, i64 heap_limit_max }, align 8` in comparison-only support, with fields at byte offsets 0, 8 and 16 in target little-endian order and values from this same resolved §19.5 layout; runtimes declares that object and validates the version/range before use, with no weak/default definition. The third field is a byte capacity, not an end address; it includes shadow-stack allocations under §9.2. This object has no relationship to blockaddress identity objects `__bennett_rt_blk.<f>`.
+ 
+ ### 19.6 Build-time snapshots
+@@ -11231,5 +11295,5 @@
+ 
+ **Identity.** `llvmGetPassPluginInfo` returns plugin name `bennett` and version string
+-`dialect-0.2.11;isa-0.8`; the driver refuses a plugin whose string differs. [deps: DLT-19.9, DLT-23] One plugin build per LLVM
++`dialect-0.2.12;isa-0.8`; the driver refuses a plugin whose string differs. [deps: DLT-19.9, DLT-23] One plugin build per LLVM
+ major (NS §3.2).
+ 
+@@ -11238,5 +11302,5 @@
+ objects (ISA §9, §16); the certificate (ISA §12) with `producer.materialisation = {llvm_version,
+ pipeline, normaliser_version: "0.2.8"}` and `bindings.dialect_mapping_version = "0.2.9"`; the coverage
+-report (ISA §13), whose `source` field is `dialect-0.2.11:<rule id>` (e.g. `dialect-0.2.11:N33`); the
++report (ISA §13), whose `source` field is `dialect-0.2.12:<rule id>` (e.g. `dialect-0.2.12:N33`); the
+ blocker reports (§25.1); and the **build record**, one JCS object with the build flags, the
+ budget table (resolved, including each shape's selection_identity, final semantic identity,
+@@ -11252,5 +11316,5 @@
+ ignore unresolved symbols or supply weak marker definitions.
+ 
+-**Module flag.** A producer MAY add `!{i32 1, !"bennett.dialect", !"0.2.11"}` (behaviour Error, so an
++**Module flag.** A producer MAY add `!{i32 1, !"bennett.dialect", !"0.2.12"}` (behaviour Error, so an
+ LTO link of modules of two dialect versions fails); the plugin MUST reject a module whose flag
+ differs from its version (`BD-E-VERSION`). [deps: DLT-19.9, DLT-23]
+@@ -11658,8 +11722,8 @@
+ ## 23. Versioning
+ 
+-- The **full version string** of this document (`0.2.11`) is the unit of compatibility: a plugin
++- The **full version string** of this document (`0.2.12`) is the unit of compatibility: a plugin
+   implements exactly one dialect version and targets exactly one ISA version (§19.9); drafts are
+   not compatible with each other. [deps: DLT-23, DLT-19.9]
+-- The compatible clarifications and PT12 N9 update transfer revise the full dialect to `0.2.11`. [deps: DLT-5.2, DLT-12.2-P11, DLT-23]
++- The consumer-gap dispositions revise the full dialect to `0.2.12`. [deps: DLT-5.2, DLT-12.2-P11, DLT-23]
+   The lifting map remains `0.2.9` (global-numbering correction); `norm`, `handles` and
+   `regions` remain `0.2.8`; unchanged oracle-abi, tdl and effects remain `0.2.4`, marker/header,
