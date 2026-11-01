@@ -230,3 +230,19 @@ unrelated half-edited `classical.rs`), bennett-vm (worktree beside the repo, sin
 `../bennett-isa-spec`), bennett-arith and bennett-runtimes already did. Also found today: `bd init` points
 `core.hooksPath` at `.beads/hooks` with a frozen copy of `scripts/pre-push`; six repos ran stale gates. The hook in
 `.beads/hooks/pre-push` must be the chaining wrapper (`exec "$root/scripts/pre-push" "$@"`).
+
+### Watcher pass 5 rulings (2026-11-01 15:50Z; standing delegation)
+
+1. **Progress files are a resume block, not a log.** Editors keep only the top "Resume" block of `*PROGRESS.md` current;
+   no per-pass blocks and no "Record ... pass" commits. History is git log plus `bd close --reason`. `codex_job.py`'s
+   protocol line and orchestrator briefs say so.
+2. **Consumer-filed spec passes land on a green consumer gate; one council round at the pin move.** A 0.9 editorial pass
+   named by an implementer is accepted when the naming consumer's gate is green on it; the one-reviewer round runs once
+   per batch, at the point a consumer moves its pin (rounds 7-9 had 0 blocking; their S1s were vectors and housekeeping).
+3. **The statement layer is generated on demand, not attached to council prompts** (pass-2 verdict 1 restated); it is
+   regenerated when a consumer (proofs, dialect checker) needs it, not after every pass.
+4. Deferred: one chaining gate template in `bennett/tools/` for the per-repo clean-worktree scripts (do it when no repo
+   is mid-pass).
+5. **Implementation checkpoints run focused tests; the full dual-engine gate runs at bead close** (VM briefs).
+6. **Brief stop rules say "stop and file", never "revert"** (plugin 5081c8d/2478fc5).
+7. **`bennett/HANDOFF.md` shrinks** to the running-jobs list plus a pointer to the worklog top block, rewritten at session end.
