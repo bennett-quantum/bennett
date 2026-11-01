@@ -1,0 +1,64 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "K82 repairs the published helpers\u2019 missing bindings without changing source instruction semantics or narrowing a north-star capability. Its exception is confined to syntactically identified recipes.",
+   "change": "Optional, \u00a70 K82 row: append, \u201cThis changes helper binding only; source instruction interfaces retain their existing validation rules.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The catalog hash, 54 named-interface recipes and 20 incoming invoke sites check out. Bounds checking without inferred exact widths is sound: truncation, extension and division helpers do not necessarily access every supplied wire.",
+   "change": "Optional, \u00a711.1 K82: add, \u201cFor example, value.trunc(4,2) may receive a four-wire a while accessing only a[0] and a[1]; accesses never infer an exact interface width.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The rule binds existing wire identities and introduces no quantum operation, measurement or state-dependent scheduling. K77\u2019s explicit token channel and K78\u2013K81\u2019s analysis and cleanup identities remain intact.",
+   "change": "Optional, \u00a711.1 K82: add, \u201cNamed-interface binding preserves wire identities and inherited controls and emits no leaf or semantic-call occurrence.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Importing exactly the interface replaces incompatible consumer conventions with a public rule. Typed recipes remain closed, while K26 region flattening and K27 live-allocation wire access supply the existing conversion rules.",
+   "change": "Optional, \u00a711.1 K82: add, \u201cConsumers MUST resolve only the named interface, rather than initialize the callee with the caller\u2019s entire environment.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Within the requested scope, K82 adds no frontend restriction or LLVM extension premise. It operates entirely inside the ISA expansion contract.",
+   "change": "Optional, \u00a70 K82 row: add, \u201cNo source-language marker, frontend convention or LLVM mechanism changes.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The generator check passes, and the existing probe reproduces 86 matching edge digests and the two disclosed implementation failures among 16 binding cases. However, the vector alphabetically sorts interface arrays while K82 specifies body order; this does not change name-keyed binding results.",
+   "change": "\u00a715 and the K82 fixture: state, \u201cInterface arrays list names once in first-use body order,\u201d and preserve the collected order in generate.py instead of returning sorted(used). For value.select, the expected array is [\"p\",\"b\",\"a\",\"t\"]."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The proposal makes no unsupported novelty claim for lexical or by-name binding. It addresses a concrete interoperability defect in an existing published representation.",
+   "change": "Optional, \u00a711.1 K82: add, \u201cThis is a compatibility rule for the published helper representation, not a source-language calling convention.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The operative admission and binding rules are buildable. Two terminology details merit clarification: K19\u2019s bare-name abbreviation is now spelling-sensitive, and a K22 template described as closed still retains its lexical capture.",
+   "change": "\u00a711.1 K82: add, \u201cEligibility is determined from the serialized parameter spelling before expanding K19 abbreviations. A K22 template is closed over its positional formals and captured lexical environment; K82 never imports additional names from its apply site.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "S1 \u2014 Align \u00a715\u2019s vector with K82\u2019s body-order rule. State, \u201cInterface arrays list names once in first-use body order,\u201d and change generate.py\u2019s interface result from sorted(used) to used; value.select must list [\"p\",\"b\",\"a\",\"t\"]. Alternatively, explicitly document the fixture arrays as sorted set representations rather than normative interface order. Prefer preserving body order. Neither option requires changing catalog bytes or expanded-leaf digests.",
+  "S1 \u2014 Clarify \u00a711.1 K82\u2019s interaction with K19: \u201cDetermine named-interface eligibility from the serialized parameter list before desugaring bare integer formals.\u201d Example: [\"N\"] can import an otherwise free wire q; [{\"name\":\"N\",\"type\":\"integer\"}] cannot, and the same free-q body rejects.",
+  "S1 \u2014 Clarify \u00a711.1 K82\u2019s interaction with K22: \u201cClosed templates retain their K22 lexical captures; no uncaptured name is supplied by the apply-site environment.\u201d A template captured with q=x and applied where q=y still uses x; without a captured or formal q, it rejects."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already accept. To raise C6 from 4 to 5, align the fixture\u2019s interface arrays with K82\u2019s stated first-use ordering and add the explicit \u00a715 ordering sentence; the catalog and its hash remain unchanged.",
+ "summary": "K82 closes the helper-binding defect without introducing an S0 semantic conflict. The catalog counts and hash are verified, and the recorded finite expansion results reproduce. The two disclosed consumer failures concern implementing the proposed rule, not defects in that rule. Remaining improvements concern fixture ordering and clearer wording about syntactic eligibility and template captures.",
+ "verdict_core": "accept"
+}
