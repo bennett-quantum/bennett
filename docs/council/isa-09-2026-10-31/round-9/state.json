@@ -1,0 +1,29 @@
+{
+ "run": "isa-09-2026-10-31",
+ "round": 9,
+ "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md",
+ "doc_sha256": "3b565b25eb34b78b9f710a894f24c084509e7e56507a8f05f15976e6c68544bc",
+ "prepared": "2026-11-01T14:17:10+00:00",
+ "members": {},
+ "rubric": "/home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md",
+ "subject": "Bennett ISA 0.9 (published), round 9: one-reviewer fix round on passes XI (no text; typed R faults resolved by K5/\u00a74.9/\u00a710; reference saved-tape interface) and XII (K81 intrinsic pairing), plus the round-8 S1 adoptions (\u00a73.3 lifted rows, \u00a715 vectors); K1-K80 otherwise unchanged",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-isa-spec/spec/errata-0.8.md",
+  "../bennett-isa-spec/spec/isa-0.9.PROGRESS.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/proofs/INV-6-certificate-soundness.md",
+  "../bennett-conformance/clauses/ISA-0.9.statements.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
