@@ -4,7 +4,17 @@
  "doc": "../bennett-dialect-spec/spec/Bennett-Dialect-Spec.md",
  "doc_sha256": "71e929f4d9af45ac539f16dec1c6c9d7e08a9500fa99d320ac2afafdc4b48c0b",
  "prepared": "2026-11-01T16:29:24+00:00",
- "members": {},
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-01T16:39:39+00:00",
+   "exit": 0,
+   "seconds": 23,
+   "errors": [],
+   "updated": "2026-11-01T16:40:02+00:00"
+  }
+ },
  "rubric": "docs/council/rubric-isa.md",
  "subject": "Bennett LLVM dialect draft 0.2.12, round 11: one-reviewer round on eight consumer-named gaps (plugin mkb; runtimes jjr, lbq, 0na; arith dfd, 1av, z7u, 21a) with errata-0.2.10; ISA 0.8 target; gate 2834 -> 2893",
  "context": [
