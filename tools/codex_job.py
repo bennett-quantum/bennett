@@ -30,9 +30,8 @@ TRAILER = "\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 PROTOCOL = """
 
 ## Job protocol (this runner's rules; they apply to the whole job)
-- Keep `{progress}` current: after each milestone write what is done, what is verified (with the command),
-  what is next, and any open question. A fresh session may be started from that file alone, so it must be
-  enough to continue the work.
+- Keep only the top Resume block of `{progress}` current (what is done, what is verified with the command, what is
+  next); no per-pass log blocks and no record-only commits: history is the git log and `bd close --reason`.
 - Do not run git yourself; the runner commits your files. Write only inside: {paths}.
 - Describe the work in plain software-engineering terms (interpreter, test, fixture, reversible machine).
 - End your final message with a line `JOB-COMPLETE` when every deliverable is done and verified, or
