@@ -4,7 +4,17 @@
  "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md",
  "doc_sha256": "6dd61f1c1cb58130300deaa813ef51a165ed49a1ec3ae792ece058a606a4fd79",
  "prepared": "2026-11-01T12:09:20+00:00",
- "members": {},
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-01T12:15:55+00:00",
+   "exit": 0,
+   "seconds": 75,
+   "errors": [],
+   "updated": "2026-11-01T12:17:10+00:00"
+  }
+ },
  "rubric": "/home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md",
  "subject": "Bennett ISA 0.9 (published), round 8: one-reviewer fix round on passes VIII (K78 resolved X-family identity), IX (K79 zero-width addressing; icmp iN|ptr wording) and X (K80 recompute source ownership); K1-K77 otherwise unchanged",
  "context": [

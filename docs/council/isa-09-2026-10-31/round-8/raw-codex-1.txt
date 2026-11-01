@@ -1,0 +1,69 @@
+exit 0 in 75s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "§3–§7 retain one coherent machine model: bounded oracle evaluation, explicit fault outcomes, exact prefix reversal and controlled quantum actions. K78–K80 clarify admissibility and expansion identity without removing a north-star demo capability.",
+      "change": "No change required."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "§5.6 preserves the reachable-support premise and all-operand causal cancellation; §6.2–§6.4 retain the hypotheses making recompute sound. K79 gives the zero-bit address its unique value without introducing zero-width source values, and §3.3/§4.8 distinguish integer arithmetic from same-type integer/pointer comparisons.",
+      "change": "No normative change required; the optional §3.3 wording improvement under suggestions would make the lifted-width cross-reference easier to read."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "§3.6–§3.7 and §5.2 specify padded coherent execution and its costs honestly; §7.4 permits classical history reconstruction without copying quantum state. K80 charges every fresh computation, XOR, uncomputation and release while leaving the non-emitting carrier uncharged.",
+      "change": "No change required."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "§9–§12 separate source identity, bound-library expansion, scheduling and checker obligations. K78 expressly leaves source hashes and occurrence identities untouched; K79 uses existing empty wire-list binding; K80 fixes source ownership outside the unchanged catalog and preserves separate callee spaces.",
+      "change": "No normative change required; publish the portable trace vectors described in suggestion 1 to make cross-repository conformance easier to exercise."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "§1.1 correctly leaves LLVM mechanisms to the dialect contract. Arbitrary-width lifted values, fixed lproc bindings, coherent memory, reversible effects and launch-time budgets remain expressible; the exact-A rule supplies a missing source actual rather than restricting algorithms or the demo ladder.",
+      "change": "No ISA change required."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "§12 and §15 retain independent full-tuple comparison, phase-sensitive obligations and honest proof/evidence labels. I reran frame_identity, frame_domain, memory_address and cleanup_ownership: 19 passed, zero failed or ignored; the K80 adapter explicitly supplies source coordinates and is not evidence of a general 0.9 source builder.",
+      "change": "In §15 add a reference to a machine-readable K78–K80 vector manifest: source inputs, expected admission, resolved leaf addresses, semantic-call indices and full before/after tuples, with adapter-derived coordinates distinguished from coordinates emitted by a production source builder."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "The ISA implements the north star's adopted compute/uncompute discipline, bounded coherent control and hierarchical resource accounting without claiming those ingredients are new. Their prior-art attribution is available in the attached north star, but the ISA reader must leave the document to locate it.",
+      "change": "Add a short non-normative references note after §14.4: \"For the provenance of the uncomputation discipline, bounded coherent control and pebbling constructions, see Bennett-NorthStar.md §7; the normative semantics are §3–§7 and §14 of this document.\""
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "K78 states both the permitted normalization and its boundary; K79 covers source grammar and catalog binding; K80 supplies concrete reverse/recompute leaf and call traces. The remaining readability friction is §3.3 saying the newly type-specific width rules apply \"verbatim\" to lifted rows, although the surrounding text correctly uses reg[N] and pseudo-locations.",
+      "change": "In §3.3 replace the lifted-width sentence with: \"The equal-width and widening/narrowing constraints above apply to lifted rows on their location and pseudo-location bit-vectors as specified in §4.2; the CC/R iN and ptr operand-type restrictions do not retype lifted locations.\""
+    }
+  ],
+  "blocking": [],
+  "previous_status": [],
+  "regressions": [],
+  "suggestions": [
+    "S1 — §15: publish portable K78–K80 vectors alongside the existing regression tests, and add: \"The vectors record source admission, complete output tuples and expanded source coordinates; adapter-assigned coordinates are identified separately from production-builder output.\" Include the six-row K80 witness (reverse at entry:3/4/5, each ordinal 0; recompute at entry:5, ordinals 0–7), its semantic-call variant (fresh call_index 0/1/2/3, caller ordinals 0–3), and one replay whose original computation lies in a qloop but whose carrier is outside it: replacement caller iteration is [], with no imported original loop coordinates. This improves independent implementation testing; the current normative ownership rule is already determinate.",
+    "S1 — §3.3: replace \"the width rules above ... apply verbatim\" with \"The equal-width and widening/narrowing constraints above apply to lifted rows on their location and pseudo-location bit-vectors as specified in §4.2; the CC/R iN and ptr operand-type restrictions do not retype lifted locations.\" This is an editorial clarification of the explicit CC/R versus Q(lift) distinction, not a new typing rule.",
+    "S1 — §14.4: add the non-normative provenance note quoted in C7, pointing to Bennett-NorthStar.md §7 while retaining the ISA clauses as the normative authority."
+  ],
+  "verdict": "accept",
+  "path_to_accept": "No changes are required for acceptance. To raise C6 from 4 to 5, first publish the existing K78–K80 expectations as portable vectors, then add the K80 cross-qloop-coordinate vector and have an independent source builder emit and compare the recorded addresses; retain the documented adapter limitations until that check exists.",
+  "summary": "Accept core and whole document: no S0 issue found after checking the round-7 diff first and rereading the full specification against the attached context. Round 7 had no blocking items, so previous_status is empty. K78 resolves the identity boundary: x/cx/ccx/mcx normalize to resolved target plus all own/contextual control literals, including polarity, and qxor/qexch to their per-bit cx/swap events. It admits no further Boolean-equivalent replacement or target-scheme decomposition. Matching still requires the same event at every operand stack top, readers included; different controls, reader interleaving and polynomial-only prefix cancellation cannot manufacture entry constants, while disabled operations retain K76's no-event rule. K79 defines () consistently in the four source address positions, as the unique zero-bit address selecting cell 0 and as catalog []; inverse traversal retains that binding, and semantic gates remain subject to enclosing controls while lifetimes remain unconditional. Nonempty addresses at A=0, empty addresses at A>0 and empty value/declaration forms remain invalid. This changes neither K24 closure argument order nor K28 release order. Independently checked catalog bytes have SHA-256 52dbc3f8f0c91d587fd933a43080385fd5284abcfec0ce84788229fcb15c53d8 and the unchanged 219-recipe envelope 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197; accepted 0.8 bytes also retain their recorded hash. K80 deterministically separates the alternative realizations: reverse retains written cleanup points, whereas recompute removes the replaced rows and assigns its whole fresh caller trace to the carrier coordinates. Original computation remains unchanged; fresh computation and uncomputation have distinct call occurrences, callees keep separate spaces, and raw inverse traversal retains forward identities. The cleanup carrier's ordinal 0 is separate from emitted-leaf ordinal 0. K62 source-adjoint formation, K63 call numbering and K64 oracle support partition are preserved. The binop iN / icmp same-type iN-or-ptr clarification is consistent with §4.2's lifted forms. All 19 targeted regressions passed; the local spec and inline diff match the supplied snapshot and diff.patch. K80's finite adapter does not establish general 0.9 executor conformance. No regression identified.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/isa-09-2026-10-31-r8-codex.json
