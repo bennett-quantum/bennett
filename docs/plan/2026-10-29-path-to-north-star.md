@@ -112,7 +112,7 @@ without the maintainer's say-so.
 The consumer chooses the next pass: each rung's gate files the blockers in the owning repos, and those beads are the work
 plan (maintainer 2026-10-31).
 
-## Decision 2026-11-01T15:20Z — ISA 0.9 adoption, driven by rung 3
+## Decision 2026-11-01T15:14Z — ISA 0.9 adoption, driven by rung 3
 
 Rung 3's reversible tier needs the typed R faults that only ISA 0.9 defines (K5: §4.1, §4.9, §7.4, §10, T4); dialect
 0.2.10 §11.5/§17.6 therefore reports BD-B-ISA7 for every R entry on 0.8, and the reference interpreter admits only 0.8
