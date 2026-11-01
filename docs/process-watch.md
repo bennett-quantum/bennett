@@ -66,3 +66,22 @@
 **Trend:** the spec records shrank as adopted. The same growth came back in the plugin within two hours, as per-pass record sections and as rule-10 caution that keeps M2–M4 work inside M1.
 
 **Maintainer decision (2026-10-31, pass 4):** all six verdicts adopted; watcher cadence set to daily. Recorded in docs/council/README.md.
+
+## 2026-11-01 15:47Z (fifth run, daily; skim-level, 14 tool calls)
+
+1. **Point `codex_job.py --progress` at a gitignored per-job file, not the repo's PROGRESS.** Its PROTOCOL tells every editor to "keep {progress} current after each milestone", which is why records grow back. `isa-0.9.PROGRESS.md` went 1,190 → 2,057 lines in 17h (26 commits). VM `docs/PROGRESS.md` has 1,566 lines, and every block repeats "No ISA bead/spec edit, dependency, fixture/test weakening…". Resume still works, and commits plus bd close reasons keep the history. This replaces the PROGRESS ruling and the "Record … pass" commits.
+2. **Consumer-filed ISA passes: land them on a green consumer gate, and hold one council round at the 0.9 pin move.** R7–R9 accepted with 0 blocking; their S1s were vectors and housekeeping. Codex is 14.4% ahead of pace.
+3. **Stop attaching the committed statement layer to council prompts and generate it on demand (pass-2 verdict 1).** It now creates review work about itself: R7 S1-2, R9 "stale … no K81", and a housekeeping regen commit.
+4. **Merge the per-repo clean-worktree gates into the one chaining script.** Four gates were found dead or lying in one day: six stale hooksPath copies, the broken dialect gate, the dialect hook that never ran the checker, and the ISA port that swallowed a failure.
+5. **VM checkpoints: run focused tests only, and run the full dual-engine gate at bead close.** Four 47t-c2 checkpoints each record "FINAL GREEN full sequential … differential 18/0 unchanged".
+6. **Brief stop rules say "stop and file", never "revert".** Plugin pass 22: 5081c8d reverted a pass whose gate was green, and 2478fc5 reverted that revert 90 s later.
+7. **`bennett/HANDOFF.md`: merge it into the worklog top block.** Stamped 10-31 21:42Z, it lists pass IV and plugin pass 9 as running, while the worklog shows pass XII.
+
+**Keep, it earned it**
+- Rung ladder: rung 2 surfaced nine real blockers, among them §5.2 >300 s → 3 s (bp-au6), VM super-linear steps (fw8), pointer compares (ol3) and 73y.
+- One-seat council on new semantics: R6 caught the own-vs-effective-control S0, where the reference and a literal reading disagreed.
+- Read-only Opus investigation before convening: it settled 73y in 4 minutes.
+
+**Trend:** the plugin cuts held (PROGRESS 906 → 191 lines). Spec and VM records grew back through the runner protocol. Defects now come from consumer gates, not councils (0 blockers in 3 of 4 rounds).
+
+**Maintainer decision (2026-11-01 15:55Z, pass 5; standing delegation of 2026-10-31 "adopt whatever watcher recs you find constructive"):** adopted 1, 2, 3, 5, 6, 7 (7 as a shrink: HANDOFF keeps only the running-jobs list and a pointer to the worklog top block, rewritten at session end); 4 deferred (one chaining gate template in `bennett/tools/` is worth doing but not while four repos are mid-pass; the per-repo scripts are now identical in shape). Recorded in docs/council/README.md.
