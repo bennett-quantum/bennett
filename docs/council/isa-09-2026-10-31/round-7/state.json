@@ -1,0 +1,29 @@
+{
+ "run": "isa-09-2026-10-31",
+ "round": 7,
+ "doc": "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md",
+ "doc_sha256": "9cfba0edcf76ebcd1e0eca8fc14f8028e2e1b0bc098af8d4a8514e8e2f0cb833",
+ "prepared": "2026-11-01T09:46:03+00:00",
+ "members": {},
+ "rubric": "/home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md",
+ "subject": "Bennett ISA 0.9 (published), round 7: one-reviewer fix round on passes VI (round-6 response: \u00a75.6 rule 1 own controls, rule 3 canonical D_F, \u00a712.2) and VII (new oracle_invocation binding channel, K77; bead 5xm); K1-K76 otherwise unchanged",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec.md",
+  "../bennett-isa-spec/spec/errata-0.8.md",
+  "../bennett-isa-spec/spec/isa-0.9.PROGRESS.md",
+  "../bennett-isa-spec/docs/briefs/2026-11-01-isa-09-pass-v-73y.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/proofs/INV-6-certificate-soundness.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
