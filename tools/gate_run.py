@@ -43,6 +43,24 @@ class GateError(Exception):
     """The gate cannot be set up honestly. Never swallowed: maps to exit 3."""
 
 
+class Interrupted(BaseException):
+    """SIGTERM/SIGHUP/SIGINT. Unwinds through every finally, so the running command's process group is killed and
+    the run worktree removed; no record is written. Exit 128+signal."""
+
+    def __init__(self, signum):
+        super().__init__(signum)
+        self.signum = signum
+
+
+INTERRUPTS = (signal.SIGTERM, signal.SIGHUP, signal.SIGINT)
+
+
+def on_interrupt(signum, _frame):
+    for s in INTERRUPTS:  # a second signal must not cut the cleanup short
+        signal.signal(s, signal.SIG_IGN)
+    raise Interrupted(signum)
+
+
 def say(msg):
     print(f"gate: {msg}", file=sys.stderr, flush=True)
 
@@ -572,11 +590,16 @@ def main():
             p.add_argument("--run", action="store_true")
             p.add_argument("--trace", action="store_true")
     args = ap.parse_args()
+    for s in INTERRUPTS:
+        signal.signal(s, on_interrupt)
     try:
         return args.fn(args)
     except GateError as e:
         say(f"SETUP ERROR: {e}")
         return EXIT_SETUP
+    except Interrupted as e:
+        say(f"INTERRUPTED by signal {e.signum}: running command group killed, run worktree removed, no record")
+        return 128 + e.signum
 
 
 if __name__ == "__main__":

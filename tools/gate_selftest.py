@@ -7,9 +7,11 @@ import hashlib
 import json
 import os
 import shutil
+import signal
 import stat
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -129,6 +131,43 @@ class Layout(Base):
         z = self.run_tool("--sha", sha)
         self.assertRan(z)
         self.assertIn("rematerialis", z.stderr)
+
+
+    def test_terminated_gate_kills_its_running_command_tree(self):
+        # An orchestrator kill (R3, host memory) must not orphan the build or test tree under the gate.
+        pidfile = self.tmp / "grandchild.pid"
+        script = f"#!/bin/sh\nsh -c 'echo $$ > {pidfile}; exec sleep 300' &\nwait\n"
+        sha = self.adopt([["./check.sh"]], {"check.sh": script})
+        full = dict(ENV, BENNETT_GATE_WORKSPACE=str(self.ws))
+        log = open(self.tmp / "gate.log", "w+")
+        self.addCleanup(log.close)
+        proc = subprocess.Popen(["python3", "-I", str(TOOL), "run", "--repo", str(self.me), "--sha", sha],
+                                stdin=subprocess.DEVNULL, stdout=log, stderr=log, env=full)
+        for _ in range(600):
+            if pidfile.exists() and pidfile.read_text().strip():
+                break
+            time.sleep(0.05)
+        else:
+            proc.kill()
+            self.fail("check never started")
+        grandchild = int(pidfile.read_text())
+        self.addCleanup(lambda: subprocess.run(["kill", "-9", str(grandchild)], capture_output=True))
+        proc.terminate()
+        proc.wait(timeout=60)
+        err = (self.tmp / "gate.log").read_text()
+        self.assertEqual(proc.returncode, 128 + signal.SIGTERM, err)
+        self.assertIn("INTERRUPTED", err)
+        for _ in range(100):
+            try:
+                os.kill(grandchild, 0)
+            except ProcessLookupError:
+                break
+            time.sleep(0.05)
+        else:
+            os.kill(grandchild, signal.SIGKILL)
+            self.fail(f"grandchild {grandchild} outlived the terminated gate")
+        self.assertFalse((self.me / ".tmp/gate/runs" / sha).exists())
+        self.assertFalse((self.me / ".tmp/gate/records" / f"{sha}.json").exists())
 
 
 class Pins(Base):
