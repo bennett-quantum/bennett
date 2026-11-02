@@ -1,0 +1,86 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "B2 and E1 distinguish the unitary source semantics from private implementation channels, preserve external correlations and define logical reversal without reversing measurement records.",
+   "change": "No change required; retain E1's rule: \u201cLogical reversal uses an independently checked implementation of the inverse reference channel with fresh private outcomes.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "C4 defines the private event union, measurement semantics, conditional gates, dispatch and reset. The discriminator's JSON field name remains implicit; this is an encoding clarification, not a semantic blocker.",
+   "change": "In C4 state: \u201cEvery private-cleanup-1 event contains an event field whose value is gate, measure_z, dispatch or release; its other fields are exactly those specified for that arm, including id.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "B1, C3 and D3 reconcile relocation with \u00a7\u00a75.3, 6.2 and K65/K81. Whole-region channel verification prevents stale corrections, invalid source pairing and interacting-witness assumptions. G's exact +1 clean-subspace equality is sound without asserting arbitrary-target permutation behavior.",
+   "change": "No change required; retain B1's rule: \u201cK81 pairing and the source-version checks are performed at the original legal source point before selecting this realisation.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "C1/C2 and E2 account for measurement, dispatch, reset, feedforward latency, conditional reservations, extended lifetimes and outcome-independent error shares. Unit-only targets remain supported.",
+   "change": "No change required; retain C2's rule: \u201cEach conditional slot retains its ordinary gate duration, wire occupancy, resource cost and error reservation on every outcome.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "D3 commits witness definitions through schedule_hash without a certificate cycle, binds concrete invocation contexts and supplies per-device-root inventory. A/I correctly acknowledge migrated source identities and a new expansion hash. Some replacement text still describes retained schemas by shorthand.",
+   "change": "In G3 print the retained payloads explicitly: translation_lemma uses {V,W,X,B,frame}, inverse_pair_library uses {library_closure_hash,claim_index}, and adjoint_table uses {}; retain their original field descriptions alongside clean_isometry."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "D1/D2 give sound full-operator-space verification and an exact zero-error route without weakening the SDP test. The read-only verifier passed the circuit, channel, inverse and negative checks. Fully serialized scheduling/certificate vectors remain publication work, accurately disclosed in H1.",
+   "change": "Implement H1's publication requirement with a bound COPY-DELAY fixture and state its expected result: \u201cBoth branch maps are H/sqrt(2), released d is exactly zero, and the summed channel is rho -> H rho H.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "A preserves the sanctioned controlled-unitary fallback. D1/D3 satisfy the mixed-fat-object standing check without requiring native main or libc certificates. The four-T compute/zero-T erasure premise agrees with [Gidney's primary paper](https://arxiv.org/abs/1709.06648v3), and the proposal correctly separates controlled costs.",
+   "change": "No change required; retain D3's rule: \u201cNative host entry, argv/envp, unmarked libc and ordinary host effects need no ISA region/frame/channel record.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The proposal provides actionable defaults, ownership rules and a precise consumer handoff. All 28 BEFORE anchors match uniquely. Proposal-local references such as C3 and D3 should become published ISA references when the replacements are applied.",
+   "change": "In C4 replace \u201cSource coordinates derive from C3\u201d with \u201cSource coordinates derive from \u00a711, Cleanup leaf ownership\u201d; in C2 replace \u201cD3 context record\u201d with \u201c\u00a712.3 private-cleanup context record.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "B1",
+   "status": "resolved",
+   "note": "B1/B2 and C2/C3/D3 bind the original legal source pair and expressly authorize checked relocation; F3/F4 use the corrected reference operations."
+  },
+  {
+   "id": "B2",
+   "status": "resolved",
+   "note": "D1/D3 explicitly delimit device channel subjects, per-root certificates, native exclusions and outer inventory associations."
+  },
+  {
+   "id": "L2P-1",
+   "status": "resolved",
+   "note": "Source pairing precedes realization selection, replaced dependencies and extended lifetimes are checked, and literal late adjoints remain invalid."
+  },
+  {
+   "id": "L2P-2",
+   "status": "resolved",
+   "note": "The selected device closure, materialized native comparison and root-relative contexts are explicit; unrelated native host code needs no quantum certificate."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "C4: Specify the discriminator field explicitly: \u201cEvery private-cleanup-1 event has event equal to gate, measure_z, dispatch or release.\u201d This closes an encoding detail without changing the event semantics.",
+  "C4/\u00a711.1: Label the retained Serialization and identity paragraph as historical ref@0.9 text, and state: \u201cThe ref@0.10 top-level document contains exactly isa, name, version, event_profile and recipes; event_profile is private-cleanup-1.\u201d Keep the historical catalog bytes and hash unchanged.",
+  "C2/C4/G3: Replace proposal-local clause references with final ISA references and reproduce the retained structural payload definitions explicitly, so applying the AFTER blocks leaves a self-contained specification.",
+  "H1: Publish the already-required serialized COPY-DELAY and AND-DELAY fixtures with actual expansion bindings, reserved coordinates and resource totals. Their expected branch maps are respectively H/sqrt(2) and H_a W/sqrt(2); both restore their measured workspace exactly."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable as the proposed 0.10 amendment. To raise C8 from 4 to 5, replace proposal-local references and schema-preservation shorthand with explicit published-clause references and payload text.",
+ "summary": "B1, B2, L2P-1 and L2P-2 are resolved. No new S0 issue or false technical premise was found. K85 is sound, and optional G is independently sound. Verification passed all 28 anchors, exact channel witnesses and the historical 219-recipe catalog hash. Publication artifacts and consumer implementation remain outstanding as disclosed.",
+ "verdict_core": "accept"
+}

@@ -1,0 +1,37 @@
+{
+ "run": "contract-l2p-2026-11-02",
+ "round": 2,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev3/l2p-amendment.md",
+ "doc_sha256": "23144bba02adeddf2bd4355bc4cafd9422bdb9895e3d50b32eb5dd3c7bab4e72",
+ "prepared": "2026-11-02T10:47:54+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:47:54+00:00",
+   "updated": "2026-11-02T11:04:40+00:00",
+   "exit": 0,
+   "seconds": 1006
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:47:54+00:00",
+   "updated": "2026-11-02T10:56:26+00:00",
+   "exit": 0,
+   "seconds": 512
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA contract proposal l2p, round 2: K85 private measurement cleanup with checked relocation, 0.10 amendment (sol-bwm, b-isa-spec-bwm)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/fat-object-scope.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3d/task-r2-l2p.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

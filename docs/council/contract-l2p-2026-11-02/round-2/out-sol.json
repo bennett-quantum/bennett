@@ -1,0 +1,85 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "B2 and E1 distinguish the unitary reference from private implementation outcomes, define the induced channel, require exact workspace restoration and specify logical reversal with fresh outcomes.",
+   "change": "No correction required. Preserve E1/\u00a714.2's rule: \u201cLogical reversal uses an independently checked implementation of the inverse reference channel with fresh private outcomes.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The measurement primitive, basis change, dispatch, conditional gates and reset have explicit semantics. Exact replay confirms C's eight columns and its distinction from arbitrary-target CCX. The four-T computation and zero-T erasure agree with [Gidney's paper](https://arxiv.org/abs/1709.06648v3). C4 leaves the JSON discriminator's field name implicit.",
+   "change": "In C4/\u00a711.1 state: \u201cEvery private-cleanup-1 event has a required kind field equal to gate, measure_z, dispatch or release, plus id and exactly the fields specified for that variant.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "B1 and C3 preserve original legal K81 pairing while expressly authorising checked dependency relocation. Full-region channel verification, actual operand versions, extended lifetimes and unique ownership close the original semantic bridge. Controlled contexts retain unitary fallback. G's complete, exact +1 clean-subspace equality is sound and does not establish arbitrary-target equivalence or invoke T3.",
+   "change": "No correction required. Preserve B1/\u00a76.2's rule: \u201cThe checker validates the complete realised region channel against the original well-formed source region.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "C1\u2013C2 and E2 specify measurement costs, dispatch time, additional feedforward latency, padded conditional reservations, extended occupancy and outcome-independent error-share counting. These retain \u00a78.2's aggregation rules.",
+   "change": "No correction required. Preserve C2/\u00a711's timing rule: \u201cAn outcome-dependent event starts no earlier than measurement completion plus feedforward_latency and completion of its dispatch event.\u201d With measurement ending at 2 and latency 3, a correction cannot start before 5."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "A and I correctly acknowledge the 0.10 identity migration. Schedule definitions commit witness bytes without a certificate hash cycle. D1/D3 supply device-root subjects and separate mixed-container inventory. The historical catalog count and envelope hash reproduce. The retained \u00a711.1 closed-schema paragraphs should be explicitly scoped alongside the new profile requirement.",
+   "change": "In C4/\u00a711.1 state: \u201cThe four-key catalog schema applies to ref@0.9. The ref@0.10 catalog has exactly isa, name, version, recipes and event_profile, with event_profile equal to private-cleanup-1; its envelope contains the complete canonical document.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 5,
+   "evidence": "D1's exact matrix-unit route establishes complete channel equality without weakening the numerical SDP route. D2 excludes basis slices and host-limit shortcuts. The supplied read-only verifier passes 384 matrix units, corrected branches, inverse compositions, negative channels and all 28 unique patch anchors. H accurately distinguishes these results from pending production fixtures.",
+   "change": "No correction required. Preserve D1/\u00a712.1's obligation: \u201cExact arithmetic or an independently checked compositional exact derivation must establish these equalities; floating-point agreement is not an exact proof.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The amendment supplies the advisor-confirmed uncontrolled capability and correctly treats North Star \u00a79 item 6 as open controlled-form work with unitary fallback. D1/D3 satisfy bennett-4ht: native main, argv/envp and host-only libc remain outside device subjects, while selected closures, contexts and certificates remain covered. Remaining mixed-launch obligations are named explicitly.",
+   "change": "No correction required. Preserve D3's rule: \u201cA whole-host quantum certificate is not required,\u201d together with complete device-owner and link-proof coverage for each selected closure."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The source/schedule distinction, ownership rules, migration and implementation handoff are actionable. Publication requirements are disclosed. F1's phrase \u201cthe checker verifies all eight columns\u201d unnecessarily blurs the standalone negative witness with B2/G's narrower clean-boundary obligation.",
+   "change": "In F1 replace that sentence with: \u201cThe focused verifier checks all eight columns to demonstrate the dirty-target mismatch; a clean-boundary certificate checks the four clean-input columns, whereas a general CCX-equivalence claim must check all eight.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "B1",
+   "status": "resolved",
+   "note": "Sol: B1/B2 and C2/C3/D3 bind the original legal source pair and authorise explicit checked relocation; F3/F4 supply the corrected references and witnesses."
+  },
+  {
+   "id": "B2",
+   "status": "resolved",
+   "note": "Sol: D1/D3 explicitly delimit device channel subjects, per-object/per-root certificates, native comparison and the separate mixed-container inventory."
+  },
+  {
+   "id": "L2P-1",
+   "status": "resolved",
+   "note": "Codex: source pairing remains at the legal source point; delayed events replace specified dependencies and preserve the complete original channel. Exact replay confirms the positive and literal-late-inverse negative examples."
+  },
+  {
+   "id": "L2P-2",
+   "status": "resolved",
+   "note": "Codex: D1/D3 retain native host execution and bind cleanup verification to selected device closures, root-relative contexts and materialised native-comparison closures."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "C4/\u00a711.1: make the version-specific serialization override explicit: \u201cref@0.9 retains its four-key catalog and existing constructors. ref@0.10 adds the required event_profile key and the private-cleanup-1 event union.\u201d Also name the event discriminator field kind.",
+  "I, Target row: clarify the hash boundary with: \u201ctarget_hash is SHA-256 of target JCS bytes alone. Changing only the object's target-version header field does not change target_hash; changing the target's mbu or private_cleanup bytes does.\u201d",
+  "F1: distinguish verification obligations explicitly: \u201cThe focused verifier checks eight C columns; clean-isometry certification checks the four clean-input columns, and arbitrary-target CCX equivalence requires all eight.\u201d"
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes remain. To raise C2 from 4 to 5, pin the private event discriminator to kind and publish one byte-exact event example using that encoding.",
+ "summary": "B1, B2, L2P-1 and L2P-2 are resolved. Exact witnesses, patch anchors and the historical catalog identity pass verification. K85 is sound as a 0.10 amendment; optional G is also sound under its stated hypotheses. New catalog publication and consumer implementation remain outstanding work, as disclosed.",
+ "verdict_core": "accept"
+}
