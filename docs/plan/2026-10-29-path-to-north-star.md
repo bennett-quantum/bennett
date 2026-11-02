@@ -39,6 +39,7 @@ Open risks:
 | R6 | ISA "settled" while R3 may require ISA 0.9 | maintainer decision | ISA I1–I8 already filed |
 | R7 | Codex content filter on security-adjacent work (rung 7 is kernel fuzzing; the legality harness was stopped once) | tooling | assume no Daybreak access (maintainer, 2026-10-29). Mitigation: `tools/codex_job.py` resume/fresh-session recovery, neutral engineering wording in briefs, and security-adjacent workstreams (rung 7 oracle, sanitiser-style harnesses) run on Claude agents rather than codex |
 | P1 | Pre-flight checking limited to the scalar subset | process | fixed by phase 1 |
+| R8 | **Mixed fat object lock-out.** The selective-module experience (ordinary native binary, only marked modules become VM objects, north star §2, §3.3, §4.4 launch ABI) is the star to follow but far off; every rung today runs the whole program on the device against a separately built native binary, no launch ABI is defined, no host shim gives markers classical semantics. **Maintainer 2026-11-02: no early architecture decision may lock it out.** Object format, certificates, launch API, budgets, handles, effect tape and host-memory decisions must state how a mixed binary would use them or name the change needed; nothing may assume the device object is the whole binary | design constraint | standing; bead bennett-4ht; council rubric check for ISA and dialect rounds |
 
 Facts checked in ISA 0.8 for this plan: run-time budgets exist through the launch
 API (`bennett_budget(...)`, ISA §10); oracle memory starts as zero plus global
