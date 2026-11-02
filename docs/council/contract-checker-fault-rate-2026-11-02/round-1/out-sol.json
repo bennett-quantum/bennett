@@ -1,0 +1,74 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposal changes certificate metadata, leaving the accepted machine state and step relation unchanged.",
+   "change": "None required in \u00a7\u00a73\u20135; retain the existing machine model."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a74.2 charges one step per lifted row, and \u00a714.1 makes retval terminate successfully. The two-row witness therefore faults at B=1 and succeeds at B=2.",
+   "change": "\u00a715, optional fixture rule: 'The add/retval oracle with a=1 reports 256 code-1 faults at B=1 and no faults at B=2 over the full eight-bit interface domain.'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Counting code(F_B), rather than the accumulated fault word, correctly follows \u00a75.2. Incoming fault word 1 becomes 0 on code-1 failure and remains 1 on success.",
+   "change": "\u00a712.3, optional explicit predicate: 'A domain tuple contributes to faults_by_code[c] exactly when code(F_B(x))=c and c\u22600.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Explicit budgets and resolved context bindings preserve \u00a75.4 token semantics without changing target matching or resource accounting.",
+   "change": "None required in \u00a75.4; retain the rule that each oracle invocation uses its supplied token's tuple."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The defect is real: \u00a712.3 binds individual claims and scheduled roots but does not bind fault_rate. The proposed repair selects oracle invocations deterministically. Its universal F_B recount requirement, however, also reaches required action records, for which F_B is undefined.",
+   "change": "\u00a712.3: 'Fault-rate recount and context requirements apply only to oracle records. For action and perm_action records, verification.fault_rate MUST be null and fault_rate_contexts MUST be absent.' Update the schema accordingly."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The oracle vectors are correct. The verification-index script passes; independent replay using the available ISA-0.8 binary confirms the unchanged arithmetic and boundary semantics. This does not establish complete 0.9 recount implementation. An action applicability vector is missing.",
+   "change": "\u00a715: 'The controlled-X action fixture has fault_rate:null without evaluating F_B; any contained oracle invocations retain independently checked fault-rate records.'"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The repair preserves North Star \u00a75.1 reporting and \u00a78 zero-fault gates for exact oracle invocations. The blanket recount wording needs qualification to preserve certificates for the quantum actions promised by North Star \u00a74.2.",
+   "change": "\u00a712.3: 'An action's lack of its own fault outcome does not discharge fault-rate obligations for its lifted-oracle callees.'"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "K13 encodings, canonical context order, first-context projection and rejection of unbound verified counts give implementers a practical migration rule. \u00a79.2 confirms that certificate changes leave object_hash, symbol envelopes and schedule_hash unchanged; the published 219-recipe catalog check also passes.",
+   "change": "\u00a712.3: 'For action and perm_action records, null denotes that no action-level fault outcome exists; it is distinct from an oracle recount reporting zero faults.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "FR-1",
+   "section": "Recommended exact spec diff, \u00a712.3; interaction with \u00a7\u00a75.3 and 14.1",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "\u00a712.3 requires verification.fault_rate in every region record, including action and perm_action. The diff unconditionally requires counts to be recomputed from F_B and applies its scheduled-context requirements to a 'scheduled region'. But \u00a75.3 explicitly gives actions no fault outcome, and \u00a714.1 defines F_B only for an oracle's reference body. Consequently the mandatory calculation is undefined for an otherwise valid action certificate. The published conformance/fixtures/controlled-action-09/controlled.bisa supplies a concrete witness: both controlled and flip are perm_action regions, neither invokes an oracle, and their invocation budget is zero. Filling in the proposed invocation fields does not create an F_B for either action. A checker must invent an exemption or fail to discharge a valid action certificate.",
+   "fix": "In \u00a712.3, change the schema to fault_rate: null | {invocation,domain,faults_by_code,undefined_excluded,layout_dependent_excluded}. State: 'The fault-rate recount and context requirements apply only to oracle records. For action and perm_action records, verification.fault_rate MUST be null and fault_rate_contexts MUST be absent. Actions have no fault outcome of their own (\u00a75.3); each contained lifted-oracle invocation remains subject to the recount requirements in its corresponding oracle region record.' For the controlled-X fixture, both action records therefore contain fault_rate:null and no fault_rate_contexts. Alternatively retain action-shaped records, explicitly exempt them from F_B evaluation, and require faults_by_code:{} and both exclusion counts zero; I prefer null because it distinguishes inapplicability from a verified zero-fault oracle recount."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a712.3: explicitly state, 'Fault-rate domains use \u00a712.2 component resolution, validity, omission-at-zero and enumeration rules; each enumerated interface tuple contributes separately.' Thus the worked full domain contains 256 tuples, rather than only four distinct oracle inputs.",
+  "\u00a712.3: state, 'If host limits prevent completion of a legal recount, report unchecked (host limit), discharging no verified fault-rate obligation; do not reject the domain or substitute smaller counts.' This extends \u00a712.2's existing host-limit treatment directly to the new recount operation.",
+  "In the supporting exclusion wording, identify North Star \u00a7\u00a73.2 and 5.1 as the inherited obligation: \u00a712.3 itself presently only declares the exclusion counters. Suggested sentence: 'Exclusion counts require independently validated classifications under the recorded materialisation and classification configuration; unavailable validation leaves the recount unchecked and cannot justify an assumed exclusion.'"
+ ],
+ "verdict": "revise",
+ "path_to_accept": "Scope F_B recounts and their context requirements to oracle records, and define the required action field explicitly using the null rule in FR-1 or its stated empty-record alternative. No core semantic change is needed.",
+ "summary": "The invocation defect is real, the 256-tuple witness is correct, and the hash/catalog claims hold for the proposed in-version repair. One contract blocker remains: the unconditional recount rule invokes oracle-only F_B semantics for required action records.",
+ "verdict_core": "accept"
+}

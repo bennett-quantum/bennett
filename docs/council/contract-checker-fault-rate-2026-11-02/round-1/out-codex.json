@@ -1,0 +1,104 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposal leaves the machine state and step relation unchanged. Its budget-sensitive witness agrees with \u00a7\u00a73.6, 5.2 and 14.1.",
+   "change": "No change required; retain \u00a714.1's rule that the step counter counts executed rows."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a74.2 charges one step each for lift.add and lift.retval. Consequently, B=1 faults and B=2 succeeds for the stated two-row body.",
+   "change": "No instruction change required; retain \u00a74.2's one-step-per-row rule."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Counting code(F_B), rather than the final XOR-accumulated fault register, correctly preserves \u00a75.2 semantics. Both incoming-fault-word examples are correct.",
+   "change": "Retain the proposed \u00a712.3 sentence: 'A nonzero incoming fault-register word is not a fault event.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "No resource or target semantics change. Under an authorized in-version K repair, \u00a79.2 excludes certificate metadata from object_hash and symbol envelopes; schedule, target and catalog bytes remain unchanged. The catalog check reproduced hash 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+   "change": "No resource change required; retain the note's certificate-byte migration requirement and unchanged object, closure, target, schedule and catalog bindings."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "The invocation-binding defect is real: \u00a712.3 binds standalone claims individually but supplies no corresponding fault_rate binding. Explicit invocations and canonical context projections repair that defect. However, the new universal recount rule has no action interpretation, and the asserted existing exclusion-validation contract is absent.",
+   "change": "In \u00a712.3, state: 'F_B recount records apply only to oracle regions; action and perm_action records use fault_rate:null and omit fault_rate_contexts.' Also replace the unsupported exclusion-validation premise as specified in CFR-2."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The verification script passes. Independent execution of the four x values under both budgets reproduced the stated F_B results; step-check also passed. The 256 count correctly includes all target and fault values. The note accurately discloses that the proposed certificate recount was not executed.",
+   "change": "In \u00a715, add: 'The two-row oracle with args=[\"1\"] has faults_by_code={\"1\":\"256\"} at budget=[\"1\",\"0\",\"0\",\"0\"] and {} at budget=[\"2\",\"0\",\"0\",\"0\"]; reordering claims leaves either bound recount unchanged.'"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Binding zero-fault acceptance to the actual invocation supports North Star \u00a7\u00a75.1 and 8. The wording must preserve certificates for actions, which North Star \u00a74.2 and ISA \u00a75.3 distinguish from fallible oracles.",
+   "change": "In \u00a712.3, state: 'An action's absence of its own fault outcome does not discharge a nested oracle's fault-rate obligation; nested oracles are reported separately.'"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Reusing K13 encodings and \u00a712.1 context keys is clear and economical. The deterministic first-context projection makes migration actionable. Applicability and exclusion accounting still need the two corrections below.",
+   "change": "In the \u00a712.3 context paragraph, replace 'scheduled region reached' with 'oracle region present in the complete \u00a712.1 invocation tree, including default-covered contexts'."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "CFR-1",
+   "section": "Recommended exact spec diff: \u00a712.3 fault_rate applicability",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "F_B is the lifted-oracle result. Actions, including permutation actions, have no fault outcome, while the certificate schema places a required fault_rate field on every region record.",
+     "by": "clause:\u00a75.2; clause:\u00a75.3; clause:\u00a712.3"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The proposed text requires counts to be recomputed from F_B and requires context records for a scheduled region without restricting either rule to oracles.",
+     "by": "witness:docs/notes/2026-11-02-contract-checker-fault-rate.md:50-76"
+    },
+    {
+     "n": "<1>3",
+     "claim": "The published controlled-action certificate contains two perm_action region records with empty fault maps. Adding the proposed invocation fields still supplies no F_B for either region; an independent checker would need to invent an action recount convention or refuse the requested recount.",
+     "by": "witness:conformance/fixtures/controlled-action-09/certificate.json; clause:\u00a717 item 7"
+    },
+    {
+     "n": "<1>4",
+     "claim": "The amended universal recount requirement is therefore not implementable for an existing legal certificate class without an additional normative applicability rule.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "In \u00a712.3, make the field 'fault_rate: <oracle recount record> | null' and state: 'F_B recounts and fault_rate_contexts apply only to regions of kind oracle. For action and perm_action, fault_rate MUST be null and fault_rate_contexts MUST be absent. This denotes no action-owned fault outcome; it does not assert that nested oracle invocations are fault-free. Nested oracle recounts retain their own invocation/context bindings.' The corrected controlled-action fixture has fault_rate:null on both perm_action records. Alternatively, retain an explicitly defined empty action placeholder that is never evaluated through F_B and never discharges a callee obligation; I recommend null because it distinguishes inapplicability from a verified zero-fault recount."
+  },
+  {
+   "id": "CFR-2",
+   "section": "Recommended exact spec diff: \u00a712.3 exclusion accounting; supporting claim of existing validation",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The premise 'existing independently validated exclusion classes' is unsupported by the cited ISA text. \u00a712.3 only names undefined_excluded and layout_dependent_excluded; \u00a7\u00a712.1\u201312.2 and 14.1 do not define classification evidence, its invocation/domain binding, or an independent exclusion-validation procedure. The proposed 'enumerated applicable domain count' also leaves unclear whether excluded tuples remain in the F_B recount. North Star \u00a75.1 excludes these inputs from native comparison while retaining reference validation. This finding concerns the proposal's false claim of existing coverage, not a demand to redesign unrelated accepted text.",
+   "fix": "Replace that language in \u00a712.3 with: 'faults_by_code counts nonzero code(F_B) over every element of the declared \u00a712.2 domain. Native-comparison exclusions do not remove elements from this reference recount. Exclusion counters MUST be independently reproduced from classification evidence bound to the same materialized program, invocation and domain. The default validation procedure replays the identified classifiers and input mapping over that domain. Missing replayable classification evidence makes the exclusion report unchecked and discharges no exclusion-dependent acceptance obligation; it MUST NOT be interpreted as zero exclusions.' State in the note that ISA 0.9 currently provides the counter names, not this validation contract. For example, if 64 of the witness's 256 tuples are independently classified as undefined, B=1 still reports faults_by_code={\"1\":\"256\"}, with undefined_excluded=64 separately. Alternatively, explicitly identify exclusion validation as an unresolved dependent contract and limit this repair's verification claim to the full-domain F_B recount; I recommend adding the obligation and default procedure here."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "In \u00a712.3, clarify the intrinsic meaning of a contextual rate: 'A fault-rate domain is the underlying oracle's \u00a75.2 domain. Inherited controls do not add domain components or suppress intrinsic code(F_B) counts. These counts are not probabilities of reaching the call from the root.' Thus placing the B=1 witness behind a disabled control does not turn its intrinsic 256 failures into zero.",
+  "In \u00a712.3, replace 'reached' with 'present in the complete \u00a712.1 invocation tree, including default-covered and predicated-off invocations'. For an action containing two calls to the same oracle, both contexts require records even when only one has explicit schedule entries.",
+  "In \u00a715, add certificate-level acceptance vectors stating: 'Missing invocation, mismatched context invocation, duplicate or omitted context records, and an inconsistent legacy projection reject; equal token tuples with different process-local ids produce the same recount.' Keep the existing disclosure that arithmetic verification alone does not execute these certificate checks."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Restrict F_B recounts to oracles and define an explicit non-applicable representation for actions. 2. Remove the false assertion of existing exclusion validation; define full-domain reference counting and either add the independent classification obligation/default or explicitly identify that dependent contract as unresolved. Preserve the proposed invocation bindings, canonical context projection and migration rule.",
+ "summary": "The central defect, clause references, two-budget witness and unchanged non-certificate hash claims check out. The proposal needs two contract corrections: action applicability and its unsupported assumption about exclusion validation. No core semantic change is needed.",
+ "verdict_core": "accept"
+}
