@@ -1,31 +1,66 @@
 # HANDOFF — Bennett ecosystem (bennett-quantum)
 
-Current state only; rewritten at session end (watcher pass 5, ruling 7: this file is the running-jobs list plus a
-pointer; the narrative lives in the worklog top block). Rules: each repo's CLAUDE.md; council policy and rulings:
-`docs/council/README.md` (tail); ladder status and the ISA 0.9 adoption decision: `docs/plan/2026-10-29-path-to-north-star.md`.
-Clock: read `date -u` before any timestamp.
+Current state only; rewritten at session end. The narrative is the top block of `worklog/002_2026-11-02_orchestration.md`.
+Rules: each repo's CLAUDE.md; council policy and rulings: `docs/council/README.md` (tail); ladder status and the ISA 0.9
+adoption decision: `docs/plan/2026-10-29-path-to-north-star.md`. Orchestration state: `.tmp/orchestrator/shift-3.md` (running
+table, queued work, decisions), advisor rulings `.tmp/orchestrator/advisor-notes.md` (07:55Z R1-R5 bind). Clock: read `date -u`
+before any timestamp. Written 2026-11-02T08:05Z (shift 3, sonnet-docs-s3); rows move quickly, so re-run the commands below.
 
-## Session 2026-11-01 (ended ~17:20Z; worklog block "Session log - 2026-11-01" in `worklog/` is the narrative)
+## Running (shift 3, from shift-3.md; check `pgrep -af codex_job` and `.tmp/orchestrator/tick.sh SECONDS`)
 
-**Nothing is running.** The last four Codex passes reported at wind-up and were landed; the gated pushes started at
-17:14Z should have left each `main` at the sha below (check `git -C <repo> rev-list --left-right --count origin/main...HEAD`
-is `0 0`; if a push failed, its log is `<repo>/.tmp/push-main.log`):
-- bennett-isa-spec a3222b7: reference 0.9 milestone (bead b-isa-spec-fuk) slices .1/.2 closed, .3 in progress (K77 capture
-  API, typed expander, K79-K81 vector byte locks; the unmodified controlled fixture still rejects), .4-.7 open. 524 tests.
-- bennett-vm 5ae125c: 47t-c2 and c2.1 closed; c3, c5, c4 (unblocked by K81), d, b, hsd, clw open. 292/0 both engines, differential 18/0.
-- bennett-dialect-spec c775e6d: draft 0.2.12 accepted (sol, round 11, 0 blocking), four S1s adopted, gate 2902/2902;
-  seven consumer gaps stay open as implementation blockers (12 follow-up beads in plugin/runtimes/arith/driver).
-- bennett-runtimes ec52032 (bead export only; M2 + native + UBSan closures at 88f5958).
-- bennett-plugin: main at 157d4bd. Passes 14-16 are on origin/wip/m2-pass14..16-2026-11-01 (HEAD 78d5c11; gate green
-  against live arith) and cannot push until the runtimes pin is refreshed (bead: RUNTIME_SHA in tests/allocator_closure.py
-  to 6c1741c4.../a63f0421...). First plugin pass next session: that re-pin, then bp-ozp, bp-xyn, bp-xv0, bp-is0 (hello's
-  BD-B-ISA7 trigger is R entry `main` needing typed budget fault F(1): ISA 0.9 only), bp-xms/7ni, rung-1 bp-xb8/zeg/75y.
-  Bead filed at wind-up: full-width CC launch 464/276 s -> 1677/1640 s after the arith re-pin.
+Codex sol xhigh, detached runners (resume a dead one with `python3 .tmp/orchestrator/resume_job.py NAME`): sol-vm-queue
+(bennett-vm), sol-plugin-queue (bennett-plugin), sol-sched, sol-estimate, sol-ref09 (isa-spec reference interpreter),
+sol-arith-softfloat, sol-runtimes-queue, sol-checker (bennett-conformance), sol-driver-queue, plus three new at
+08:01-08:03Z: sol-isa-textdefects (isa-spec `docs/notes/2026-11-02-textdefects/`: fd0 and 0h4), sol-contract-pass2
+(`docs/notes/2026-11-02-pass2/`), sol-dialect03-s0fix (dialect 0.3 draft, P0 beads d4s fa8). 12 runners.
+Opus/Sonnet delegates (progress files named in shift-3.md): opus-vmfixes-review (branch vm-fixes), opus-design-reviews
+(sched, estimate, vm-bjm), opus-checker-replay, opus-plugin-rung4, opus-gate-template, opus-council-s3 (l2p report first, then
+contract-note rounds), sonnet-pushwave, sonnet-docs-s3 (this file and the worklogs).
+In-flight push gates (owned by sonnet-pushwave): bennett-isa-spec ecaaac0 (log `bennett-isa-spec/.tmp/push-main.log`; past
+the 7200 s ceiling but progressing), bennett-plugin 2aba17a with pinned roots (`bennett-plugin/.tmp/push-main.log`), dialect
+3e73596 via `gate_run`. Council: K82 Muse vote running (`tools/council.py`, log `.tmp/k82-muse/run.log`, run
+`docs/council/isa-09-k82-2026-11-01`; a block reopens the round).
+Heavy-gate rule (R3, binding): one full-width plugin CC gate or VM dual-engine run at a time; read `free -g` and `uptime`
+first; children run no gates unless told.
 
-**Next, in order:** plugin re-pin -> push -> rung-3 rerun (`bennett-conformance/ladder/rung-3/gate.sh`); reference 0.9
-slices .3-.7 -> one acceptance round at the pin move (ruling 2); VM 47t-d/b (0.9 execution); plugin `-bennett-isa=0.9`
-producer mode; dialect 0.3 track (grading target ISA 0.9); rung-1 plugin beads; rung 4 gate. Deferred: watcher verdict 4
-(one gate template in `bennett/tools/`); circuits hook commit (its gate fails on re-imported fixtures; held track);
-brt-nuu.2 full ASan; b-dialect-spec-oxs (33 evidence rows).
+## Main per repo (origin/main sha, then `git rev-list --left-right --count origin/main...HEAD`; at 2026-11-02T08:05Z)
 
-**Waiting on the maintainer:** nothing. Watcher daily (next 2026-11-02 15:46Z).
+| repo | origin/main | ahead | note |
+|---|---|---|---|
+| bennett | 75ba4d9 | 3 | gate tool + README, chunk-002 worklog |
+| bennett-isa-spec | a3222b7 | 29 | push of ecaaac0 gate running |
+| bennett-dialect-spec | c775e6d | 12 | push of 3e73596 launched |
+| bennett-targets | 4a74c62 | 3 | pushed 2026-11-02 05:3xZ; gate.toml + stub + worklog local |
+| bennett-conformance | b077ae2 | 8 | pushed 05:43Z; checker-replay, gate adoption, wip checker local |
+| bennett-arith | aab308f | 8 | not started in the push wave |
+| bennett-circuits | 486ced5 | 7 | aa276c0 committed, gate not started |
+| bennett-runtimes | ec52032 | 19 | gate RED three times (see worklog); not pushed |
+| bennett-plugin | 157d4bd | 48 | push of 2aba17a gate running |
+| bennett-vm | d9cb684 | 11 | not started in the push wave |
+| bennett-driver | c92bf23 | 10 | not started in the push wave |
+| bennett-sched | 7f9ceb5 | 1 | pushed 08:04Z |
+| bennett-estimate | d32ef4f | 1 | pushed 08:03Z |
+
+Off-machine copy of everything unpushed: advisor's `wip/pre-outage-2026-11-02` branches in all 13 repos (and -bjm, -vmfixes,
+-rung4). Newer wip commits from codex jobs are local only until pushed.
+
+## Next, in order
+
+1. Finish the push wave (R3 staggered): isa-spec, plugin, dialect (running), then runtimes (via `tools/gate_run.py` with the
+   arith pin, when load eases), vm, driver, arith, circuits. Read `tools/gate_README.md` before gating repos that have a `gate.toml`.
+2. K82 Muse vote: when the call ends, `python3 tools/council.py aggregate --run isa-09-k82-2026-11-01 --round 1`, record the quota
+   rows after, commit the run dir.
+3. l2p (possible north-star gap: ISA §6.2 refuses the 4-T AND): the Opus report goes to the advisor before any council round.
+   Then contract-note rounds (sol + astra), z4c first; fd0 and 0h4 after sol-isa-textdefects; the pass-2 notes
+   after sol-contract-pass2. Dialect 0.3 to council after b-isa-spec-fuk.7.
+4. Rung-3 `pins.json` refresh and rerun (brief sonnet-rung3 step 2) once plugin main lands.
+5. Merges, each after review: vm-fixes after opus-vmfixes-review CLEAR (reference is the oracle at 0.8 where the text is silent);
+   bjm-dense when green; rung4-plugin minus the 5u3 solver narrowing (b-dialect-spec-5u3, advisor ruling: not into main).
+6. Beads left by the gate work: bennett-sched-68k, bennett-estimate-m6p, bennett-driver-3j4; b-dialect-spec-abf (120 s interpreter
+   build on a cold cache). Remove the `*-muse2wt` worktrees (opus-design-reviews does it).
+
+## Waiting on the maintainer
+
+Nothing blocking. Standing decisions needed before they bite: the Muse seat for new contracts (the 2026-10-31 rule says a new
+contract publishes only with the Muse vote; Muse is rationed to one call per contract after a quota reading and advisor
+confirmation, so dialect 0.3 needs a substitute or a waiver); l2p, if the reader confirms a north-star gap.
