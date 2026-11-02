@@ -1,0 +1,104 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposal leaves \u00a7\u00a73.1\u20133.7 state, tiers and execution rules unchanged.",
+   "change": "No machine-model change required."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "\u00a74.4 defines native gate conformance through phase-sensitive unitary operator distance. The proposed channel models are not reconciled with that rule.",
+   "change": "In \u00a78.3 state: \u201cNative models must satisfy \u00a74.4\u2019s unitary conformance obligation; a channel-form representation must additionally identify the phase-bearing unitary it represents.\u201d See B2."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "The X/\u2212X witness is correct: uncontrolled channels coincide, while their controlled outputs are orthogonal. Requiring additional control information for channels agrees with [Abbott et al.](https://quantum-journal.org/papers/q-2020-09-24-333/). The unresolved channel/epsilon interaction remains material.",
+   "change": "In \u00a78.3 state: \u201cFor every resolved control context, the model binds the phase-bearing logical unitary used by numerical verification; a Kraus representation alone cannot supply this phase.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 3,
+   "evidence": "The target extension supplies the missing operation identity, but its expression-valued-epsilon requirement conflicts with its exact-entry exemption, and channel epsilon has no decided interpretation.",
+   "change": "Replace \u00a78.3\u2019s syntactic model requirement with the evaluated-epsilon rule in B1 and specify the model admissibility/error rule in B2."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "The defect is genuine under \u00a7\u00a78.3 and 12.1. Target-hash and dependent schedule/certificate invalidation are correctly identified. Unchanged source and catalog identities are consistent with an authorized in-version K repair.",
+   "change": "In \u00a78.3 state: \u201cA zero-valued epsilon expression retains the exact-opcode convention; a positive evaluated epsilon requires a model for independent verification, with missing legacy models reported as unchecked.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The published verification script passed, including Bell-state orthogonality. It does not execute a native-model checker, as the note correctly discloses. \u00a712.1 supplies numerical and channel procedures, but neither resolves the new native-channel admission question.",
+   "change": "In the conformance vectors state: \u201cFor controlled X versus controlled \u2212X, operator distance is 2, while \u00a712.1\u2019s Frobenius upper bound is 2\u221a2; a numerical claim with bound 2 therefore rejects and bound 3 can pass at sufficient precision.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Independent approximation verification implements North Star \u00a7\u00a74.4 and 5.1. The proposal supplies a mechanism for approximate algorithms and does not substitute unchecked legacy handling for that mechanism.",
+   "change": "No scope change required."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The repair is focused and distinguishes model identity from advertised accuracy. Concrete model encoding and context mapping need publication, but those mechanics are not independently blocking once the semantic conflicts are repaired.",
+   "change": "In \u00a78.3 state: \u201cResolve the model using the matched entry\u2019s exact invocation context and explicitly map its ordered operand bits to \u00a712.1\u2019s controls-first allocation basis.\u201d"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff, \u00a78.3 model requirement and exact-entry exemption",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "Existing exact-native matching includes epsilon expressions independent of eps that evaluate to zero.",
+     "by": "clause:\u00a717 item 9; clause:\u00a78.1"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The proposed opening requires a model for every expression-valued epsilon, while its closing rule permits exact entries to omit the model.",
+     "by": "witness:docs/notes/2026-11-02-contract-checker-native-model.md, Recommended exact spec diff"
+    },
+    {
+     "n": "<1>3",
+     "claim": "An X entry with epsilon {\"op\":\"-\",\"args\":[1,1]} and no model evaluates exactly to zero. It qualifies for the exact exemption but violates the opening MUST.",
+     "by": "clause:\u00a78.1 expression evaluation; witness:exact rational evaluation 1\u22121=0"
+    },
+    {
+     "n": "<1>4",
+     "claim": "One checker can use the exact X matrix while another reports a missing-model obligation for the same entry. The amendment gives incompatible verification requirements.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "In \u00a78.3 replace the opening requirement and align the exact-entry paragraph: \u201cModel requirements are determined by evaluated epsilon, not expression syntax. At each resolved invocation context with epsilon zero, an omitted model denotes exactly the \u00a74.4 opcode, including global phase and controlled form. A positive evaluated epsilon requires a realisation model to discharge independent realised-operation verification; a legacy entry lacking it leaves that obligation unchecked. Any supplied model MUST satisfy the exact contract at zero epsilon and the advertised bound at positive epsilon.\u201d Expected result: epsilon {\"op\":\"-\",\"args\":[1,1]} without a model is treated as exact X, with no missing-model diagnostic."
+  },
+  {
+   "id": "B2",
+   "section": "Recommended exact spec diff, \u00a78.3 kind/channel admission; interactions with \u00a7\u00a74.4 and 12.3",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The diff admits kind=channel with CPTP normalization but leaves epsilon as the existing accuracy obligation. \u00a74.4 defines that obligation for a realised unitary in operator norm; a general channel has no such unitary. \u00a712.3 additionally requires a numerical claim for a controlled unitary variant. For example, the proposed expression language admits Kraus operators K0=X/\u221a2 and K1=ZX/\u221a2. They satisfy \u03a3K\u2020K=I, but map |+><+| to I/2, so no logical unitary represents them. Supplying a controlled dilation does not make the reduced logical channel unitary. The amendment never decides whether this valid channel model is inadmissible as a native gate or is admitted under a new diamond-error contract. This is a semantic admission and certificate-verdict decision, not a missing encoding detail.",
+   "fix": "For this K repair I recommend retaining \u00a74.4\u2019s native-unitary contract. In \u00a78.3 state: \u201cEvery native model MUST identify a phase-bearing logical unitary U for each resolved parameter/control context. A Kraus or instrument representation is admissible as a native gate model only when its reduced logical map equals \u03c1\u21a6U\u03c1U\u2020, and U, including phase relative to disabled control branches, is also bound. Native epsilon bounds ||U\u2212V||op against \u00a74.4\u2019s corresponding ideal V. Channel claims may compare the induced channels but do not replace \u00a712.3\u2019s required numerical claims for controlled unitary variants.\u201d The two-Kraus dephasing example must fail native-unitary conformance; X and \u2212X unitary models remain available with the stated error obligations. Alternatively, retain genuinely nonunitary native models and amend \u00a7\u00a74.4, 8.1 and 12.3 explicitly: \u201cFor channel models, epsilon is a diamond-norm bound against the ideal opcode channel in the specified control context; it is charged as diamond without \u00d72 conversion, requires channel claims, and cannot establish an operator-norm or exact-inverse conclusion.\u201d That alternative also needs an explicit exception to the existing native-unitary admission rule."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a78.3 parameter binding: cite \u00a7\u00a73.1 and 11.1 K20 for angle representation, rather than relying on \u00a74.4 alone. State: \u201cA theta parameter is the exact real represented by its finite binary64 binding; model evaluation preserves that binding.\u201d For source angle 0.1, the value is 3602879701896397/36028797018963968, not 1/10.",
+  "Conformance vectors: distinguish mathematical distances from checker acceptance. State: \u201cControlled X and controlled \u2212X have operator distance 2 and channel diamond distance 2. The numerical procedure obtains Frobenius bound 2\u221a2 for the latter comparison.\u201d Also retain \u00a712.1\u2019s existing rule that a zero-distance channel does not make a zero-bound, non-strict SDP witness pass.",
+  "Hashes and release: state explicitly, \u201cUnchanged source identities assume this repair retains the ISA 0.9 semantic envelope. A full ISA-version bump requires regenerating the \u00a79.2 identities. Installing changed model bytes requires regenerating target_hash, dependent schedule_hash values and certificates.\u201d The reference-catalog check passed with the published 219-recipe hash."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Resolve the zero-valued-expression contradiction using B1. 2. Decide native channel admissibility and its error metric using B2; the unitary-equivalent representation rule is the smallest repair compatible with current \u00a74.4. No source or reference-catalog change is needed for that authorized 0.9 K repair.",
+ "summary": "The missing native-operator model is a real defect, and the phase witness and hash analysis are sound. Two contract-rule conflicts prevent applying this exact diff. The accepted core semantics need no revision.",
+ "verdict_core": "accept"
+}
