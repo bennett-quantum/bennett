@@ -1,27 +1,27 @@
 # Council — isa-09-k82-2026-11-01 round 1
 
-Document snapshot sha256 941534df1d9e; rubric /home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md. Members: sol, codex. Scores are advisory.
+Document snapshot sha256 941534df1d9e; rubric /home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md. Members: sol, codex, muse. Scores are advisory.
 
-| | sol | codex | mean | spread ≥ 2 |
-|---|---|---|---|---|
-| C1 | 5 | 5 | 5.0 |  |
-| C2 | 5 | 5 | 5.0 |  |
-| C3 | 5 | 5 | 5.0 |  |
-| C4 | 5 | 5 | 5.0 |  |
-| C5 | 5 | 5 | 5.0 |  |
-| C6 | 4 | 4 | 4.0 |  |
-| C7 | 5 | 5 | 5.0 |  |
-| C8 | 4 | 4 | 4.0 |  |
+| | sol | codex | muse | mean | spread ≥ 2 |
+|---|---|---|---|---|---|
+| C1 | 5 | 5 | 4 | 4.67 |  |
+| C2 | 5 | 5 | 4 | 4.67 |  |
+| C3 | 5 | 5 | 4 | 4.67 |  |
+| C4 | 5 | 5 | 5 | 5.0 |  |
+| C5 | 5 | 5 | 4 | 4.67 |  |
+| C6 | 4 | 4 | 4 | 4.0 |  |
+| C7 | 5 | 5 | 4 | 4.67 |  |
+| C8 | 4 | 4 | 3 | 3.67 |  |
 
-Overall mean: 4.75
+Overall mean: 4.5
 
-Verdicts: **sol: accept**, **codex: accept**
+Verdicts: **sol: accept**, **codex: accept**, **muse: accept**
 
-Core verdicts: **sol: accept**, **codex: accept**
+Core verdicts: **sol: accept**, **codex: accept**, **muse: accept**
 
 **Consensus: YES**   **Core consensus: YES**
 
-Blocking by scope: sol: core 0 / contract 0 (blocking 0), codex: core 0 / contract 0 (blocking 0)
+Blocking by scope: sol: core 0 / contract 0 (blocking 0), codex: core 0 / contract 0 (blocking 0), muse: core 0 / contract 0 (blocking 0)
 
 ## Blocking issues
 
@@ -65,3 +65,24 @@ Suggestions:
 1. S1 — Align §15’s vector with K82’s body-order rule. State, “Interface arrays list names once in first-use body order,” and change generate.py’s interface result from sorted(used) to used; value.select must list ["p","b","a","t"]. Alternatively, explicitly document the fixture arrays as sorted set representations rather than normative interface order. Prefer preserving body order. Neither option requires changing catalog bytes or expanded-leaf digests.
 2. S1 — Clarify §11.1 K82’s interaction with K19: “Determine named-interface eligibility from the serialized parameter list before desugaring bare integer formals.” Example: ["N"] can import an otherwise free wire q; [{"name":"N","type":"integer"}] cannot, and the same free-q body rejects.
 3. S1 — Clarify §11.1 K82’s interaction with K22: “Closed templates retain their K22 lexical captures; no uncaptured name is supplied by the apply-site environment.” A template captured with q=x and applied where q=y still uses x; without a captured or formal q, it rejects.
+
+## muse
+
+Accept. K82 correctly diagnoses a real defect in 0.9 as published: literal K19 rejects 54 catalog recipes that the catalog's 20 typed adapters invoke with only their integer arguments. The fix is minimal, closed for every typed recipe and template, imports only syntactically free wire names evaluated in the invoke's lexical environment, leaves width equality to the typed callers that all 20 sites possess, and changes no catalog byte, leaf, ordinal or hash. I verified the 54/20 counts, the absence of named-to-named invoke edges and the pinned envelope through the K82 generator. The remaining issues are S1 wording and vector-coverage clarifications, not divergent computations on ref@0.9.
+
+**Path to accept:** Already accept. To raise the lowest criterion, C8, by one point, make the three editorial replacements in S1-S3: define wire-actual uses and static interface computation, resolve body-order versus sorted vector order, and spell out transitive subtraction and template capture. No catalog byte, hash, leaf or ordinal change is needed.
+
+- **C1 4**: K82 gives the published catalog one explicit semantics instead of sched rejecting it and the reference and VM accepting it by two undocumented rules. It is coherent but intentionally legacy-shaped: bare versus object integer formals carry the distinction. *Change:* In §11.1 K82, add: 'This syntactic bare-name form is a compatibility binding for the published ref catalog; new recipes should use typed formals, and the bare form gains no other implicit capability.'
+- **C2 4**: Verified against spec/ref-0.9.json: 54 bare-formal recipes, 20 invoke edges, no edge from another named-interface recipe, and the published envelope hash asserted by generate.py --check. The width premise is true: value.trunc reads M bits and value.zext reads N bits, so body reads do not determine the caller's declared widths. *Change:* In §11.1 K82, replace 'its body uses as a wire' with: 'its body uses in a wire-actual position, syntactically and irrespective of loop trip counts; allocation, release, loop-variable and other binding occurrences, and scalar uses, are not wire-actual uses.'
+- **C3 4**: K82 does not alter the VM model, loops, budgets, allocation classes or fault outcomes. It preserves the same leaves for both executors, which is the part load-bearing for the VM/circuit equivalence in this slice. *Change:* In §11.1 K82, add: 'This binding changes no step-machine, padded-loop, cleanup or resource semantics; it only determines the already-published generated leaves before §11 selection.'
+- **C4 5**: This is the strongest part of K82: one contract replaces reference dynamic import, VM capture-cloning and sched rejection, with no catalog re-pin. Independent consumers can derive the same interfaces from the catalog and k82.json. *Change:* In §15, state: 'A conforming consumer must reproduce every interface, edge digest and binding case in accepted-k82-09 without importing another consumer's expander.'
+- **C5 4**: K82 adds no LLVM fork, source annotation or language restriction and rejects nothing the north star promises. Relative to literal K19 it restores the published ref capability; typed free names were already unbound-name rejections. *Change:* No change is needed to the universality claim; the single useful addition in §0 K82 is: 'No schedule, certificate, object or library hash valid under the intended 0.9 expansion changes.'
+- **C6 4**: The vector is executable evidence, not prose: generate.py --check passes with 86 edge instances and 16 binding cases, and the reference probe matches 86/86 digests. Its two case failures are recorded reference-implementation divergences under b-isa-spec-b5b, not alternative spec readings. *Change:* Add to §15 one direct-instantiation case for an uninvoked recipe, e.g.: 'qxor(2) with map {s:[x0,x1], t:[y0,y1]} accepts and emits CX x0 y0; CX x1 y1; the same map with an extra q entry, or with t omitted, rejects.'
+- **C7 4**: K82 correctly refuses the two prior-art traps in the existing consumers: dynamic import of every caller wire and capture-cloning of non-wire bindings. It claims no false novelty and misses no load-bearing alternative; the typed-formal rewrite was rightly rejected for changing every pinned hash for no leaf gain. *Change:* In §11.1 K82, add only if the editor wants the landscape point: 'Unlike dynamic-scope import, only the syntactically computed interface is imported, each name is evaluated once in the invoke's lexical environment, and no other caller binding is visible.'
+- **C8 3**: The rule, witness and vector are buildable, but three phrases need the vector to disambiguate them: 'in body order' while k82.json lists interfaces sorted, 'less the names bound at that invoke' for transitivity, and 'every K22 template is closed' alongside K22's captured free references. *Change:* In §11.1 K82, state: 'The named interface is a set; interfaces in accepted-k82-09/k82.json are listed in bytewise sorted order, and no binding depends on that order.' Alternatively regenerate k82.json in body order; I would take the set-plus-sorted sentence because invoke and direct instantiation are both by name.
+
+Suggestions:
+1. S1 (§11.1 K82, S1/contract): 'in body order' conflicts in presentation with accepted-k82-09/k82.json, whose interfaces are bytewise sorted; 31 catalog interfaces differ between syntactic body order and sorted order, although binding is by name so no leaf changes. Fix: replace the interface sentence with 'Its named interface is the set of names its body uses in a wire-actual position before any lexical binding of that name, computed syntactically irrespective of loop trip counts; k82.json lists each set bytewise sorted, and no binding depends on list order.' The alternative is regenerating k82.json in depth-first body order; I would take the set-plus-sorted sentence.
+2. S2 (§11.1 K82, S1/contract): 'less the names bound at that invoke' and 'every K22 template is closed' are pinned by the vector but terse in prose. Fix: state 'plus the named interface of each named-interface recipe it invokes, less the names lexically bound in this body at that invoke point; an invoke through a captured body or template resolves interface names in the captured environment as shadowed by that body or template's formals, never at the splice or apply site. A K22 template receives no K82 import at its apply site; its free references still resolve by K22 capture.' This preserves the vector cases interface-is-transitive, enclosing-open-local-binds-nested-interface, captured-body-resolves-at-its-capture and bare-template-formals-import-nothing.
+3. S3 (§11.1 K82, S1/contract): say explicitly which occurrences are not interface uses and that imported wires carry no allocation identity. Fix: state 'Allocation, release, relinquish, for, each, declare and formal occurrences are bindings or allocation references, not wire-actual uses; evaluating an interface name as a wire actual imports the wire list only, including a live K27 declaration's or K26 region's flattened wires, and never an allocation status, region origin, integer, body, template, symbol, class or angle binding.' The catalog's 54 bodies use only gate, alloc, release, for and inverse constructors, so this changes no published leaf.
+4. S4 (§15, S1/contract): the 34 uninvoked named-interface recipes are covered by published interfaces but no case directly instantiates one with a missing or extra map entry. Fix: add the §15 sentence 'Direct instantiation of qxor(2) with exactly {s:[x0,x1], t:[y0,y1]} emits CX x0 y0; CX x1 y1; omitting t or adding any third name rejects before expansion.'

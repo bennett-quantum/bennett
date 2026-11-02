@@ -20,6 +20,14 @@
    "updated": "2026-11-01T23:06:40+00:00",
    "exit": 0,
    "seconds": 362
+  },
+  "muse": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T07:58:07+00:00",
+   "updated": "2026-11-02T08:02:10+00:00",
+   "exit": 0,
+   "seconds": 244
   }
  },
  "rubric": "/home/tobias/Projects/bennett-workspace/bennett/docs/council/rubric.md",
@@ -30,7 +38,8 @@
  ],
  "member_list": [
   "sol",
-  "codex"
+  "codex",
+  "muse"
  ],
  "task": "docs/council/task-spec.md",
  "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"

@@ -1,0 +1,65 @@
+{
+ "blocking": [],
+ "criteria": [
+  {
+   "change": "In \u00a711.1 K82, add: 'This syntactic bare-name form is a compatibility binding for the published ref catalog; new recipes should use typed formals, and the bare form gains no other implicit capability.'",
+   "evidence": "K82 gives the published catalog one explicit semantics instead of sched rejecting it and the reference and VM accepting it by two undocumented rules. It is coherent but intentionally legacy-shaped: bare versus object integer formals carry the distinction.",
+   "id": "C1",
+   "score": 4
+  },
+  {
+   "change": "In \u00a711.1 K82, replace 'its body uses as a wire' with: 'its body uses in a wire-actual position, syntactically and irrespective of loop trip counts; allocation, release, loop-variable and other binding occurrences, and scalar uses, are not wire-actual uses.'",
+   "evidence": "Verified against spec/ref-0.9.json: 54 bare-formal recipes, 20 invoke edges, no edge from another named-interface recipe, and the published envelope hash asserted by generate.py --check. The width premise is true: value.trunc reads M bits and value.zext reads N bits, so body reads do not determine the caller's declared widths.",
+   "id": "C2",
+   "score": 4
+  },
+  {
+   "change": "In \u00a711.1 K82, add: 'This binding changes no step-machine, padded-loop, cleanup or resource semantics; it only determines the already-published generated leaves before \u00a711 selection.'",
+   "evidence": "K82 does not alter the VM model, loops, budgets, allocation classes or fault outcomes. It preserves the same leaves for both executors, which is the part load-bearing for the VM/circuit equivalence in this slice.",
+   "id": "C3",
+   "score": 4
+  },
+  {
+   "change": "In \u00a715, state: 'A conforming consumer must reproduce every interface, edge digest and binding case in accepted-k82-09 without importing another consumer's expander.'",
+   "evidence": "This is the strongest part of K82: one contract replaces reference dynamic import, VM capture-cloning and sched rejection, with no catalog re-pin. Independent consumers can derive the same interfaces from the catalog and k82.json.",
+   "id": "C4",
+   "score": 5
+  },
+  {
+   "change": "No change is needed to the universality claim; the single useful addition in \u00a70 K82 is: 'No schedule, certificate, object or library hash valid under the intended 0.9 expansion changes.'",
+   "evidence": "K82 adds no LLVM fork, source annotation or language restriction and rejects nothing the north star promises. Relative to literal K19 it restores the published ref capability; typed free names were already unbound-name rejections.",
+   "id": "C5",
+   "score": 4
+  },
+  {
+   "change": "Add to \u00a715 one direct-instantiation case for an uninvoked recipe, e.g.: 'qxor(2) with map {s:[x0,x1], t:[y0,y1]} accepts and emits CX x0 y0; CX x1 y1; the same map with an extra q entry, or with t omitted, rejects.'",
+   "evidence": "The vector is executable evidence, not prose: generate.py --check passes with 86 edge instances and 16 binding cases, and the reference probe matches 86/86 digests. Its two case failures are recorded reference-implementation divergences under b-isa-spec-b5b, not alternative spec readings.",
+   "id": "C6",
+   "score": 4
+  },
+  {
+   "change": "In \u00a711.1 K82, add only if the editor wants the landscape point: 'Unlike dynamic-scope import, only the syntactically computed interface is imported, each name is evaluated once in the invoke's lexical environment, and no other caller binding is visible.'",
+   "evidence": "K82 correctly refuses the two prior-art traps in the existing consumers: dynamic import of every caller wire and capture-cloning of non-wire bindings. It claims no false novelty and misses no load-bearing alternative; the typed-formal rewrite was rightly rejected for changing every pinned hash for no leaf gain.",
+   "id": "C7",
+   "score": 4
+  },
+  {
+   "change": "In \u00a711.1 K82, state: 'The named interface is a set; interfaces in accepted-k82-09/k82.json are listed in bytewise sorted order, and no binding depends on that order.' Alternatively regenerate k82.json in body order; I would take the set-plus-sorted sentence because invoke and direct instantiation are both by name.",
+   "evidence": "The rule, witness and vector are buildable, but three phrases need the vector to disambiguate them: 'in body order' while k82.json lists interfaces sorted, 'less the names bound at that invoke' for transitivity, and 'every K22 template is closed' alongside K22's captured free references.",
+   "id": "C8",
+   "score": 3
+  }
+ ],
+ "path_to_accept": "Already accept. To raise the lowest criterion, C8, by one point, make the three editorial replacements in S1-S3: define wire-actual uses and static interface computation, resolve body-order versus sorted vector order, and spell out transitive subtraction and template capture. No catalog byte, hash, leaf or ordinal change is needed.",
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "S1 (\u00a711.1 K82, S1/contract): 'in body order' conflicts in presentation with accepted-k82-09/k82.json, whose interfaces are bytewise sorted; 31 catalog interfaces differ between syntactic body order and sorted order, although binding is by name so no leaf changes. Fix: replace the interface sentence with 'Its named interface is the set of names its body uses in a wire-actual position before any lexical binding of that name, computed syntactically irrespective of loop trip counts; k82.json lists each set bytewise sorted, and no binding depends on list order.' The alternative is regenerating k82.json in depth-first body order; I would take the set-plus-sorted sentence.",
+  "S2 (\u00a711.1 K82, S1/contract): 'less the names bound at that invoke' and 'every K22 template is closed' are pinned by the vector but terse in prose. Fix: state 'plus the named interface of each named-interface recipe it invokes, less the names lexically bound in this body at that invoke point; an invoke through a captured body or template resolves interface names in the captured environment as shadowed by that body or template's formals, never at the splice or apply site. A K22 template receives no K82 import at its apply site; its free references still resolve by K22 capture.' This preserves the vector cases interface-is-transitive, enclosing-open-local-binds-nested-interface, captured-body-resolves-at-its-capture and bare-template-formals-import-nothing.",
+  "S3 (\u00a711.1 K82, S1/contract): say explicitly which occurrences are not interface uses and that imported wires carry no allocation identity. Fix: state 'Allocation, release, relinquish, for, each, declare and formal occurrences are bindings or allocation references, not wire-actual uses; evaluating an interface name as a wire actual imports the wire list only, including a live K27 declaration's or K26 region's flattened wires, and never an allocation status, region origin, integer, body, template, symbol, class or angle binding.' The catalog's 54 bodies use only gate, alloc, release, for and inverse constructors, so this changes no published leaf.",
+  "S4 (\u00a715, S1/contract): the 34 uninvoked named-interface recipes are covered by published interfaces but no case directly instantiates one with a missing or extra map entry. Fix: add the \u00a715 sentence 'Direct instantiation of qxor(2) with exactly {s:[x0,x1], t:[y0,y1]} emits CX x0 y0; CX x1 y1; omitting t or adding any third name rejects before expansion.'"
+ ],
+ "summary": "Accept. K82 correctly diagnoses a real defect in 0.9 as published: literal K19 rejects 54 catalog recipes that the catalog's 20 typed adapters invoke with only their integer arguments. The fix is minimal, closed for every typed recipe and template, imports only syntactically free wire names evaluated in the invoke's lexical environment, leaves width equality to the typed callers that all 20 sites possess, and changes no catalog byte, leaf, ordinal or hash. I verified the 54/20 counts, the absence of named-to-named invoke edges and the pinned envelope through the K82 generator. The remaining issues are S1 wording and vector-coverage clarifications, not divergent computations on ref@0.9.",
+ "verdict": "accept",
+ "verdict_core": "accept"
+}
