@@ -17,8 +17,10 @@ an env var.
 
 Calling `../bennett/tools/gate_run.py` directly would itself be a live sibling read, so the stub extracts the tool from
 the meta repo's objects at `tool_sha` in `gate.toml` (`git show <tool_sha>:tools/gate_run.py`) into `.tmp/gate/tool/`.
-A tool upgrade is a deliberate one-line commit per repo, made when no push of that repo is in flight: the stub reads
-`tool_sha` from HEAD's `gate.toml`, and the tool refuses (exit 3) a pushed sha whose `gate.toml` names another one. The stub's own job is that fetch and the hook probe.
+A tool upgrade is a deliberate one-line commit per repo. The stub reads `tool_sha` from HEAD's `gate.toml`; a pushed sha
+whose `gate.toml` pins an *ancestor* of that tool runs under the newer one (announced; the record keeps `tool_sha` and
+`tool_sha_ran`), so a walk-back push gets tool fixes. A pushed pin that is newer than, or unrelated to, the running tool
+is refused (exit 3). The stub's own job is that fetch and the hook probe.
 
 ## What a run does
 
@@ -35,7 +37,7 @@ A tool upgrade is a deliberate one-line commit per repo, made when no push of th
    fail-loud for unpinned reads, and it cannot be bypassed by a path the static scan misses. Inherited `BENNETT_*`,
    `CARGO_TARGET_DIR`, `GIT_*` and display variables are scrubbed.
 6. Runs each `[[report]]` (milestone and blocker status); its exit is printed and never decides anything.
-7. Writes `.tmp/gate/records/<sha>.json`: pins used, `pushed` per pin, per-check exit and time, result.
+7. Writes `.tmp/gate/records/<sha>.json`: pins used, `pushed` per pin, tool pinned and tool run, per-check exit and time, result.
 
 SIGTERM, SIGHUP or SIGINT (an orchestrator kill under memory pressure) kills the running command's whole process group,
 removes the run worktree and writes no record; exit 128+signal. Kill the gate's python process, never only the bwrap

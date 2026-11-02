@@ -375,7 +375,15 @@ def prepare(root, workspace, sha, args, live=False):
     cfg = load_config(root, sha)
     tool_sha = getattr(args, "tool_sha", None)
     if tool_sha and tool_sha != cfg["tool_sha"]:
-        raise GateError(f"{sha} pins tool_sha {cfg['tool_sha']}, running {tool_sha}: push from a HEAD with the same pin")
+        # Tool fixes go forward: a walk-back push of an older sha may run under the newer tool its HEAD pins.
+        meta = Path(workspace) / "bennett"
+        z = subprocess.run(["git", "-C", str(meta), "merge-base", "--is-ancestor", cfg["tool_sha"], tool_sha],
+                           capture_output=True, text=True, env=git_env(), stdin=subprocess.DEVNULL)
+        if z.returncode != 0:
+            raise GateError(f"{sha} pins tool_sha {cfg['tool_sha']}, not an ancestor of the running {tool_sha} in {meta}"
+                            f" ({z.stderr.strip() or 'git exit ' + str(z.returncode)}): push from a HEAD with that pin or a newer one")
+        say(f"{sha} pins tool_sha {cfg['tool_sha']}, an ancestor of the running {tool_sha}: running the newer tool")
+    cfg["tool_sha_ran"] = tool_sha or cfg["tool_sha"]
     sibs = Siblings(cfg, root, workspace)
     prefix = []
     if getattr(args, "no_isolate", False) or live:
@@ -431,7 +439,8 @@ def gate_one(root, workspace, sha, args):
         records = root / ".tmp/gate/records"
         records.mkdir(parents=True, exist_ok=True)
         (records / f"{sha}.json").write_text(json.dumps({
-            "sha": sha, "repo": cfg["repo"], "tool_sha": cfg["tool_sha"], "isolated": bool(prefix),
+            "sha": sha, "repo": cfg["repo"], "tool_sha": cfg["tool_sha"], "tool_sha_ran": cfg["tool_sha_ran"],
+            "isolated": bool(prefix),
             "siblings": sibs.notes, "checks": checks, "reports": reports, "result": "pass" if passed else "fail",
             "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }, indent=1) + "\n")

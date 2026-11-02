@@ -427,6 +427,28 @@ class Hooks(Base):
         p.write_text(text)
         p.chmod(0o755)
 
+    def test_pushed_pin_of_an_ancestor_tool_runs_under_the_newer_tool(self):
+        # A walk-back push of an older sha pinning an older tool, from a HEAD that bumped the tool (tool fixes go forward).
+        old = self.stubbed()
+        meta = self.ws / "bennett"
+        sha = git(self.me, "rev-parse", "HEAD")
+        new = self.commit(meta, {"tools/gate_run.py": TOOL.read_text() + "# fix\n"})
+        z = self.run_tool("--sha", sha, "--tool-sha", new)
+        self.assertRan(z)
+        self.assertIn(f"pins tool_sha {old}, an ancestor of the running {new}", z.stderr)
+        rec = json.loads((self.me / ".tmp/gate/records" / f"{sha}.json").read_text())
+        self.assertEqual((rec["tool_sha"], rec["tool_sha_ran"]), (old, new))
+
+    def test_pushed_pin_of_a_newer_tool_refused(self):
+        self.stubbed()
+        meta = self.ws / "bennett"
+        older = git(meta, "rev-parse", "HEAD")
+        newer = self.commit(meta, {"tools/gate_run.py": TOOL.read_text() + "# fix\n"})
+        sha = self.commit(self.me, {"gate.toml": self.toml([["true"]], tool_sha=newer)})
+        z = self.run_tool("--sha", sha, "--tool-sha", older)
+        self.assertRan(z, 3)
+        self.assertIn("not an ancestor", z.stderr)
+
     def test_stub_gates_through_a_real_push(self):
         self.stubbed()
         remote = self.tmp / "remote.git"
