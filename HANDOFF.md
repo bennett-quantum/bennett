@@ -16,38 +16,37 @@ sol-arith-softfloat, sol-runtimes-queue, sol-checker (bennett-conformance), sol-
 Opus/Sonnet delegates (progress files named in shift-3.md): opus-vmfixes-review (branch vm-fixes), opus-design-reviews
 (sched, estimate, vm-bjm), opus-checker-replay, opus-plugin-rung4, opus-gate-template, opus-council-s3 (l2p report first, then
 contract-note rounds), sonnet-pushwave, sonnet-docs-s3 (this file and the worklogs).
-In-flight push gates (owned by sonnet-pushwave): bennett-isa-spec ecaaac0 (log `bennett-isa-spec/.tmp/push-main.log`; past
-the 7200 s ceiling but progressing), bennett-plugin 2aba17a with pinned roots (`bennett-plugin/.tmp/push-main.log`), dialect
-3e73596 via `gate_run`. Council: K82 Muse vote running (`tools/council.py`, log `.tmp/k82-muse/run.log`, run
+In-flight push gate (owned by sonnet-pushwave): bennett-plugin 2aba17a with pinned roots (`bennett-plugin/.tmp/push-main.log`). Council: K82 Muse vote running (`tools/council.py`, log `.tmp/k82-muse/run.log`, run
 `docs/council/isa-09-k82-2026-11-01`; a block reopens the round).
 Heavy-gate rule (R3, binding): one full-width plugin CC gate or VM dual-engine run at a time; read `free -g` and `uptime`
 first; children run no gates unless told.
 
-## Main per repo (origin/main sha, then `git rev-list --left-right --count origin/main...HEAD`; at 2026-11-02T08:05Z)
+## Main per repo (origin/main sha, then `git rev-list --left-right --count origin/main...HEAD`; at 2026-11-02T08:54Z)
 
 | repo | origin/main | ahead | note |
 |---|---|---|---|
-| bennett | 75ba4d9 | 3 | gate tool + README, chunk-002 worklog |
-| bennett-isa-spec | a3222b7 | 29 | push of ecaaac0 gate running |
-| bennett-dialect-spec | c775e6d | 12 | push of 3e73596 launched |
-| bennett-targets | 4a74c62 | 3 | pushed 2026-11-02 05:3xZ; gate.toml + stub + worklog local |
-| bennett-conformance | b077ae2 | 8 | pushed 05:43Z; checker-replay, gate adoption, wip checker local |
-| bennett-arith | aab308f | 8 | not started in the push wave |
-| bennett-circuits | 486ced5 | 7 | aa276c0 committed, gate not started |
-| bennett-runtimes | ec52032 | 19 | gate RED three times (see worklog); not pushed |
-| bennett-plugin | 157d4bd | 48 | push of 2aba17a gate running |
-| bennett-vm | d9cb684 | 11 | not started in the push wave |
-| bennett-driver | c92bf23 | 10 | not started in the push wave |
-| bennett-sched | 7f9ceb5 | 1 | pushed 08:04Z |
-| bennett-estimate | d32ef4f | 1 | pushed 08:03Z |
+| bennett | b6b4bb5 | 3 | pushed 08:47Z (gate tool, chunk-002 worklog); council rounds since are local |
+| bennett-isa-spec | ecaaac0 | 18 | pushed 08:06Z (a3222b7..ecaaac0) |
+| bennett-dialect-spec | 3e73596 | 2 | pushed 08:22Z via `gate_run`, interpreter pinned c1d1320 |
+| bennett-targets | 4a74c62 | 3 | pushed by shift 2; gate.toml, stub, worklog local |
+| bennett-conformance | b077ae2 | 14 | pushed 05:43Z; checker-replay, gate adoption, sol-checker wip local |
+| bennett-arith | aab308f | 10 | not started in the push wave |
+| bennett-circuits | 0ac4973 | 1 | pushed 08:35Z via `gate_run` |
+| bennett-runtimes | ec52032 | 21 | gate RED again at ae7854f (`test_sqlite_memdb` query 18, runtime fault 7, deterministic; bead brt-fyv); not pushed |
+| bennett-plugin | 157d4bd | 51 | push of 2aba17a gate still running |
+| bennett-vm | d9cb684 | 15 | not started in the push wave |
+| bennett-driver | 54d32fa | 7 | pushed 08:41Z, walk-back sha with artifact pins; `cd9219c..` waits on a runtimes publication |
+| bennett-sched | 7f9ceb5 | 7 | pushed 08:04Z |
+| bennett-estimate | d32ef4f | 6 | pushed 08:03Z |
 
 Off-machine copy of everything unpushed: advisor's `wip/pre-outage-2026-11-02` branches in all 13 repos (and -bjm, -vmfixes,
 -rung4). Newer wip commits from codex jobs are local only until pushed.
 
 ## Next, in order
 
-1. Finish the push wave (R3 staggered): isa-spec, plugin, dialect (running), then runtimes (via `tools/gate_run.py` with the
-   arith pin, when load eases), vm, driver, arith, circuits. Read `tools/gate_README.md` before gating repos that have a `gate.toml`.
+1. Finish the push wave (R3 staggered): plugin (running), vm, arith, then runtimes (red at ae7854f on a deterministic SQLite
+   memdb fault: needs the job's fix or an orchestrator ruling; the earlier green shas predate `gate.toml`, so `gate_run` exits 3),
+   and driver `cd9219c..` after the runtimes publication. Read `tools/gate_README.md` before gating repos that have a `gate.toml`.
 2. K82 Muse vote: when the call ends, `python3 tools/council.py aggregate --run isa-09-k82-2026-11-01 --round 1`, record the quota
    rows after, commit the run dir.
 3. l2p (possible north-star gap: ISA §6.2 refuses the 4-T AND): the Opus report goes to the advisor before any council round.
