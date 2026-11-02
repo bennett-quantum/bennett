@@ -1,0 +1,71 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "Accepted machine semantics remain intact. adg explicitly scopes memory, allocation-table, bump-pointer and register-ledger persistence to a loaded device instance, consistent with ISA \u00a7\u00a73.3, 7.1 and 10.",
+   "change": "None required for this re-check."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "Neither addition changes instructions. z4c explicitly identifies $construct and $release as device action boundaries, preserving \u00a74.6.",
+   "change": "None required for this re-check."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The additions preserve the accepted construction and reversal rules. adg's exclusion of unrelated native host state from device rollback agrees with \u00a77.4, \u00a710 and T4.",
+   "change": "None required for this re-check."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Accepted resource semantics remain unchanged. Neither addition introduces process-wide budgets or makes native host execution part of device resource accounting.",
+   "change": "None required for this re-check."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "z4c retains the device object, closure and schedule bindings of \u00a7\u00a79.1\u20139.3, 11 and 12. adg applies \u00a710's device CC entries and program-instance lifetime without requiring the native binary to become an ISA object.",
+   "change": "None required for this re-check."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Round-1 assessment retained: both proposals distinguish proposed conformance vectors and hand derivations from executed implementation tests. The additions introduce no conflicting conformance claim.",
+   "change": "Optional future conformance enhancement: exercise repeated device entries from one native host while checking that unrelated host state remains unchanged by device reversal."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Both pass bennett-4ht. z4c explicitly limits support coordinates and ISA certificate region entries to device objects. adg explicitly preserves native main, argv/envp handling and host-only libc, permits repeated device entry, separates loaded instances and binds later-entry replay to actual preparation assumptions. Neither equates the device object with the whole binary or changes native-comparison scope.",
+   "change": "None; retain both appended mixed-fat-object statements."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Round-1 clarity assessment retained without reopening accepted contract content. Both appended statements identify their destination, device scope and host implications clearly.",
+   "change": "Optional editorial integration: place each appended paragraph directly in its proposal's 'Hashes, catalog and consumers' section."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "z4c-4HT-1",
+   "status": "resolved",
+   "note": "The requested statement is present verbatim and explicitly scopes support coordinates, certificate inventory and action entry/exit to the device portion."
+  },
+  {
+   "id": "adg-4HT-1",
+   "status": "resolved",
+   "note": "The requested statement is present verbatim and explicitly scopes persistence and replay assumptions to device instances while preserving native host state and responsibilities."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [],
+ "verdict": "accept",
+ "path_to_accept": "No statements remain to be added. Both appended statements satisfy the standing check; preserve them when integrating the accepted proposals.",
+ "summary": "z4c: PASS\nadg: PASS\nz4c-4HT-1 and adg-4HT-1 are resolved. The mixed fat object remains reachable under both proposals, and the additions introduce no regression. Acceptance is limited to the bennett-4ht re-check; previously accepted contract content is not reopened, and no launch implementation or host shim is required now.",
+ "verdict_core": "accept"
+}
