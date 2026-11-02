@@ -7,7 +7,8 @@ repo's CLAUDE.md; council policy `docs/council/README.md`; plan `docs/plan/2026-
 
 ## Next, in order
 
-1. Maintainer ratifies docs/decisions/2026-11-02-code-quality-policy.md; then its §5 adoption order (baseline meter, review debt per repo starting with plugin, law 2 + gate.toml + gate_run.py).
+1. Maintainer ratifies docs/decisions/2026-11-02-code-quality-policy.md (nine rules); then one batched review per repo
+   under its rules 2-6, plugin first. Nothing else from that document needs building.
 2. Maintainer decisions on the contract queue: authorise (or not) in-version 0.9 K-entries for the council-accepted notes
    (incl. b-isa-spec-0jq, HELD FOR MAINTAINER); decide the ISA 0.10 publication for l2p (north-star gap b-isa-spec-bwm),
    fd0, lpe, sqr (b-isa-spec-56j) and dialect 0.2.13 for 2cg, 4yg.1 (b-dialect-spec-ek3). Accepted list with run dirs:
