@@ -1,0 +1,64 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff adds certificate obligations without changing state, tiers or execution. Its context-local token resolution agrees with \u00a7\u00a74.7 and 5.4.",
+   "change": "No change required within this proposal's scope."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a74.5 confirms the stated owner, unordered closure pair, componentwise primary-budget comparison, exact argument-token tuples and classical argument domain. Example 7's minimum budget is correctly stated.",
+   "change": "No change required; retain the explicit reference to \u00a74.5's complete covering test."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The proposal preserves pre-effect FAULT_UB_TRAP, both inverse compositions, full quantum-input quantification and source-adjoint pair exchange. Disabled coherent predicates cannot bypass coverage. No quantum-state inspection is introduced.",
+   "change": "No change required within this proposal's scope."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Per-context checking includes default-covered invocations without changing target resources, schedules or generated operations. Primary-token monotonicity and exact nested-token equality match \u00a75.4.",
+   "change": "No change required within this proposal's scope."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The checker-duty ambiguity is real: \u00a7\u00a712.1 and 12.3 specify claim verification and binding resolution but do not explicitly require site coverage. The diff supplies owner-local inventory, transitive applicability, incomplete outcomes and safe reuse. \u00a79.2 excludes certificates from object_hash; no source envelope or catalog change is required.",
+   "change": "No change required; retain the explicit compatibility notice and council-authorized publication route."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The 12 reported replay tests pass. The INDEX coverage predicate, all 64 example-7 inverse compositions and the published ref@0.9 catalog hash also reproduce. These checks do not implement nested traversal, as the note correctly acknowledges.",
+   "change": "In Conformance vectors, add a serialized outer/inner fixture with two context keys and state: 'The first inner invocation, tk=[3,0,0,0], is covered; the second, tk=[2,0,0,0], is uncovered; the bound root is rejected even when its own budget is [9,0,0,0].'"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Checked in-place bijections and honest proof/evidence scope preserve North Star \u00a7\u00a73.1, 4.2 and 5.1. The mixed-object section scopes checking to selected device roots and linked closures, excludes native-only inventory, and names the remaining mixed-launch and memory-boundary obligations.",
+   "change": "No change required; preserve the mixed-fat-object statement when publishing the repair."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The obligations and incomplete-result default are implementable. The insertion anchor inaccurately describes a paragraph ending at 'not a target realisation'; that paragraph actually has another sentence. The unscheduled traversal could also be made easier to implement by explicitly referencing the padded Q construction.",
+   "change": "In the \u00a712.3 insertion, add: 'Without a schedule, derive entered contexts from the bound reference Q construction (\u00a7\u00a73.6, 4.6 and 5.2), retaining coherently disabled calls; do not derive coverage solely from a basis-input interpreter trace.'"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Conformance vectors: publish the concrete two-inner-context fixture and expected per-context results described under C6. Include its default-covered and source-adjoint forms; each must reject because the second invocation is uncovered.",
+  "Recommended exact spec diff: replace the placement instruction with 'Insert immediately before **CLAIM-BINDING witness**, after the sentence \u201cScheduled/numerical/channel claims retain the expansion library gate and all existing context and composition obligations.\u201d' The current paragraph-ending description is inaccurate, although the intended location is identifiable.",
+  "\u00a712.3 Qinplace coverage checking: add the reference-Q-construction sentence given under C8. As an illustrative vector, a qloop 0 body requires static pair inventory but has no applicability visits; a reached qinplace under a zero coherent control still requires applicability."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Accepted as the explicitly council-authorized 0.9 K checker-obligation repair proposed by the note. To raise C6 from 4 to 5, publish the concrete nested-context fixture with the stated expected results; the current finite predicate demonstrates the distinction but does not exercise traversal.",
+ "summary": "The defect is accurately scoped and the diff repairs it without changing executor semantics, source identities or catalog bytes. The reported focused tests reproduce. No S0 issue found; the inaccurate insertion anchor is editorial.",
+ "verdict_core": "accept"
+}

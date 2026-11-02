@@ -1,0 +1,37 @@
+{
+ "run": "derive3-2qc-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-derive3/b-isa-spec-2qc.md",
+ "doc_sha256": "cdef451a4f493a76664a4456d712a107024b6dbb490a30fa085037908900f0fc",
+ "prepared": "2026-11-02T11:08:08+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T11:08:08+00:00",
+   "updated": "2026-11-02T11:14:56+00:00",
+   "exit": 0,
+   "seconds": 408
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T11:08:08+00:00",
+   "updated": "2026-11-02T11:13:24+00:00",
+   "exit": 0,
+   "seconds": 315
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA contract proposal 2qc (b-isa-spec-2qc, derive3): certificate checker coverage duty, owner/site/context rule",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/fat-object-scope.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3d/task-d3-2qc.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
