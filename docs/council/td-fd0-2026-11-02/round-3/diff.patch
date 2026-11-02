@@ -1,0 +1,295 @@
+--- round-2/doc.md
++++ round-3/doc.md
+@@ -1,7 +1,9 @@
+-# fd0 — exact import and hierarchical-estimate text for council review
++# fd0 — round-4 exact import and hierarchical-estimate contract
+ 
+ For `b-isa-spec-fd0`, originating at `b-targets-gyp`. Proposal only:
+ **target/cert 0.10**, with full-version publication under the repository's
+-change rules. This does not amend 0.9, its catalog, or any consumer.
++change rules. This self-contained revision supersedes the round-2 fd0 note.
++It retains its accepted model contract and integrates launch estimates.
++This does not amend 0.9, its catalog, or any consumer.
+ 
+ ## Round-1 blocking items and resolution
+@@ -19,4 +21,21 @@
+ | sol FD0-4 — full 0.10 publication leaves default ref catalog identity wrong | Republish ref isa/version metadata and envelope at 0.10 with all 219 recipes unchanged. Hash changes from 5de4e499… to 83cc9c17…; exact full hashes and reproduction below. |
+ | sol FD0-5; codex B3 — missing mixed-object report inventory | Add the §12.3 attachment rule and shared-scope citation below. Native main + one device module has device-only model reports; main/argv/libc are outside them. |
++
++## Round-2 blocking items and resolution
++
++The [round-2 report](../../../../bennett/docs/council/td-fd0-2026-11-02/round-2/report.md)
++and out-sol.json/out-codex.json confirm all eight round-1 items resolved.
++Both accept core scope; sol blocks only R2-1. The convenor table names the
++second seat astra, whereas the stored report/output names codex. This note
++uses the stored reviewer identities and claims no round-3 acceptance.
++
++| Item | Exact resolution and concrete witness |
++|---|---|
++| sol R2-1 — ModelInputs unavailable to launch/default estimates | Add the explicit launch 0.10 symbol and §10.1 normative insertion below. Copy/validate model_inputs, require canonical input equality for embedded applicability, bind the supplied map into every default schedule and its hash, and define completeness to include required ModelInputs. The executable finite witness supplies N=3 → 9/100000000 seconds, N=1 → 3/100000000 seconds and a different schedule hash; absent input gives incomplete-model-objective; an embedded N=1 schedule with an N=3 request uses a correctly bound default schedule. |
++
++All operational freezing, selector validation, schedule-bound reservations,
++standalone subject fields, versioned catalog publication and device-only
++report rules remain. The source-unit coefficient clarification and a
++10 ns → 1/100 microsecond invoke vector address nonblocking suggestions.
+ 
+ ## Defect, alternatives and scope
+@@ -79,5 +98,7 @@
+ Add a §0 semantic entry referencing fd0/gyp and suite E/H vectors.
+ Extend §11 requests/schedule bindings with model_inputs and the additive
+-setter below. The text from “8.5” through “End normative insertion” is the proposed
++setter below. Extend §§10–10.1 with the versioned launch-estimate symbol,
++complete-request definition, embedded matching and default binding specified
++in the corresponding §10.1 insertion below. The text from “8.5” through “End normative insertion” is the proposed
+ normative insertion, including its tables. No unspecified field or
+ inferred default is part of it.
+@@ -178,5 +199,7 @@
+ with no completed concrete schedule or optimization verdict. A present
+ well-formed input with free dependent parameters retains a symbolic
+-objective. A malformed root/model/hash/selector/parameter/reservation is
++objective. The launch-estimate path carries the same ModelInput map under
++the corresponding §10.1 insertion; defaults never supply omitted model
++parameters or reservations. A malformed root/model/hash/selector/parameter/reservation is
+ an explicit validation error, not an arbitrary choice of another report.
+ Only a complete concrete input can support a completed concrete objective.
+@@ -362,5 +385,7 @@
+ The binding's local `quantity` MUST resolve. Its dimensions MUST equal
+ the destination's; `factor` MUST equal source-unit scale divided by the
+-destination unit's scale. Let x be the exact quantity value times factor.
++destination unit's scale. Let q be the evaluated base value divided by the
++quantity's declared Quantity.unit scale; q is its numeric coefficient in
++that source unit. Let x=q*factor, applying factor exactly once.
+ For `exact`, x MUST be rational and `value` MUST equal x. For `upper`,
+ `value=ceil(x*10^places)/10^places`; for `lower`,
+@@ -577,4 +602,90 @@
+ End normative insertion.
+ 
++### Corresponding §§10–10.1 insertion (proposed normative text)
++
++Publish this additive symbol in **launch 0.10**, using the existing
++opaque types, status and ownership conventions. It is not an amendment
++to the launch 0.9 symbol, object layout or target/certificate schema:
++
++```c
++bennett_status bennett_estimate_run_with_model_inputs(
++    bennett_program_t*, const char* region, bennett_token,
++    const char* variant, uint32_t inherited_controls,
++    const uint8_t* params_jcs, size_t params_len,
++    const uint8_t* model_inputs_jcs, size_t model_inputs_len,
++    bennett_estimate_t** out);
++```
++
++Add to §10.1 Resolved request:
++
++```text
++A launch 0.10 estimate request additionally carries model_inputs JCS bytes
++governed by §8.5. The implementation MUST copy and validate them before
++returning an estimate; length is the UTF-8 byte length excluding a NUL.
++This is the model_inputs map itself, not a hash, a report, a file path,
++or an addition to the signature-order params_jcs array. Subsequent changes
++to the caller's buffer MUST NOT retarget the copied request/estimate.
++Duplicate/unknown keys and malformed ModelInputs are validation errors.
++
++A default-only effective schedule MUST serialize exactly those validated
++inputs in bindings.model_inputs, after JCS canonicalization; they
++participate in schedule_hash. The explicit empty-entries default schedule
++and every existing object/interface/closure/target/root/variant/control/
++accuracy/invocation/expansion binding remain required.
++
++An embedded schedule is applicable only when every existing §5.4/§11
++binding matches AND its ModelInputs match the request byte-for-byte after
++JCS. An embedded schedule with different model parameters, model identity,
++root or shared reservations is inapplicable to this request. Use the §11
++default realisation with the requested inputs; do not borrow the embedded
++schedule's inputs, silently substitute a report, or reject the complete
++request merely because that embedded schedule does not match.
++
++Every complete, well-typed resolved request, including its required
++ModelInputs, MUST be supported. This replaces the inherited completeness
++sentence for launch 0.10 model-resource requests: complete means the
++ordinary resolved classical arguments and valid budget plus the complete
++concrete objective inputs and operational target required by §8.5.
++Missing required ModelInputs produce incomplete-model-objective before an
++estimate is returned; no parameter or reservation is inferred. This is
++E_ARG with that diagnostic and no estimate object, not an ISA fault, a
++program-language restriction or E_SCHEDULE_INFEASIBLE. A present, valid
++input with free dependent parameters retains §8.5's symbolic objective;
++it cannot claim a completed concrete estimate/optimization. A malformed
++selector remains a validation error, distinct from missing/free input.
++
++For a target without model-resource objective terms, an omitted input map
++or {} denotes the empty map and retains the existing complete estimate
++path. A null pointer with zero model_inputs_len denotes omission; a null
++pointer with nonzero length is E_ARG. A supplied nonempty byte string
++MUST encode the map; a zero-length nonnull buffer is also omission.
++The 0.10 symbol without model-input arguments is equivalent to omission,
++and thus cannot infer inputs required by a model-resource objective.
++The ordinary scalar launch 0.9 API and all its required demo estimates
++remain unchanged. A model-input error leaves the loaded program and
++independently valid execution/estimate paths available.
++```
++
++Add to §10.1 Certificate binding:
++
++```text
++The effective schedule's bindings.model_inputs MUST reproduce the request's
++validated canonical input map. A certifying model report MUST reproduce
++its corresponding entry under §8.5 and match the actual device subject
++and context. A checker independently validates the supplied inputs,
++rebuilds the bound realisation and verifies both the existing scheduled
++§8.2 rows and the selected model objective. The two accounting views
++remain separate; model-only outputs add no estimate_get scalar row.
++Changing only a non-operational algorithm binding or shared reservation
++can change schedule_hash and certificate bytes without changing target_hash.
++```
++
++The explicit transport is the selected resolution of R2-1; no default-only
++exemption from ModelInput binding is introduced. The versioned C interface
++and publication schemas must include this contract before claiming 0.10
++consumer support. It defines an estimate of a selected device invocation;
++in a mixed fat object it does not make native main an ISA entry or supply
++a general host-memory-by-reference ABI.
++
+ ### Corresponding §12.3 insertion (proposed normative text)
+ 
+@@ -592,5 +703,5 @@
+ ## Fat-object applicability
+ 
+-Incorporate [the shared scoping statement](fat-object-scope.md#citable-scoping-statement).
++Incorporate [the shared scoping statement](../2026-11-02-rev2/fat-object-scope.md#citable-scoping-statement).
+ Append to §12.3, in the new version:
+ 
+@@ -943,5 +1054,5 @@
+ that such hardware exists. The private-data and factory pool names remain
+ distinct. The source and normalized model hashes are recomputed
+-by check_rev2.py; they are fixture identities, not published pins.
++by the read-only witnesses; they are fixture identities, not published pins.
+ 
+ ## Conformance vectors
+@@ -975,4 +1086,8 @@
+ | Shared factory sequence / parallel with one slot | One factory charged once / infeasible simultaneous use; serialized alternative remains legal. |
+ | Shared interval outside root time or not covering use | Error at reservation/use. Touching intervals have no overlap. |
++| Invoke 10 ns into a non-operational algorithm parameter t in microseconds, report default 1 | Local t=1/100; leaf contributes 1/100000000 seconds; the report-level quantity display retains 1 microsecond. |
++| Launch estimate with N=3 / N=1 ModelInput, no matching schedule | Default schedule binds supplied input; model duration 9/100000000 / 3/100000000 seconds; distinct schedule hashes. |
++| Launch estimate missing required input / malformed input | incomplete-model-objective / validation error before returning an estimate, never an invented default. |
++| Embedded N=1 with launch-request N=3 / matching N=3 | Inapplicable: default with N=3 / eligible only when all other bindings also match. |
+ | Cross-model symbolic invoke of an algorithm argument | Convert dimensions/units, retain caller dependency, qualify identities; no hardware override. |
+ | Report/certificate with wrong target, context or model hash | Reject the asserted report; no first-context or old-hash cache fallback. |
+@@ -987,5 +1102,5 @@
+ | 90 ns one-slot shared factory, 50 versus 100 qubits, same selector | Legal inputs give peaks 50/100 and occupancy 9/2000000 versus 9/1000000 physical-qubit seconds, with distinct schedule hashes. |
+ 
+-The executable check_rev2.py covers the fixture's scalar arithmetic and
++The earlier executable ../2026-11-02-rev2/check_rev2.py covers the fixture's scalar arithmetic and
+ unit conversions; parameter/formula negative cases; forward reference and
+ zero-multiplied cycle; exact rational roots/powers and rational enclosure
+@@ -1104,30 +1219,75 @@
+ above; no new cross-repo issue is necessary to name the same blocker.
+ 
++## Launch/default-input concrete witness
++
++Use the complete surface import above without changing its model or target
++identity; N is a non-operational algorithm parameter. Select this objective:
++
++```json
++{"weighted":{"model_cycle":1},"model_outputs":{"model_cycle":{"model":"surface","node":"algorithm","metric":"duration"}}}
++```
++
++The full supplied N=3 map (all parameters in their declared units) is:
++
++<!-- launch-input-example -->
++```json
++{"model_cycle":{"root":{"model":"surface","node":"algorithm"},"models":{"surface":{"model_hash":"c69312a9d3fc53728a6554b44bae48a9fab7eaefbcca3651c75ad9a0128e022f","parameters":{"N":"3","d":"5","p":"1/1000","pth":"1/10","tau":"2"}}},"shared":[]}}
++```
++
++The N=1 request changes only parameters.N to "1". Both retain copied
++signature arguments, budget, target, root, variant and inherited controls.
++The model duration is respectively 9/100000000 and 3/100000000 seconds.
++The default schedule includes this complete map even with entries:[];
++its schedule_hash changes. Supplying an embedded N=1 schedule to N=3 is a
++mismatch: the N=3 default is selected. An embedded N=3 input with
++different in-memory object key ordering matches after JCS; a changed shared reservation
++or model parameter does not. Missing model_cycle input yields
++incomplete-model-objective before any estimate, and a wrong model hash
++is a validation error. No model defaults or earlier report can fill it.
++
++[check_rev4.py](check_rev4.py) extracts the serialized import and map from
++this document. It computes source/model identities and exact typed formula
++values, checks d=3/d=5 and the source-unit coefficient conversion, and
++exercises supplied, missing, malformed, free, copied-buffer and conflicting-
++embedded input cases. It evaluates the bound hierarchy by explicit finite
++leaf expansion and separately checks N*30 ns, risk, peak and occupancy.
++It computes SHA-256 of canonical **schedule fragments** containing the map
++to demonstrate binding sensitivity. These finite fragments are not full
++production target/schedule/certificate fixtures or published identities.
++The test does not claim that a production 0.10 launch ABI exists.
++
++The prior accepted model's source/model hashes and both versioned catalog
++identities are rechecked, retaining all 219 recipe bodies. The retained round-2 finite
++checks are also run read-only, with their existing limited coverage. No
++claim of implementation of generic algebraic evaluation, a vendor adapter,
++a full schedule solver, operational resolution, cross-model checking or
++a mixed-launch shim is made. Complete production target/schedule/Report
++fixtures, including wrong-context rejection, remain required for publication.
++
+ ## Verification and evidence boundary
+ 
+-Run this directory's read-only witness/document checker:
++Run the focused checks from any working directory:
+ 
+ ```sh
+-env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER \
+-  TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-contract-rev2/tmp \
+-  timeout 120 python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/check_rev2.py
+-```
+-
+-The command was executed for this revision: exit 0, all eight PASS result
+-lines. It checks exact d=3/d=5 formulas, source/model identities, sequence/parallel/
+-repeat/shared-factory arithmetic, operational-dependency freezing, explicit
+-subject fields, selector/input outcomes and catalog 0.9/0.10 hashes. It also
+-checks all eight documents, local links, council-item mappings and the other
+-notes' finite witnesses. It implements no vendor adapter, generic algebraic
+-library, schedule solver, operational target resolver, report checker or
+-mixed-launch shim. A full serialized Report with bound production hashes
+-remains a publication fixture obligation; H-shaped schematic subjects in
+-these finite checks are not accepted certificates.
+-
+-The illustrative model is ASCII and string-valued, so its recorded hash
+-can be reproduced by the narrow fixture serializer. General model JCS uses
+-RFC 8785, including UTF-16 key ordering: U+10000 sorts before U+E000. Python's
+-default sort_keys order is insufficient; the checker tests that distinction.
+-The map's 1e-09 number is outside model_hash, which hashes only model.
++bash /home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev4/run_checks.sh
++```
++
++The script builds the reference interpreter read-only with CARGO_TARGET_DIR
++under .tmp/sol-rev4, links [oracle_witness.rs](oracle_witness.rs) there,
++and runs both new contract witnesses plus the retained finite checks.
++Build/link processes are bounded at 6 GiB, finite Python/interpreter
++replay at 512 MiB, with timeouts and headless environment variables.
++No full repository/sibling gate or git command is run. Exact observed
++results are recorded in [verification.md](verification.md).
++
++The interpreter witness verifies the unchanged 0.9 logical oracle and
++literal machine reversal; it does not accept or execute the proposed 0.10
++launch API. The launch/default-input test is a finite executable contract
++model. These are distinct evidence claims.
++
++General model JCS uses RFC 8785, including UTF-16 key ordering: U+10000
++sorts before U+E000. The illustrative model contains strings/ASCII keys;
++the tests also check the Unicode distinction. Its map's 1e-09 number is
++outside model_hash, which hashes only model.
+ 
+ ```text
+@@ -1136,7 +1296,7 @@
+ ```
+ 
+-All claims are proposal-level. The repository gate scripts/pre-push invokes
+-git/worktree operations and setup outside owned paths, forbidden by this
+-runner, so no full repository/sibling gate is run or claimed. Beads fd0,
+-gyp and bennett-4ht remain open for publication and implementation; no
+-tracker mutation, spec/catalog edit or sibling-revision edit is made here.
++All changes remain proposals. Beads b-isa-spec-fd0, b-targets-gyp and
++bennett-4ht remain open for acceptance, publication and implementation;
++no tracker mutation, spec/catalog/header edit or sibling-revision edit
++is made here. The runner handles commits. The only delivered changes are
++inside this revision directory, with job progress/evidence under .tmp/sol-rev4.

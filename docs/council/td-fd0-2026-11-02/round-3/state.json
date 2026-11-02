@@ -1,0 +1,38 @@
+{
+ "run": "td-fd0-2026-11-02",
+ "round": 3,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev4/fd0.md",
+ "doc_sha256": "6aaf7a6220be43364a35af56183f6671b9cfa4f99c3826e25daa5014d84cf80a",
+ "prepared": "2026-11-02T11:05:16+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T11:05:16+00:00",
+   "updated": "2026-11-02T11:11:14+00:00",
+   "exit": 0,
+   "seconds": 358
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T11:05:16+00:00",
+   "updated": "2026-11-02T11:11:43+00:00",
+   "exit": 0,
+   "seconds": 387
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "fd0 target/cert 0.10 import and hierarchical-estimate text, round 3 revision resolving R2-1 (sol-rev4)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-contract-fd0.md",
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/fat-object-scope.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3d/task-r3-td-fd0.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

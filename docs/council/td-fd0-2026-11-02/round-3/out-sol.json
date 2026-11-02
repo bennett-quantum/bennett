@@ -1,0 +1,69 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposal preserves \u00a73's state and step relation. Model validation, incomplete estimates and schedule infeasibility remain separate from executed-program faults.",
+   "change": "No change required. Retain \u00a712.3: \u201cNo model output changes the object's instruction semantics.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instructions or operand semantics change. The operational-destination whitelist excludes quantum operations, interface widths and source budgets.",
+   "change": "No change required. Retain \u00a78.5's explicit destination whitelist and prohibition on substitutions into instruction semantics or correctness fields."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Model inputs remain classical. Physical risk, logical approximation error and oracle faults remain distinct. Checked accounting establishes no unsupported physical or quantum-correctness theorem.",
+   "change": "No change required. Retain \u00a78.5: \u201cResults do not become permutation proofs, channel bounds, operator-norm bounds or oracle fault guarantees by appearing in a checked model report.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Typed units, exact arithmetic, operational freezing, interval composition and shared reservations are coherent. The source-unit clarification correctly applies the conversion factor once. The d=3/d=5 arithmetic and hierarchy results reproduce.",
+   "change": "In Conformance vectors add a serialized algebraic-rounding case: \u201cFor sqrt(2) seconds, upper binding at places=\"3\" requires value=\"283/200\"; the corresponding tight Report interval has lo=\"707/500\", hi=\"283/200\", places=\"3\".\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The launch insertion resolves R2-1 through explicit copied ModelInputs, default-schedule binding, canonical embedded matching and a complete-request definition. Schedule/report identities and the ref@0.10 migration are explicit. Complete production interchange fixtures remain publication work.",
+   "change": "In Worked serialized import add a complete target, effective schedule and containing certificate. State: \u201cThese bytes are an interchange conformance fixture; changing the report's actual invocation or context while retaining its outputs MUST reject.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "check_rev4.py and check_rev2.py pass read-only using existing interpreter artifacts. They reproduce the source/model hashes, both catalog hashes, launch-input outcomes and reservation accounting. Their limited coverage is accurately disclosed; no generic consumer implementation or proof is claimed.",
+   "change": "In publication conformance fixtures require independently produced and checked N=3 outputs: duration 9/100000000 seconds, risk_charge 3/10000000, physical peak 50 and occupancy 9/2000000 physical-qubit seconds, plus rejection under a different invocation/context."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The cited \u00a78.1\u2013\u00a78.3 defect is real. The 0.9 bridge retains complete padded \u00a710.1 estimates, including the demo ladder; symbolic import remains an explicit implementation obligation. Device-root report attachment passes the mixed-fat-object check. External premises agree with [Microsoft's parameterized architecture example](https://quantum.microsoft.com/en-us/insights/blogs/modeling-quantum-architecture-with-azure-quantum-resource-estimator), [Qualtran's symbolic call-graph protocol](https://qualtran.readthedocs.io/en/latest/resource_counting/call_graph.html) and [its release notes](https://github.com/quantumlib/Qualtran/releases).",
+   "change": "No change required. Retain Consumer impact's rule that every fully bound 0.9 invocation keeps its complete padded estimate, and the \u00a712.3 statement that device reports assert no whole-native-program resource total."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Independent consumers can implement the stated arithmetic, accounting and launch-binding obligations. Remaining adapter, generic evaluation and fixture work is clearly distinguished from accepted semantics. Publication requirements are complete but scattered.",
+   "change": "In Publication edits add: \u201cThe coordinated 0.10 publication changes target \u00a7\u00a78.2\u20138.5, launch \u00a7\u00a710\u201310.1, sched \u00a711, cert \u00a712.3, and the ref catalog/default bindings in \u00a7\u00a711.1 and 17 item 7, with dependent identities recomputed.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "R2-1",
+   "status": "resolved",
+   "note": "Launch 0.10 now transports and copies ModelInputs, binds default schedules, defines embedded applicability and missing-input behavior, and supplies passing N=1/N=3 witnesses."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Worked serialized import / publication fixtures: add a complete target, schedule and certificate using actual recomputed identities. State: \u201cFor d=5/N=3, duration is 9/100000000 seconds, risk_charge is 3/10000000, physical peak is 50 and occupancy is 9/2000000 physical-qubit seconds; an otherwise numerically correct report attached to a different invocation/context MUST reject.\u201d",
+  "Conformance vectors: serialize the existing algebraic enclosure obligation using canonical Q strings. State: \u201csqrt(2) seconds rounded upward at three decimal places binds value=\"283/200\"; its tight interval is {lo:\"707/500\",hi:\"283/200\",places:\"3\"}.\u201d"
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are required. To raise C6 from 4 to 5, publish the complete bound target/schedule/Report fixture and independently check its expected outputs, embedded/default selection and wrong-context rejection.",
+ "summary": "Accept. R2-1 is resolved; no new S0 issue, regression, false cited premise or misnumbered ISA clause was established. Both finite checkers pass. Source/model and catalog hashes reproduce, including the acknowledged ref@0.10 identity change with all 219 recipes preserved. The 0.10 route preserves required 0.9 estimates, and the mixed-fat-object standing check passes. Acceptance covers the proposed text, not completion of adapters or production consumers.",
+ "verdict_core": "accept"
+}
