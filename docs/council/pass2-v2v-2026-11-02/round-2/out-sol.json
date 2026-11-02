@@ -1,0 +1,74 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff selects certificate descriptors using \u00a712.1\u2019s existing invocation tree. It changes neither \u00a73 machine state nor the step relation.",
+   "change": "Optional \u00a712.3 clarification: 'Frame selection introduces no machine state or reference-interpreter step.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The pair/flip calls conform to \u00a74.7. Existing \u00a711/K63 source points and call_index values distinguish both invocations without new instructions or call edges.",
+   "change": "Optional \u00a712.3 clarification: 'Frame-context records identify existing invocations and introduce no source instruction, semantic call or generated ordinal.'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Selection uses classical invocation data and explicitly excludes quantum-predicate inspection. Caller-owned controls, dynamic identities and \u00a79.4 disjointness obligations remain intact.",
+   "change": "\u00a715 F/H: 'Setting a realised call\u2019s quantum predicate to zero does not permit omitting its frame-context record.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The defect is real: \u00a79.4 requires resolved classes and c-only widths, while \u00a712.3 requires one closure-keyed frame. Sequential unit-duration pair costs are correctly time=2, occupancy[A]=occupancy[B]=2 and peaks 1 each.",
+   "change": "Worked witness: 'The root reports time=2, qubit_second[A]=qubit_second[B]=2 and peak_qubits[A]=peak_qubits[B]=1.'"
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Exactly-one representation, complete context coverage, canonical ordering and per-invocation validation repair the ambiguity. INDEX and the coordinated resource/fault proposals use the same context vocabulary. The new paragraph scopes inventories to device roots.",
+   "change": "Optional \u00a712.3 clarification: 'Each frame_contexts key must resolve to an invocation of the containing region record\u2019s closure in this certificate\u2019s bound root tree.'"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Checker obligations and negative verdicts are derivable. check_rev2.py passed all eight result lines. Independent reference-interpreter runs confirmed four pair outputs and four inverse restorations; these checks do not validate the proposed certificate format.",
+   "change": "\u00a715 F/H: publish a bound frame-context fixture stating 'entry:0 selects A and entry:1 selects B; exchanging these classes rejects even though the source execution still returns the correct values.'"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Both round-1 mixed-fat-object blockers are resolved. The proposed \u00a712.3 paragraph distinguishes scheduled device roots from native entry, preserves separate root-relative contexts and scopes native comparison correctly. The incorporated statement accurately identifies remaining launch and memory-boundary work. No false cited premise or misnumbered clause was found.",
+   "change": "At publication, include the incorporated boundary obligations alongside \u00a712.3: 'Remaining mixed-launch contract work does not require whole-binary ISA lowering or remove mixed execution from scope.'"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The representation is implementable using existing B5 descriptors and invocation identities. Under the expressly conditional in-version route, \u00a79.2 excludes certificate metadata from object_hash and symbol envelopes. No recipe changes are required; the catalog check reproduced the published 219-recipe envelope hash. Full-version migration is correctly distinguished.",
+   "change": "Hashes, catalog and consumers: 'Consumers validate legacy frame descriptors against every covered context; nonuniform legacy certificates must be regenerated, and consumers must support frame_contexts before accepting its certificates.'"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "sol:V2V-1",
+   "status": "resolved",
+   "note": "The proposed \u00a712.3 paragraph supplies device-root inventory scope, native-host exclusions, root-relative [] and materialised-closure comparison scope."
+  },
+  {
+   "id": "codex:V2V-1",
+   "status": "resolved",
+   "note": "Separate bindings and context sets per device root are explicit; shared closures do not merge inventories, and unmarked native code requires no frames."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Conformance vectors/\u00a715 F,H: publish the serialized pair/flip frame-context fixture with H_pair=b98f9111e8533f00a8e5ac195e1b335678d14efcabb653d754d9999e21297c16, entry:0 selecting mut:0/class A/width 1 and entry:1 selecting class B/width 1. State: 'The correct ordered array accepts; swapped classes, reversed array order, duplicate keys and omission of either default-covered call reject.' Include all five B5 arrays.",
+  "Hashes, catalog and consumers: add 'Truthful legacy uniform frames retain their encoding and undergo all-context validation. Producers regenerate nonuniform certificates; consumers must not discard frame_contexts or substitute its first descriptor for the complete array.' Retain the explicit publication-authorization caveat."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes remain. To raise C6 from 4 to 5, publish the bound serialized frame-context fixture and explicit accept/reject expectations described above.",
+ "summary": "Accept the proposed repair. The frame defect, context mechanism, witness arithmetic and conditional hash claims check out. Both sol V2V-1 and codex V2V-1 are resolved; no new S0 issue or regression was found. Acceptance covers the proposal, not completed consumer or mixed-launch implementation.",
+ "verdict_core": "accept"
+}
