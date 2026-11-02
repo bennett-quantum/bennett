@@ -123,6 +123,9 @@ where they exist.
 Could a VM author and a specialiser author each start tomorrow? Are the
 deferred items genuinely non-semantic, each with a default?
 
+### Standing check: the mixed fat object stays reachable (maintainer 2026-11-02, bennett-4ht)
+Apply to every ISA and dialect round, under C7. Does this contract change keep the mixed fat object reachable (native host binary + only marked modules as VM ISA objects, north star §2, §3.3, §4.4; bennett-4ht)? A change that decides object format, certificate layout, launch API, budgets, handle representation, effect tape or host memory by reference must state how a mixed fat object would use it or name the exact change needed; nothing may assume the device object is the whole binary (entry points, argv/envp, libc closure, native comparison, certificate inventory). Silence on these topics is a revise. Report a failure of this check as a blocking item (scope `contract`, unless the change is core) whose `fix` names the statement the document must add; return `revise`, never `accept`, while it stands. The check asks only that the fat object stays reachable. It does not ask for the launch ABI or a host shim to be implemented now.
+
 ## What the council returns
 
 Per criterion: a score 1–5, evidence pointing at the text, the single

@@ -116,6 +116,9 @@ engineer) each read this and know what to build? Are the open technical
 questions the right ones, correctly deferred, and is anything deferred that
 is actually load-bearing for the vision?
 
+### Standing check for contract changes (maintainer 2026-11-02, bennett-4ht)
+When this rubric grades an ISA or dialect contract change rather than the vision document, apply this check under C2 and C4: Does this contract change keep the mixed fat object reachable (native host binary + only marked modules as VM ISA objects, north star §2, §3.3, §4.4; bennett-4ht)? A change that decides object format, certificate layout, launch API, budgets, handle representation, effect tape or host memory by reference must state how a mixed fat object would use it or name the exact change needed; nothing may assume the device object is the whole binary (entry points, argv/envp, libc closure, native comparison, certificate inventory). Silence on these topics is a revise. Report a failure as a blocking item and return `revise` while it stands.
+
 ## What the council returns
 
 Per criterion: a score 1–5, one or two sentences of evidence pointing at
