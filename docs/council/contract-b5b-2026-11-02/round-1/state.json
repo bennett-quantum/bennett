@@ -1,0 +1,36 @@
+{
+ "run": "contract-b5b-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-contract-b5b.md",
+ "doc_sha256": "8db876e28ce897f4c1631bea8e71d70e2598e4f0d7651380b497ec319cde61f9",
+ "prepared": "2026-11-02T08:07:15+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:43:51+00:00",
+   "updated": "2026-11-02T08:47:07+00:00",
+   "exit": 0,
+   "seconds": 196
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:43:51+00:00",
+   "updated": "2026-11-02T08:47:48+00:00",
+   "exit": 0,
+   "seconds": 238
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 disposition proposal note b5b (sol-contract, 2026-11-02): it claims bead b-isa-spec-b5b is already covered by accepted K82 (ISA 0.9 \u00a711.1) and needs no new spec text. The document is the note itself; grade whether that claim holds against the spec, the K82 fixtures and the bead, and whether any diff it proposes is right",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3/task-contract.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

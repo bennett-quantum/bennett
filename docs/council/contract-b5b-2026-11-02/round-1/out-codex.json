@@ -1,0 +1,63 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposed empty diff leaves the accepted machine model unchanged. Both reported failures concern recipe binding, not machine-state semantics.",
+   "change": "None required; retain the empty spec diff."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction or constructor changes. The independent generator confirmed 54 named-interface recipes, 20 invoke edges and 86 finite edge instances.",
+   "change": "None required; retain the existing instructions and catalog."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Both worked examples match the accepted fixture: alloc #0; x #0[0]; x #0[0]; release #0. The local allocation returns clean, and the unrelated caller wire is untouched. K27 expressly rejects inactive declaration wire uses.",
+   "change": "None required; retain both examples and their expected leaves."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The disposition introduces no target, resource or scheduling-policy change. Existing expansion leaves and their accounting remain authoritative.",
+   "change": "None required; retain existing resource and target rules."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "\u00a711.1 K82 expressly imports exactly the named interface through ordinary wire-actual evaluation, applies K26/K27, and hides unrelated caller names. These rules directly cover both failures recorded in b-isa-spec-b5b. \u00a715 publishes the cited fixture. The spec's round-10 acceptance and the K82 council verdict confirm acceptance.",
+   "change": "None required; keep b5b as an implementation follow-up under accepted K82."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "I reran generate.py --check successfully: 54 interfaces, 20 edges, 86 instances, 16 cases. The owner's red/green logs substantiate the reported two failures and subsequent focused passes; these remain reported implementation evidence, not a fresh current-tree gate. One inherited fixture discrepancy remains: 31 interface arrays are sorted rather than in K82 body order.",
+   "change": "In 'Conformance vectors and verification', add: 'Fixture interface arrays represent name sets in sorted order; derive traversal order from \u00a711.1 K82. For value.select, body order is [p,b,a,t], while the fixture stores [a,b,p,t].' This preserves fixture bytes and leaf digests."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The disposition preserves the independent-consumer contract promised by North Star \u00a7\u00a74.4 and 6.1. It neither removes a capability nor substitutes implementation behavior for normative semantics.",
+   "change": "None required; retain the requirement that each consumer independently implement K82."
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "The note correctly separates accepted contract text, outstanding implementation work and historical evidence. Its empty diff requires no migration. I also reran ref_catalog.py --check: 219 recipes and envelope SHA-256 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+   "change": "None required; retain the no-change disposition and owner-controlled completion gate."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "In 'Conformance vectors and verification', state: 'Fixture interface arrays represent name sets in sorted order; \u00a711.1 K82 supplies body order. For value.select these are [a,b,p,t] and [p,b,a,t], respectively.' This documents the existing S1 discrepancy without changing catalog bytes or expected-leaf hashes; binding remains by name.",
+  "In 'Defect classification and North Star scope', clarify: 'K22 templates retain their saved lexical captures; closure forbids importing unrelated apply-site bindings.' The accepted bare-template-formals-import-nothing case must continue emitting x b[0], even when the applying recipe binds its own b to a."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No changes are required for acceptance. To raise C6 from 4 to 5, document the fixture's sorted-set representation and the normative body-order example specified above.",
+ "summary": "Accept the empty spec diff. Accepted K82 already resolves both b5b binding failures, and the examples, counts and catalog hash check out. No false load-bearing premise or misnumbered citation was found. Consumer completion remains an implementation obligation.",
+ "verdict_core": "accept"
+}
