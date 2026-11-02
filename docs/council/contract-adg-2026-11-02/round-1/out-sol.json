@@ -1,0 +1,64 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "\u00a77.1 specifies initial bytes, allocation entries and bump pointer without locating initialization in the load/run lifecycle. The proposed once-per-load rule resolves that ambiguity and determines both witness outcomes.",
+   "change": "Optional precision in \u00a77.1: state, \u201cThese persistence rules concern CC/R classical memory, allocation-table entries and the bump pointer.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The witness follows \u00a77.1: allocations at 16 and 17 fit the heap and use three of four table entries including g. Free does not reclaim storage. No opcode semantics change.",
+   "change": "In the conformance vectors, add: \u201cIf A additionally frees address 16 before closing, B still allocates at 17.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Retained failed prefixes agree with \u00a74.9; explicit reversal agrees with \u00a7\u00a77.4/10 and T4. Persistent register ownership remains distinct from ledger state, as \u00a73.3 requires.",
+   "change": "For clarity, replace \u00a77.1\u2019s proposed reversal sentence with: \u201cIf the preceding run was successfully REVERSED before being CLOSED, these classical components have their restored entry values; quantum-state restoration retains T4\u2019s exactness hypotheses and error bounds.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Persistence preserves existing heap and allocation-table limits. The diff changes no target descriptions, resource rules, catalog recipes or catalog binding. The 219-recipe catalog check passes with the published hash.",
+   "change": "Add this boundary vector: \u201cAfter allocations at 16, 17 and 18 across CLOSED runs, the fourth heap allocation faults with code 2 because the global plus three heap entries fill the table; bump remains 19.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The diff fits \u00a710\u2019s ownership and CLOSED transitions and \u00a73.3\u2019s program-scoped register identities. \u00a75.4 independently preserves the distinction between program-scoped host tokens and run-scoped device tokens. \u00a79.2\u2019s hashed inputs remain unchanged.",
+   "change": "In the lifecycle vectors, state: \u201cAfter A is CLOSED, its device-minted token is invalid and a launch using it returns E_ARG; a host-minted token remains valid until unload.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The scalar outcomes independently reproduce as (7,17) and (0,16). The verification-index script passes, but its lifecycle check assigns those states directly rather than exercising consecutive launches. The note accurately discloses that limitation.",
+   "change": "Append to \u00a715 suite G: \u201cExecute A and B in one loaded program instance; without reversal B returns (7,17), with successful A reversal B returns (0,16), and closing a FAILED A preserves its completed stores and allocations unless explicitly reversed.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Persistence supports North Star \u00a7\u00a73.1/5 and the dialect draft\u2019s actual \u00a7\u00a76.5\u20136.6 persistent-table and cross-entry identity requirements. The proposal introduces no capability refusal or demo-ladder restriction.",
+   "change": "Optional normative clarification in \u00a710: \u201cThis persistence rule does not prohibit disjoint concurrent runs permitted by the existing ownership rules.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The diff is small and implementable. One citation is inaccurate: \u00a73.2 lists the register ledger as a state component; \u00a73.3 explicitly calls it the program\u2019s register ledger. The substantive premise is supported by \u00a73.3.",
+   "change": "In \u201cDefect and North Star scope,\u201d replace the citation sentence with: \u201c\u00a73.3 places the register ledger at program scope; \u00a73.2 lists it among machine-state components.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Correct the defect paragraph\u2019s \u00a73.2 citation: \u201c\u00a73.3 places the register ledger at program scope; \u00a73.2 lists it among machine-state components.\u201d This is a citation error, not a nonexistent defect.",
+  "In the proposed \u00a77.1 addition, write: \u201cIf the preceding run was successfully REVERSED before being CLOSED, these classical components have their restored entry values; quantum-state restoration retains T4\u2019s exactness hypotheses and error bounds.\u201d This makes the intended reference to T4 explicit.",
+  "Add the lifecycle cases to \u00a715 suite G and execute them through consecutive launches in one loaded instance. Expected post-B state without reversal: g=7, bump=18, live heap entries at 16 and 17. With A reversed: g=0, bump=17, only B\u2019s live heap entry at 16. Distinguish a conflicting host launch argument, which returns E_INVALID_STATE, from an executed qreg.from_id ownership violation, which produces terminal code 4."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable. To raise C6 from 4 to 5, add and execute the specified multi-launch lifecycle vectors, comparing complete memory, allocation-table and bump state together with register ownership and token validity.",
+ "summary": "The initialization ambiguity is real, and program-lifetime persistence repairs it consistently with existing ownership, reversal and cross-entry register semantics. The witness values are correct. The prose-only diff leaves canonical object/envelope inputs and catalog bytes unchanged. No S0 issue found; correct the \u00a73.2/\u00a73.3 citation and strengthen lifecycle verification.",
+ "verdict_core": "accept"
+}

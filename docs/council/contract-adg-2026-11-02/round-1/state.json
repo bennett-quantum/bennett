@@ -1,0 +1,36 @@
+{
+ "run": "contract-adg-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-contract-adg.md",
+ "doc_sha256": "95d0566084c220136b1b68974d6f89d9df544b4378ec950ba02af4c88c6dfb3c",
+ "prepared": "2026-11-02T08:07:12+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:15:02+00:00",
+   "updated": "2026-11-02T08:21:31+00:00",
+   "exit": 0,
+   "seconds": 389
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:15:02+00:00",
+   "updated": "2026-11-02T08:20:15+00:00",
+   "exit": 0,
+   "seconds": 313
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal note adg (sol-contract, 2026-11-02). The document is the note itself, which carries its own exact spec diff; grade the proposal",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3/task-contract.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
