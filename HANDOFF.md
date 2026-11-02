@@ -55,8 +55,8 @@ Everything unpushed is backed up gate-free at `wip/session-end-2026-11-02` (main
 
 Nothing launches without the maintainer. Claude delegates: all finished (results in shift-3.md Landed).
 Codex sol runners (bennett/tools/codex_job.py), stopped after their current attempt by `.tmp/orchestrator/winddown.py`
-(log `~/.local/state/bennett-codex-jobs/winddown.log`; state `stopped-session-end`); some may still be finishing that
-attempt: check `systemctl --user list-units 'bennett-codex-*'`. Resume any with
+(log `~/.local/state/bennett-codex-jobs/winddown.log`; state `stopped-session-end`). All seven are stopped as of 13:45Z;
+the last five were terminated mid-attempt by the advisor, each tree committed and pushed to `wip/<job>`. Resume any with
 `python3 /home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/resume_job.py NAME ["NOTE"]`
 (systemd --user scope, OOMPolicy=continue, MemoryMax=14G, `--thread` from status.json; never plain `setsid nohup`):
 - sol-vm-queue (bennett-vm; 47t-c3 needs a dual-engine slot), sol-plugin-queue (bennett-plugin), sol-sched (3k1 first),
