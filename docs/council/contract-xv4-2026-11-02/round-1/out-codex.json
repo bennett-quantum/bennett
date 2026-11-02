@@ -1,0 +1,64 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposal restricts a certificate claim's domain without changing the machine. ISA \u00a75.2 does include every interface-region cell in D, as claimed.",
+   "change": "\u00a712.2: add, 'A fixed_regions binding restricts the verification domain only; it does not alter the region's signature or its semantics on unrestricted D.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction semantics change. The image packing agrees with \u00a73.3's register-to-region binding.",
+   "change": "\u00a712.2: add, 'fixed_regions is certificate metadata and introduces no new ISA instruction or operation for inspecting coherent data.'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Exact permutation phase, complete tuples, arbitrary target/fault values, dirty systems and inherited controls remain required. Equality on this basis slice extends linearly to its span, including external references.",
+   "change": "\u00a712.2: add, 'For image I, the exact assertion is VJ_I = PJ_I, where J_I inserts the fixed image and prescribed clean workspace; the equality also holds after tensoring with identity on an arbitrary external reference.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The diff changes neither targets nor resource accounting. Invocation and schedule bindings remain applicable; conditional correctness does not authorize a different realization or cost calculation.",
+   "change": "\u00a712.2: add, 'This qualification does not relax target matching, schedule binding, resource accounting or error-composition obligations.'"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Resolved region identities, shapes, raw-byte hashes, invocation scope and executable preparation obligations are specified. K69\u2013K74 and dialect draft \u00a7\u00a719.9/25.2 are cited accurately. An explicit verdict decision table would make the extension easier to integrate with existing K74 prose.",
+   "change": "\u00a712.2: state, 'After successful replay, an exhaustive claim receives proof for full D; otherwise it receives proof_relative_to_image when fixed_regions is nonempty and every other component has its full range; every other exhaustive slice receives evidence. Sampled claims always receive evidence.'"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The restricted permutation statement is sound, and unrestricted borrow-frame/inverse-pair obligations remain protected. The reproduction script passed; the 64-case count, 1/65536 coverage and raw-byte SHA-256 are correct. The tiny example does not specify an oracle function or complete expected relation.",
+   "change": "Conformance vectors: define a fault-free fixture with payload db[x] & 1 at a sufficient bound. For image 0102, state the complete relation (x,t,f,db) \u2192 (x,t XOR (1 XOR x),f,db), covering all 64 tuples."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The proposal preserves the fixed-database interpretation of North Star rung 4 while retaining all varying components. It neither substitutes sampling nor narrows SQLite, Grover or resource-estimation requirements. The claimed terminology mismatch exists.",
+   "change": "Release and after acceptance: add, 'This verdict establishes only the stated fixed-image relation; all other North Star rung-4 acceptance requirements remain independently required.'"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The proposal is implementable at this specification stage. Preparation is checked through declared bytes and logical operations, with no unknown-state inspection. The certificate-versus-checker-report distinction could be stated more precisely in the hash discussion.",
+   "change": "Hashes, catalog and consumers: replace the certificate-verdict sentence with, 'The fixed image and any requested label change certificate bytes; the checker-assigned verdict and resolved bindings appear in the checker report. Neither change alters the \u00a79.2 object or symbol hashes.'"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a712.2: make the new rule an explicit exception to the existing strict-slice evidence sentences. State: 'Full-D exhaustive claims retain proof. A strict slice receives proof_relative_to_image only with at least one fixed_regions binding and full ranges for every remaining component; otherwise it receives evidence.' This also makes absent or empty fixed_regions unambiguously preserve existing K74 outcomes.",
+  "Conformance vectors: specify the tiny oracle as payload db[x] & 1, with no fault at the chosen bound. Image 0102 yields target t XOR (1 XOR x); image 0201 yields t XOR x. An implementation that ignores the supplied image and uses 0102 passes the first 64 tuples and fails all 64 swapped-image tuples. For mutation tests, state that the original hash, expected relation or executable preparation binding is retained: changing an image is not inherently invalid when a fresh, correct claim and preparation binding are supplied.",
+  "\u00a712.1, conditional process comparisons: state, 'With image-preparation isometry J_I, compare the channels E_real \u2218 Ad_J_I and E_ref \u2218 Ad_J_I while retaining the complete output interface. Controlled-unitary claims retain a phase-sensitive bound on ||U J_I \u2212 V J_I||; equality of uncontrolled channels alone does not discharge that obligation.' This makes explicit the phase requirement the proposal already preserves."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable. To raise C6 from 4 to 5, specify the tiny oracle and complete expected tuple relation, then publish the 64-case fixture with its expected qualified verdict, coverage and stale-binding rejection results.",
+ "summary": "The fixed-image qualification is sound and the cited defect is real. No false cited premise or S0 issue was found. Counts and the raw-byte hash were reproduced. Under the proposed authorized 0.9 K extension, \u00a79.2 confirms that certificate changes leave source, interface and object hashes unchanged; target and catalog bytes are untouched.",
+ "verdict_core": "accept"
+}

@@ -1,0 +1,61 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "XV4-B01",
+    "section": "Recommended exact spec diff; ISA \u00a712.2 K74 coverage and verdicts",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "K74 assigns proof to successful componentwise full-D exhaustive claims and evidence to successful exhaustive strict slices.",
+      "by": "clause:ISA-12.2, Coverage and verdicts (K69/K74), spec/Bennett-ISA-Spec-0.9.md:3784\u20133796"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The proposed addition assigns proof_relative_to_image when all non-fixed components are full-range and all remaining components are fixed_regions bindings. It neither requires any fixed binding nor explicitly replaces K74's blanket strict-slice classification.",
+      "by": "witness:docs/notes/2026-11-02-contract-xv4.md:53\u201374"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Consider a successful exhaustive comparison of a one-bit X action over t=0,1, with no regions or borrowed systems and fixed_regions absent or empty. Every non-fixed component is full-range and there are no remaining components, so the added condition holds vacuously: K74 assigns proof while the addition assigns proof_relative_to_image. For the proposed 64-case image slice, retained K74 instead assigns evidence while the addition assigns proof_relative_to_image.",
+      "by": "witness:full domain bundles=[{name:t,width:1,lo:0,hi:1}], borrowed=[], regions=[], expected table 0\u21921 and 1\u21920; witness:proposal's 64-case image slice; step:<1>1; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The amended text gives overlapping outcomes without a precedence rule. In particular, the claimed preservation of old full-D K74 labels is not secured.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "\u00a712.2, preferred repair: replace K74's classification sentences with: 'After every \u00a712.1 obligation succeeds, an exhaustive table/program/oracle claim receives exactly one verdict: proof if its domain equals unrestricted D component by component; otherwise proof_relative_to_image iff fixed_regions is nonempty, every image binding is valid, and every non-fixed component occurs exactly once with its full range; otherwise evidence. An absent fixed_regions field means an empty list. Successful sampled claims always receive evidence. Coverage remains the exact n/|D| against unrestricted D. A requested proof MUST be rejected unless the computed verdict is proof; a requested proof_relative_to_image MUST satisfy the qualified-verdict conditions.' Preserve mismatch rejection and K75 host-limit handling. Expected outcomes: the full-domain one-bit X claim receives proof with fraction 1; the exhaustive 0102 image claim receives proof_relative_to_image with 64 elements and fraction 1/65536; sampling remains evidence. Alternatively, retain K74's full-D sentence, add the explicit nonempty guard, and replace its strict-slice sentence with 'Successful exhaustive strict slices receive evidence unless they satisfy the proof_relative_to_image rule.' I prefer the single exclusive classifier."
+   }
+  ],
+  "codex": []
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}
