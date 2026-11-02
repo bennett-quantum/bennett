@@ -1,0 +1,83 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The fragment intervals preserve wire identity, ordering and ownership. However, the proposed heterogeneous slot interacts with \u00a73.3's explicit definition of a qreg as wires 'of one class'.",
+   "change": "In \u00a73.3 state: 'A register records an ordered wire sequence and each wire's resolved target class; homogeneous allocation requests remain homogeneous.'"
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "No quantum instruction changes are required. The class semantics of qreg.concat and qreg.slice nevertheless need reconciliation with the newly representable interface.",
+   "change": "In \u00a73.3 state: 'qreg.concat concatenates the operand wire and class sequences without movement; qreg.slice selects the corresponding subsequences.' Thus [A] concatenated with [B] produces [A,B]."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Fragments describe placement without adding allocation, aliasing or quantum operations. X on both bits implements t XOR 3, and the adjoint restores every input. Eight read-only reference action executions confirmed these values.",
+   "change": "None required; retain \u00a75.3's unitary and adjoint semantics."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "The citations to \u00a7\u00a78.3 and 11 are accurate. Under sequential timing, \u00a78.2 gives time 2, occupancy 2 per class and peak 1 per class. The fragment rules correctly preserve capacities and topology constraints.",
+   "change": "In \u00a79.4 state: 'At a CC/R region call, the expanded slot-class vector MUST equal the actual operand register's ordered class vector; topology placement additionally preserves those wires' vertices.'"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The B5 alternative is precise and retains legacy homogeneous records. Under INDEX.md's authorized in-version route, \u00a79.2 excludes certificates from object identity, so the source-hash claim holds. The mixed-fat-object applicability statement is missing.",
+   "change": "In \u00a79.4 state: 'For a mixed fat object, these descriptors cover device invocations of marked ISA modules and their device callees, bound to their existing object, closure and schedule identities.'"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The finite outputs, region flattening and resource arithmetic check out. The published FRAME hash and 219-recipe catalog envelope hash also match. INDEX.md correctly disclaims implementation of the proposed verifier.",
+   "change": "In 'Conformance vectors' add: 'Allocate one A wire and one B wire, concatenate them, call split through CC/R, require result 3 from initial 0, and reverse to both original clean registers with their original classes and identities.'"
+  },
+  {
+   "id": "C7",
+   "score": 3,
+   "evidence": "Preserving heterogeneous placement supports North Star \u00a7\u00a74.1\u20134.4. However, the operational register restriction remains unresolved, and neither the note nor INDEX.md states how the changed certificate layout applies to the mixed native/device fat object required by bennett-4ht.",
+   "change": "Add to the proposed \u00a79.4 text: 'A mixed fat object retains its native host executable; only marked device modules and their device callee closures require ISA frames. Host-native functions and process state do not become frame slots.'"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Canonical maximal runs, exact coverage, integer encoding and rejection rules are readily implementable. Publication is appropriately conditional in INDEX.md, but consumer migration could be stated more concretely.",
+   "change": "In 'Release and route' state: 'After authorization, updated consumers accept both legacy homogeneous records and fragmented records; consumers lacking this repair reject fragments under the existing unknown-field rule, and producers require an updated consumer before emitting them.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "4ta-B1",
+   "section": "Recommended exact spec diff; interaction with \u00a7\u00a73.3 and 4.7",
+   "scope": "core",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "Changing B5 alone does not make the illustrated heterogeneous slot consistently usable through the accepted machine interface. \u00a73.3 defines a register as 'n device-resident wires of one class' and records its class in the ledger; \u00a74.7 requires qreg operands for CC/R wire and region slots. Consider a = qreg.new A 1; b = qreg.new B 1; t = qreg.concat a b; action_call @split (t) () () (). Both allocations fit the witness target, and concat meets every printed precondition, but its required result [A,B] contradicts the single-class register definition. The fragment descriptor cannot resolve that contradiction. The note's placement citations are correct, but its claim that this B5-only repair suffices overlooks this interacting clause.",
+   "fix": "Extend the exact diff to \u00a73.3: 'A register denotes an ordered sequence of device wires and records each wire's resolved target class. qreg.new cls n and bennett_qreg_new allocate homogeneous sequences of cls. qreg.concat concatenates the wire and class sequences without moving, copying or reallocating wires; qreg.slice selects corresponding subsequences. Reversal restores the prior sequences and identities. Binding to a region slot requires equality with that slot's expanded B5 class vector and, where present, its inherited topology vertices.' The witness concatenates [A] and [B] into [A,B], returns 3 from initial 0, and reversal restores the original clean registers. Alternatively retain homogeneous base registers and explicitly define composite qreg handles with these concatenation, slicing and binding rules; I recommend the ordered class-vector definition."
+  },
+  {
+   "id": "4ta-B2",
+   "section": "Recommended exact spec diff; Hashes, catalog and consumers",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "This proposal changes certificate layout, but neither its exact diff nor the shared INDEX publication decisions states how a mixed fat object uses that layout. The standing bennett-4ht check explicitly requires that statement. General claims that North Star scope remains unchanged do not identify the device certificate inventory or preserve the native-host boundary.",
+   "fix": "Append to \u00a79.4: 'A mixed fat object retains its native host executable and embeds ISA objects only for marked device modules and their device callee closures. B5 descriptors describe those device invocations and bind to their existing object, closure and schedule identities; the device-region certificate inventory does not require entries for every native host function. At the host/device boundary, existing register ids identify operands whose ordered class vectors must match the selected frames. Host-native functions and host process state do not become ISA frame slots.' No new fat-container encoding or launch entry point is required by this repair."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Conformance vectors: state that the controlled case uses an enlarged target with vertices 0:A, 1:B, 2:C, capacity 1 each, edges [[0,2],[1,2]], and matching exact controlled-X leaves of duration 1. With control c at vertex 2, the expected map is (c,t) -> (c,t XOR (3*c)); sequential time is 2, occupancy is 2 and peak is 1 in each class. The control remains outside mut:0.",
+  "Conformance vectors: give the region[1,2] case sufficient capacity, for example vertices with classes [A,B,A,B] and capacities 2 each. State: 'mem:0 has width 4; offsets 0,1,2,3 denote cell0.bit0, cell0.bit1, cell1.bit0, cell1.bit1 respectively.' Its four alternating width-one fragments are canonical.",
+  "Release and route: add the explicit consumer migration sentence given under C8. Retain INDEX.md's distinction: unchanged source hashes depend on an authorized in-version repair; a full-version publication must regenerate affected version-prefixed envelopes and consumer pins."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Reconcile heterogeneous slot binding with \u00a73.3's register definition, concatenation, slicing and reversal using the rule in 4ta-B1. 2. Add the mixed-fat-object applicability and certificate-inventory statement in 4ta-B2. The fragment encoding itself can then be accepted on the authorized 0.9 K route.",
+ "summary": "The fragment encoding, worked arithmetic and conditional hash claims are sound. Revision is required for the interacting single-class register rule and the missing mixed-fat-object statement.",
+ "verdict_core": "revise"
+}

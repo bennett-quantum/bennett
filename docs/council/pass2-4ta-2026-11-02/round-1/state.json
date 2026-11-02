@@ -1,0 +1,36 @@
+{
+ "run": "pass2-4ta-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-pass2/b-isa-spec-4ta.md",
+ "doc_sha256": "144c461ef9f853ff1365154160ac509a5c32f121db1f1ae2055cc388f4d86575",
+ "prepared": "2026-11-02T08:47:31+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:47:31+00:00",
+   "updated": "2026-11-02T08:56:03+00:00",
+   "exit": 0,
+   "seconds": 512
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:47:31+00:00",
+   "updated": "2026-11-02T08:55:24+00:00",
+   "exit": 0,
+   "seconds": 472
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 second-pass contract-repair proposal note 4ta (b-isa-spec-4ta, P1; sol, 2026-11-02): B5 class fragments for one interface slot placed across several classes. The document is the note itself, which carries its own exact spec diff; grade the proposal",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3b/task-pass2.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
