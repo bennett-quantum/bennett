@@ -101,6 +101,8 @@ The demo ladder is the acceptance gate: rungs 1 → 2 → 3 → 4, then 5–8.
 Agents commit their own paths regularly (unstable network); nothing is pushed
 without the maintainer's say-so.
 
+**Optimising specialiser and scheduler (committed, trigger-driven; bead bennett-p2i):** the north star's "optimal within what it claims" layer (structure recovery from the step machine, reversible pebbling, exact synthesis of small kernels with certificates, adder/QROM selection, measurement-based vs unitary cleanup choice) is part of the plan and will be done. Today bennett-circuits is the literal bounded specialiser and bennett-sched a partial §11 implementation; neither optimises. Work starts at the first rung clause red on cost rather than function, expected rung 4 (c) (risk R5, ISA open item I2); the maintainer may bring it forward with a cost-bearing clause on an earlier rung once rung 3 is green. Maintainer 2026-11-02: "as long as it is on the plan, and will happen".
+
 **Executors:** bennett-vm gains a dense state-vector engine (bead bennett-vm-bjm, qHiPSTER-style blocking, fusion and threads, std-only, evidence-labelled `numerical`) beside the exact sparse engine, for rung 4(b), 7(b), 8(b); the exact engine stays the semantic reference.
 
 ## Ladder status (kept current by the orchestrator; evidence in `bennett-conformance/ladder/rung-N/RESULTS.md`)
