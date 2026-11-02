@@ -1,0 +1,73 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff leaves machine state and execution unchanged. Its distinction between oracle outcomes and action interfaces agrees with \u00a7\u00a75.2\u20135.3.",
+   "change": "No change required; retain \u00a75.3's rule: 'No fault outcome.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The ownership, swapped-pair coverage, componentwise primary-budget bound, exact arg_tokens matching and pre-effect validation agree with \u00a74.5. K63 and K65 do not transfer proof ownership.",
+   "change": "No change required; retain the proposed \u00a712.3 rule requiring coverage for every transitively executed qinplace before any effect of the enclosing CC/R region call."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The Hadamard witness follows exactly from \u00a74.4: H\u00b2=I, while H is not a permutation. The diff preserves numerical/channel, borrowed-system and inverse-pair obligations rather than treating structural claims as executable correctness proofs.",
+   "change": "No change required; retain the \u00a712.3 statement that applicable correctness, borrowed-system and realisation obligations remain required before executable or algorithm acceptance."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Resource, target and schedule semantics remain unchanged. An independent in-memory fixture migration preserved object_hash 45bbb506541e3a8bb28a18e1bb0aef16ba01ee1e7cac74d5a190deb3ad36ef5a while changing certificate bytes. The catalog check reproduced 219 recipes and envelope hash 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+   "change": "No change required; retain the publication rule that unchanged hashes assume an authorized in-version repair with unchanged source and catalog envelopes."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Both stated applicability defects exist in \u00a7\u00a79.2 and 12.3. The proposed null/absence semantics, root-reference definition, owner-local indices and checked library references repair them consistently. The referenced jw7 and first-pass census text supply explicit invocation/context binding.",
+   "change": "No change required; retain the \u00a712.3 rules that an absent census asserts neither zero faults nor verification, and every supplied census must be validated."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "All eight check_rev2.py result lines pass. The exact algebra and proposed rejection cases are sound, and the note accurately distinguishes finite checks from an implemented packet checker. Complete serialized structural and ownership fixtures would strengthen reproducibility.",
+   "change": "Add a complete \u00a715 structural-H fixture stating: 'With a valid K13 invocation, the sole adjoint_table claim, verification.oracle:null and absent fault_rate validate only the structural relation; changing oracle to 0 rejects, and the absent census cannot satisfy a zero-fault acceptance gate.' Publish both packet variants with their expected verdicts."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The new \u00a712.3 paragraph and incorporated shared statement satisfy the standing mixed-fat-object check: bindings select device objects and roots, native-only code needs no region inventory, and separate roots retain separate contexts. Remaining launch and memory boundary obligations are explicitly identified without requiring whole-binary lowering.",
+   "change": "No change required; retain the proposed rule associating each embedded ISA object/root pair with its certificate and excluding native-only host code from the device-region inventory."
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "The revision resolves the packet-versus-record wording, states preflight timing explicitly and gives the correct controlled-action fixture migration: root oracle index 0, numerical-only flip null, both action census placeholders omitted. Publication and consumer limitations are explicit.",
+   "change": "No change required; retain the migration instruction that ambiguous old action bindings require explicit validation rather than silent reinterpretation."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "0JQ-1",
+   "status": "resolved",
+   "note": "The proposed \u00a712.3 mixed-object paragraph identifies device-object/root bindings and owner-record inventory while preserving native host code."
+  },
+  {
+   "id": "B1",
+   "status": "resolved",
+   "note": "The \u00a79.2 cross-reference, \u00a712.3 paragraph and shared scope statement provide the requested multiple-root certificate association and native-only exclusions."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In \u00a715, publish the complete structural-H positive and negative packets described under C6. Expected results: structural relation accepted with oracle:null and no census; structural claim index 0 rejected as verification.oracle; absent census insufficient for a zero-fault gate. This is conformance packaging, not a prerequisite for acceptance."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes remain. To raise C6 from 4 to 5, publish complete serialized structural-H acceptance/rejection fixtures with the invocation, bindings and expected verdicts specified above.",
+ "summary": "Both round-1 blockers, 0JQ-1 and B1, are resolved. No new S0 issue, regression, false technical premise or misnumbered citation was found. The applicability repair, ownership rules, fixture migration and conditional hash/catalog claims check out. Accept the proposed repair; publication still requires the stated maintainer authorization.",
+ "verdict_core": "accept"
+}

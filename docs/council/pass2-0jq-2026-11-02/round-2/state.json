@@ -1,0 +1,37 @@
+{
+ "run": "pass2-0jq-2026-11-02",
+ "round": 2,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/b-isa-spec-0jq.md",
+ "doc_sha256": "19ffcda5e44a87d0878c89e357fa4ccea163d50883e031aff781fb3e43bd923e",
+ "prepared": "2026-11-02T10:16:38+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:16:38+00:00",
+   "updated": "2026-11-02T10:20:13+00:00",
+   "exit": 0,
+   "seconds": 215
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:16:38+00:00",
+   "updated": "2026-11-02T10:19:50+00:00",
+   "exit": 0,
+   "seconds": 192
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 pass2 proposal 0jq, round 2 full revision (sol-contract-rev2)",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/fat-object-scope.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/task-r2-pass2-0jq-2026-11-02.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
