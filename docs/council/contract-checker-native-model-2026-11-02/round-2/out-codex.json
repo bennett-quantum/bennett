@@ -1,0 +1,80 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The extension describes target realisations without changing \u00a73\u2019s state, tiers or step relation.",
+   "change": "Optional clarification in \u00a78.3: \u201cRealisation models describe target implementations; \u00a7\u00a73\u20137 continue to define reference execution.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The revised unitary-only admission rule preserves \u00a74.4\u2019s phase-fixed matrices and operator-norm accuracy contract. The angle references to \u00a73.1 and \u00a711.1 K20 are correct.",
+   "change": "Optional clarification in \u00a78.3: \u201cThe existing requirements for epsilon-zero gates in oracles and permutation actions, and the prohibition of relative-phase ccx, remain unchanged.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The X/\u2212X interference witness is correct. Requiring a phase-bearing U and its actual controlled implementation prevents channel equivalence from erasing observable controlled phase.",
+   "change": "Optional clarification in \u00a78.3: \u201cUnitary comparison uses the supplied phase and MUST NOT minimise the distance over an overall phase.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Evaluated epsilon, shared k/c/eps bindings, exact angles and control-context reconstruction are decided. Detailed encodings beyond the concrete controlled_U example remain implementation work, with a matrix/expression default provided.",
+   "change": "In \u00a78.3 add this encoding example: \u201cFor cx with own control a and inherited control q, k=1 and c=2; controlled_U uses base basis [t], adds both controls, and maps entry order [a,q,t] to checker order [q,a,t].\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The missing-operator defect is real under \u00a7\u00a78.3 and 12.1. Migration preserves execution compatibility without permitting unsupported independent claims. In-memory checks confirmed model-dependent target and schedule hashes; \u00a79.2 supports unchanged source identities under the stated unchanged-envelope condition.",
+   "change": "Optional clarification in Migration: \u201cChanging realisation_model bytes invalidates cached verification results bound to the former target_hash or any dependent schedule_hash.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The supplied exact script passed. The operator distance 2, Frobenius bound 2\u221a2, diamond distance 2 and strict-positive-pivot observations agree with \u00a712.1. However, \u201cTheir squared operators sum to identity\u201d is literally false: the ordinary squares sum to zero; the script correctly checks adjoint-products.",
+   "change": "In Alternatives and concrete witnesses replace that sentence with: \u201cK0\u2020K0 + K1\u2020K1 = I, so the Kraus map is trace preserving.\u201d For these operators, K0\u00b2 + K1\u00b2 = 0."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Approximate algorithms remain available, and unchecked legacy handling does not replace the model mechanism. The bennett-4ht paragraph explicitly scopes models and certificates to selected VM closures while retaining native main, argv/envp and ordinary host code.",
+   "change": "Optional clarification in Mixed fat object: \u201cSelected VM modules include their required device callee closures; untainted host code remains native.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The proposal is implementable at this review stage: it supplies a model version, concrete X representation, reconstruction obligations and default evaluation behavior. Complete interchange fixtures would make the remaining encoding work easier to implement consistently.",
+   "change": "In Conformance vectors add: \u201cPublish a complete canonical target containing the displayed X model and a bound schedule; at c=1 its reconstructed matrix is diag(I2,X), and adding the model changes target_hash and the dependent schedule_hash.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "sol:B1",
+   "status": "resolved",
+   "note": "Requirements now follow evaluated epsilon: 1\u22121 remains exact without a model, and epsilon=c distinguishes c=0 from positive contexts."
+  },
+  {
+   "id": "codex:B1",
+   "status": "resolved",
+   "note": "The expression-syntax requirement and exact-entry exemption no longer conflict."
+  },
+  {
+   "id": "codex:B2",
+   "status": "resolved",
+   "note": "Native models must bind a phase-bearing unitary; genuinely nonunitary Kraus maps are excluded, and controlled numerical claims retain \u00a712.3\u2019s obligation."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Alternatives and concrete witnesses: replace \u201cTheir squared operators sum to identity\u201d with \u201cK0\u2020K0 + K1\u2020K1 = I.\u201d Ordinary squares instead give K0\u00b2 + K1\u00b2 = 0. This is a wording correction because the normative admission rule and executable witness already use the correct normalization.",
+  "\u00a78.3 representation examples: state, \u201cFor cx with own control a and inherited control q, controlled_U uses base basis [t] and c=2; entry order [a,q,t] maps to checker order [q,a,t].\u201d This illustrates the already-required permutation without adding a new semantic obligation.",
+  "Conformance vectors: add a complete canonical X-model target and bound schedule. State, \u201cAt c=1 the model reconstructs diag(I2,X); adding model bytes changes target_hash and the dependent schedule_hash, while unchanged source-object bytes retain their \u00a79.2 identities.\u201d Keep this fixture distinct from a claim that a native-model checker has already been implemented."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are required. To raise C6 from 4 to 5, replace the misleading Kraus \u201csquared operators\u201d sentence with the explicit adjoint-product normalization above.",
+ "summary": "sol B1, codex B1 and codex B2 are resolved. The defect is genuine, the cited operative clauses are correctly identified, and no new S0 issue or mixed-fat-object narrowing remains. Exact witnesses and hash checks passed; the catalog check confirmed the unchanged 219-recipe envelope. Native-model checker execution remains unclaimed.",
+ "verdict_core": "accept"
+}

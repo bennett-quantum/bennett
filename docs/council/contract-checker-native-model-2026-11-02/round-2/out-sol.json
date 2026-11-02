@@ -1,0 +1,80 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The amendment supplies target realisation data without changing \u00a7\u00a73\u20137's state, tiers or step relation.",
+   "change": "No required change. Optional \u00a78.3 clarification: \u201cNative models describe target realisations; they do not replace the reference machine semantics.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The unitary-only admission rule preserves \u00a74.4's phase-fixed matrices, operator-norm epsilon and exact permutation requirements. Angle bindings correctly cite \u00a73.1 and \u00a711.1 K20.",
+   "change": "No required change. Preserve the stated rule: \u201cA supplied model MUST agree with the exact \u00a74.4 operation in every zero-epsilon context.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The controlled X/\u2212X witness is correct. Kraus representations must reduce to an explicitly phase-bearing unitary in every control context, preventing the round-1 channel admission error.",
+   "change": "In \u201cAlternatives and concrete witnesses\u201d, replace \u201cTheir squared operators sum to identity\u201d with \u201cK0\u2020K0 + K1\u2020K1 = I.\u201d Literal operator squares instead sum to zero for this example."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Evaluated-epsilon requirements agree with \u00a78.1 and \u00a717 item 9. Matching, cost and error charging remain intact. The operand permutation obligation is clear, but its serialized representation remains publication work.",
+   "change": "In \u00a78.3's version-1 schema, publish the permutation encoding and state: \u201coperand_map[j] is the allocation-basis position of model operand j.\u201d Example: model order [own_control, inherited_control, target] mapped to [inherited_control, own_control, target] uses [1,0,2]."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The defect is real: \u00a78.3 does not identify approximate native operators, while \u00a712.1 requires realised-operation reconstruction. Migration preserves exact contexts and prevents missing models from discharging affected obligations. Hash migration agrees with \u00a7\u00a78.1, 9.2 and 11.",
+   "change": "No required change. Retain: \u201cModel bytes change target_hash and require regenerating every dependent schedule_hash and certificate binding.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 5,
+   "evidence": "The exact witness script passes. Operator distance 2, Frobenius bound 2\u221a2 and rejection of zero-bound channel witnesses agree with \u00a712.1. The independent catalog check confirms 219 recipes and hash 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+   "change": "Optional \u00a715 suite D addition: \u201cControlled X versus controlled \u2212X rejects numerical bound 2 and can pass bound 3 at sufficient precision; controlled X versus itself can pass numerical bound 0.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Approximate algorithms remain supported, and logical epsilon remains separate from stochastic hardware failure. The mixed-object paragraph passes bennett-4ht: native host execution, selected VM closure, launch bindings and closure-scoped certificates remain reachable.",
+   "change": "Optional clarification in the mixed-object paragraph: \u201cThe selected VM closure includes the transitive callees required by each marked entry, including callees whose source contains no marker.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The versioned format, concrete X matrix, reconstruction obligations and unchecked migration outcomes are implementable. Constant and variable node spellings need a compact encoding table; these are S1 publication details under the stated exact-expression default.",
+   "change": "In \u00a78.3's format-1 encoding table, state: \u201cVariables use {var:name}; constants pi and i use {op:name,args:[]}; function applications use {op:name,args:[...]}; rational leaves use the published reduced decimal-string pair.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "sol:B1",
+   "status": "resolved",
+   "note": "Per-context evaluated epsilon consistently governs omission: 1\u22121 remains exact, while epsilon=c requires a model for independent verification only in positive contexts."
+  },
+  {
+   "id": "codex:B1",
+   "status": "resolved",
+   "note": "The expression-syntax MUST has been removed; exact zero-valued expressions receive the exact-opcode convention without a missing-model diagnostic."
+  },
+  {
+   "id": "codex:B2",
+   "status": "resolved",
+   "note": "Native models remain logical unitaries with operator-norm epsilon; Kraus/instrument representations require phase-bearing U and reduced-map equivalence, and cannot replace controlled numerical claims."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In \u201cAlternatives and concrete witnesses\u201d, write \u201cK0\u2020K0 + K1\u2020K1 = I\u201d instead of \u201cTheir squared operators sum to identity.\u201d For the displayed operators, K0\u00b2 + K1\u00b2 = 0; the script correctly checks the adjoint products.",
+  "In \u00a78.3, publish the format-1 expression-node and operand-map encodings while retaining the exact reconstruction default. State: \u201coperand_map[j] gives model operand j's allocation-basis position\u201d; the own-control/inherited-control swap example should encode [1,0,2].",
+  "In the mixed-object paragraph, add: \u201cThe selected VM closure includes transitive callees of marked entries, whether or not those callees contain markers; native comparison materializes that same callee closure with the prescribed runtime and arithmetic libraries.\u201d This makes the existing closure obligation explicit."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable; no blocking changes remain. To raise the lowest-scoring criteria C4/C8 from 4 to 5, publish the format-1 encoding table, including the operand permutation and constant/variable node spellings.",
+ "summary": "All three previous blockers\u2014sol B1, codex B1 and codex B2\u2014are resolved. No new S0 issue or regression was found. The cited clauses, phase witnesses, numerical acceptance claims and hash migration are sound. The mixed fat object remains reachable. Clarify the nonblocking \u201csquared operators\u201d wording.",
+ "verdict_core": "accept"
+}

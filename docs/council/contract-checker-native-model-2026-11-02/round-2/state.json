@@ -1,0 +1,36 @@
+{
+ "run": "contract-checker-native-model-2026-11-02",
+ "round": 2,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev/checker-native-model.md",
+ "doc_sha256": "bf6d0139ab964d0a32c84e9ed11f855b8d757cbf0ab7c7766b17c1a1ab7d07e5",
+ "prepared": "2026-11-02T10:08:23+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:08:23+00:00",
+   "updated": "2026-11-02T10:16:28+00:00",
+   "exit": 0,
+   "seconds": 486
+  },
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:08:23+00:00",
+   "updated": "2026-11-02T10:13:41+00:00",
+   "exit": 0,
+   "seconds": 318
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal checker-native-model, round 2 full revision (checker native-model contract; sol-contract-rev, 2026-11-02)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/task-r2-checker-native-model.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
