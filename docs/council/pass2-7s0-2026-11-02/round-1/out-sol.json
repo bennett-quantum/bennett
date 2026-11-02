@@ -1,0 +1,83 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposal preserves \u00a75.6 K76/K78: interface and borrowed values remain independent and full; only allocated local values receive entry constants.",
+   "change": "No change required; retain \u00a75.6 K76/K78 unchanged."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction semantics change. The CX examples agree with \u00a74.4, and adjacent cx/mcx cancellation agrees with K78.",
+   "change": "No change required; retain \u00a74.4 and K78 operation identities."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Checking B restoration, complete non-B output independence and exact +1 phase on the complete D_F establishes the claimed tensor factorisation. The non-Cartesian union preserves K76's domain.",
+   "change": "No change required; retain the complete-output and exact-phase requirements in the proposed \u00a712.1 relation."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The repair adds no resource or target semantics. Logical lifetime identities remain separate from shared physical borrow storage.",
+   "change": "No change required; retain the statement that physical storage reuse never merges logical lifetimes."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The existing expressibility defect is real: K69/K70 cannot name local frame-entry workspace, and \u00a712.3 supplies only claim indices. The new relation repairs exhaustive binding, but entry_products lacks deterministic sampling semantics.",
+   "change": "\u00a712.1 Sampling: state, 'For entry_products, each sample draws one rank uniformly from the deduplicated union enumeration using the existing rejection sampler.'"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The factorisation statement has sufficient hypotheses. The INDEX 7s0 assertions and independent exact tensor checks passed. Proposed checker conformance remains unimplemented, as disclosed.",
+   "change": "Conformance vectors: add the seeded union-sampling vector in B1, requiring its first sampled tuple to be (c,d,b)=(1,1,0)."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Restricted borrow proofs preserve the North Star capability. However, neither the note nor INDEX explicitly places the changed certificate inventory within a mixed fat object, as the standing check requires.",
+   "change": "\u00a712.3: state, 'In a mixed fat object, borrow_frame claims belong to the marked modules' device-region certificate records; native host code remains outside the ISA borrow-proof inventory.'"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The exhaustive obligation, source coordinates, maximality and host-limit outcome are clear. The explicit subject-context obligation would benefit from an actual field spelling consistent with INDEX.",
+   "change": "\u00a712.1 borrow_frame production: add context_key and state, 'For a scheduled claim, context_key is the fully resolved \u00a712.1 subject invocation key, including [] for the root; first and last must belong to that invocation.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff \u2014 entry_products; \u00a712.1 Sampling",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The diff admits entry_products for sampled claims but defines only its exhaustive enumeration. Existing \u00a712.1 Sampling consumes generator words separately for Cartesian component ranges; it supplies no union/product selection rule. This changes reproducible claim verdicts. For ordered products (c,d)=(0,0) and (1,1), each with b\u2208{0,1}, seed [\"0\",\"288230376151711744\",\"0\",\"0\"] produces first xoshiro256** word 90. Sampling one rank from the four-element union selects (1,1,0); sampling a product first selects product 0 and then (0,0,0). On the selected frame cx c b, the former detects changed B and rejects, while the latter records successful sampled evidence. Both extensions sample the same union uniformly here, but the amended text selects neither seed-to-row mapping.",
+   "fix": "Append to \u00a712.1 Sampling: 'For a sampled borrow_frame claim using entry_products, let E be the ordered enumeration formed by concatenating the product enumerations and skipping previously enumerated complete tuples. Let N=|E|. For each draw, apply the existing rejection sampler to one synthetic component with lo=0 and hi=N\u22121, then replay E at that rank; consume no additional component-sampling words. Draw with replacement. Check B restoration and exact +1 phase on each drawn row, and require equal complete non-B outputs among drawn rows having equal non-B inputs. Coverage counts distinct drawn tuples; the outcome is always evidence.' Add the witness above: E=[(0,0,0),(0,0,1),(1,1,0),(1,1,1)], first rank=2, and cx c b maps (1,1,0) to (1,1,1), so the claim rejects. A fully specified product-first sampler is another viable choice, but it must define word consumption and overlapping-product handling; I recommend union-rank sampling."
+  },
+  {
+   "id": "B2",
+   "section": "Recommended exact spec diff \u2014 \u00a712.3; Defect and North Star scope",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The proposal changes certificate layout and inventory but never states how those claims attach within the promised native-host-plus-marked-device mixed fat object. INDEX's general assurance that no capability is removed does not supply that attachment rule. This fails the explicit standing C7 check.",
+   "fix": "Append to \u00a712.3: 'In a mixed fat object, the native host binary coexists with the marked modules' ISA objects. borrow_frame claims attach only to the corresponding device-region certificate records and resolve against the device closure and invocation actually launched. The native host entry point and unmarked native host code are outside the ISA region and borrow-proof inventory.' This preserves the mixed object without requiring its host shim or launch implementation in this repair."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a712.1 borrow_frame production: add context_key explicitly and state, 'For a scheduled claim, context_key equals the fully resolved \u00a712.1 subject invocation key; the root key is []; first and last must resolve within that invocation.' This gives the stated context obligation the shared INDEX field spelling.",
+  "\u00a712.2 coverage: state, 'For borrow_frame claims, coverage is the number of distinct replayed complete entry tuples divided by |D_F|; overlapping entry_products never count a tuple twice.' Add an overlap vector with local products {c=0,d\u2208{0,1}} and {c\u2208{0,1},d=0}, and full one-bit B: the union contains six tuples, not eight.",
+  "Release and route: explicitly select the authorized in-version K repair described by INDEX and state, 'Existing claim kinds retain their syntax; producers emitting the new relation require an upgraded checker, while older readers reject its unknown value or fields under \u00a79.1. This route changes certificate bytes without changing source envelopes, object/closure hashes, schedule bytes or ref@0.9.' The unchanged-hash claim is correct under that route because \u00a79.2 excludes certificate metadata from object_hash."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Define deterministic sampled-union replay and add B1's seeded expected result. 2. Add B2's mixed-fat-object certificate attachment statement. These changes leave the core repair and K76/K78 intact.",
+ "summary": "The cited expressibility defect exists, and the exhaustive tensor repair is sound. No false or misnumbered cited premise was found. Revise for deterministic union sampling and the required mixed-fat-object statement; core acceptance is warranted.",
+ "verdict_core": "accept"
+}
