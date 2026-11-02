@@ -1,0 +1,36 @@
+{
+ "run": "contract-xv4-2026-11-02",
+ "round": 2,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev/xv4.md",
+ "doc_sha256": "ca70501b1bac0190df028cf1d09fc3ffaf38f468e9e9907d46d267bbe75e25ed",
+ "prepared": "2026-11-02T09:58:18+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:58:18+00:00",
+   "updated": "2026-11-02T10:02:44+00:00",
+   "exit": 0,
+   "seconds": 267
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:58:18+00:00",
+   "updated": "2026-11-02T10:05:23+00:00",
+   "exit": 0,
+   "seconds": 425
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal xv4, round 2 full revision (b-isa-spec-xv4; sol-contract-rev, 2026-11-02)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/task-r2-xv4.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
