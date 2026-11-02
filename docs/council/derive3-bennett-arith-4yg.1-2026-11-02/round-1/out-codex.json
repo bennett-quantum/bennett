@@ -1,0 +1,65 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "Both tracks have byte-identical \u00a7\u00a713.1\u201313.5. The quoted parity rule and canonical-pair definition are accurate. Comparing both lows resolves the demonstrated odd/odd case. The smaller-magnitude fallback is deterministic: distinct adjacent numerical values cannot straddle zero because zero is representable.",
+   "change": "Optional \u00a713.1 clarification: \u201cL and U denote distinct numerical sums with L < U; signed-zero encodings remain governed by the existing zero-sign rules.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The repair preserves carriers, helper signatures and operation coverage. Incoming conversion and FMA are correctly identified as affected paths; \u00a713.1 already gives explicit numerical guarantees priority over APFloat fallbacks.",
+   "change": "Add to \u00a713.1: \u201cThe nearest-even PPC tie rule also governs nearest-even selection for the constrained carrier transcendentals of \u00a713.4.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Both exact results are unrepresentable midpoints with normal rounded totals. Existing \u00a7\u00a713.1 and 13.5 therefore require exactly inexact=16 for observed exceptions, independently of which nearest candidate wins. The repair changes a deterministic numerical function without changing its reversible embedding or cleanup obligations.",
+   "change": "Extend the normative witness: \u201cNegating each exact input value gives nearest-even results (-h,+0) and (-H,+0), respectively, again raising exactly inexact (16).\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "No target, budget or resource-accounting rule changes. The ISA \u00a711.1 catalog expands integer operations rather than selecting PPC results. Its 219-recipe envelope independently hashes to the published 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+   "change": "Add under \u201cHashes, catalog and consumers\u201d: \u201cRegenerate affected schedules and resource certificates against the new linked closures; the target schema and ref@0.9 catalog remain unchanged.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The versioned 0.2 publication route, consumer re-pinning and changed-body proof invalidation are appropriate. One supporting premise is false: a full dialect-version change does not automatically change dialect_mapping_version. Maintained \u00a7\u00a716, 19.9 and 23 explicitly separate dialect 0.2.12 from map 0.2.9; the draft separately specifies map 0.3. This does not invalidate the numerical diff.",
+   "change": "Replace the mapping-version sentence in \u201cHashes, catalog and consumers\u201d with: \u201cThe full dialect compatibility version and consumer pins change. dialect_mapping_version remains the separately declared lifting-map version\u20140.2.9 on the maintained track and 0.3 in the current draft\u2014unless \u00a7\u00a716 and 19.9 explicitly revise that map version.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The supplied witness exits 0 and reproduces both LLVM majors\u2019 FMA flags 0 and conversion flags 24. Independent rational decoding confirms the FMA midpoint and the stated binary128 encoding. These establish the defect, not producer conformance. Broader acceptance vectors are specified but not supplied as executed conformance tests.",
+   "change": "Add an executable two-zero-low witness under \u201cConformance vectors\u201d: \u201cFor u=2^-1074, fma((u,+0),(1/2,+0),(+0,+0)) returns (+0,+0) in nearest-even mode and raises underflow|inexact (24) when exceptions are observed.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The proposal preserves all format and input-domain obligations and restores deterministic numerical selection required by North Star \u00a7\u00a73.2 and 5.1. Its mixed-fat-object statement and incorporated scope note preserve native host execution, closure-specific certificates and explicit remaining mixed-launch obligations. The standing check passes.",
+   "change": "Optional addition to \u201cMixed fat object\u201d: \u201cNative entry points and host-only argv/envp preparation remain outside the device certificate inventory.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "The proposed rule defines integer significands, zero parity, sign handling, a deterministic fallback and preservation of other rounding modes. An implementer can implement the selection without another numerical decision. The replacement leaves awkward punctuation before the inherited NaN/inf clause, but no competing semantics.",
+   "change": "End the replacement with: \u201cDirected and nearest-away modes retain their specified rules. NaN and infinity are represented in the high component with low +0.\u201d Remove the inherited \u201cand NaN/inf represented\u2026\u201d fragment and retain the following overflow sentence."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "In \u201cHashes, catalog and consumers\u201d, replace the automatic mapping-version claim with: \u201cThe full dialect compatibility version and consumer pins change; dialect_mapping_version changes only when the separately declared lifting-map version changes.\u201d Retain map 0.2.9 and map 0.3 unless the publication explicitly amends their declarations and certificate bindings.",
+  "In \u201cConformance vectors\u201d, supply executable mode expectations for both witnesses. With positive adjacent candidates L and U, the results for nearest-even/down/up/toward-zero/nearest-away are L/L/U/L/U; for the negated inputs they are -L/-U/-L/-L/-U. Each observed-exception case raises exactly 16; an initial unrelated sticky bit 32 therefore yields flags 48.",
+  "Replace \u201cInclude a direct test of the equal-parity fallback\u201d with: \u201cTest the equal-parity selector branch independently. Count such a test as an arithmetic conformance vector only when its candidates are shown to be adjacent canonical values.\u201d This preserves the defensive policy without assuming that a reachable binary64 example exists.",
+  "In the exact diff, separate the inherited nonfinite clause into: \u201cNaN and infinity are represented in the high component with low +0.\u201d Keep the existing overflow and underflow sentences unchanged."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are required. Apply through the recommended new full dialect version and matching draft amendment. Correcting the separately versioned mapping-binding claim would raise C5 from 4 to 5.",
+ "summary": "Accept. The numerical defect is real, both witnesses and incorrect native flags reproduce, and the proposed tie rule repairs the ambiguity without narrowing capability. The publication route and unchanged ISA catalog are appropriate. Correct the nonblocking claim that a dialect-version bump automatically changes the lifting-map binding.",
+ "verdict_core": "accept"
+}
