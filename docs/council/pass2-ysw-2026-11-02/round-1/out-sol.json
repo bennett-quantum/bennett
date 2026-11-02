@@ -1,0 +1,73 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The partition preserves the token ledger and token lifetimes in \u00a7\u00a73.2/5.4. Local labels encode equality without becoming runtime handles.",
+   "change": "Optional \u00a73.2 cross-reference: \u201cThe token equality relation exported in an invocation binding is encoded by token_aliases (\u00a712.3).\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction changes. Fresh budget.mint identities and forwarding agree with \u00a7\u00a74.1/4.7/5.4.",
+   "change": "Optional \u00a74.1 budget.mint annotation: \u201cSerializing token_aliases neither mints a token nor changes its validity.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The cited identity distinction is real: \u00a75.3 requires identical identities and tuples; \u00a7\u00a74.1/7.4 compare boundary values. Preserving mappings through captures and inverse traversal repairs the distinction without inspecting quantum data.",
+   "change": "Optional \u00a77.4 frame clarification: \u201cRegion-call history retains the resolved token identity context in addition to token tuples for inverse traversal.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Including the partition in schedule matching preserves \u00a710.1's selected-realisation accounting. The proposal leaves target resources, exact rational aggregation and outward decimal encoding unchanged.",
+   "change": "Optional \u00a710.1 clarification: \u201cExact resource aggregation uses the realization selected by args, budget and token_aliases together.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The proposal covers invocation bindings, schedule/cache matching, inverse-pair coverage and universal claims. Additive ABI symbols avoid an in-place signature change. The mandatory mixed-fat-object applicability statement is missing.",
+   "change": "Add to \u00a7\u00a710/12.3: \u201cIn a mixed fat object, token_aliases binds invocations of the selected marked ISA module and its device closure; it does not make the native host binary a device object.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The source fixture validates with the reported object hash cda0f55ff3f299b165453ff9162b051ddf96856a799d22e09499c226bf35c011. The hand-derived four-step success and third-step fault are consistent with \u00a77.4. INDEX's partition checks are correct, but its step assertions are not an independent execution check, as the note acknowledges.",
+   "change": "Add to \u00a715: \u201cFor a memoryless identity oracle and two consecutive action-body oracle_call occurrences on the same wires using equal-tuple arguments a and b, partitions [0,1,1] and [0,1,2] respectively produce one K65 carrier at the second call and no carrier, with the separately supplied primary token distinct from both arguments.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Every consistent alias partition remains representable, preserving north-star scope. However, neither ysw nor INDEX's publication section explains the mixed fat object's use of the changed launch/certificate contract; the standing check explicitly makes that silence blocking.",
+   "change": "Add to the exact diff: \u201cNative host entry points, argv/envp and unaffected host libc remain outside the device token-alias inventory; only marked device closures and their invocations require these bindings.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Canonical ordering, tuple consistency, nested identity mappings and catalog boundaries are implementable. The old ABI's optional uniform-result route would benefit from a concrete default.",
+   "change": "Add to \u00a710.1: \u201cThe legacy estimate function defaults to E_ARG when token arguments require an unavailable alias binding; callers obtain an exact estimate for each consistent partition through bennett_estimate_run_with_token_aliases.\u201d"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff; \u00a7\u00a710/12.3 mixed-fat-object applicability",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The proposal changes launch-estimate and certificate invocation contracts without stating how a mixed fat object uses them. INDEX's general assertion that no north-star capability is removed does not supply the module boundary, launch-shim responsibility or certificate inventory required by the standing mixed-fat-object check. This is an omission in the proposed repair, not a request to redesign the accepted launch ABI.",
+   "fix": "Add this paragraph to the recommended normative diff for \u00a7\u00a710/12.3: \u201cIn a mixed fat object, native host code remains native. The host launch shim loads the selected marked ISA module and negotiates the token-alias binding feature with its runtime and scheduler. Execution derives token_aliases from the actual live handles supplied to that device invocation; tuple-based estimate and scheduling requests supply the partition explicitly. Alias-bearing schedules and certificate invocation records bind the selected module's object/closure identities and resolved device invocation, rather than treating the native host binary as one ISA object. Native entry points, argv/envp and unaffected host libc require no device token-alias entries; the alias-binding inventory covers the marked device closures and their invocations.\u201d"
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a710.1, legacy ABI paragraph: state \u201cAbsent an explicitly defined uniform-result certificate form, a legacy estimate request with token arguments and no alias binding returns E_ARG; the alias-aware function supports every consistent partition.\u201d Alternatively define a certificate form quantified over all consistent partitions now. I would use the E_ARG default for the legacy entry point and retain exact coverage through the new entry point.",
+  "\u00a715 and Conformance vectors: add a concrete Q witness. Use a memoryless oracle with body \u201clift.retval x\u201d and an action containing \u201coracle_call @identity a (x) t f () (); oracle_call @identity b (x) t f () ()\u201d. With a distinct primary token and all tuples equal, [0,1,1] must give a sole K65 carrier at the second call; [0,1,2] must give none. Both contexts remain valid. For the published CC witness, both args arrays hash to bf8eae8d885943f1948223391b24a677ec8eaefc4d39544bd6ed106277a211ed."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "Add B1's mixed-fat-object applicability paragraph to the proposed normative diff. No other blocking change is required.",
+ "summary": "The identity gap is real and the partition repair is sound. The cited clause numbers, fixture pin and catalog/hash premises check out, including INDEX's conditional publication caveat. Revise only for the mandatory mixed-fat-object applicability statement.",
+ "verdict_core": "accept"
+}

@@ -1,0 +1,104 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The equality partition preserves \u00a75.4 fresh-token semantics without exposing process-local identifiers. Forwarding and dynamic mint occurrences retain distinct meanings.",
+   "change": "No required change. Retain the proposed rule: \u201cA successful mint creates a fresh identity attached to that dynamic defining occurrence.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No opcode or instruction signature needs changing. The CC uncall witness agrees with \u00a7\u00a74.1/7.4; its four-versus-three forward source-step counts are correctly identified as derivations.",
+   "change": "In Recommended exact spec diff, state: \u201cThis repair changes invocation metadata, not the operand lists of oracle_call, action_call, call or uncall.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "\u00a75.3 explicitly requires token identities and tuples for matching. Preserving identities through captures and inverse traversal repairs the relevant K81 distinction without replacing identity equality by tuple equality.",
+   "change": "In Conformance vectors, add: \u201cReversing a mint revokes that occurrence\u2019s token; a subsequent mint of the same tuple produces a distinct identity and does not revive the revoked token.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Comparing aliases alongside params_hash closes the demonstrated scheduling ambiguity. However, the partition rule presupposes a primary token for actions, whose source calls have none.",
+   "change": "In \u00a7\u00a710.1/11, state: \u201cAction and permutation-action partitions contain only their token-typed arguments; an estimator\u2019s separately supplied budget token contributes no identity slot for an action.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "The additive ABI and separate source-binding metadata are appropriate. Action partition formation and the required mixed-fat-object application remain unresolved. K24 and K77 are accurately described.",
+   "change": "In \u00a7\u00a711/12.3, replace the blanket region rule with: \u201cOnly oracle invocations prepend their separate invocation-token identity; actions, permutation actions and CC/R entries list token parameters alone.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The INDEX partition checks pass. The debug reference CLI admits the originating fixture and reproduces object hash cda0f55ff3f299b165453ff9162b051ddf96856a799d22e09499c226bf35c011. The arithmetic checks do not execute token-sensitive CC or K81 behavior, which the note correctly discloses.",
+   "change": "In Conformance vectors, specify an action containing two successive calls to the one-row identity oracle through token arguments a and b, both at tuple (1,0,0,0): \u201cBoth invocations compose to identity; equal handles produce a K65 carrier at the second call, while distinct handles produce no matched-call carrier.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Every consistent alias pattern remains representable, and conditional bounds are not presented as completing exact estimation. However, neither this note nor the shared INDEX explains application to the mixed fat object required by the standing check.",
+   "change": "Add to Release and route: \u201cIn a mixed fat object, token partitions bind device invocations of the linked marked modules; native host-only code remains native and does not become part of the device certificate inventory.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Canonical labels, validation, nesting and hash boundaries are mostly clear. The old-ABI paragraph would benefit from a concrete default distinguishing an exact K12 result from a bound across partitions.",
+   "change": "In the ABI paragraph, state: \u201cThe default legacy behavior for requests containing token arguments without an explicit partition is E_ARG; callers obtain exact results through the new entry point. A bound across partitions is not a K12 exact estimate.\u201d"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff: partition ordering and no-token defaults; \u00a7\u00a710.1/11/12.3",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "Only oracle_call has a separate tk operand. action_call has mutable, input, memory and classical-argument lists, with no primary token.",
+     "by": "clause:ISA-4.7; clause:ISA-16.2"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The proposal instead prepends a separate token for region requests, says every region without token arguments has [0], and requires executors to derive partitions from actual live handles. Its no-separate-token exception names only CC/R entries.",
+     "by": "witness:docs/notes/2026-11-02-pass2/b-isa-spec-ysw.md:53-65"
+    },
+    {
+     "n": "<1>3",
+     "claim": "The published controlled-action fixture calls flip with no token operands. Its actual token list is empty, but the proposal's region default requires [0]. For an action with one token argument a, the same omission leaves no source rule deciding whether a hypothetical primary token aliases a, distinguishing [0,0] from [0,1].",
+     "by": "witness:conformance/fixtures/controlled-action-09/controlled.bisa; clause:ISA-4.7"
+    },
+    {
+     "n": "<1>4",
+     "claim": "Consequently, action invocation partitions cannot be derived consistently between source execution, estimation and certificate replay. The premise that every region invocation supplies a primary token is false; this affects mandatory binding arity and schedule matching.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "In \u00a7\u00a710.1/11/12.3 and both no-token defaults, state: \u201cFor an oracle invocation, list its separate invocation token first, followed by token-typed arguments in signature order. For an action, permutation action or CC/R entry, list only token-typed parameters in signature order. Budget fields do not create token identities. The separate budget token accepted by the estimation ABI contributes an identity slot only when the subject is an oracle.\u201d Correct examples: a token-free oracle has [0]; token-free controlled and flip actions have []; an action receiving a,b has [0,0] for one shared identity and [0,1] for distinct identities. Alternatively, define an explicit action context-token mechanism and its runtime propagation, but I recommend omitting the nonexistent primary identity because this preserves \u00a74.7 and source hashes."
+  },
+  {
+   "id": "B2",
+   "section": "Release and route; mixed-fat-object standing check",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The proposal changes launch support, invocation identity and certificate bindings, but neither it nor INDEX's publication section states how a native-host-plus-marked-device-modules fat object uses them. The general assertion that no North Star capability is removed does not supply the explicit mixed-object application required by the standing check.",
+   "fix": "Add to Release and route: \u201cA mixed fat object retains its native host binary and carries ISA objects and device certificates for marked device modules and their linked device closure. These token partitions are scoped to invocations of a loaded device program, not to the whole native binary. The launch runtime derives entry partitions from valid device token handles and preserves equality through device calls; serialization records equality classes only. Native host-only functions need no device certificate, and this repair does not require moving host entry points, argv/envp or the native libc closure into an ISA object.\u201d"
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "ABI compatibility paragraph: adopt the explicit default \u201cA legacy request with token arguments and no partition returns E_ARG; the new entry point supports every consistent partition.\u201d If retaining uniform legacy results, state instead: \u201cA K12 result returned through the legacy ABI must be exact for every consistent partition and carry an explicitly universal binding; a worst-case bound must use a separately identified result kind.\u201d I recommend the first route for this repair.",
+  "Hashes, catalog and consumers: add \u201cChanging launch/sched/cert versions in an object header changes object_hash even when symbol envelopes remain unchanged; regenerate object bindings and downstream certificate pins. Under an authorized feature-only repair with unchanged header/source bytes, object and symbol hashes remain unchanged, while modified schedule hashes and certificate bytes must be regenerated.\u201d The independently recomputed ref catalog envelope remains 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+  "Inverse-pair conformance: add \u201cAn entry with primary budget (2,0,0,0), argument-token tuple (2,0,0,0) and partition [0,0] does not cover primary budget (3,0,0,0) with that unchanged argument tuple: [0,0] is tuple-inconsistent, while [0,1] changes the certified partition.\u201d This makes the proposed preservation of equality constraints under budget coverage directly testable."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Define action partitions without an invented primary identity and update the ABI defaults and examples accordingly. 2. Add the explicit mixed-fat-object application paragraph. These are the two acceptance blockers; the remaining recommendations are discretionary.",
+ "summary": "The identity defect is real and the canonical-partition repair is sound in principle. Revise the false generalization that every region has a primary token, and explicitly preserve mixed-fat-object use. Tuple hashes and catalog-preservation claims check out subject to the stated publication route.",
+ "verdict_core": "accept"
+}

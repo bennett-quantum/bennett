@@ -1,0 +1,36 @@
+{
+ "run": "pass2-ysw-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-pass2/b-isa-spec-ysw.md",
+ "doc_sha256": "82f4ec6405430cd2d442a9f4f8aeb77145ae7270cb9eb8e742c6a068253d534e",
+ "prepared": "2026-11-02T09:13:30+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:13:30+00:00",
+   "updated": "2026-11-02T09:25:14+00:00",
+   "exit": 0,
+   "seconds": 704
+  },
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:13:30+00:00",
+   "updated": "2026-11-02T09:19:13+00:00",
+   "exit": 0,
+   "seconds": 343
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 second-pass contract-repair proposal note ysw (b-isa-spec-ysw; sol, 2026-11-02): token identity/alias relations missing from tuple-only K13/K12/schedule bindings. The document is the note itself, which carries its own exact spec diff; grade the proposal",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3b/task-pass2.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
