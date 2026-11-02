@@ -1,0 +1,61 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "R2-1",
+    "section": "\u00a78.5 Objective input binding; inherited \u00a7\u00a710\u201310.1 default launch-estimate contract",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "Launch estimates support every well-typed resolved argument vector, use \u00a711 defaults when no embedded schedule matches, and return an explicit effective schedule even for a default-only realisation.",
+      "by": "clause:ISA 0.9 \u00a710.1 Resolved request and Certificate binding, inherited by the proposed full-version publication"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The new rule requires ModelInputs in schedule.bindings whenever the target objective has model-resource terms. Missing required inputs permit no completed concrete schedule. The only new input transport is a setter on bennett_sched_request_t; bennett_estimate_run has no such input, and no default-estimate exception is stated.",
+      "by": "witness:docs/notes/2026-11-02-rev2/fd0.md:156; witness:docs/notes/2026-11-02-rev2/fd0.md:193; clause:ISA 0.9 \u00a710, bennett_estimate_run signature"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Use the worked resolved surface target with objective weighted model_cycle:1 and selector {model:\"surface\",node:\"algorithm\",metric:\"duration\"}. Request an otherwise supported launch estimate with no matching embedded schedule. Its operational fields are concrete, but the launch request cannot supply the required ModelInput. Legal explicit N=1 and N=3 inputs would select respectively 3/100000000 and 9/100000000 seconds.",
+      "by": "witness:docs/notes/2026-11-02-rev2/fd0.md, Worked serialized import; witness:spec/Bennett-ISA-Spec-0.9.md:2283"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The inherited obligation requires a default-schedule estimate, while the new binding rule prohibits completing that schedule without an input this request cannot carry. Returning incomplete-model-objective and returning the required default estimate are conflicting obligations. This needs a semantic request/default decision, beyond C-header enumeration.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "In \u00a710.1 add: \u201cA launch 0.10 estimate request additionally carries model_inputs JCS bytes governed by \u00a78.5. The implementation MUST copy and validate them. A default-only effective schedule MUST serialize exactly those inputs in bindings.model_inputs. An embedded schedule is applicable only when its ModelInputs also match the request after JCS. Every complete, well-typed resolved request, including its required ModelInputs, MUST be supported. Missing required ModelInputs produce incomplete-model-objective before an estimate is returned; no parameter or reservation is inferred.\u201d Expose these bytes through a versioned launch-estimate request or bennett_estimate_run_with_model_inputs, and update \u00a710.1's completeness statement accordingly. Add vectors: supplied N=3 \u2192 model objective 9/100000000 seconds and a schedule hash covering that input; supplied N=1 \u2192 3/100000000 and a distinct hash; missing required input \u2192 incomplete-model-objective; conflicting embedded input \u2192 use a correctly bound default schedule. Alternatively, explicitly exempt non-optimizing \u00a710.1 scheduled-leaf estimates from the ModelInput requirement, retaining their complete \u00a78.2 rows and checked certificate while leaving model objectives unresolved. I recommend explicit launch input transport. The ordinary scalar 0.9 API and its required demo estimates remain unchanged."
+   }
+  ],
+  "codex": []
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 4.0,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

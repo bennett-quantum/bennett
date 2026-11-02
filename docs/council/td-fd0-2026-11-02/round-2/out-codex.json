@@ -1,0 +1,105 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The insertion preserves the machine state and step relation. Its validation and infeasibility outcomes explicitly remain separate from ISA faults.",
+   "change": "No change required. Retain \u00a712.3: \u201cNo model output changes the object's instruction semantics.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction or operand semantics change. Operational destinations exclude quantum operations, interface widths and source budgets.",
+   "change": "No change required. Retain \u00a78.5's explicit operational-destination whitelist and prohibition on binding instruction semantics."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Model evaluation uses classical inputs. Physical risk remains separate from epsilon, channel bounds and oracle faults; positive model risk does not contradict an exact logical gate.",
+   "change": "No change required. Retain \u00a78.5: \u201cResults do not become permutation proofs, channel bounds, operator-norm bounds or oracle fault guarantees by appearing in a checked model report.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "The \u00a78.1\u2013\u00a78.3 defect citations are correct. Units, operational freezing, exact arithmetic, composition and shared reservations are specified coherently. The worked d=3/d=5 arithmetic reproduces. Cross-model conversion and local rebinding still lack a concrete acceptance example.",
+   "change": "In Conformance vectors add: \u201cAn invoke passing 10 ns to a non-operational algorithm parameter declared in microseconds binds the coefficient 1/100.\u201d A callee leaf lasting that parameter must contribute 1/100000000 seconds."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "ModelInput now binds objective parameters and reservations through schedule_hash. Reports identify variant, controls and invocation context. Full-version catalog migration matches \u00a7\u00a711.1 and 17 item 7. A complete serialized Report remains an acknowledged publication fixture obligation.",
+   "change": "In Worked serialized import add a complete target, schedule and containing certificate with recomputed identities, including one Report for N=3 and a rejection case attaching its unchanged outputs to the wrong invocation."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "check_rev2.py exited 0 with all eight PASS lines. Source/model hashes, rational arithmetic, reservation accounting and both catalog hashes reproduce. The script's limited coverage is accurately disclosed. Selector validation now agrees with the normative rule.",
+   "change": "Extend the publication fixture with complete Report outputs: duration 9/100000000 seconds, risk_charge 3/10000000, physical peak 50 and occupancy 9/2000000 physical-qubit seconds; validate these through independently implemented producer and checker paths."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The 0.9 bridge preserves \u00a710.1 padded estimates, including the demo ladder. The mixed-fat-object insertion explicitly preserves native host code and device-root report scope. The external premises are supported by Microsoft's parameterized QEC example and Qualtran's symbolic call graph: [Microsoft](https://quantum.microsoft.com/en-us/insights/blogs/modeling-quantum-architecture-with-azure-quantum-resource-estimator), [Qualtran](https://qualtran.readthedocs.io/en/latest/resource_counting/call_graph.html).",
+   "change": "No change required. Retain the consumer rule preserving complete 0.9 estimates and the \u00a712.3 statement that model reports assert no whole-native-program resource total."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Consumers can implement the specified arithmetic and accounting independently. Unsupported interpretation has an explicit obligation path rather than an invented value. The distinction between base-valued expression evaluation and source-unit binding coefficients could be stated more directly.",
+   "change": "In \u00a78.5 Operational bindings replace \u201cLet x be the exact quantity value times factor\u201d with \u201cLet x be the quantity's numeric coefficient in its declared Quantity.unit, multiplied by factor.\u201d The worked conversion remains 30 \u00d7 1/1000000000 = 3/100000000 seconds."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "FD0-1",
+   "status": "resolved",
+   "note": "The syntactic transitive operational dependency set freezes values across reports, ModelInputs and invokes regardless of parameter role."
+  },
+  {
+   "id": "FD0-2",
+   "status": "resolved",
+   "note": "Standalone subjects explicitly include variant and inherited_controls; scheduled subjects must match the actual context."
+  },
+  {
+   "id": "FD0-3",
+   "status": "resolved",
+   "note": "Missing selectors consistently produce validation errors; free dependencies with valid selectors remain symbolic."
+  },
+  {
+   "id": "FD0-4",
+   "status": "resolved",
+   "note": "Normal ref@0.10 publication, envelope changes and dependent rebinding are explicit; the stated 83cc9c17\u2026 catalog hash reproduces."
+  },
+  {
+   "id": "FD0-5",
+   "status": "resolved",
+   "note": "The \u00a712.3 insertion and shared statement delimit device objects, roots, inventories and native comparison while preserving native host code."
+  },
+  {
+   "id": "B1",
+   "status": "resolved",
+   "note": "Objective ModelInputs include parameters and reservations, participate in schedule_hash, and must be reproduced by certifying reports."
+  },
+  {
+   "id": "B2",
+   "status": "resolved",
+   "note": "The selector conformance vectors now distinguish malformed selectors, missing inputs and valid symbolic inputs."
+  },
+  {
+   "id": "B3",
+   "status": "resolved",
+   "note": "Mixed-fat-object report attachment is explicit and does not require whole-binary lowering or a host-shim implementation."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Worked serialized import / publication fixtures: add a complete target, schedule and containing certificate with actual recomputed hashes. State: \u201cFor d=5 and N=3, duration is 9/100000000 seconds, risk_charge is 3/10000000, physical peak is 50 and physical occupancy is 9/2000000 physical-qubit seconds.\u201d An otherwise numerically correct report attached to a different invocation/context must reject.",
+  "Conformance vectors / cross-model invokes: add a caller passing 10 ns to a callee's non-operational algorithm parameter t declared in microseconds, whose report-level default is 1. State: \u201cThe invocation binds t=1/100 and contributes 1/100000000 seconds; the callee's report-level quantity display retains its default value of 1 microsecond.\u201d This exercises the existing conversion and local-environment rules without changing them.",
+  "\u00a78.5 Operational bindings: state \u201cLet x be the quantity's numeric coefficient in its declared Quantity.unit, multiplied by factor.\u201d This makes the existing conversion rule immediately apparent: the example uses 30 \u00d7 1/1000000000 = 3/100000000 seconds."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are required. To raise C6 from 4 to 5, publish the complete bound target/schedule/Report fixture and independently check its outputs, wrong-context rejection and cross-model rebinding case.",
+ "summary": "Accept. All round-1 blockers are resolved: sol FD0-1 through FD0-5 and codex B1 through B3. No new S0 issue or regression was established. The cited import defect is real; arithmetic and identity witnesses reproduce. The 0.10 route preserves current 0.9 estimates, and the mixed-fat-object standing check passes. No false technical premise or misnumbered cited ISA clause was found.",
+ "verdict_core": "accept"
+}
