@@ -1,0 +1,74 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff changes certificate applicability and bindings, leaving machine state and the step relation unchanged. Its distinction between oracle outcomes and fault-free action interfaces agrees with \u00a7\u00a75.2\u20135.3.",
+   "change": "No machine-model change required; retain \u00a75.3: 'An action has no fault outcome of its own.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The H witness agrees exactly with \u00a74.4. The ownership, swapped-pair coverage, componentwise primary-budget bound and exact arg_tokens rules accurately quote \u00a74.5.",
+   "change": "No instruction change required; retain \u00a74.5's rule: 'Coverage requires the entry budget to be componentwise no greater than the instruction token tuple, and token-argument tuples to equal arg_tokens exactly.'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "H\u00b2=I does not establish a permutation assertion. The diff correctly separates structural claims from executable comparison claims and preserves numerical/channel, borrowed-system and inverse-pair obligations.",
+   "change": "Optional \u00a712.3 clarification: 'A structural adjoint-table claim establishes the source adjoint relation; it does not certify a target realisation or discharge a required numerical/channel claim.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "No target, resource or schedule rule changes. Under INDEX's authorized in-version route, \u00a79.2 excludes the changed certificate bytes from object identity. The 219-recipe catalog check reproduced the published envelope hash.",
+   "change": "Retain the publication qualification: 'Unchanged non-certificate hashes assume an authorized in-version repair with unchanged source envelopes; a full-version bump requires recomputing affected version-prefixed identities.'"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Both reported gaps exist in \u00a7\u00a79.2 and 12.3. K13 permits standalone structural relations, while the schema requires an oracle index and fault_rate. Owner-local indexing agrees with \u00a74.5; K63 and K65 do not transfer ownership. The required mixed-fat-object binding statement is missing.",
+   "change": "Add to \u00a7\u00a79.2/12.3: 'In a mixed fat object, certificate object and root bindings identify an embedded or linked ISA object and its device-region root; native-only code is not part of the regions inventory.'"
+  },
+  {
+   "id": "C6",
+   "score": 5,
+   "evidence": "The exact H-square/non-permutation check passes. The proposed positive and negative cases distinguish structural applicability, wrong owners, dangling references and invocation coverage without claiming an implemented packet checker.",
+   "change": "Optional \u00a715 vector: 'Accept an invocation-bound structural H certificate with verification.oracle=null and no fault_rate; reject that structural claim's index as verification.oracle, and never treat the absent census as zero faults.'"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The repair preserves general quantum actions and honest proof/evidence labels. However, neither 0jq nor INDEX states how the changed certificate roots and inventory serve native host code plus marked device modules, as the standing bennett-4ht check requires.",
+   "change": "Add the mixed-fat-object paragraph specified in B1, explicitly permitting separate certificates for multiple device roots without requiring the native host entry point to become an ISA region."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The repair is small and actionable, and its clause citations are accurate. Migration should explicitly cover the published fixture's root table claim as well as its numerical-only callee: both currently use oracle:null.",
+   "change": "In 'Hashes, catalog and consumers', state: 'For the controlled-action fixture, set the root verification.oracle to 0, retain null for the numerical-only flip record, and omit both action fault_rate placeholders.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff \u2014 \u00a7\u00a79.2 and 12.3; Defect and North Star scope",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The proposal changes certificate root identity and linked owner-record inventory but provides no mixed-fat-object application statement. INDEX's general no-narrowing assertion does not identify which embedded object/root these bindings name or explain that native-only code remains outside the region inventory. This fails the explicitly required bennett-4ht standing check against North Star \u00a7\u00a72, 3.3 and 4.4.",
+   "fix": "Append to \u00a712.3, cross-referenced from \u00a79.2: 'For a mixed fat object, these certificate bindings apply to each embedded or linked ISA object and its certified device-region root. object_hash identifies that ISA object; reference_program_hash identifies the interface of the oracle or action root selected by bindings.closure_hash. Neither field identifies the native host binary or its entry point. The fat-object certificate inventory may aggregate certificates for multiple device roots. Each composed regions map contains the relevant device-region owner records and checked linked-library proofs; native-only code requires no region record, oracle comparison, fault census or inverse-pair entry. These rules do not require lifting the native host or unmarked code.' Example: native main with marked device roots A and B carries certificates rooted at A and B, with their respective ISA-object bindings; main is not a required regions entry. No container encoding or launch implementation is required by this clarification."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "In 'Hashes, catalog and consumers' and the controlled-action conformance vector, state: 'The root record's exhaustive table claim is index 0, so verification.oracle is 0; the numerical-only flip record retains null; both action fault_rate placeholders are omitted.' An in-memory migration preserved object_hash 45bbb506541e3a8bb28a18e1bb0aef16ba01ee1e7cac74d5a190deb3ad36ef5a while changing certificate bytes.",
+  "In the final \u00a712.3 ownership sentence, preserve \u00a74.5's explicit timing: 'Before any effect of the enclosing CC/R region call, check covering owner entries for every transitively executed qinplace using its resolved token and classical arguments; failure is a CC trap or R FAULT_UB_TRAP.' This avoids suggesting that checking may wait until earlier instructions have already taken effect.",
+  "In \u00a712.3, make the action-field default explicit: 'For action and perm_action records, fault_rate is absent; nested oracle censuses belong to their oracle records.' Alternatively define a legacy empty action placeholder that asserts no census and discharges no obligation. Prefer absence, matching the proposed schema and avoiding an undefined action-owned recount."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Add B1's mixed-fat-object binding and inventory paragraph to the exact diff. This is the only blocking change; the fixture migration and wording suggestions are discretionary.",
+ "summary": "The cited defects, ownership premises, H witness and conditional unchanged-hash claims check out. No false technical premise or misnumbered citation was found. One mandatory mixed-fat-object contract statement is missing; the core is acceptable.",
+ "verdict_core": "accept"
+}
