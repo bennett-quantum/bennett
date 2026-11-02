@@ -1,0 +1,95 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff changes certificate reporting, leaving \u00a73 state and execution semantics unchanged.",
+   "change": "No change required to \u00a73."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The flip example uses valid \u00a74.7 calls. \u00a78.3 permits a native x entry covering total control counts 0 through 1.",
+   "change": "No change required to \u00a74."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Charging controlled operations independently of control-wire basis values is correct. Resource views do not modify the existing error-bound composition.",
+   "change": "Retain the proposed \u00a712.3 sentence: 'Error-bound multiplicities remain governed by their existing separate composition rule.'"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Per-context accounting and independent root aggregation address the real ambiguity. The integer witness is correct, but exact accounting without estimate lacks a rule for non-terminating rational values.",
+   "change": "In \u00a712.3 state: 'Whether or not estimate is present, resources values use \u00a710.1\u2019s canonical 34-significant-digit upward decimal encoding of the independently recomputed exact rational totals.'"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "\u00a712.1 supplies concrete keys and canonical ordering, including default-covered invocations; K77 confirms that budgets can differ within one variant/control-count pair. The remaining encoding problem changes checker verdicts.",
+   "change": "Apply RC-1\u2019s unconditional numeric-encoding rule to both resource_contexts records and their unkeyed projection."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The verification script passes and accurately limits its claims to arithmetic and document checks. The proposed negative cases are useful; the missing rational-value case exposes an undecided acceptance condition.",
+   "change": "Add a \u00a715 resource-context vector with native duration 1/3: each child time is exactly 1/3 and displays as '0.3333333333333333333333333333333334', including when estimate is absent."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The approach preserves repeated, controlled, default-covered and differently budgeted invocations. No cited clause is misnumbered or misquoted. Under the proposed in-version repair, \u00a79.2 confirms that certificate changes leave object and closure hashes unchanged; the catalog envelope hash also checks.",
+   "change": "Retain complete \u00a712.1 context coverage and the requirement to recompute legacy multi-context reports."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The proposal is compact and actionable. Caller ownership versus child footprint reporting would benefit from an explicit sentence; the published controlled-action fixture supports the note\u2019s footprint interpretation.",
+   "change": "Append to \u00a712.3: 'Displaying caller-owned interface and inherited-control wires in a child invocation\u2019s footprint neither transfers ownership nor creates an additional charge.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "RC-1",
+   "section": "Recommended exact spec diff \u2014 \u00a712.3 resource values and optional estimate",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "Target cost expressions admit division, and \u00a78.2 aggregates their exact rational values. The resource schema stores decimal values; \u00a710.1 supplies upward decimal encoding and exact-resource binding for estimates.",
+     "by": "clause:\u00a78.1; clause:\u00a78.2; clause:\u00a710.1; clause:\u00a712.3"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The proposed rule requires exact resource accounting for every context, leaves estimate optional, and invokes \u00a710.1 encodings only for an estimate in the record. It supplies no numeric encoding or comparison default for a non-estimate report with a non-terminating resource value.",
+     "by": "witness:docs/notes/2026-11-02-contract-checker-resource-contexts.md, Recommended exact spec diff"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Change the witness target\u2019s native duration to {\"op\":\"/\",\"args\":[1,3]} and omit estimate. Each child\u2019s exact time is 1/3; the root time is 2/3. Neither has a finite exact decimal representation. Reproduction: python3 -I -B -c 'from fractions import Fraction as F; print(F(1,3), 2*F(1,3))'.",
+     "by": "witness:python3 fractions arithmetic; clause:\u00a78.1"
+    },
+    {
+     "n": "<1>4",
+     "claim": "A checker comparing the reported decimal to the exact rational rejects every possible time value, while one extending K12\u2019s rounding convention accepts its upward encoding. The amended text must select that verdict; this is not merely an unspecified serialization layout.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "In \u00a712.3 add: 'For every resources map, including single-context maps, resource_contexts records and unkeyed projections, accounting is performed in exact rational arithmetic. Whether or not estimate is present, each reported value uses \u00a710.1\u2019s canonical 34-significant-digit upward decimal encoding. The checker compares that encoding with the encoding of its recomputed exact value, not the displayed decimal with the exact rational. When estimate is present, its reduced exact_resources fractions MUST also equal the recomputed values; K12\u2019s existing mandatory-estimate obligations remain unchanged.' Thus time 1/3 displays as '0.3333333333333333333333333333333334'; an included exact_resources entry is {\"numerator\":\"1\",\"denominator\":\"3\"}. A viable alternative is to require estimate whenever any total lacks an exact finite decimal representation, retaining exact decimal equality otherwise. I recommend the unconditional encoding rule."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a712.3: add 'Child reports include caller-owned interface and inherited-control wires as footprint views during that invocation; they do not create additional charges. Borrower charges replace the owner\u2019s charge during borrowed intervals.' The original flip footprints remain 1 and 2, and root occupancy remains 4. For one wire live over [0,2), borrowed over [0,1), with owner rate 1 and dirty rate 1/4, the combined occupancy is 5/4, not 9/4.",
+  "\u00a712.3: add 'For a single invocation, resource_contexts may be omitted; if present, it MUST contain exactly one matching record and its projection MUST equal the unkeyed fields. The root invocation\u2019s context_key is [].' This makes optional singleton records subject to the same validation as repeated-context records.",
+  "Conformance vectors: publish a serialized two-call fixture with derived concrete context keys. Require child (time, occupancy, peak) values (1,1,1) and (1,2,2), root values (2,4,2), and root x count 2; swapping, omitting or duplicating context records must reject."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "Add RC-1\u2019s numeric encoding and comparison rule, then include the duration-1/3 expected values in the conformance vectors. No core, object-identity, schedule or catalog change is needed.",
+ "summary": "The repeated-context defect is real, the worked integer costs are correct, and the identity/hash claims hold. One contract blocker remains: reports without estimate need a defined encoding and acceptance rule for exact non-terminating rational costs.",
+ "verdict_core": "accept"
+}
