@@ -1,0 +1,85 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff preserves \u00a75.6 K76/K78: interface and borrowed values remain independent and full, allocated locals receive only normative entry facts, and repeated visits contribute a union.",
+   "change": "No change required; retain K76/K78 unchanged."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction semantics change. The CX examples agree with \u00a74.4, and adjacent CX/MCX cancellation agrees with K78's primitive identity rule.",
+   "change": "No change required."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Restoration of B, independence of complete non-B outputs, exact +1 phase, internal release checks and complete D_F coverage establish the restricted tensor relation. Linearity extends it to entangled reference systems. The frame-boundary exception correctly permits surviving nonzero locals.",
+   "change": "No change required; preserve these hypotheses together."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Target and resource semantics remain unchanged. K75 supplies the existing unchecked outcome without imposing domain caps, and physical storage reuse does not merge logical lifetimes.",
+   "change": "No change required."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The expressibility defect is real: \u00a7\u00a712.1\u201312.3 provide neither exhaustive frame selection nor local entry components. The repair supplies those bindings, deterministic sampling and complete device-closure inventory obligations. Source-occurrence serialization remains schematic.",
+   "change": "In Conformance vectors, add one fully serialized, hash-bound single-CX claim. For the entry sequence qalloc c; qborrow b; cx c b; qreturn b; qfree c, use lifetime 0, first=last=entry:2, workspace allocation entry:0 with offset 0, width 1 and lo=hi=0, full one-bit borrowed range, and root context_key []; the expected result is proof with coverage 1."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The factorisation statement has sufficient hypotheses. check_rev2.py passed all eight result lines; independent checks confirmed both seeded rank-2 results, the causal-prefix example and six-element overlap. The conformance list does not distinguish incomplete-domain evidence from requested-proof rejection.",
+   "change": "In Conformance vectors, state: \"An otherwise successful exhaustive strict-domain slice receives evidence; it rejects when label:'proof' is requested.\" For c=0 and B={0}, the expected exhaustive count is 1 and coverage is 1/2; adding the proof request rejects."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The proposed \u00a712.3 paragraph passes the mixed-fat-object standing check: claims cover the launched device closure, including default-covered calls, while native main and host-only code remain outside its inventory. The shared statement names the remaining boundary contracts without making their absence a source restriction.",
+   "change": "No change required."
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "Enumeration, union deduplication, random-word consumption, auxiliary B-fiber replay, primary coverage, invocation binding and host-limit behavior are implementable. Under the explicitly authorized in-version route, \u00a79.2 excludes certificate metadata from object_hash; source envelopes and schedule bytes are untouched. The catalog check returned the published 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197 hash.",
+   "change": "No semantic change required; retain the publication-route qualifications and old-reader upgrade requirement."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "sol:B1",
+   "status": "resolved",
+   "note": "Union-rank rejection sampling now fixes tuple selection and generator consumption; both published seeds select rank 2."
+  },
+  {
+   "id": "sol:B2",
+   "status": "resolved",
+   "note": "The normative \u00a712.3 attachment paragraph explicitly limits the inventory to the launched device closure."
+  },
+  {
+   "id": "codex:B1",
+   "status": "resolved",
+   "note": "The revision defines union sampling, complete claimed B-fiber replays without random words, and primary-tuple coverage."
+  },
+  {
+   "id": "codex:B2",
+   "status": "resolved",
+   "note": "Device objects, closure-relative occurrences and invocation contexts are bound explicitly; native host code requires no borrow-proof inventory."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Defect and North Star scope: replace the K69/K70 sentence with: \"K69/K70 resolves bundles and regions to interface components, with positional prepended inherited controls, and borrowed entries to lifetime positions; none selects allocated local frame-entry wires.\" The current word 'only' overlooks K69's inherited-control exception; this does not invalidate the expressibility defect.",
+  "Conformance vectors: state: \"Missing B values or narrowed interface ranges prevent proof, but an otherwise successful exhaustive slice receives evidence unless proof was requested.\" For the c=0 frame with B={0}, expect count 1, coverage 1/2 and evidence; label:\"proof\" changes that result to rejection.",
+  "Conformance vectors: publish the complete single-CX certificate described under C5, with actual object/closure hashes and concrete occurrence records. Its two entries must be (c,b)=(0,0),(0,1), both unchanged with phase +1, yielding proof and coverage 1."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable as the proposed authorized 0.9 K repair. To raise C6 from 4 to 5, give explicit expected outcomes for incomplete-domain vectors, distinguishing evidence from rejection of a requested proof.",
+ "summary": "All four round-1 blockers are resolved: sol B1/codex B1 by deterministic union sampling and fiber replay, and sol B2/codex B2 by the normative mixed-object attachment rule. The defect is real, the repair is sound, and no new S0 or regression was found. K69's inherited-control exception warrants a wording correction. Finite and catalog checks passed; no proposed-format checker implementation is claimed.",
+ "verdict_core": "accept"
+}

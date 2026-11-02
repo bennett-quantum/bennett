@@ -1,0 +1,84 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff preserves \u00a75.6 K76/K78: interface and borrowed values remain independent, local constants come from the normative analysis, and repeated visits contribute a union.",
+   "change": "No change required; retain the stated K76/K78 domain and lifetime rules."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction semantics change. The CX examples and CX/MCX cancellation agree with \u00a7\u00a74.4\u20134.6 and K78.",
+   "change": "No change required; retain the existing primitive-operation identities."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Complete non-B output independence, B restoration, exact +1 phase and internal release checks establish the restricted tensor relation. Linearity preserves external correlations. The explicit allowance for surviving nonzero locals correctly distinguishes frame boundaries from region exit.",
+   "change": "No change required; retain all complete-output, phase and release obligations."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Target and resource semantics remain unchanged. Logical lifetimes remain distinct despite storage reuse, and K75 handles checker exhaustion without imposing a domain cap.",
+   "change": "No change required; retain the explicit K75 outcome and logical-lifetime distinction."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The expressibility defect is real under \u00a7\u00a712.1\u201312.3. The repair supplies frame/workspace selection, standalone invocation binding, scheduled context selection, deterministic union sampling and complete proof inventory. Primary-draw coverage is distinguished from auxiliary B replays.",
+   "change": "No change required; retain the union-rank sampler and explicit invocation bindings."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The factorisation statement has sufficient hypotheses. check_rev2.py passed all eight result lines; independent checks also confirmed the causal-analysis examples, tensor relation and overlap order. The supplied script checks Boolean cancellation but does not itself exercise K76's causal stacks.",
+   "change": "In Conformance vectors and check_rev2.py, add a direct causal-stack vector stating: 'Starting with c=0 and a,x unknown, cx a c; mcx (a) c establishes c=0, whereas cx a c; cx x c; cx a c; cx x c leaves c unknown.' Require the subsequent CX(c,b) frame to receive proof in the first case and reject in the second."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The proposed \u00a712.3 paragraph attaches claims to the launched device closure, includes default-covered calls, and excludes native main and host-only code. The shared statement names the remaining mixed-launch boundary obligations without removing capabilities.",
+   "change": "No change required; retain the normative attachment paragraph and shared boundary statement."
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "Replay, maximality, context scope, overlap handling and checker outcomes are implementable. The hash claim agrees with \u00a79.2's exclusion of certificates from object_hash and unchanged source envelopes. INDEX and the publication section correctly qualify the K route and require consumer upgrades.",
+   "change": "No change required; preserve the publication-route qualification alongside the unchanged-hash claim."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "sol B1",
+   "status": "resolved",
+   "note": "Union-rank sampling fixes enumeration, rejection sampling, word consumption and distinct-primary coverage; the supplied seed selects rank 2 and rejects CX(c,b)."
+  },
+  {
+   "id": "sol B2",
+   "status": "resolved",
+   "note": "The normative \u00a712.3 addition explicitly attaches borrow claims to device closures and excludes native host inventory."
+  },
+  {
+   "id": "codex B1",
+   "status": "resolved",
+   "note": "The revision specifies complete claimed-domain B-fiber replays without additional random words; the second seed and its expected rejection reproduce."
+  },
+  {
+   "id": "codex B2",
+   "status": "resolved",
+   "note": "Closure-relative occurrences, lifetimes, invocation contexts and default-covered calls are explicitly covered in mixed fat objects."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Conformance vectors/check_rev2.py: add a direct K76 causal-stack test with the rule and expected outcomes stated under C6. The existing algebraic assertion confirms that the interleaved prefix computes zero, but does not test why the normative entry analysis must nevertheless retain both c values.",
+  "Seeded sampling witness: add the successful counterpart: 'For CX(c,b); CX(d,b), either listed seed with count=1 yields evidence, primary count 1, distinct primary count 1 and coverage 1/4; replaying the second B value does not increase coverage.' This complements the existing seeded rejection vector."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes remain. To raise C6 from 4 to 5, add the direct K76/K78 causal-stack conformance vector and its expected frame verdicts.",
+ "summary": "Accept. sol B1, sol B2, codex B1 and codex B2 are resolved. The defect and cited clauses are accurate; no new S0 issue or regression was found. The supplied checks passed, and independent finite checks confirmed the central witnesses. Hash stability is correct under the explicitly qualified in-version publication route.",
+ "verdict_core": "accept"
+}
