@@ -1,0 +1,36 @@
+{
+ "run": "contract-checker-fault-rate-2026-11-02",
+ "round": 2,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev/checker-fault-rate.md",
+ "doc_sha256": "7a4c4e39e5c61b0d49e318c79a2a5add98372e0474abcdab4b91631c1d3ae84a",
+ "prepared": "2026-11-02T10:05:38+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:05:38+00:00",
+   "updated": "2026-11-02T10:11:33+00:00",
+   "exit": 0,
+   "seconds": 355
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:05:38+00:00",
+   "updated": "2026-11-02T10:10:30+00:00",
+   "exit": 0,
+   "seconds": 292
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal checker-fault-rate, round 2 full revision (checker fault_rate semantics; sol-contract-rev, 2026-11-02)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/task-r2-checker-fault-rate.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

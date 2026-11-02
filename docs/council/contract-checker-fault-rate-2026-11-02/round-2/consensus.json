@@ -1,0 +1,40 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "CFR-3",
+    "section": "Recommended exact spec changes (\u00a712.3), Exclusion evidence and default validation, final artifact-delivery paragraph",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The claim that artifact delivery can use 'existing certificate attachments' is false. ISA 0.9 \u00a79.1 enumerates a closed object/metadata schema and makes unknown sections or fields errors; \u00a712.3 defines no attachments field or transport. The proposal introduces a replay obligation but attributes its delivery mechanism to an existing contract that does not supply it. This is a false existing-coverage premise under convergence rule 1, rather than a request for field-level encoding completeness.",
+    "fix": "Replace that paragraph with: 'ISA 0.9 defines no certificate-attachment transport. This repair introduces a separate checker input bundle containing the certificate and the required content-addressed artifacts. By default, classifier and input-map blobs are supplied outside the ISA object and certificate schemas; artifact_hash and input_map_hash are SHA-256 of their exact raw bytes. The checker verifies those digests before replay. Missing required blobs make the exclusion report unchecked; mismatched digests reject it. Other transports MAY supply the identical addressed bytes.' Existing materialisation, program, native-build and domain binding obligations still apply. Alternatively, explicitly introduce a new certificate attachments member and its default interpretation in \u00a7\u00a79.1/12.3; I recommend the external bundle because it avoids another metadata extension. For the synthetic fixture, valid supplied artifacts reproduce undefined_excluded=\"64\"; absent artifacts leave that exclusion report unchecked while the independent F_B recount may still verify faults_by_code={\"1\":\"256\"}."
+   }
+  ],
+  "codex": []
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 5.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}
