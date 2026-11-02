@@ -1,0 +1,64 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The \u00a712.3 addition concerns checker diagnostics only; it changes no machine state or transition rule.",
+   "change": "None required; retain \u00a73 unchanged."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction, operand, well-formedness condition or cost hook changes.",
+   "change": "None required; retain \u00a74 unchanged."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The proposal correctly distinguishes checker rejection from \u00a75.4 fault outcomes and \u00a710 API statuses. Its diagnostic convention cannot change the oracle map.",
+   "change": "None required; retain the proposed \u00a712.3 rule that diagnostic spelling does not alter verdicts or executor status/fault codes."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The explicit exception preserves \u00a711's E_SCHEDULE_INFEASIBLE obligations and K55's diagnostic and validation stages. Target matching and accounting remain unchanged.",
+   "change": "None required; retain \u00a711 K55 unchanged."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "\u00a712 contains no E_CERT registry. The addition preserves existing certificate schemas and mandatory rejection rules. \u00a79.2 identity inputs and \u00a711.1 catalog bytes are untouched; independently recomputing the 219-recipe catalog envelope reproduced the published hash.",
+   "change": "None required; apply the addition without changing certificate fields, versions or canonical encodings."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "A's rejection follows directly from \u00a712.1 K13's mandatory explicit expected relation; B's follows from \u00a712.2 K71's uniqueness requirement. These are sound clause derivations, but A/B are descriptions rather than replayable fixtures. The note accurately discloses that no checker test was run.",
+   "change": "In 'Conformance vectors and verification', state: 'Starting from an otherwise valid standalone exhaustive table certificate, A deletes expected; B duplicates a domain.bundles entry resolving to the same interface slot, retaining the invocation and table. A rejects under \u00a712.1 K13; B rejects under \u00a712.2 K71; neither has a mandated local diagnostic spelling.' Publish the baseline and both mutations."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "North Star \u00a7\u00a74.4/5.1 requires independently checkable certificates and honest verification labels, not universally spelled checker diagnostics. No promised capability or demo rung is narrowed.",
+   "change": "None required; retain the distinction between independent verification and optional diagnostic interoperability."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The proposed exception for mandated diagnostics is clear and implementable. The note could more explicitly distinguish its SHOULD reporting guidance from existing mandatory \u00a712.2 report obligations and portable conformance assertions.",
+   "change": "Append to \u00a712.3: 'This diagnostic convention does not relax \u00a712.2's mandatory claim-report bindings, proof/evidence outcomes, or unchecked (host limit) reporting.'"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Note, 'Conformance vectors and verification': replace 'assert rejection and the normative clause' with 'Portable tests assert the required rejection verdict; if clause/location reporting is supplied, validate it. Checker-specific tests may additionally assert documented local codes.' This avoids turning the proposed SHOULD into an unstated portable MUST.",
+  "\u00a712.3: add 'This diagnostic convention does not relax \u00a712.2's mandatory claim-report bindings, proof/evidence outcomes, or unchecked (host limit) reporting.' Expected boundary: a legal claim that exceeds host capacity remains unchecked (host limit), rather than becoming a domain rejection.",
+  "Note, 'Alternatives and concrete witness': publish an otherwise valid baseline table certificate and two independent mutations: A removes expected; B duplicates one resolved interface component in its domain. Expected results are rejection under \u00a712.1 K13 and \u00a712.2 K71 respectively; local code spelling remains unconstrained."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable. To raise C6 from 4 to 5, publish the valid baseline certificate and the two isolated A/B mutations with the stated rejection expectations.",
+ "summary": "Accept the optional editorial clarification. No false technical premise or misnumbered cited clause was found. Mandatory verdicts, K55 diagnostics and validation stages remain intact; canonical-byte rules and catalog identity remain unchanged.",
+ "verdict_core": "accept"
+}
