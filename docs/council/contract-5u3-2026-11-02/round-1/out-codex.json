@@ -1,0 +1,65 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "Both drafts\u2019 \u00a75 specify the reference analysis exactly. \u00a75.1 bounds INT atoms, not pointer-offset cardinality. The proposal preserves that abstract machine rather than introducing another analysis domain.",
+   "change": "No change required. Retain \u00a724\u2019s sentence: \u201cTime or memory caps do not alter that result.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The proposed acceleration respects PT2/PT5 modular arithmetic and explicitly preserves PT2\u2019s index width and high pointer bits, consistent with \u00a716.4. It changes no instruction or lowering row.",
+   "change": "In Conformance vectors, add: \u201cFor P=16, I=8, pointer 0x12f8 and GEP displacement +8, the result is 0x1200, not 0x1300.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The memory-acceleration condition requires identical PT6\u2013PT8 results and retains representation widths and ROOT alternatives. This preserves \u00a76.2 partial-handle rejection and \u00a76.4 containment; numerical out-of-range alternatives do not independently establish host escape.",
+   "change": "In \u00a75.2\u2019s proposed memory paragraph, add: \u201cA symbolic copy relation must preserve every source/destination alternative required by PT8; it must not introduce correlation absent from the reference analysis.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Implementation resource exhaustion remains distinct from reference execution budgets and faults. The exact least fixpoint is the stated default; no target resource or runtime fault rule changes.",
+   "change": "In the proposed \u00a724 addition, add: \u201cAn implementation-resource limit is not a region execution budget and contributes no reference fault outcome.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The literal \u00a75/\u00a724 additions change no canonical lifting rows, ISA envelopes or catalog entries. However, the certificate-byte claim needs qualification for publication: \u00a719.9 records the build-record hash in producer.version, and \u00a7\u00a719.9/23 bind mapping metadata.",
+   "change": "In Hashes, catalog and consumers, state: \u201cWith ISA, map, normaliser, layout and build metadata unchanged, this clarification changes no canonical reference object or catalog bytes. A publication that changes dialect flags, mapping identity or build metadata updates the corresponding certificate fields and consumer pins; certificate byte identity is not promised across that publication.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The finite-group closure claim is correct under the stated unfiltered translation hypotheses. Independent checks passed all 65,536 W=8 stride/seed pairs and 1,000 multi-vertex SCC cases in two worklist orders. The note\u2019s supplied checker covers only the simpler orbit witnesses.",
+   "change": "In Conformance vectors, add: \u201cFor W=8, seed A with 0 and use edges A\u2192B:+3 and B\u2192A:+5. The exact result is A={0,8,\u2026,248}, B={3,11,\u2026,251}; neither vertex contains all offsets.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The proposal follows the binding scope position: it authorizes no verdict-changing widening, source restriction or reduced SQLite substitute. Practical convergence and rung-4 delivery remain explicitly unverified.",
+   "change": "No change required. Retain Release and after acceptance\u2019s sentence: \u201cNo new source restriction is authorized by this note.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The proposal supplies usable conditions and an exact fallback without claiming a general SQLite accelerator. Its progress-file attribution is stale: the current PROGRESS.md was rewritten and no longer reports the quoted plateau, although trace-k.log independently supports it and the reported timeout.",
+   "change": "In Plugin evidence actually inspected, replace the progress-file attribution with: \u201cThe retained trace-k.log reports 177381 slots at round 7 and round 39, followed by PT8/PT9/PT12 resource exhaustion at sqlite3CreateForeignKey, exit 1, wall 3401.31 seconds; the current PROGRESS.md has since been rewritten.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Recommended exact spec diff, \u00a75.2: make the multi-vertex construction explicit: \u201cFor edges u\u2192v labelled d_uv, choose root-to-vertex path displacements p_v and let g=gcd(2^W,{p_u+d_uv\u2212p_v}). A seed a at u contributes {a\u2212p_u+p_v+kg mod 2^W} at v. Union contributions from all seeds.\u201d This computes the subgroup from cycle displacements, not individual edge strides. The alternative is to retain the current exactness obligation and original-rule fallback; I prefer the explicit formula. For A\u2192B:+3 and B\u2192A:+5, seed A=0, the expected residues are A=0 mod 8 and B=3 mod 8.",
+  "Conformance vectors: add concrete negative and memory expectations: \u201cWith W=8, seed 0 and transfer o\u2192o+8 enabled only for o<16, closure is {0,8,16}, not the full residue class. Copying a complete handle slot [0,8) to [16,24) preserves its ROOT provenance without adding ROOT to a disjoint integer slot [8,16); a subsequent partial handle read [17,21) remains BD-E-HANDLE-USE.\u201d These exercise the acceleration\u2019s exclusions, which the supplied arithmetic checker does not test.",
+  "Hashes, catalog and consumers: distinguish a representation-only clarification from publication metadata changes using the sentence proposed under C5. Keep map versions 0.2.9 and 0.3 unchanged for this clarification. If a separate publication changes full dialect versions or mapping metadata, update driver/plugin version checks, producer flags and certificate metadata under \u00a7\u00a719.9/23; do not describe those regenerated certificates as byte-identical.",
+  "Plugin evidence actually inspected: use trace-k.log as the direct citation for the plateau and timeout, as proposed under C8. Preserve the sentence that these measurements establish neither exact convergence nor the cause of all remaining growth."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable as a representation-only K clarification. To raise C6 from 4 to 5, add the explicit multi-vertex construction and checked multi-vertex, filtered-cycle, partial-width GEP and memory-overlap vectors with the expected results above.",
+ "summary": "Accept. The cited analysis clauses support the main premises, and the acceleration is sound under its stated hypotheses and exactness requirement. No verdict-changing cap or new source restriction is authorized. Canonical object/catalog invariance holds for the literal diff; publication metadata needs more careful wording. SQLite convergence remains implementation work.",
+ "verdict_core": "accept"
+}
