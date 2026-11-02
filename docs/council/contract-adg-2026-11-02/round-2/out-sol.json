@@ -1,0 +1,111 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The proposed \u00a7\u00a77.1/7.3 additions correctly distinguish program-lifetime memory and devices from per-run entropy position and tapes. However, shared device state is outside \u00a710's stated register/memory ownership rule.",
+   "change": "In \u00a77.3, add: \"The console sequence, clock counter and block sector map are exclusive program-state resources subject to the run ownership rules of \u00a710.\" Specify acquisition and conflict handling as in adg-R2-B1."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The memory examples follow \u00a77.1 exactly, including pinned globals, monotonic allocation, dead entries and table exhaustion. The device vectors follow \u00a77.3's byte, cursor and sector-presence rules.",
+   "change": "Optional \u00a715 addition: \"If A frees address 16 before closing, B still allocates at 17; the dead entry at 16 remains in the allocation table.\""
+  },
+  {
+   "id": "C3",
+   "score": 3,
+   "evidence": "Sequential reversal and T4's quantum qualifications are handled correctly. With multiple open runs, the newly shared clock/console state can be changed by another run before eligible reversal, contradicting \u00a7\u00a77.3/10 and T4.",
+   "change": "In \u00a710, state: \"Ownership of a program-lifetime device model lasts until CLOSED, including while the owning run is COMPLETED, FAILED or REVERSED.\" Add the acquisition/conflict rule in adg-R2-B1."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The diff changes no target capability, resource formula, expansion recipe or budget tuple. Persistent allocation consumption preserves existing limits.",
+   "change": "Optional \u00a715 addition: \"After allocations at 16, 17 and 18 across CLOSED runs, the next allocation faults with code 2; bump remains 19 and memory and table entries are unchanged.\""
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Register and token lifetimes agree with \u00a7\u00a73.3/5.4/10. Under the explicitly conditional in-version repair, \u00a79.2's canonical bytes and envelope inputs remain unchanged. Launch isolation is incomplete for the new program-shared devices.",
+   "change": "In \u00a710, add: \"A launch conflicting with another non-CLOSED run's device-model ownership returns E_INVALID_STATE before execution or ownership acquisition.\" Define the model set as in adg-R2-B1."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The sequential lifecycle vectors are precise and derivable. I reran the existing witness binary and reproduced all five expected lines; its source matches the note. This was not a fresh rebuild or repeated-launch ABI test. No overlapping-run vector checks the new sharing rule.",
+   "change": "Add to \u00a715: \"With A COMPLETED but not CLOSED and owning the clock, a conflicting B launch returns E_INVALID_STATE without effects. After A closes, B reads 1; if A reverses before closing, B reads 0.\""
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The accepted bennett-4ht paragraph is carried verbatim. Its extension correctly scopes console/clock/block state to the retained device instance and excludes unrelated native host I/O. The shared scope names the remaining container, launch and memory-mapping obligations. No North Star capability is removed.",
+   "change": "No change required. Retain the accepted paragraph verbatim and the sentence: \"The new console/clock/block rule has the same device-instance scope; its per-run tapes cover device R effects, not unrelated native host I/O.\""
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The additions have valid anchors and clearly separate load, run, close and reversal. The \u00a73.2/\u00a73.3 citation is now correct. The assertion that unchanged ownership rules suffice is false for shared device models.",
+   "change": "Replace \u00a710's final concurrency sentence with: \"Concurrent runs require disjoint register, memory and program-lifetime device-model ownership sets; entropy positions and effect tapes remain per-run.\""
+  }
+ ],
+ "blocking": [
+  {
+   "id": "adg-R2-B1",
+   "section": "Recommended exact spec diff: \u00a7\u00a77.3 and 10; interaction with \u00a714.3 T4",
+   "scope": "core",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "A clock read increments c, and its reversal decrements c. An eligible COMPLETED run must reverse to its entry device-model state. Section 10's ownership and reverse-eligibility conditions name registers and memory, without making the clock counter an owned resource.",
+     "by": "clause:ISA \u00a77.3 clock row; clause:ISA \u00a710 States; clause:ISA \u00a714.3 T4"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The amendment makes c shared by all runs of a loaded program, preserves the existing ownership conditions and expressly preserves disjoint concurrent runs.",
+     "by": "witness:docs/notes/2026-11-02-rev3/adg.md, Recommended exact spec diff, \u00a7\u00a77.3/10 additions"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Use two disjoint live eight-byte globals and no quantum registers. A reads the clock into its buffer and reaches COMPLETED but remains open. B reads the clock into its other buffer, completes and closes. A then reverses. No stated register/memory ownership or reverse-eligibility condition excludes this sequence.",
+     "by": "clause:ISA \u00a7\u00a77.3/10; witness:ABI sequence bennett_run(A), bennett_wait(A), bennett_run(B), bennett_wait(B), bennett_run_close(B), bennett_reverse(A)"
+    },
+    {
+     "n": "<1>4",
+     "claim": "Starting at c=0, A leaves c=1, B leaves c=2, and A's prescribed reversal leaves c=1 rather than A's entry value 0. The analogous console sequence A writes a5, B writes 5a, close B, reverse A pops B's byte and leaves A's byte.",
+     "by": "witness:python3 -c 'c=0; c+=1; c+=1; c-=1; print(c)' outputs 1; clause:ISA \u00a77.3 console and clock reversal rows"
+    },
+    {
+     "n": "<1>5",
+     "claim": "The amended text therefore permits an eligible reversal that contradicts its explicit entry-state restoration guarantee. Atomic effects and separate effect tapes do not isolate the shared model state.",
+     "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+    }
+   ],
+   "problem": "",
+   "fix": "In \u00a7\u00a77.3/10, extend isolation to the newly shared models. Recommended rule: \"At bennett_run, the run atomically acquires exclusive ownership of every console, clock and block model referenced by its entry's transitive CC/R call closure. Ownership lasts until CLOSED, including while COMPLETED, FAILED or REVERSED. If any required model is owned by another non-CLOSED run, bennett_run returns E_INVALID_STATE before executing the entry or acquiring ownership. Entropy positions and effect tapes remain per-run. Disjoint concurrent runs require disjoint model ownership sets as well as the existing register/memory conditions.\" Clarify \u00a714.3: \"Restoration concerns the run-owned state; state belonging exclusively to disjoint runs is unaffected.\" Add a \u00a715 vector: after A reads clock 0 and completes without closing, B's conflicting launch returns E_INVALID_STATE, c remains 1 and B has no effects; after A closes, a new B reads 1, or reads 0 if A first reversed. A viable alternative is dynamic per-model ownership acquired at the first effect, retained until CLOSED, with a conflicting effect producing atomic terminal code 4; that alternative also needs an explicit \u00a74.9 mapping. I recommend launch-time acquisition because it uses the existing launch-conflict status and prevents partial execution before discovering a model conflict."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "adg-M1",
+   "status": "resolved",
+   "note": "Muse's \u00a77.3 paragraph is present verbatim, \u00a710 is scoped to program-lifetime state, and the required sequential device/entropy vectors are specified."
+  },
+  {
+   "id": "adg-4HT-1",
+   "status": "resolved",
+   "note": "The accepted paragraph is verbatim and correctly extended to device-instance state and per-run device effects."
+  }
+ ],
+ "regressions": [
+  "The new program-shared device-state rule introduces reversal interference between runs with disjoint classical buffers unless device-model ownership is added (adg-R2-B1)."
+ ],
+ "suggestions": [
+  "In \u00a715 suite G, promote the note's allocator boundary examples into explicit vectors: freeing 16 does not prevent B allocating 17; after heap allocations at 16, 17 and 18, the next allocation faults with code 2 and leaves bump=19, bytes and table unchanged."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Add explicit ownership acquisition, retention and conflict behavior for shared console/clock/block models. 2. Align the concurrency sentence and T4 restoration scope with that ownership. 3. Add the overlapping-open-run clock vector to \u00a715. The existing sequential vectors and accepted fat-object statement can remain.",
+ "summary": "adg-M1 is resolved, and adg-4HT-1 remains resolved. The corrected citations, sequential results and conditional unchanged-hash claim check out. One new core S0 remains: shared device models lack isolation between open runs, allowing eligible reversal to contradict T4.",
+ "verdict_core": "revise"
+}

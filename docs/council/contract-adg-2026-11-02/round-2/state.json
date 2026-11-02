@@ -1,0 +1,36 @@
+{
+ "run": "contract-adg-2026-11-02",
+ "round": 2,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev3/adg.md",
+ "doc_sha256": "dd9ce43076f14aa0a6c33d2ad0914fd4adc66633140a74447c5219bf971f7154",
+ "prepared": "2026-11-02T10:47:54+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:47:54+00:00",
+   "updated": "2026-11-02T10:54:36+00:00",
+   "exit": 0,
+   "seconds": 401
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T10:47:54+00:00",
+   "updated": "2026-11-02T10:55:24+00:00",
+   "exit": 0,
+   "seconds": 449
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal adg, round 2 full revision resolving Muse adg-M1 (sol-adg-rev)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3d/task-r2-adg.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
