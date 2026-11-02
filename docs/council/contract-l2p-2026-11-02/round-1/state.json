@@ -1,0 +1,36 @@
+{
+ "run": "contract-l2p-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-contract-l2p.md",
+ "doc_sha256": "ec16084f8a5b3cf8b761443275179461c2af8062ba499961c3d5548434b20e73",
+ "prepared": "2026-11-02T09:35:27+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:35:27+00:00",
+   "updated": "2026-11-02T09:47:53+00:00",
+   "exit": 0,
+   "seconds": 746
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:35:27+00:00",
+   "updated": "2026-11-02T09:46:28+00:00",
+   "exit": 0,
+   "seconds": 660
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal note l2p (temporary AND and measurement-assisted cleanup; bead b-isa-spec-bwm, P1 north-star gap; sol-contract, 2026-11-02)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/task-l2p.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

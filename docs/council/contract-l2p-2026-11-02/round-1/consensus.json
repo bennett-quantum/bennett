@@ -1,0 +1,94 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "B1",
+    "section": "Recommended exact spec diff: \u00a7\u00a76.2, 6.4 and 11/K65\u2013K81",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The closed-window exception does not reconcile the remaining source rules with its proposed realisation. \u00a76.2 still requires each cleanup\u2019s external input versions to be current. \u00a711/K81 forms source pairs using \u00a7\u00a75.3 and 6.2 before selecting realisations, and \u00a711 retains source dependency ordering. The new text permits closed windows but neither identifies a legal earlier source cleanup as the reference nor expressly permits its relocation across those dependencies. This problem exists even without the optional clean-isometry extension: d=qcopy a; h a; quncopy a d cannot form the required source pair after H changes a. Its literal late inverse also supplies the wrong reference: on initial a=d=0 it produces (|00>+|11>)/sqrt(2), so d is one with probability 1/2. The desired measurement-assisted realisation instead produces |+>_a|0>_d. The exact helpers in docs/notes/2026-11-02-contract-verification.md reproduce these states as flip(hadamard(flip({0:ONE},1,(0,)),0),1,(0,)) and hadamard(flip(flip({0:ONE},1,(0,)),1,(0,)),0), respectively. The mechanism needs to decide which source operation is being implemented and how its delayed cleanup remains selectable.",
+    "fix": "In \u00a7\u00a76.2 and 11 add: \u201cA measure_fixup witness binds a well-formed source computing/cleanup pair at its original K65 carrier and an explicit later realised cleanup location. Source pairing uses the original legal source versions. The witness MAY delay that cleanup across identified intervening operations, extending workspace lifetimes and replacing the corresponding scheduling dependency edges. The checker verifies the complete realised region channel against the unchanged well-formed source region, including all interface wires, inherited controls, borrowed systems and clean workspace restoration. The current-version and window restrictions remain mandatory for reverse/recompute; the checked relocation rule governs measure_fixup.\u201d Give this corrected example: reference source d=qcopy a; quncopy a d; h a; realised sequence d=qcopy a; h a; X-measure d; apply H_a Z_a^m H_a=X_a^m; reset/release d. Each branch operator on a is H/sqrt(2), and input zero finishes as |+>_a with d clean. For the AND example, use reference C; cx g y; C\u2020; release g; h a, whose interface operation is H_a CCX(a,b;y); the delayed realisation uses H_a CZ(a,b)^m H_a. Alternatively, introduce an explicit transported logical-cleanup source operation with a defined unitary reference and amend source pairing and grammar accordingly. I would take the legal-source/checked-relocation approach because it preserves existing source bytes and hashes."
+   },
+   {
+    "id": "B2",
+    "section": "Recommended exact spec diff: \u00a7\u00a712.1 and 12.3; bennett-4ht standing check",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The diff adds channel claims and certificate cleanup witnesses but never states their use in a mixed fat object containing native host code and only marked device modules. Hiding private outcomes from the launch measurement list does not establish certificate inventory or subject scope. The binding standing check explicitly requires this statement for certificate-layout changes; its absence requires revise.",
+    "fix": "In \u00a7\u00a712.1\u201312.3 add: \u201cA mixed fat object may contain native host code and multiple embedded ISA modules. Each channel subject identifies a region closure within its embedded device object and covers that region\u2019s declared device interface and device callee closure. Native host entry points, argv/envp and unlifted native library code are outside that quantum channel subject. The default certificate layout is one certificate per embedded ISA object, with a fat-object inventory mapping each device module to its object_hash and certificate. Native comparison, where claimed, concerns the materialised outlined region and its materialised callee closure. Private cleanup outcomes remain internal to the device invocation and do not enter the host-visible measurement inventory.\u201d A unified certificate with explicit per-module bindings is also viable; I would take the per-module default because it preserves the existing single-object bindings."
+   }
+  ],
+  "codex": [
+   {
+    "id": "L2P-1",
+    "section": "Recommended exact spec diff: \u00a7\u00a76.2, 6.4 and 11; closed-window witness",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "Source regions require explicit cleanup. Cleanup matching requires current computing-input versions, and K81 forms source pairs before realization selection. The source reference therefore cannot silently mean a differently ordered cleanup.",
+      "by": "clause:\u00a75.1; clause:\u00a75.3 matched pairs; clause:\u00a76.2; clause:\u00a711 K65/K81"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The diff permits closed-window witnesses but retains those source-pair requirements and compares the realization against 'the source's unitary-cleanup semantics'. It does not define how a legal source cleanup is moved past the operation closing its window.",
+      "by": "witness:docs/notes/2026-11-02-contract-l2p.md:131-187"
+     },
+     {
+      "n": "<1>3",
+      "claim": "A literal C; CX(g,y); H(a); C\u2020 is not the intended clean reference. Starting from (a,b,g,y)=(0,1,0,0), it produces (|0,1,0,0> + i|1,1,1,0>)/sqrt(2), so g=1 with probability 1/2. This reproduces by loading the verification script's definitions and evaluating sequence(hadamard(flip(sequence({2:ONE},C),3,(2,)),0),CDAG).",
+      "by": "witness:docs/notes/2026-11-02-contract-verification.md exact Python block; clause:\u00a74.4"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The correctly transported measurement cleanup instead produces (|0,1,0,0> + |1,1,0,0>)/sqrt(2). Its reference is C; CX(g,y); C\u2020; release(g); H(a), whose logical operation is H(a)CCX(a,b;y).",
+      "by": "witness:docs/notes/2026-11-02-contract-verification.md branches and expected functions"
+     },
+     {
+      "n": "<1>5",
+      "claim": "Thus admitting the direct post-H source contradicts source cleanliness/reference semantics, while enforcing the retained source rules without a delayed-cleanup rule leaves the advertised closed-window realization unsupported. This is a missing semantic bridge, not merely an unenumerated witness field.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "problem": "",
+    "fix": "In \u00a7\u00a76.2/6.4 and \u00a711 add: \"A measure_fixup realization replaces a cleanup that is valid at its original source point. K81 pairing and source-version checks are performed at that point. The realization MAY delay its measurement, correction, reset and release past subsequent source operations; for this replacement, the original cleanup ordering/version dependencies are replaced by the explicitly bound realized dependencies. All operands must be live at their realized versions, the extended workspace lifetime must be accounted for, and the complete realized channel must satisfy \u00a712.1 against the original unitary source, before the delay. Other operations may not access a source-released lifetime.\" Publish the positive vector with source C; CX(g,y); C\u2020; release(g); H(a), realization C; CX(g,y); H(a); X-measure(g); conditional H(a)CZ(a,b)H(a); reset/release(g), and expected operation H(a)CCX(a,b;y). On input (0,1,0,0), the expected state is (|0,1,0,0>+|1,1,0,0>)/sqrt(2). Alternatively introduce an explicit logical-cleanup source construct with independently defined transported semantics and corresponding source-hash migration. I recommend the schedule-transformation rule because it preserves existing source semantics and bytes."
+   },
+   {
+    "id": "L2P-2",
+    "section": "Recommended exact spec diff: \u00a712.1 channel claims and \u00a712.3 cleanup certificate layout",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The proposal adds channel and cleanup-certificate obligations without stating how they attach to a mixed fat object. The binding bennett-4ht check expressly requires that statement for these changes. Nothing identifies the native-host/device boundary of the new channel subject and certificate inventory; mentioning the launch measurement list does not supply it.",
+    "fix": "Add to \u00a7\u00a712.1/12.3: \"A mixed fat object may contain a native host binary and ISA objects for only its marked device modules. Native main, argv/envp handling, unmarked libc and ordinary host effects remain native. Its launch manifest associates selected exported VM entries with their device closures, schedules and certificates. A cleanup channel subject and its invocation-context inventory cover that selected device closure, including its interface systems and external correlations, not the entire host binary. Private cleanup outcomes are absent from host results and launch measurement records. Native comparison, where applicable, uses the corresponding materialized marked entry and its callee closure with captured launch inputs; unrelated native host code need not have an ISA or channel certificate.\" Example: native main may call ordinary libc, launch a marked AND module, and continue natively; only the selected device invocation receives the cleanup-channel certificate. A container-level certificate referencing these per-closure records is also viable; I recommend per-closure records without requiring a new whole-binary quantum certificate."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.0,
+  "C2": 4.0,
+  "C3": 3.0,
+  "C4": 4.0,
+  "C5": 3.0,
+  "C6": 4.0,
+  "C7": 3.0,
+  "C8": 3.5
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}
