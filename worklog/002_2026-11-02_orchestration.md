@@ -1,5 +1,35 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-02 - shift 3 and session wind-down: cgroup runner deaths, council acceptance path, K83/K84, push wave
+
+Shift 3 (Opus orchestrator, 07:56Z to 13:40Z; record `.tmp/orchestrator/shift-3.md`, rulings R1-R11 and the 11:12Z wind-down in `.tmp/orchestrator/advisor-notes.md`).
+- ROOT CAUSE, runner deaths (08:37Z): `setsid nohup` does not leave the launching Claude session's systemd cgroup scope
+  (`t3code-claude-<id>.scope`); when that session ended, systemd stopped the scope and killed 9 sol runners and the 2aba17a
+  plugin push gate with no runner.log entry. Fix: launch under `systemd-run --user --scope --collect -q -p OOMPolicy=continue
+  -p MemoryMax=14G --unit bennett-codex-<name>-<HHMMSS>` (`.tmp/orchestrator/resume_job.py` does this).
+- Second gotcha: a scope's default OOMPolicy=stop killed the whole sol-ref09 runner when its test isa09_forwardin hit 23.8 GB
+  (global OOM, 09:02Z). OOMPolicy cannot be changed on a live scope; MemoryMax can.
+- `tools/codex_job.py` has no stop command. Session wind-down used `.tmp/orchestrator/winddown.py`: SIGSTOP the runner
+  (its codex child keeps running the current attempt, stdout goes to a file), and when the child exits do the runner's
+  own end-of-attempt commit + wip backup, set state=stopped-session-end, kill the runner. Log
+  `~/.local/state/bennett-codex-jobs/winddown.log`. Worth adding a real `stop` subcommand.
+- Council: K82 Muse seat cast (accept). Contract notes (sol derivations, docs/notes/2026-11-02-* in bennett-isa-spec) went
+  through round 1, revisions, an astra-only bennett-4ht (mixed fat object) re-check and two batched Muse calls. Applied to
+  spec: ISA 0.9 K83 (z4c) be71d03, K84 (checker-diagnostics) 2f8e1d5, dialect 5u3 da61f93 (0.3 draft + errata-0.2.12).
+  14 more ACCEPTED FOR SPEC but not applied: 0.9-route ones need maintainer authorisation of in-version K, l2p/fd0/lpe/sqr
+  need 0.10 (b-isa-spec-56j), 2cg/4yg.1 need dialect 0.2.13 (b-dialect-spec-ek3). l2p accepted as a north-star gap
+  (b-isa-spec-bwm). Run dirs under docs/council/; tables in `.tmp/orchestrator/opus-council-s3*-PROGRESS.md`.
+- New maintainer constraints: bennett-4ht (mixed fat object must stay reachable; rubric check 84a6fcf; fat-object audit
+  bennett-isa-spec docs/notes/2026-11-02-4ht-audit/, beads F01-F29 filed, F30 mixed-binary rung deferred); plan R8;
+  bennett-p2i (optimising specialiser/scheduler, trigger-driven); proposed code-quality policy (not in force).
+- Gate template (`tools/gate_run.py`, pinned siblings) is the pre-push hook in 9 repos; sched, estimate, driver pending
+  (beads 68k, m6p, 3j4). Mains pushed this session: meta, conformance, targets, isa-spec (walk-back 9825c42), dialect,
+  circuits, driver (walk-back 54d32fa), arith, runtimes, vm, plugin 0ac6180, estimate. Red heads: isa-spec (b-isa-spec-500),
+  vm (K83 fixture at pinned isa-spec), driver (runtimes pin lacks scripts/native-check), sched (old hook reads live isa-spec).
+- Findings: checker replay found 3 P1 checker bugs (bennett-conformance-2hl zlo 30g); bjm dense engine decided cleanliness
+  within its error bound (yt9, ykb fixed on bjm-dense; 5vj open); plugin bp-fj1: dialect §14.2 makes the spec-K analysis
+  blow up on SQLite (OOM 13.7 GB), evidence note in bennett-plugin-rung4 docs/notes/2026-11-02-bp-fj1-reference-k-evidence.md.
+
 ## Session log - 2026-11-02 - orchestration shifts 1-3: runner death, push backlog, network outage, pinned-sibling gate, Muse policy
 
 Orchestrators (Opus) ran the work in shifts via `.tmp/orchestrator/shift-N.md`; the advisor (Fable) ruled between them
