@@ -1,0 +1,63 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The repair preserves \u00a75.2\u2019s oracle interface and state transition. The classical argument is fixed by invocation; the domain comprises 2 input, 2 target, 4 fault and 16 interface-memory bits.",
+   "change": "No change required within this repair."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a74.2 contains no qborrow row. The stated subject contains only lift.add and lift.retval, with no callee introducing a borrowed lifetime. No opcode changes are proposed.",
+   "change": "No change required within this repair."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "\u00a7\u00a75.2 and 5.4 give the stated results: target 1 at a=2, target 0 at a=1, and target 2/fault 2 at B=1. \u00a7\u00a74.3 and 5.6 retain genuine borrowing and preservation of external entanglement.",
+   "change": "No change required within this repair."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The retained ptr_width=2 layout satisfies \u00a7\u00a77.1\u20137.2: null [0,1), interface [1,3), empty heap at 3, and one pre-entry within the two-entry table. No target, allocation or resource rule changes.",
+   "change": "No change required within this repair."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "\u00a712.2 K70 explicitly rejects the invented borrowed position. All six tuple replacements and the widths replacement are correct. Under \u00a79.2, certificate changes do not change object_hash or symbol envelopes; no ref catalog bytes change. The note correctly requires affected certificate bytes/digests to change.",
+   "change": "No change required within this repair."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The cited 12 tests reran successfully. An additional in-memory ptr_width=2 singleton replay produced evidence 1/16777216 and rejected extra borrowed positions, argument/budget rebinding, identity output and an omitted output cell. The sampler arithmetic is correct, but the existing replay harness reports sampled claims unchecked; a complete bound four-draw fixture remains unpublished.",
+   "change": "In 'Conformance vectors and actual verification', publish the promised bound ptr_width=2 sampled fixture with seed [\"1\",\"0\",\"0\",\"0\"], count 4, both region cells and empty borrowed arrays. Its report must show four draws, one distinct tuple, evidence 1/16777216, and after={bundles:[\"1\",\"1\",\"3\"],borrowed:[],regions:[[\"2\",\"1\"]]}."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Removing a nonexistent coordinate does not remove dirty-ancilla capability. The mixed-fat-object section explicitly scopes the tuple to its device subject/root and preserves the shared note\u2019s outstanding boundary obligations, without requiring native-host lowering.",
+   "change": "No change required within this repair."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The exact edit anchors exist, including across line wrapping, and the proposed same-version erratum resolves an example conflict with accepted K70. However, \u00a70\u2019s K67 historical summary would still advertise 25 bits and 1/33554432.",
+   "change": "In \u00a70\u2019s K67 row, state: 'F=4 and W=8 with a legal unused mapping and no checked borrowed lifetime give a 24-bit domain; four singleton draws cover 1/16777216 with unchanged XOR outcomes.' Cross-reference the newly assigned erratum entry."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a70, K67: update its numerical summary to '24-bit domain' and '1/16777216', and cross-reference the pe1 erratum. Alternatively retain the historical numbers with an explicit supersession annotation; updating the summary is clearer. This is an editorial consistency issue, not a competing execution rule.",
+  "Conformance publication: publish the promised fully bound 2-bit-layout sampled fixture and negative mutations. Require evidence with four draws, one distinct tuple and coverage 1/16777216; reject the extra borrowed position even when its label matches an interface name. Keep genuine dirty-borrow restoration testing separate."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable through the proposed council-authorized 0.9 K erratum route. Publishing the exact bound sampled fixture would raise C6 to 5; correcting or annotating K67\u2019s historical summary would raise C8 to 5.",
+ "summary": "The defect is real and the proposed repair is correct. No false operative premise or misnumbered cited clause was found. The repair preserves machine semantics, borrowing capability, source identities and the ref catalog; only affected certificate/table bytes and coverage reports change.",
+ "verdict_core": "accept"
+}
