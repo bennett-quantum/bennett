@@ -1,0 +1,36 @@
+{
+ "run": "contract-lpe-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-contract-lpe.md",
+ "doc_sha256": "55c3d0d5e3d0b8ca703d9f0c3f080abacc430718287d5e3124375a8b4eae7143",
+ "prepared": "2026-11-02T08:06:28+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:06:43+00:00",
+   "updated": "2026-11-02T08:15:09+00:00",
+   "exit": 0,
+   "seconds": 506
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:06:43+00:00",
+   "updated": "2026-11-02T08:20:40+00:00",
+   "exit": 0,
+   "seconds": 837
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal note lpe (bead per note; sol-contract, 2026-11-02). The document is the note itself, which carries its own exact spec diff; grade the proposal",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3/task-contract.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

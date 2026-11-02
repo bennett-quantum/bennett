@@ -1,0 +1,85 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposed substitution occurs before coherent entry and preserves \u00a73.1's classical-control invariant. Each resolved instance retains the existing machine model.",
+   "change": "\u00a75.1: state, 'A resolved family instance denotes the ordinary region obtained by capture-free substitution; its widths remain fixed throughout that invocation and its reversal.'"
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The existing instruction semantics suffice after substitution. The proposal explicitly admits wire[n] and loop/allocation parameters but does not enumerate corresponding body-width occurrences in \u00a716.2.",
+   "change": "\u00a716.2: state, 'Bound width parameters may occur in wire[N], reg[N], region[A,W], lifted width suffixes, allocation dimensions, and qloop/bounds counts; each occurrence becomes a literal before ordinary validation. No arithmetic expression or loop index is introduced implicitly.'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The identity-oracle examples agree with \u00a75.2: 0 XOR 1 = 1 and 3 XOR 5 = 6. Exhaustive arithmetic checks covered arbitrary targets and four-bit fault values at n=1 and n=3, with both control values. K79 correctly permits () for A=0 without admitting wire[0].",
+   "change": "\u00a75.2: state, 'For every admissible width vector, the existing full-domain oracle, control, adjoint, prefix-reversal and workspace-restoration obligations apply independently to the resolved instance.'"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Including instance_hash in schedule/cache bindings prevents cross-width reuse. The executor-resource reference is real: \u00a717 item 16 distinguishes executor exhaustion from the oracle's reference outcome. Estimate and scheduler request transport remains to be specified.",
+   "change": "\u00a710.1 and \u00a711: state, 'A family estimate or scheduling request supplies the complete resolved width_args independently of ordinary args; the consumer validates those values and derives instance_hash before expansion, without requiring live register ids.'"
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "Two contract conflicts remain: CC/R supplies qreg operands rather than the proposed source region descriptors; and \u00a712.3's closure-keyed certificate records cannot represent different concrete frames for two widths of one family.",
+   "change": "\u00a74.7 and \u00a75.1: state, 'A CC/R memory actual with parameterised extents supplies an explicit classical shape descriptor; its dimensions bind the extent parameters only after the register-width and disjointness checks succeed.' Apply B1's complete rule."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Specialisation preserves the existing theorem hypotheses. Verification claims are appropriately limited to arithmetic, but the proposed vectors do not exercise two widths of the same callee within one certificate; B2 prevents an unambiguous checker implementation.",
+   "change": "\u00a712.3: state, 'Concrete signatures, frames and executable claims are indexed by resolved instance identity; proof or evidence for one width vector does not cover another unless the claim explicitly quantifies over both.'"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The cited ISA \u00a73.3, dialect \u00a78.4, D34 and G-17 support the note's classification as an efficiency/interface extension. Retaining the full valid domain and prohibiting cache misses from becoming invalid-width faults respects the north star.",
+   "change": "Dialect \u00a78.4: replace 'classical but not statically finite' with 'classical but not finitely enumerated by the compiler's value analysis'; the representable unsigned-i64 domain is already finite."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "The note clearly separates existing expressiveness from practical emission and recommends an honest 0.10 boundary. Its exact-diff section omits consequential changes to call binding, frames and certificate composition.",
+   "change": "Recommended exact spec diff: state, 'This 0.10 extension also amends \u00a7\u00a73.3, 4.7, 9.4, 10.1 and 12.1\u201312.3 with explicit entry-shape binding and instance-specific certificate composition; it does not modify published 0.9 objects.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff, extent bindings; ISA \u00a7\u00a73.3, 4.7, 5.1 and 16.2",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The diff binds A/W from 'the caller's resolved region descriptor', but that source does not exist at the specified CC/R entry boundary. \u00a74.7 supplies memory slots using qreg operands; \u00a73.3 records a register's total width, not an A/W shape. Existing binding obtains the shape from the literal callee signature. For example, six wires can fill either region[0,6] or region[1,3] in an action. When both dimensions are parameters bound from mem:0, neither the qreg nor the proposed call syntax selects between those shapes. K26 explicitly distinguishes them and forbids inferring shape from total width. The proposal therefore assumes existing entry metadata that the cited contract does not provide.",
+   "fix": "Amend \u00a7\u00a73.3, 4.7, 5.1 and 16.2: 'At a CC/R call, a memory actual whose A or W is parameterised carries an explicit descriptor (q,A,W), with A and W classical unsigned-i64 values or literals. Before any effect, including view consumption, require A\u22650, W\u22651 and width(q)=2^A\u00b7W using mathematical integer arithmetic, then bind the declared extent parameters from that descriptor. Failure is FAULT_UB_TRAP. Coherent callers forward the resolved descriptor of their interface or local region; no shape is inferred from total width.' Thus a six-wire q with (A,W)=(0,6) and the same q with (1,3) select distinct instance bindings. Alternatively, bind extents from explicitly designated classical argument slots and perform the same checks. I recommend the explicit call descriptor, which preserves the separation from ordinary args."
+  },
+  {
+   "id": "B2",
+   "section": "Recommended exact spec diff, instance bindings; ISA \u00a7\u00a79.4, 11.1 and 12.1\u201312.3",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "Adding width_args and instance_hash to certificate bindings does not resolve the existing certificate representation. \u00a712.3 has exactly one region record per closure_hash, containing one signature and mandatory frame. \u00a79.4 requires slot widths to match the signature and permits only inherited-control count c as a frame-expression variable. Consider outer[n,m] invoking the same family flip[k] on two mutable bundles, forwarding n and m respectively; flip's body is x v[0], valid at every positive width. At n=1,m=3 and c=0, both callees have the same family closure_hash but require mut:0 frame widths 1 and 3. One closure-keyed record cannot represent both, and a single root instance binding cannot identify both child instances. This prevents a conformant composed certificate or launch estimate for a legal use of the extension.",
+   "fix": "Amend \u00a7\u00a79.4 and 12.1\u201312.3: 'A family region record contains instance records indexed by instance_hash. Each instance record carries width_args, the substituted signature and bounds, and its concrete frame and verification records. Every concrete executable claim and inverse-pair reference identifies the relevant instance. Nested invocation contexts resolve and retain each callee's own width_args and instance_hash; composition distinguishes instance identity in addition to family closure, variant and inherited controls. A width-uniform structural claim must explicitly quantify over all covered admissible width vectors.' In \u00a711.1 require shape context to survive argument/body/template capture and forwarding, as invocation-token context does. The witness must produce two child records, with slot widths 1 and 3 and one forward occurrence each. Alternatively, extend frame/signature expressions and claim quantification to support symbolic family-wide records; I recommend separate concrete instance records as the smaller repair."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a79.2: make the instance-hash bytes explicit: 'Hash UTF-8(\"width-instance\\n\" + lowercase-64-hex-family-closure + \"\\n\" + JCS(width_args) + \"\\n\"); width_args contains canonical unsigned decimal strings in header order, without leading zeros except \"0\".' For the synthetic family hash consisting of 64 zeroes, [\"1\"] hashes to 3486e3dc5d4e3a80a35d4338f5ff126b787ded89baaee9f66aca083e7025cf6e and [\"3\"] to 9ae5c34acce5452f6c24f31e97baa9ddfc027a44c609a5e77f4eb54759feacd3.",
+  "Hashes, catalog and consumers / \u00a717 item 7: state an explicit 0.10 expansion default. One viable rule is, 'Resolved instances use the unchanged ref@0.9 catalog, with expansion hash 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197, unless another library is explicitly bound.' I verified that hash against the 219-recipe file. Alternatively publish ref@0.10 with a new versioned envelope and hash. I recommend explicit reuse if its operation definitions remain unchanged; the current default otherwise asks for ref at the object's ISA version.",
+  "\u00a715 / Conformance vectors: add the concrete memoryless family body 'lift.retval x'. State, 'At B\u22651 it maps (x,t,f) to (x,t XOR x,f); at B=0 it maps to (x,t,f XOR 1). A false outer control leaves the entire tuple unchanged.' Exercise these outcomes at n=1 and n=3, and include B2's two-width composed certificate.",
+  "\u00a75.1: clarify the family validity obligation: 'A supported family must instantiate to a well-formed region at every shape admitted by its signature. A body that becomes ill-formed at an admitted shape is an invalid family, not evidence that the caller supplied an invalid width.' This separates producer validity from cache availability without requiring a particular proof algorithm.",
+  "Release and after acceptance: state, 'This is a 0.10 extension, not authorization to apply incompatible bytes as a 0.9 K repair. Changed schedule and certificate interchange formats receive explicit versions; unchanged 0.9 objects and catalog bytes retain their identities.'"
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Supply the explicit CC/R extent-binding mechanism in B1. 2. Define instance-specific certificate/frame composition and nested shape-context preservation as in B2, with the two-width witness. Retain the proposed 0.10 release boundary. No change to the underlying quantum machine is required.",
+ "summary": "The existing-width premises, XOR examples and frozen-catalog claim check out. The proposed 0.10 direction is sound, but entry extent binding assumes unavailable metadata, and composed certificates cannot represent multiple widths of one family. Both are contract blockers.",
+ "verdict_core": "accept"
+}
