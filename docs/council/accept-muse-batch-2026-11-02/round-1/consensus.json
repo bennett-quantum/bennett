@@ -1,0 +1,57 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "muse": "revise"
+ },
+ "core_verdicts": {
+  "muse": "revise"
+ },
+ "blocking": {
+  "muse": [
+   {
+    "fix": "Section ISA \u00a77.3 (new paragraph after the device table) and \u00a710. The diff should add to \u00a77.3 the sentence: 'Device-model state belongs to the loaded program like classical memory (\u00a77.1): the console byte sequence, the clock counter c and the block sector map are established at load from their initial values (the block map from layout.block_image, K10) and persist across runs, changed only by effect execution and by reversal (\u00a77.4, T4); closing a run does not reinitialise them. The entropy position p is per-run state: it starts at 0 over the entropy tape copied at that bennett_run (\u00a710). The effect tape is per-run.' And in the \u00a710 addition, replace 'initialization is never repeated merely to start a run' with 'the \u00a77.1/\u00a77.3 program-lifetime state is never reinitialised merely to start a run'. Corrected expected values for the new vectors: run A clock.read writes 0 (c becomes 1), COMPLETED, CLOSED unreversed; run B clock.read MUST write 1; if A is REVERSED before CLOSED, B writes 0. Run A block.write sector 2 then CLOSED unreversed; run B block.read sector 2 returns A's bytes; with A reversed, sector 2 is absent again and reads 512 zero bytes. Two ways out exist: (a) program-lifetime device state as above (recommended: matches T4 entry-value restoration, the block-as-disk device model of north-star rungs 3/6, and the proposal's own persistence principle); (b) per-run reinitialisation of all device state stated explicitly in \u00a77.3 \u2014 viable but then the \u00a710 sentence must be scoped to \u00a77.1 state and the dialect/VM must not assume a persistent block device across entries. I would take (a).",
+    "id": "adg-M1",
+    "kind": "implementation",
+    "problem": "",
+    "scope": "core",
+    "section": "ISA \u00a77.3, \u00a710 (adg diff)",
+    "steps": [
+     {
+      "by": "clause:ISA-7.3 device table (State (initial): console empty, clock c=0, entropy p=0, block map from block_image); clause:ISA-10 (entropy tape copied at bennett_run, per-run; bennett_tape_open by run id)",
+      "claim": "Device models have observable state with stated initial values but no stated lifetime; the entropy tape (hence position p) is supplied per run, while clock c and the block sector map are readable by later runs.",
+      "n": "adg1"
+     },
+     {
+      "by": "witness:adg recommended diff (dossier part adg, 'Recommended exact spec diff')",
+      "claim": "The adg diff pins load-time establishment and cross-run persistence only for classical memory, allocation table, bump pointer (\u00a77.1) and the register ledger (\u00a73.3); its \u00a710 sentence 'initialization is never repeated merely to start a run' does not name device state, and read maximally it would also freeze the per-run entropy position.",
+      "n": "adg2"
+     },
+     {
+      "by": "witness:sequential R entries on one loaded program: run A executes clock.read (writes 0, c=1) and block.write to an absent sector, COMPLETED then CLOSED without reversal; run B executes clock.read and block.read of that sector",
+      "claim": "On this input a persistence-reading executor returns clock=1 and A's sector bytes; a reinitialisation-reading executor returns clock=0 and 512 zero bytes. Both readings conform to the amended text.",
+      "n": "adg3"
+     },
+     {
+      "by": "step:adg1; step:adg2; step:adg3",
+      "claim": "Conclusion: the defect adg exists to repair (load-time vs per-run initialisation) remains observable for clock and block after the diff is applied, and the unqualified \u00a710 sentence is inconsistent for entropy p; two conformant executors compute different results (S0).",
+      "n": "adg4"
+     }
+    ]
+   }
+  ]
+ },
+ "means": {
+  "C1": 3.0,
+  "C2": 4.0,
+  "C3": 4.0,
+  "C4": 4.0,
+  "C5": 3.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 3.0
+ },
+ "members": [
+  "muse"
+ ]
+}
