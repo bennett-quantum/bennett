@@ -1,0 +1,220 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "FD0-1",
+    "section": "\u00a78.5 Operational bindings; Reports, identity and checking",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "Operational parameter changes require changed target bytes and target_hash; resolved binding values must be independently checked.",
+      "by": "clause:proposed \u00a78.5 Operational bindings"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Reports may replace algorithm defaults, and invokes may bind algorithm parameters, without excluding parameters used by operational bindings.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:345; witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:410"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Declare algorithm parameter N with target value \"1\", a duration quantity N times a typed one-second literal, and an exact gate-time binding with value \"1\". A report replacing N by \"2\" is permitted by the report rule, but now evaluates that quantity to two seconds while the unchanged target supplies a one-second gate cost.",
+      "by": "witness:proposed Parameter, Quantity, Binding and Report schemas"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The rebinding permission contradicts the operational identity rule: either the report replacement must fail, or operational resolution and target identity must change.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "In \u00a78.5 add: \"The operational dependency set contains every parameter transitively referenced by any operational binding quantity. Membership is independent of Parameter.role. Reports and invokes MUST NOT override members of this set. Changing such a parameter requires a new resolved target with recomputed binding values and target_hash; only algorithm parameters outside this set may be rebound analytically.\" In the witness, report N=2 against target N=1 must reject; a newly resolved target N=2 must have Binding.value=\"2\" and a new target_hash. Alternatively prohibit algorithm parameters in operational bindings altogether; I recommend the dependency-set rule because it preserves expressivity."
+   },
+   {
+    "id": "FD0-2",
+    "section": "\u00a78.5 Report.subject; standalone report identity",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<2>1",
+      "claim": "Target-dependent estimates distinguish variant and inherited_controls, and existing executable claim subjects explicitly bind both.",
+      "by": "clause:\u00a710.1 Resolved request; clause:\u00a712.1 Comparison relation"
+     },
+     {
+      "n": "<2>2",
+      "claim": "The new standalone report subject contains only closure_hash and Invocation; Invocation contains args and budget. Neither encoding identifies variant or inherited controls, and no standalone default is stated.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:387; clause:\u00a712.3 Invocation binding"
+     },
+     {
+      "n": "<2>3",
+      "claim": "An action containing X can match a target entry costing one second with zero inherited controls and another costing two seconds with one inherited control. Its closure, classical args and budget remain identical, so the proposed standalone subject cannot distinguish these resource-estimation requests.",
+      "by": "clause:\u00a78.3 Matching; witness:target entries for op x with controls ranges [0,0] and [1,1]"
+     },
+     {
+      "n": "<2>4",
+      "claim": "A checker lacks the subject information needed to establish which invocation a standalone estimate covers; the claimed invocation/context checking obligation is therefore incomplete.",
+      "by": "step:<2>1; step:<2>2; step:<2>3"
+     }
+    ],
+    "problem": "",
+    "fix": "In \u00a78.5 change subject to \"{closure_hash:H,variant:S,inherited_controls:N,invocation:Invocation,context?:ContextKey}\" and state: \"Standalone reports bind all these fields explicitly. Scheduled reports MUST match the variant, inherited control count, arguments and budget resolved at their actual context. No control count or variant is inferred from another report.\" The witness must distinguish forward/0 controls/one second from forward/1 control/two seconds. Alternatively reference an existing complete \u00a712.1 subject descriptor; I recommend explicit fields."
+   },
+   {
+    "id": "FD0-3",
+    "section": "\u00a78.5 objective.model_outputs; Conformance vectors",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<3>1",
+      "claim": "Every model-resource objective term MUST have exactly one explicit selector.",
+      "by": "clause:proposed \u00a78.5 Scalar and unit types"
+     },
+     {
+      "n": "<3>2",
+      "claim": "The final conformance vector instead classifies an objective without that selector as unresolved.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:847"
+     },
+     {
+      "n": "<3>3",
+      "claim": "For objective={weighted:{model_cycle:1}} with model_cycle declared kind model, the normative rule requires validation failure while the vector requires an unresolved objective.",
+      "by": "step:<3>1; step:<3>2"
+     }
+    ],
+    "problem": "",
+    "fix": "In Conformance vectors state: \"A missing selector for a model-resource objective term is a validation error. An explicit valid selector whose dependencies include free parameters yields an unresolved symbolic objective; once those dependencies are bound it yields the checked scalar.\" Alternatively explicitly admit incomplete selector templates and define their validation state; I recommend correcting the vector to preserve the existing mandatory-selector rule."
+   },
+   {
+    "id": "FD0-4",
+    "section": "Consumer impact, release and what remains for 0.10; inherited \u00a711.1 and \u00a717 item 7",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<4>1",
+      "claim": "The default expansion library is ref at the object's ISA version. Its hash covers both version-prefixed envelope lines and the catalog document's isa/version fields.",
+      "by": "clause:\u00a717 item 7; clause:\u00a711.1 Serialization and identity"
+     },
+     {
+      "n": "<4>2",
+      "claim": "The proposal selects normal full-version 0.10 publication but says catalog bytes/hash change only if separately revised, without choosing a compatible 0.10 default-library publication or cross-version rule.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:881"
+     },
+     {
+      "n": "<4>3",
+      "claim": "Keeping all 219 recipes unchanged, changing only catalog isa/version and envelope isa/version from 0.9 to 0.10 changes the catalog hash from 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197 to 83cc9c177bad054bd7af35dc1892645d869b9e4c0b9c968f35b8783ce2b54c42.",
+      "by": "witness:read-only calculation using conformance/tools/ref_catalog.py:jcs and spec/ref-0.9.json"
+     },
+     {
+      "n": "<4>4",
+      "claim": "Thus unchanged recipes do not preserve the normal full-version catalog identity. Retaining only ref 0.9 leaves the inherited ref 0.10 default unavailable; silently retaining its old hash contradicts the versioned envelope.",
+      "by": "step:<4>1; step:<4>2; step:<4>3"
+     }
+    ],
+    "problem": "",
+    "fix": "Replace the catalog migration paragraph with: \"Normal full-version 0.10 publication republishes the reference catalog with isa='0.10' and version='0.10', updates the versioned library envelope and default binding, and recomputes dependent schedule/certificate identities. Recipe bodies need not change. Published 0.9 artifacts remain unchanged.\" For exactly the metadata-only transformation in the witness, publish hash 83cc9c177bad054bd7af35dc1892645d869b9e4c0b9c968f35b8783ce2b54c42. Alternatively explicitly specify and validate a ref-0.9 compatibility binding for ISA 0.10, including changing \u00a717's default. I recommend ordinary ref-0.10 publication."
+   },
+   {
+    "id": "FD0-5",
+    "section": "\u00a712.3 insertion; Consumer impact",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The proposal changes target and certificate contracts without stating how a mixed fat object uses them. It never identifies embedded device objects versus the native host binary. This fails the council's explicit standing mixed-fat-object check, even though no instruction change itself prevents mixed packaging.",
+    "fix": "Add to \u00a712.3: \"In a mixed fat object, model_estimates describe identified marked device regions, not the entire native binary. The packaging certificate inventory associates each report's containing certificate with its embedded ISA object_hash and closure_hash. The native host entry point, argv/envp handling and unmarked native library code remain native; they need not be represented as ISA objects. Native comparison uses the materialised outlined-region callee closure required by the dialect contract. This extension requires no host-shim implementation.\" Add a consumer example with one native host image and one marked device module, whose report binds that module's certificate and closure."
+   }
+  ],
+  "codex": [
+   {
+    "id": "B1",
+    "section": "Proposed \u00a78.5 objective selectors and Reports; interaction with \u00a711",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "A model-resource objective selects a hierarchy metric under current algorithm bindings. Shared reservations affect occupancy and peak, and are supplied by a Report rather than the target model.",
+      "by": "clause:proposed \u00a78.5 Scalar and unit types; clause:proposed \u00a78.5 Hierarchy node grammar"
+     },
+     {
+      "n": "<1>2",
+      "claim": "Selectors identify model/node/metric but no evaluation-input or report identity. Multiple model_estimates are permitted. The proposed publication edits add no model input to the \u00a711 request or schedule bindings.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:108; witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:380; clause:ISA 0.9 \u00a711"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Use the worked three-sequential-use shared-factory variant. Two reports can have the same target, subject, root and parameters, but reserve respectively 50 and 100 physical qubits for 90 ns with one slot. Both satisfy the stated reservation/accounting rules. Their factory peaks are 50 and 100; their occupancies are 9/2000000 and 9/1000000 physical-qubit seconds. A peak selector has identical serialized fields in both cases.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md, shared-factory variant; clause:proposed \u00a78.5 Shared resources"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The new objective mechanism does not determine which value belongs to the scheduling problem. Choosing an analytical report, reservation set or parameter environment is a missing semantic input, not an implementation choice about numerical evaluation.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "Extend \u00a78.5 and \u00a711 with: \u201cFor each model-resource objective term, the scheduling request supplies one model_inputs entry keyed by that resource. The entry contains the selected root, complete model parameter bindings and shared reservations. Its root MUST equal the selector's model/node. The entry is serialized in schedule.bindings and participates in schedule_hash. Objective evaluation uses this entry and the resolved target only. A report certifying the objective MUST reproduce those inputs and bind the same invocation/context; other analytical reports cannot supply implicit inputs.\u201d Missing inputs produce an explicit incomplete-model-objective diagnostic, not an invented value. For the witness, the 50-qubit input yields peak 50 and occupancy 9/2000000; the 100-qubit input yields 100 and 9/1000000, under distinct schedule hashes. An alternative is to move these inputs into resolved target bytes and change target_hash; I recommend schedule binding to preserve the proposal's separation of algorithm studies from hardware identity."
+   },
+   {
+    "id": "B2",
+    "section": "Proposed \u00a78.5 objective selectors; Conformance vectors, final row",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "<2>1",
+      "claim": "Every model-resource objective term MUST have exactly one selector; malformed typed input produces a validation error.",
+      "by": "clause:proposed \u00a78.5 Scalar and unit types; clause:proposed \u00a78.5 Reports, identity and checking"
+     },
+     {
+      "n": "<2>2",
+      "claim": "The final conformance vector instead requires an unresolved objective when the selector is absent.",
+      "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:847"
+     },
+     {
+      "n": "<2>3",
+      "claim": "For a declared model resource model_cycle, objective={weighted:{model_cycle:1}} violates the mandatory-selector rule, yet the vector treats it as unresolved rather than malformed.",
+      "by": "step:<2>1; step:<2>2"
+     }
+    ],
+    "problem": "",
+    "fix": "In \u00a78.5 state: \u201cA missing required model_outputs selector is malformed input, not an unbound expression.\u201d Replace the vector with three cases: complete selector and concrete inputs \u2192 evaluated scalar; complete selector with free dependent parameters \u2192 symbolic unresolved objective; missing selector \u2192 validation error at objective.model_outputs.<resource>. Alternatively, explicitly admit incomplete selector templates and revise the MUST rule, but I recommend retaining the closed-schema rule. None of these validation outcomes is an ISA fault."
+   },
+   {
+    "id": "B3",
+    "section": "Corresponding \u00a712.3 insertion; Consumer impact and release",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The proposal changes certificate layout but never states how the new reports apply to a mixed fat object. References to an object's closure and containing certificate do not explicitly preserve native host code plus only outlined device modules. This fails the council's mandatory mixed-fat-object standing check.",
+    "fix": "Add to \u00a712.3: \u201cIn a mixed fat object, model_estimates attach to the certificate of the identified linked device ISA object and its outlined region closure. object_hash and closure_hash here identify that device object and closure, not the enclosing native binary. The fat-object inventory associates each device object with its certificate and target-bound reports; native host code remains outside these device resource reports. Adding a model estimate does not require lowering the host entry point, unrelated native functions, or host-library closure into ISA objects, and does not claim a whole-native-program resource total.\u201d Repeat this scope in the consumer analysis."
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 3.5,
+  "C5": 3.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

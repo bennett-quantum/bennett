@@ -1,0 +1,129 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The insertion changes target and certificate accounting, not \u00a73 state or stepping. Validation failures are explicitly separated from executed-program faults.",
+   "change": "No machine-model amendment needed. Retain \u00a78.5's rule: \u201cModel validation errors do not change F_B or introduce ISA fault codes.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "No instruction, operand or source-budget semantics change. Operational substitutions are explicitly restricted to target fields.",
+   "change": "No instruction amendment needed. Retain the prohibition on binding instruction semantics, interface widths and source budgets."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Physical risk remains separate from epsilon, channel bounds and oracle faults. Model parameters cannot inspect coherent state. No new uncomputation or quantum-control rule is introduced.",
+   "change": "Retain \u00a78.5's sentence: \u201cResults do not become permutation proofs, channel bounds, operator-norm bounds or oracle fault guarantees by appearing in a checked model report.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "The defect citations are correct: both published \u00a78.1 grammars lack model bindings, and 0.9 \u00a78.2 aggregates scheduled leaves. Units, exact arithmetic, interval accounting and resolved operational values are substantially specified. Model-objective evaluation lacks a uniquely bound evaluation input.",
+   "change": "In \u00a78.5 and \u00a711 state: \u201cEach model-objective term is evaluated using an explicit, schedule-bound model input containing its root, parameter bindings and shared reservations.\u201d See B1."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "Source/model/target identities and scheduled report contexts are mostly explicit. However, report-dependent objective inputs are absent from the scheduling contract, and the new certificate layout lacks the required mixed-fat-object scope statement.",
+   "change": "Add the scheduling input and identity rule in B1; this is the most consequential missing contract decision."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Read-only replay reproduced the arithmetic and both fixture hashes. Catalog checking reproduced 219 recipes and the stated envelope hash; K82 checking reproduced 54 interfaces, 20 edges, 86 instances and 16 cases. The note accurately limits these checks. Its missing-selector conformance verdict contradicts its normative selector requirement.",
+   "change": "Replace the last objective vector with: \u201cMissing required selector: model validation error. Present selector with free dependent parameters: symbolic unresolved objective.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The illustrative formulas are correctly distinguished from vendor fixtures. The external premises are supported by Microsoft's architecture example and Qualtran's symbolic call-graph protocol: [Microsoft](https://quantum.microsoft.com/en-us/insights/blogs/modeling-quantum-architecture-with-azure-quantum-resource-estimator), [Qualtran](https://qualtran.readthedocs.io/en/latest/resource_counting/call_graph.html). The 0.10 route preserves the existing \u00a710.1 concrete-estimate capability, but the mandatory mixed-fat-object check fails through silence.",
+   "change": "Add the \u00a712.3 device-object and native-host scope statement in B3."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The normalized arithmetic and hierarchy are implementable without a prescribed algebraic-number library. Unsupported interpretation has an explicit, honest diagnostic path. Scheduler authors still need the semantic source of model-objective inputs, rather than merely C-header enumeration.",
+   "change": "Add to \u00a78.5: \u201cOnly the model input bound to the scheduling request supplies objective parameters and reservations; unrelated analytical reports are not implicit inputs.\u201d"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Proposed \u00a78.5 objective selectors and Reports; interaction with \u00a711",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "A model-resource objective selects a hierarchy metric under current algorithm bindings. Shared reservations affect occupancy and peak, and are supplied by a Report rather than the target model.",
+     "by": "clause:proposed \u00a78.5 Scalar and unit types; clause:proposed \u00a78.5 Hierarchy node grammar"
+    },
+    {
+     "n": "<1>2",
+     "claim": "Selectors identify model/node/metric but no evaluation-input or report identity. Multiple model_estimates are permitted. The proposed publication edits add no model input to the \u00a711 request or schedule bindings.",
+     "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:108; witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:380; clause:ISA 0.9 \u00a711"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Use the worked three-sequential-use shared-factory variant. Two reports can have the same target, subject, root and parameters, but reserve respectively 50 and 100 physical qubits for 90 ns with one slot. Both satisfy the stated reservation/accounting rules. Their factory peaks are 50 and 100; their occupancies are 9/2000000 and 9/1000000 physical-qubit seconds. A peak selector has identical serialized fields in both cases.",
+     "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md, shared-factory variant; clause:proposed \u00a78.5 Shared resources"
+    },
+    {
+     "n": "<1>4",
+     "claim": "The new objective mechanism does not determine which value belongs to the scheduling problem. Choosing an analytical report, reservation set or parameter environment is a missing semantic input, not an implementation choice about numerical evaluation.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "Extend \u00a78.5 and \u00a711 with: \u201cFor each model-resource objective term, the scheduling request supplies one model_inputs entry keyed by that resource. The entry contains the selected root, complete model parameter bindings and shared reservations. Its root MUST equal the selector's model/node. The entry is serialized in schedule.bindings and participates in schedule_hash. Objective evaluation uses this entry and the resolved target only. A report certifying the objective MUST reproduce those inputs and bind the same invocation/context; other analytical reports cannot supply implicit inputs.\u201d Missing inputs produce an explicit incomplete-model-objective diagnostic, not an invented value. For the witness, the 50-qubit input yields peak 50 and occupancy 9/2000000; the 100-qubit input yields 100 and 9/1000000, under distinct schedule hashes. An alternative is to move these inputs into resolved target bytes and change target_hash; I recommend schedule binding to preserve the proposal's separation of algorithm studies from hardware identity."
+  },
+  {
+   "id": "B2",
+   "section": "Proposed \u00a78.5 objective selectors; Conformance vectors, final row",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "<2>1",
+     "claim": "Every model-resource objective term MUST have exactly one selector; malformed typed input produces a validation error.",
+     "by": "clause:proposed \u00a78.5 Scalar and unit types; clause:proposed \u00a78.5 Reports, identity and checking"
+    },
+    {
+     "n": "<2>2",
+     "claim": "The final conformance vector instead requires an unresolved objective when the selector is absent.",
+     "by": "witness:docs/notes/2026-11-02-textdefects/fd0-import-text.md:847"
+    },
+    {
+     "n": "<2>3",
+     "claim": "For a declared model resource model_cycle, objective={weighted:{model_cycle:1}} violates the mandatory-selector rule, yet the vector treats it as unresolved rather than malformed.",
+     "by": "step:<2>1; step:<2>2"
+    }
+   ],
+   "problem": "",
+   "fix": "In \u00a78.5 state: \u201cA missing required model_outputs selector is malformed input, not an unbound expression.\u201d Replace the vector with three cases: complete selector and concrete inputs \u2192 evaluated scalar; complete selector with free dependent parameters \u2192 symbolic unresolved objective; missing selector \u2192 validation error at objective.model_outputs.<resource>. Alternatively, explicitly admit incomplete selector templates and revise the MUST rule, but I recommend retaining the closed-schema rule. None of these validation outcomes is an ISA fault."
+  },
+  {
+   "id": "B3",
+   "section": "Corresponding \u00a712.3 insertion; Consumer impact and release",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The proposal changes certificate layout but never states how the new reports apply to a mixed fat object. References to an object's closure and containing certificate do not explicitly preserve native host code plus only outlined device modules. This fails the council's mandatory mixed-fat-object standing check.",
+   "fix": "Add to \u00a712.3: \u201cIn a mixed fat object, model_estimates attach to the certificate of the identified linked device ISA object and its outlined region closure. object_hash and closure_hash here identify that device object and closure, not the enclosing native binary. The fat-object inventory associates each device object with its certificate and target-bound reports; native host code remains outside these device resource reports. Adding a model estimate does not require lowering the host entry point, unrelated native functions, or host-library closure into ISA objects, and does not claim a whole-native-program resource total.\u201d Repeat this scope in the consumer analysis."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "Consumer impact, 0.9 bridge: make the existing capability explicit by adding: \u201cEvery fully bound 0.9 invocation retains its \u00a710.1 estimate, including the complete padded realization and all mandatory resource rows. Model-dependent operational fields may be materialized into an ordinary 0.9 target; original source, bindings and symbolic hierarchy remain external provenance until the extended format is admitted. Gate materialization is not a prerequisite for equivalent accounting. Unsupported import interpretation remains open fd0/gyp implementation work, not an algorithm exclusion.\u201d This clarifies the acceptable mechanics deferral without admitting new fields into 0.9.",
+  "Consumer impact, catalog migration: add: \u201cUnchanged recipes do not imply unchanged catalog bytes under a catalog version bump: \u00a711.1 hashes the isa/name/version metadata and version-prefixed envelope. Normal 0.10 publication must either publish the corresponding catalog metadata and hash and update \u00a717's default binding, or explicitly authorize reuse of the pinned ref 0.9 catalog.\u201d I recommend normal versioned publication. The existing catalog checks establish the current 0.9 identity, not a future 0.10 identity.",
+  "Worked example and conformance: add one complete serialized Report and target context as publication fixtures. State its seconds-based expected values explicitly: duration 9/100000000, risk_charge 3/10000000, physical peak 50, and physical occupancy 9/2000000. Include a checker rejection for a correct numerical report attached to the wrong invocation/context. The current arithmetic script is correctly disclosed as a finite witness rather than a format implementation."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Bind model-objective evaluation inputs through the scheduling request and schedule identity, with the shared-reservation witness. 2. Reconcile the missing-selector vector with the mandatory-selector rule. 3. Add the mixed-fat-object certificate scope statement. No core ISA change or completed vendor adapter is required for accepting this normative section.",
+ "summary": "The cited defect is real, the worked arithmetic and fixture hashes check, and the concrete 0.9 estimate path survives the proposed release route. Revise three contract issues: objective-input identity, contradictory selector validation, and missing mixed-fat-object scope. Core semantics remain acceptable.",
+ "verdict_core": "accept"
+}
