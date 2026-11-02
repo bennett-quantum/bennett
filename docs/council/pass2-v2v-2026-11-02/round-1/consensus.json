@@ -1,0 +1,50 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "V2V-1",
+    "section": "Recommended exact spec diff, \u00a712.3; Hashes, catalog and consumers",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The proposal changes certificate layout and frame inventory but never states how those records apply within the mixed fat object required by North Star \u00a7\u00a72, 3.3 and 4.4. INDEX's general assertion that no capability is removed does not identify the device-root boundary, distinguish it from the native executable entry, or delimit the certificate inventory. This fails the council's explicit bennett-4ht standing check, which requires revise for silence on this boundary. The context mechanism itself otherwise preserves the required capability.",
+    "fix": "Append to \u00a712.3: 'In a mixed fat object containing native host code and marked device ISA modules, frame and frame_contexts coverage is scoped to the certificate's bound scheduled ISA root and its complete linked device-region invocation tree. The native host invokes device computation through \u00a710's device CC entry and launch shim. The context key [] identifies the bound scheduled device-region root, not the native executable entry. Native host functions, process argv/envp and host libc are outside this frame inventory; marking a region does not require lowering the whole native executable. Native comparison uses the corresponding materialised region and its materialised callee closure under the recorded comparison configuration.' This permits the pair/flip device root to use [] while the enclosing native main has no frame-context entry."
+   }
+  ],
+  "codex": [
+   {
+    "id": "V2V-1",
+    "section": "Recommended exact spec diff (\u00a712.3); mixed-fat-object compatibility",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "This changes certificate layout but supplies no mixed-fat-object integration statement. Neither the diff nor INDEX specifies that context inventories are scoped to device roots rather than the native host binary. This fails the explicit standing C7 check, which requires that statement for certificate-layout changes. Preserving nested region calls alone does not discharge it.",
+    "fix": "Append to \u00a712.3: 'For a mixed fat object, these frame records describe only the linked ISA regions in a bound device-root realisation. Each scheduled device root has its own certificate bindings and context set; [] is relative to that root. The native host component invokes device code through \u00a710, using a device CC entry where required. Native host functions need no frame records, and this inventory does not require unmarked host code to be lowered to ISA. Certificates for different roots may reference the same linked closure, but their frame contexts remain scoped to their respective root bindings.' Alternatively place this rule in a shared normative mixed-object clause and explicitly incorporate it here; prefer the local paragraph."
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

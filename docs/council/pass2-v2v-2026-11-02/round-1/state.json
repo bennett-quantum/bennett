@@ -1,0 +1,36 @@
+{
+ "run": "pass2-v2v-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-pass2/b-isa-spec-v2v.md",
+ "doc_sha256": "31ffa07d499a4b4cd73ccef02477ab7746a488767c8de253c435fc21641f2607",
+ "prepared": "2026-11-02T08:54:17+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:54:18+00:00",
+   "updated": "2026-11-02T08:59:20+00:00",
+   "exit": 0,
+   "seconds": 302
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T08:54:18+00:00",
+   "updated": "2026-11-02T08:59:21+00:00",
+   "exit": 0,
+   "seconds": 303
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 second-pass contract-repair proposal note v2v (b-isa-spec-v2v, P1; sol, 2026-11-02): frame descriptors for every realised invocation context. The document is the note itself, which carries its own exact spec diff; grade the proposal",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3b/task-pass2.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
