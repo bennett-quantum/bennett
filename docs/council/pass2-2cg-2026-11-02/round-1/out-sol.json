@@ -1,0 +1,75 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "Both maintained \u00a717.1 texts are identical. ISA 0.8 and 0.9 \u00a77.1 support the stated bump and requested-size rules. The 32-byte/three-record and 64-byte/five-record traces are correct.",
+   "change": "\u00a717.1, optional clarification: 'An alloc(0) address probe consumes one heap byte and one allocation-table entry, records requested size zero, and provides no accessible payload bytes.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The proposed construction uses the three existing \u00a73.1 primitives and ordinary memory operations. Requested-size bookkeeping does not require a new ISA query.",
+   "change": "\u00a717.1, optional sentence: 'This allowance adds no primitive; bookkeeping uses ordinary materialised operations and the published allocation, free and fault primitives.'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Preserving a successfully executed prefix at a failing primitive is consistent with primitive failure atomicity and subsequent reversal. Reusing still-live metadata slots changes ordinary data without reclaiming primitive storage or history.",
+   "change": "\u00a717.1, optional sentence: 'Prefix retention describes the state at the failing primitive; oracle workspace cleanup and R-run reversal remain governed by the existing region and fault contracts.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The diff charges probes, padding, metadata and stores rather than importing the thin fixture's costs. The production metadata allocation correctly fails at heap capacity 32 after four successful records and bump 4128.",
+   "change": "\u00a717.1, optional sentence: 'List traversal, metadata stores and reused metadata slots retain their actual step, heap and history charges under the resolved materialised body.'"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The identity and migration account agrees with \u00a7\u00a77.3, 19.9 and 23. In-memory application preserves all existing example blocks; the published ref-0.9 catalog hash checks. The exact diff lacks the mixed-object applicability statement required by the standing check.",
+   "change": "\u00a717.1: add the mixed-fat-object applicability and shared-metadata rule written in B1."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The INDEX allocation assertions reproduce. Existing LLVM 18/23 thin-fixture executables match every published output, and existing alignment executables pass six cases each. The proposal appropriately distinguishes these checks from full runtime and rung acceptance, but supplies no tagged production-body execution vector yet.",
+   "change": "\u00a717.1 acceptance vector: state 'For the pinned production body, heap capacity 64 gives requests [3,0,12,16,32], five records and bump 4160; capacity 32 faults with code 2, four records and bump 4128, without returning from malloc. Reverse all metadata stores and primitive history, then reproduce the same execution.'"
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Ordinary metadata preserves the allocator capability needed by SQLite and Julia. The min-size preservation rule agrees with [WG14 N1570 \u00a77.22.3.5](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf#page=367). The required mixed-fat-object statement is missing from the proposal.",
+   "change": "\u00a717.1: explicitly retain native host code outside the selected device closures and route shared allocation metadata through the existing layout, promotion and entry-state contracts, as written in B1."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The fixture/production distinction is actionable and supported by bump.c. Defining C requested size separately from the rounded primitive request would make the realloc rule easier to implement correctly.",
+   "change": "\u00a717.1: add 'Old requested size means the original C byte count, including the checked calloc product, rather than the ABI-rounded primitive extent or padding; for malloc(1), that count is 1 even when the primitive payload request is 16.'"
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff, \u00a717.1 in both maintained texts",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The standing bennett-4ht check requires a change governing host memory by reference to state its mixed-fat-object use. This diff permits ordinary allocator metadata in \u00a717.1's shared classical memory, but states obligations only for device and native materialisation. Under \u00a717.7, native materialisation here is the comparison binary; it does not itself explain the production native host image. The proposal never states how unrelated host code remains native or how shared allocator metadata follows the existing boundary rules. Existing \u00a7\u00a74.2\u20134.4, 8.5 and 19.4\u201319.5 provide a route, so this needs an applicability statement rather than a new ABI.",
+   "fix": "Append to \u00a717.1 in both maps: 'In a mixed fat object, this bookkeeping allowance applies to runtime code in the selected materialised device closures and their native comparison build; unrelated host code remains native under \u00a7\u00a74.2\u20134.4. Allocations and bookkeeping shared across the host\u2013device boundary follow the shared-memory, promotion and layout rules of \u00a7\u00a717.1 and 19.4\u201319.5, and oracle entry-state transfer under \u00a78.5 preserves the ordinary metadata bytes as well as primitive allocation history. This clarification does not require the native host entry, argv/envp or host-only libc closure to be included in an ISA object.' Use this existing-contract route."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a717.1: define requested size explicitly: 'For realloc, old requested size is the original C byte count, not the rounded primitive allocation extent.' Example: malloc(1) records C size 1 alongside a primitive payload request of 16.",
+  "Alternatives and worked witness: add 'The 64-byte figure assumes empty live/spare metadata lists, alignment 16, sufficient step and table capacity, and no additional prologue allocations; entry replay or shadow-stack allocations are charged separately when present.' Keep the stated allocation-only expected trace unchanged.",
+  "Release and route: replace the dependency sentence with 'This bookkeeping clarification introduces no new ISA dependency; the 0.2 text retains its existing typed-R-fault and failed-run-reversal blockers, while the 0.3 text uses its existing ISA 0.9 K5/K6 contracts.'",
+  "Conformance vectors: add 'On metadata-allocation failure, 4112 denotes an allocation in the retained prefix, not a returned malloc result.' Expected state at heap capacity 32 is fault 2, bump 4128 and four primitive records."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "Add B1's applicability statement to the proposed \u00a717.1 addition for both maintained texts. No primitive or catalog change is needed; retain the stated publication and consumer re-pin requirements.",
+ "summary": "The allocation mechanism, trace arithmetic and catalog claims check out. Core accepted. One required mixed-fat-object applicability statement prevents whole-proposal acceptance.",
+ "verdict_core": "accept"
+}

@@ -1,0 +1,36 @@
+{
+ "run": "pass2-2cg-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-pass2/b-dialect-spec-2cg.md",
+ "doc_sha256": "a2c8ce8418ac4d1e614914e43623164807aa8d790851338afae0e403f7d4e40d",
+ "prepared": "2026-11-02T09:20:12+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:20:13+00:00",
+   "updated": "2026-11-02T09:31:02+00:00",
+   "exit": 0,
+   "seconds": 649
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:20:13+00:00",
+   "updated": "2026-11-02T09:26:53+00:00",
+   "exit": 0,
+   "seconds": 400
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "Dialect proposal note 2cg (b-dialect-spec-2cg; sol, 2026-11-02): clarify \u00a717.1 C allocation alignment in both maintained maps (0.2 and 0.3 draft): exact primitive history vs a minimal C-wrapper fixture; production allocator metadata allowed. The document is the note itself, which carries its own exact diff; grade the proposal",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3b/task-dialect.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-dialect-spec"
+}

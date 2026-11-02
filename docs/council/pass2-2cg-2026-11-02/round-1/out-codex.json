@@ -1,0 +1,74 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "Both maintained \u00a717.1 texts have identical allocation rules. The proposal preserves ISA \u00a77.1's requested-size records, max(n,1) bump, liveness and nonreclamation, while representing allocator bookkeeping as ordinary memory.",
+   "change": "No change required."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "Dialect \u00a73.1 publishes exactly fault/alloc/free primitives; \u00a716.4 lowers allocation directly. The inspected bump.c implements size retention and cursor refresh using these existing primitives and ordinary stores. No allocation-query instruction is necessary.",
+   "change": "No change required."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Per-primitive failure atomicity and retained successful prefixes agree with ISA \u00a7\u00a77.1/7.4 and dialect \u00a7\u00a717.5\u201317.6. Metadata stores participate in ordinary reversal; the proposal grants no memory-check exemption. Existing oracle cleanup obligations remain applicable.",
+   "change": "No change required."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The INDEX allocation witness reproduced both traces: minimal requests 3,13,16 end at 4128; production requests 3,0,12,16,32 end at 4160. With 32 heap bytes, production faults with code 2 at bump 4128 after four successful records. Additional metadata and probe costs are explicitly charged.",
+   "change": "No change required."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Body-specific identity and consumer re-pinning agree with \u00a7\u00a77.3/19.9/23. Applying the proposed append in memory leaves existing ISA, hash and run blocks byte-identical in both texts; no ISA catalog change is required. The proposal does not explicitly connect its accounting and identity obligations to a marked closure within a mixed fat object.",
+   "change": "In \u00a717.1 add: \"In a mixed fat object, these allocation-trace, budget and runtime-body identity obligations apply to the selected device closure and its native comparison closure, with shared entry state handled under \u00a78.5.\""
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The arithmetic witness passes, and its limitation is honestly stated: it does not simulate production metadata stores. The proposed separate production-body vector is appropriate, but its executable, identity-bound specification remains publication work.",
+   "change": "For the new \u00a717.1 tagged vector, state: \"Record the materialised-body identity, empty metadata lists, sufficient step/depth capacity and at least five available allocation records.\" Expected results are heap=64: return 4112, bump=4160, records=5, code=0; heap=32: no malloc return, bump=4128, records=4, code=2. Reversal must restore metadata bytes as well as primitive state."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Ordinary dynamic bookkeeping preserves the libc, SQLite and Julia requirements without a fixed metadata cap. However, the note contains no explicit mixed-fat-object applicability statement despite revising allocator budgeting, materialisation and identity obligations; the council's standing check requires one.",
+   "change": "In \u00a717.1 add: \"This clarification does not require whole-program device entry: the surrounding native host binary and host-only libc remain outside the device object, subject to the existing placement rules of \u00a7\u00a74.2\u20134.3 and 19.4.\""
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "The proposed append clearly distinguishes fixture conformance from production-body conformance. Its cited clauses and description of the current allocator are accurate. The claimed ambiguity is supported by the originating request, without falsely claiming that existing text forbids bookkeeping or that realloc remains unimplemented.",
+   "change": "No change required."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "Recommended exact spec diff \u2014 \u00a717.1; Defect and North Star scope",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [],
+   "problem": "The proposal specifies identical materialised allocator operations, actual budgets and body identities, but does not state how those obligations apply within a mixed fat object containing a native host binary and selected device closures. References to \u00a7\u00a717.7/19.1 describe the comparison and linking paths without supplying the explicit applicability statement required by the council's standing mixed-fat-object check. This is that check's required scope omission, not a demonstrated defect in the allocation arithmetic or the accepted host/device split.",
+   "fix": "Append to proposed \u00a717.1 in both maps: \"In a mixed fat object, this rule governs the allocator closure selected for a marked device entry and that closure's native comparison build; the surrounding native host binary and host-only libc remain outside the device object. Allocation traces, budgets and runtime-body identities are bound to that selected closure, with shared caller allocation state transferred and charged under \u00a78.5 and boundary addresses governed by \u00a719.5. This clarification does not require whole-program device entry or add host promotion beyond \u00a7\u00a74.2\u20134.3 and 19.4.\" An illustrative mixed case should retain native main and host-only work while the marked allocator-using closure produces its ISA object and comparison closure."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "In \u00a717.1 clarify the two meanings of requested size: \"On successful realloc(p,n) of a non-null live C allocation, old requested size means the original C request, excluding ABI rounding, padding and metadata; preserve its first min(old_requested,n) bytes.\" For malloc(1) followed by realloc(p,48), the preserved length is 1, although the original primitive payload request was 16.",
+  "In the new \u00a717.1 production vector, explicitly distinguish the internal payload allocation from a returned malloc value. At heap=32, payload storage at 4112 exists in the retained prefix, but malloc never returns because its metadata allocation faults. Record bump=4128, four successful primitive records and code=2, then verify reversal of the actual allocator stores.",
+  "After \u00a717.1's failure-prefix sentence, add: \"Prefix retention describes forward execution before reversal; it does not waive coherent-oracle cleanup under \u00a718.5 or alter the version-specific R-fault and reversal provisions of \u00a7\u00a717.5\u201317.6.\""
+ ],
+ "verdict": "revise",
+ "path_to_accept": "Add B1's mixed-fat-object applicability paragraph to the proposed \u00a717.1 append in both maps. No allocation-semantic repair, new ISA primitive or replacement of the existing fixture is needed. Publication should retain the note's stated versioning and separate production-vector obligations.",
+ "summary": "The core clarification is sound, its numerical witnesses reproduce, and its technical citations are accurate. Existing canonical examples remain unchanged. The sole blocker is the explicit mixed-fat-object applicability statement required by the standing council check.",
+ "verdict_core": "accept"
+}
