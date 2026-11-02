@@ -1,0 +1,56 @@
+# Council — contract-checker-resource-contexts-2026-11-02 round 2
+
+Document snapshot sha256 3415140d24ad; rubric docs/council/rubric-isa.md. Members: codex. Scores are advisory.
+
+| | codex | mean | spread ≥ 2 |
+|---|---|---|---|
+| C1 | 5 | 5.0 |  |
+| C2 | 4 | 4.0 |  |
+| C3 | 5 | 5.0 |  |
+| C4 | 5 | 5.0 |  |
+| C5 | 5 | 5.0 |  |
+| C6 | 4 | 4.0 |  |
+| C7 | 5 | 5.0 |  |
+| C8 | 5 | 5.0 |  |
+
+Overall mean: 4.75
+
+Verdicts: **codex: accept**
+
+Core verdicts: **codex: accept**
+
+**Consensus: YES**   **Core consensus: YES**
+
+Blocking by scope: codex: core 0 / contract 0 (blocking 0)
+
+## Regressions reported
+
+- **[codex]** The round-1 witness used a valid ctl call. Round 2 expands it into a predicate pair but omits c from qunpred. This is a nonblocking illustrative-source typo; replacing it with qunpred c preserves the context keys and accounting.
+
+## Previous-round blockers, status
+
+- [codex] RC-1: **resolved** — The round-1 codex finding is resolved: every resources map uses canonical upward encoding and recomputed-encoding comparison, including without estimate; included exact fractions remain checked.
+
+## Blocking issues
+
+- none
+
+## codex
+
+RC-1 is resolved. The resource-context defect is real, the proposed accounting and decimal rules are sound, and the hash and mixed-fat-object claims hold. No S0 blocker remains. The illustrative qunpred spelling and round-1 reviewer attribution need minor corrections.
+
+**Path to accept:** Already acceptable as a 0.9 K repair. Correcting qunpred to qunpred c would raise C2 from 4 to 5; publishing the complete bound conformance fixtures would raise C6.
+
+- **C1 5**: The proposed §12.3 repair changes reporting without altering §3 machine state or execution semantics. *Change:* No change required. Optional §12.3 clarification: 'Resource-context records introduce no machine state or execution-time scheduling decision.'
+- **C2 4**: The action_call forms and native X control range agree with §§4.7/8.3. However, the witness incorrectly calls operandless qunpred canonical: §3.5 requires qunpred w, corroborated by reference-interpreter/src/schema.rs and src/validation.rs. *Change:* In 'Alternatives and worked witnesses', replace the final instruction with 'qunpred c'. The call points remain entry:0 and entry:2, and all stated resource totals remain unchanged.
+- **C3 5**: Including predicated-off invocations preserves §3.1's classical scheduling invariant. Footprint reporting does not transfer ownership, and the existing error-bound composition remains separate. *Change:* Retain the proposed §12.3 rule: 'Error-bound multiplicities retain their existing separate composition rule.'
+- **C4 5**: The integer and rational totals agree with §8.2 under the stated intervals. The unconditional encoding rule matches §10.1 and resolves RC-1. The supplied script passes, including thirds, root accounting and dirty-borrow replacement. *Change:* Retain the proposed §12.3 rule: 'Never add rounded child displays to compute an exact parent value.'
+- **C5 5**: The original flat-map ambiguity exists. Complete §12.1 keys, default coverage, singleton validation, deterministic projection and effective-schedule binding repair it. K12 mandatory estimates remain mandatory. Under §9.2, certificate changes leave object-hash inputs unchanged; an in-memory migration of the published controlled-action fixture confirmed this. *Change:* Retain the proposed §12.3 rule: 'Missing, duplicate, reordered, foreign or mismatched context records, or a conflicting projection, reject the requested report.'
+- **C6 4**: Acceptance and rejection obligations are derivable. The arithmetic script passes and accurately disclaims checker execution, but the proposal supplies fragments rather than a complete bound conformance fixture. *Change:* In 'Conformance vectors and verification', publish the complete two-flip object, target, schedule and certificate. State: 'The integer fixture accepts child (time, occupancy, peak) values (1,1,1) and (1,2,2), root values (2,4,2), and X counts 1,1,2; missing, duplicated, reordered or mismatched context records reject.'
+- **C7 5**: Repeated, controlled and differently budgeted invocations remain supported. The bennett-4ht section explicitly scopes certificates and costs to the selected VM invocation and closure while retaining native host work. The standing check passes. *Change:* Retain the proposed §§9/10/12 sentence: 'Its certificate inventory covers its VM closure and all generated invocation contexts, not every native entry or libc routine.'
+- **C8 5**: The repair supplies actionable accounting, encoding, projection and migration rules. Certificate/report bytes change explicitly; no catalog change is required. The published 219-recipe catalog envelope hash was independently reproduced. *Change:* For schema clarity, update §12.3's resource field to 'resources { encoded_row_name: canonical_decimal_string }', with canonical_decimal_string defined by the new exact-arithmetic paragraph.
+
+Suggestions:
+1. In 'Alternatives and worked witnesses', correct the canonical block to: action_call @flip (t) () () (); qpred c; action_call @flip (t) () () (); qunpred c, with one instruction per line. §3.5 requires the pop to name the same wire. The two call ordinals remain 0 and 2.
+2. In 'Round-1 blocking items and resolution', replace 'astra RC-1' with 'codex RC-1', matching the supplied previous-round record and round-1/out-codex.json.
+3. In 'Conformance vectors and verification', publish complete bound fixtures and add: 'For a non-K12 resource report, omission of estimate remains valid when displays match recomputed encodings; K12 estimate certificates still require estimate.' For duration 1/3, child times must display as '0.3333333333333333333333333333333334' and root time as '0.6666666666666666666666666666666667'; summing rounded child displays must reject.
