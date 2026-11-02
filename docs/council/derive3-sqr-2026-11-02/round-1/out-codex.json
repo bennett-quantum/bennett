@@ -1,0 +1,62 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The proposed \u00a74.4 rule resolves declared bundles into ordered wires without inspecting quantum values. It preserves \u00a73.3 ownership, distinctness and predicate-context rules.",
+   "change": "No change required within this proposal\u2019s scope."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The ambiguity is real: \u00a7\u00a73.3, 4.4 and 4.8 do not specify MCX list-entry widths, while \u00a716.2 admits NAME entries but excludes indexed list entries. The diff decides expansion, scalar target, duplicate rejection, empty controls and k.",
+   "change": "No change required."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The resulting operation is the exact conjunction-controlled X required by \u00a74.4. The witness map (p,q,c) \u2192 (q XOR [c=3],p,c) and reverse-order adjoint agree with \u00a75.3. Expansion also supplies the complete operands required by K78.",
+   "change": "No change required."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Flattened control count and order supply \u00a7\u00a78.1\u20138.3 cost and scheme operands. The actual catalog\u2019s gate.mcx recipe takes a width-K controls formal followed by a width-one target; no recipe modification is needed.",
+   "change": "No change required."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "\u00a79.2 hashes canonical source text, so retaining the written operand preserves identity under the authorized same-version route. Both reported object/closure hash pairs and the ref@0.9 envelope hash were independently reproduced. The note correctly requires schedule regeneration and certificate rechecking.",
+   "change": "No change required; retain the explicit council-authorization condition and the 0.10 fallback."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Reproduced the original object\u2019s scalar-width rejection, the replay\u2019s 16-element relation proof, and all 16 forward plus 16 adjoint cases for the indexed ccx comparison. The note correctly limits those results; mixed-list ordering and arity remain a conformance checklist rather than concrete published vectors.",
+   "change": "In \u201cConformance vectors and actual verification,\u201d add: \u201cFor s:wire, b:wire[2], t:wire, mcx (s, b) t resolves to [s,b[0],b[1],t], with k=3 and four gate operands. It maps (s,b,t) to (s,b,t XOR (s AND [b=3])) with phase +1 on all 16 basis inputs.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The change preserves controlled-anything and linear wire semantics without narrowing any North Star capability. The mixed-fat-object section keeps expansion and certificates within device closures and names the remaining shared boundary obligations.",
+   "change": "No change required."
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "The amendment is localized and implementable. It distinguishes source syntax, resolved operands, primitive matching and catalog realization, and accurately separates the older first-bit checker result from current scalar-only rejection.",
+   "change": "No change required."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "In \u00a715\u2019s conformance additions, publish the concrete mixed-list vector given under C6. Also state: \u201cmcx (b, s) t resolves to [b[0],b[1],s,t]; it has the same unitary and K78 primitive identity as mcx (s, b) t, while retaining its distinct canonical source bytes.\u201d This tests operand ordering independently of conjunction semantics."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are needed. Accept through the explicitly council-authorized 0.9 K-repair route, retaining the stated consumer revalidation requirements. Publishing the mixed-list operand/arity vector would raise C6 from 4 to 5.",
+ "summary": "The defect and cited clauses check out. Ordered bundle expansion is sound, preserves source and catalog hashes as claimed, and keeps mixed fat objects reachable. No false technical premise or misnumbered citation was found.",
+ "verdict_core": "accept"
+}

@@ -1,0 +1,37 @@
+{
+ "run": "derive3-sqr-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-derive3/b-isa-spec-sqr.md",
+ "doc_sha256": "6806a4e94fdcd8961c8bb598796898db97ea073fea530ca4c23c871fe13388a0",
+ "prepared": "2026-11-02T11:12:11+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T11:12:11+00:00",
+   "updated": "2026-11-02T11:16:54+00:00",
+   "exit": 0,
+   "seconds": 283
+  },
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T11:12:11+00:00",
+   "updated": "2026-11-02T11:18:34+00:00",
+   "exit": 0,
+   "seconds": 383
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA contract proposal sqr (b-isa-spec-sqr, derive3): bundle entries in mcx control lists, ordered expansion and wire arity",
+ "context": [
+  "docs/Bennett-NorthStar.md",
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev2/fat-object-scope.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3d/task-d3-sqr.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
