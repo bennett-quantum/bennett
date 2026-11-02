@@ -1,0 +1,27 @@
+{
+ "run": "accept-4ht-recheck-2026-11-02",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/accept-4ht-dossier.md",
+ "doc_sha256": "832603a2f1baa26918163fb53790312e5fbce1986454913c1c151b0b5a17c8d2",
+ "prepared": "2026-11-02T09:38:06+00:00",
+ "members": {
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-02T09:38:06+00:00",
+   "updated": "2026-11-02T09:43:51+00:00",
+   "exit": 0,
+   "seconds": 345
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "bennett-4ht re-check dossier of four accepted contract proposals (z4c, adg, checker-diagnostics, 5u3)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "codex"
+ ],
+ "task": "/home/tobias/Projects/bennett-workspace/bennett/.tmp/opus-council-s3c/task-4ht.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}

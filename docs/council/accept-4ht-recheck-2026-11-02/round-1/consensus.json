@@ -1,0 +1,45 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "codex": "accept"
+ },
+ "blocking": {
+  "codex": [
+   {
+    "id": "z4c-4HT-1",
+    "section": "z4c \u2014 Hashes, catalog and consumers; proposed ISA \u00a711 action-support addresses",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The C7/bennett-4ht standing check explicitly requires a mixed-fat-object compatibility statement when certificate layout is touched. z4c expressly requires address-bearing schedules/certificates to adopt new coordinates. ISA \u00a79.1 embeds those sections, while \u00a7\u00a79.2 and 12 bind certificates to device objects, closures and schedules. The proposal explains coordinate migration but does not state how those records belong to the device portion of a mixed binary. This is the required compatibility statement missing from the proposal, not a reopened objection to the accepted addressing rules.",
+    "fix": "Append to z4c's 'Hashes, catalog and consumers': \"In a mixed fat object, the new support coordinates belong to action or perm_action invocations within the linked device ISA object(s). Each affected device object's schedules and certificates use them under the existing object, closure and schedule bindings. Native host functions require neither these support coordinates nor ISA region entries in that device certificate. $construct and $release denote device action entry and exit, not native process entry and exit; this repair does not require the surrounding native binary to become an ISA object.\""
+   },
+   {
+    "id": "adg-4HT-1",
+    "section": "adg \u2014 Hashes, catalog and consumers; proposed ISA \u00a7\u00a77.1 and 10 lifetime rules",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [],
+    "problem": "The C7/bennett-4ht standing check explicitly covers launch API decisions. adg fixes initialization, persistence, register identity and replay assumptions across launches, but never identifies how its 'loaded program' relates to the native host and device components of a mixed fat object. ISA \u00a710 supplies a device CC entry and program handle, so the accepted mechanism can support that composition; the proposal still needs the required explicit application statement. The omission concerns launch-boundary scope, not the accepted core persistence semantics.",
+    "fix": "Append to adg's 'Hashes, catalog and consumers': \"In a mixed fat object, 'loaded program' means a loaded device program instance, not the native host process or entire fat binary. The native host may retain that instance and repeatedly invoke its device CC entries; the specified memory, allocation-table, bump-pointer and register-ledger persistence applies to that instance, with separate state for separate loaded instances. Loading a device program or closing or reversing a device run does not initialize or roll back unrelated native host state. This rule does not require moving native main, argv/envp handling or host-only libc into the device object. Later-entry certificate replay records the actual device entry-state preparation assumptions, without presuming a fresh native process.\""
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 5.0,
+  "C4": 5.0,
+  "C5": 4.0,
+  "C6": 4.0,
+  "C7": 3.0,
+  "C8": 4.0
+ },
+ "members": [
+  "codex"
+ ]
+}
