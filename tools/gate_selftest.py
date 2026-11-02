@@ -234,6 +234,33 @@ class Isolation(Base):
         self.assertRan(self.run_tool("--sha", sha), 1)
 
     @unittest.skipUnless(bwrap_works(), "bwrap unavailable")
+    def test_workspace_changes_between_commands_are_followed(self):
+        # 2026-11-02: a sibling worktree removed mid-run made every later bwrap fail ("Can't find source path .git"),
+        # and a directory created mid-run would have stayed visible. Isolation is recomputed per command.
+        gone = self.repo("gone-wt", {"x": "x\n"})
+        ready, go = self.tmp / "ready", self.tmp / "go"
+        wait = f"#!/bin/sh\ntouch {ready}\nwhile [ ! -e {go} ]; do sleep 0.05; done\n"
+        later = "#!/bin/sh\ntest ! -e ../born/secret\n"
+        sha = self.adopt([["./wait.sh"], ["./later.sh"]], {"wait.sh": wait, "later.sh": later})
+        full = dict(ENV, BENNETT_GATE_WORKSPACE=str(self.ws))
+        log = open(self.tmp / "gate.log", "w+")
+        self.addCleanup(log.close)
+        proc = subprocess.Popen(["python3", "-I", str(TOOL), "run", "--repo", str(self.me), "--sha", sha],
+                                stdin=subprocess.DEVNULL, stdout=log, stderr=log, env=full)
+        self.addCleanup(lambda: proc.poll() is None and proc.kill())
+        for _ in range(1200):
+            if ready.exists():
+                break
+            time.sleep(0.05)
+        else:
+            self.fail("first check never started")
+        shutil.rmtree(gone)
+        self.repo("born", {"secret": "live\n"})
+        go.touch()
+        proc.wait(timeout=120)
+        self.assertEqual(proc.returncode, 0, (self.tmp / "gate.log").read_text())
+
+    @unittest.skipUnless(bwrap_works(), "bwrap unavailable")
     def test_unpinned_sibling_is_absent(self):
         self.repo("other", {"x": "x\n"})
         sha = self.adopt([["./check.sh"]], {"check.sh": "#!/bin/sh\ncat ../other/x\n"})

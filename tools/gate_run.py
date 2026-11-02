@@ -169,30 +169,44 @@ def base_env(tmpdir):
     return env
 
 
+class Isolation:
+    """bwrap argv hiding every live working tree in the workspace; each .git stays for object reads.
+
+    The workspace is rescanned for every command: sibling worktrees come and go while a gate runs for hours (a
+    vanished one made every later bwrap fail; a new one would have stayed visible)."""
+
+    def __init__(self, workspace, own_roots):
+        self.bwrap = os.environ.get("BENNETT_GATE_BWRAP", "bwrap")
+        if not shutil.which(self.bwrap):
+            raise GateError(f"isolation needs bwrap ({self.bwrap} not found); --no-isolate only with the omission recorded")
+        self.workspace, self.own = Path(workspace), {Path(r).resolve() for r in own_roots}
+        z = subprocess.run([*self.argv(), "true"], capture_output=True, text=True)
+        if z.returncode != 0:
+            raise GateError(f"isolation probe failed: {z.stderr.strip()}; --no-isolate only with the omission recorded")
+
+    def argv(self):
+        prefix = [self.bwrap, "--dev-bind", "/", "/", "--die-with-parent"]
+        for entry in sorted(self.workspace.iterdir()):
+            try:
+                if entry.is_symlink() or not entry.is_dir() or entry.resolve() in self.own or entry.name.startswith("."):
+                    continue
+            except FileNotFoundError:
+                continue  # removed while scanning
+            prefix += ["--tmpfs", str(entry)]
+            # --bind-try: a worktree removed between this scan and bwrap's start is absent, not a setup failure.
+            prefix += ["--bind-try", str(entry / ".git"), str(entry / ".git")]
+        return prefix
+
+
 def isolation_prefix(workspace, own_roots):
-    """bwrap argv hiding every live working tree in the workspace; each .git stays for object reads."""
-    bwrap = os.environ.get("BENNETT_GATE_BWRAP", "bwrap")
-    if not shutil.which(bwrap):
-        raise GateError(f"isolation needs bwrap ({bwrap} not found); --no-isolate only with the omission recorded")
-    prefix = [bwrap, "--dev-bind", "/", "/", "--die-with-parent"]
-    own = {Path(r).resolve() for r in own_roots}
-    for entry in sorted(Path(workspace).iterdir()):
-        if entry.is_symlink() or not entry.is_dir() or entry.resolve() in own or entry.name.startswith("."):
-            continue
-        prefix += ["--tmpfs", str(entry)]
-        if (entry / ".git").exists():
-            prefix += ["--bind", str(entry / ".git"), str(entry / ".git")]
-    z = subprocess.run([*prefix, "true"], capture_output=True, text=True)
-    if z.returncode != 0:
-        raise GateError(f"isolation probe failed: {z.stderr.strip()}; --no-isolate only with the omission recorded")
-    return prefix
+    return Isolation(workspace, own_roots)
 
 
 def run_cmd(argv, cwd, env, prefix, timeout):
     """Run in its own session; on timeout or interruption kill the whole group. Returns the exit status."""
     full = argv
     if prefix:
-        full = [*prefix, "--chdir", str(cwd), "--", *argv]
+        full = [*prefix.argv(), "--chdir", str(cwd), "--", *argv]
     try:
         proc = subprocess.Popen(full, cwd=cwd, env=env, stdin=subprocess.DEVNULL, start_new_session=True)
     except OSError as e:

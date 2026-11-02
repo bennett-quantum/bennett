@@ -31,7 +31,7 @@ A tool upgrade is a deliberate one-line commit per repo, made when no push of th
    so `../bennett-isa-spec` and `../../bennett-isa-spec` resolve to the pin with no test change. A pin named `bennett` needs
    only objects from the meta repo.
 5. Runs each `[[check]]` in order under bwrap, in which **every other top-level directory of the workspace is an empty
-   tmpfs** except its `.git`. An absolute or unpinned read of a live sibling gets ENOENT and the check goes red: that is the
+   tmpfs** except its `.git`. The workspace is rescanned before every command, so a sibling worktree created or removed mid-run is followed. An absolute or unpinned read of a live sibling gets ENOENT and the check goes red: that is the
    fail-loud for unpinned reads, and it cannot be bypassed by a path the static scan misses. Inherited `BENNETT_*`,
    `CARGO_TARGET_DIR`, `GIT_*` and display variables are scrubbed.
 6. Runs each `[[report]]` (milestone and blocker status); its exit is printed and never decides anything.
@@ -39,7 +39,8 @@ A tool upgrade is a deliberate one-line commit per repo, made when no push of th
 
 SIGTERM, SIGHUP or SIGINT (an orchestrator kill under memory pressure) kills the running command's whole process group,
 removes the run worktree and writes no record; exit 128+signal. Kill the gate's python process, never only the bwrap
-below it. Tools before 2026-11-02's interrupt fix (c698ce1) orphan the running build or test tree on SIGTERM.
+below it. Tool c698ce1 (adopted everywhere on 2026-11-02) orphans the running build or test tree on SIGTERM and fails every later
+command once a workspace worktree it saw at start is removed; both fixed since.
 
 Exit: **0 iff every check passed**, 1 a check failed, 3 setup failed (missing or mismatched pin, absent commit, hash
 mismatch, unbuildable sibling, unknown key or placeholder, no bwrap). `--no-isolate` is announced and means the run is not
