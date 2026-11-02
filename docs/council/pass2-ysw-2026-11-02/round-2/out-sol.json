@@ -1,0 +1,80 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The partition records equality without replacing live token identities or changing \u00a75.4 validity and lifetime rules. Nested partitions retain their resolved identity mapping.",
+   "change": "Optional \u00a73.2 cross-reference: \u201cInvocation bindings export token equality through token_aliases (\u00a712.3); these labels are not runtime token handles.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The revised ordering agrees with \u00a7\u00a74.7/16.2: only oracle_call supplies a separate invocation token. The token-free action and oracle defaults are correct.",
+   "change": "Optional \u00a74.1 budget.mint annotation: \u201cSerialization of token_aliases neither creates a token nor changes token validity.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The defect is real: \u00a75.3 compares identities and tuples; \u00a7\u00a74.1/7.4 compare recorded boundary values. Preserving identities through forwarding, captures and inverse traversal repairs serialization without changing quantum semantics.",
+   "change": "Clarify the \u00a77.4 region-call frame row: \u201cRetain the resolved token identity mapping alongside token tuples, and reuse that mapping during reversal.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Partition-aware schedule selection preserves \u00a710.1 exact aggregation. The revised inverse-pair example correctly rejects raising the primary budget while retaining an equal-label argument at the old tuple.",
+   "change": "Optional \u00a710.1 sentence: \u201cResolve cleanup pairs and the scheduled event stream using args, budget and token_aliases before exact resource aggregation.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Invocation, schedule, cache, claim and inverse-pair bindings are covered. The additive ABI supports every consistent partition, with an explicit legacy E_ARG default. The remaining universal-claim encoding detail is mechanical; its quantification is decided.",
+   "change": "In \u00a712.3, give the uniform shorthand explicitly: \u201cA parameter-uniform structural claim uses invocation:{args:\"all\",budget:\"all\",token_aliases:\"all\"}; token_aliases:\"all\" quantifies over every partition consistent with each quantified argument vector and budget.\u201d"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "check_rev2.py completed successfully with all eight PASS lines. Independent hashing confirmed the originating fixture pin and args digest bf8eae8d885943f1948223391b24a677ec8eaefc4d39544bd6ed106277a211ed. History execution and K81 carrier formation remain disclosed, hand-derived witnesses.",
+   "change": "In Conformance vectors/\u00a715, make the Q witness executable: \u201cFor oracle_call @identity a (x) t f () () followed by oracle_call @identity b (x) t f () (), action partition [0,0] produces one K65 carrier at the second call; [0,1] produces none. Both compose to identity at equal tuples.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Every consistent partition remains admitted. Fat-object applicability and the incorporated shared statement delimit device roots, native inventory and the exact remaining launch/memory obligations, satisfying bennett-4ht without claiming an existing mixed-launch shim.",
+   "change": "Optional \u00a79.2 cross-reference: \u201cFor mixed native/device containers, token-alias bindings and certificates are scoped to the selected device object/root under \u00a7\u00a710/12.3.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Canonical labels, arity, tuple consistency, forwarding, fresh mints and legacy behavior are implementable. Publication conditions correctly distinguish unchanged source/catalog envelopes from changed schedule/certificate bytes and full-version migration.",
+   "change": "Update \u00a75.4's existing schedule-selection sentence directly: \u201cAn invocation uses the bound schedule only when closure hash, variant, inherited controls, budget tuple, params_hash and token_aliases all match; otherwise it uses the \u00a711 defaults.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "sol:B1",
+   "status": "resolved",
+   "note": "The normative fat-object paragraph and incorporated shared statement supply device scope, certificate inventory and launch-feature negotiation obligations."
+  },
+  {
+   "id": "codex:B1",
+   "status": "resolved",
+   "note": "Oracle-only primary-token ordering and corrected action/CC/R defaults agree with \u00a7\u00a74.7/16.2."
+  },
+  {
+   "id": "codex:B2",
+   "status": "resolved",
+   "note": "Bindings are scoped to loaded device objects and roots; native main, argv/envp and host-only libc remain outside the device inventory."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Recommended exact spec diff, \u00a712.3: explicitly encode the already-required universal partition quantification as invocation:{args:\"all\",budget:\"all\",token_aliases:\"all\"}, restricted to consistent partitions. This is schema completion, not an unresolved semantic choice.",
+  "Recommended exact spec diff, \u00a7\u00a75.4/7.4: replace the old schedule-matching checklist with one including token_aliases, and state that region-call history retains the identity mapping for reversal. The proposal's general obligations already require both behaviors.",
+  "Conformance vectors/check_rev2.py: add an integration test for the two identity-oracle calls. Expected action partitions are [0,0] and [0,1], with respectively one carrier at the second call and no carrier. Replay of a certificate bound to the other partition must reject despite identical params_hash."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are required. To raise C5 from 4 to 5, render the universal-claim token_aliases shorthand explicitly in \u00a712.3 while retaining its stated quantification over all consistent partitions.",
+ "summary": "All previous blockers are resolved: codex B1 by the corrected token ordering/defaults, and sol B1 plus codex B2 by the mixed-object scope additions. No false cited premise, misnumbered clause or new S0 issue was found. Hash/catalog claims hold under the stated publication conditions. The finite checker passes; actual history and K81 execution are not claimed as reproduced tests.",
+ "verdict_core": "accept"
+}
