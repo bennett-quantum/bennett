@@ -1,0 +1,68 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The repair leaves the accepted machine model unchanged. Intrinsic recounts follow \u00a7\u00a75.2/14.1 and do not depend on inherited predicates or root reachability.",
+   "change": "No change required; retain in \u00a712.3: \"The report is not the probability that a root execution reaches a call.\""
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a74.2 charges one step per lifted row. The interpreter witness confirms faults at B=0/1 and payload (x+1) mod 4 at B=2.",
+   "change": "No change required; retain the two-row example with faults_by_code={\"1\":\"256\"} at B=0/1 and {} at B=2."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Counting code(F_B), rather than the accumulated fault word, respects \u00a75.2's XOR interface. Mandatory action nulls correctly implement \u00a75.3's absence of action-owned faults.",
+   "change": "No change required; retain in \u00a712.3: \"The final XOR-accumulated fault word is never the predicate for this count.\""
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Actual args and validated four-component token tuples remain authoritative. The host-limit outcome follows \u00a712.2 without changing resource, target or scheduling semantics.",
+   "change": "No change required; retain in \u00a712.3: \"If limits prevent a legal recount, report unchecked (host limit), discharging no verified fault-rate obligation.\""
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The binding defect exists in published \u00a712.3. Independent RATE bindings, complete \u00a712.1 contexts and the deterministic projection repair it. The external bundle explicitly supplies the new artifact contract without violating \u00a79.1's closed schema.",
+   "change": "No change required; retain in \u00a712.3: \"This bundle is a new checker input contract; it adds no attachments field to either closed schema.\""
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Read-only runs of the inline script and check_rev4.py pass, including actual commit/reversal, 64 exclusions and artifact rejection paths. The absence of a complete serialized multi-context certificate is accurately disclosed.",
+   "change": "In Conformance vectors and verification, publish: \"A serialized two-call certificate with concrete \u00a712.1 keys reports {\\\"1\\\":\\\"256\\\"} for B=1 and {} for B=2; its legacy RATE equals the first canonical context with context_key removed. Deleting either context or altering that projection rejects the report.\""
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "All declared tuples remain in reference validation, while native exclusions remain separately reported. The mixed-fat-object statement preserves marked device closures, native host execution and comparison thunks, and names the remaining launch and host-memory obligations.",
+   "change": "No change required; retain in Mixed fat object: \"Unmarked host main, argv/envp and libc are not invented oracle records and need no F_B recount.\""
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "Applicability, encodings, context ordering, exclusion unions and unchecked/rejection outcomes are implementable. \u00a79.2 confirms the conditional identity claims; an independent in-memory action-null conversion preserves object_hash and schedule bytes, and the ref catalog pin reproduces.",
+   "change": "No change required; retain in Hashes, publication and consumers: \"A full-version publication instead requires regenerating version-envelope identities and dependent pins.\""
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "CFR-3",
+   "status": "resolved",
+   "note": "The nonexistent existing-attachments premise is withdrawn. The new external bundle defines raw-byte SHA-256 checks, missing-blob unchecked outcomes and digest-mismatch rejection; the finite witness passes."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In Conformance vectors and verification, add the complete serialized two-context fixture specified under C6. State its expected verdicts explicitly: B=1 reports {\"1\":\"256\"}, B=2 reports {}, the legacy projection matches the first canonical context, and omitted contexts or a corrupted projection reject."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes remain. To raise C6 from 4 to 5, publish the serialized two-context certificate and its acceptance/rejection vectors described above.",
+ "summary": "CFR-3 is resolved. The defect statement, clause references, recount arithmetic and conditional hash-preservation claims check out. The mixed fat object remains reachable. No new S0 issue or regression found.",
+ "verdict_core": "accept"
+}
