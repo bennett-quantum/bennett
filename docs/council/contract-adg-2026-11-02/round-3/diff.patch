@@ -1,0 +1,220 @@
+--- round-2/doc.md
++++ round-3/doc.md
+@@ -13,4 +13,7 @@
+ entropy position and effect tape. It still requires renewed sol/astra
+ review and a later Muse seat; it is not yet ACCEPTED FOR SPEC.
++Round 2 then raised adg-R2-1/adg-R2-B1: persistent device models also
++need exclusive ownership. This revision adopts launch-time acquisition
++and adds overlapping-run witnesses; no other contract fix is made.
+ 
+ ## Defect and North Star scope
+@@ -122,4 +125,58 @@
+ modeled console sequence; T4 does **not** retract externally observed output.
+ Fresh loading restores the initial clock/console/block map and memory.
++
++### Overlapping open runs: adg-R2-1 / adg-R2-B1
++
++Use disjoint live buffers, no quantum registers and one loaded device
++instance initially at clock 0 and empty console. A's entry calls an R
++helper that reads the clock and appends `a5`; B's entry calls a different
++R helper that reads the clock and appends `5a`. Both transitive call
++closures reference the same clock and console despite disjoint buffers.
++
++Without device ownership, A completes open at `c=1`, console=`a5`;
++B completes and closes at `c=2`, console=`a55a`. Reversing A decrements
++the clock and pops one byte, leaving `c=1`, console=`a5`, rather than
++A's entry `c=0`, empty console. B's byte is popped. This is the reported
++T4 counterexample, including A reversing after B touched both models.
++
++Under the proposed fix, A acquires both models before execution and
++retains them after COMPLETED. B's attempted launch returns
++`E_INVALID_STATE`, with no run effects, entropy consumption, memory
++mutation or ownership acquisition; `c=1`, console=`a5` remain. Now A
++can reverse while still owning both: `c=0`, console empty and A's own
++buffers/entropy cursor/effect tape restore their entry state. T4 holds.
++Ownership remains A's while REVERSED, so another B attempt still
++conflicts until A is CLOSED.
++
++| A disposition, then retry B | B reads | State after B |
++|---|---|---|
++| A CLOSED without reversal | 1 | `c=2`, console=`a55a` |
++| A REVERSED then CLOSED | 0 | `c=1`, console=`5a` |
++
++B has its own new entropy position and tape. Reversing B, if eligible,
++restores B's entry values (respectively `c=1`, console=`a5`, or `c=0`,
++empty console). A cannot reverse after it is CLOSED. The same launch
++conflict applies while A is FAILED, including its retained effect prefix.
++For block, A writes previously absent sector 2; a B closure that reads
++that block model conflicts until A closes. After unreversed A, retry B
++reads all 512 `a5` bytes; after reversed A, it reads 512 zero bytes and
++sector 2 remains absent. Present-zero sectors retain their presence.
++
++A run using only the clock and a run using only the console can remain
++concurrent if their existing register/memory ownership is also disjoint.
++Reversing the clock run restores its clock and own buffers and leaves the
++other run's console bytes unchanged. A launch needing clock plus block
++while another run owns block acquires neither model: acquisition is atomic.
++An effect hidden in an R helper is in the transitive footprint even when
++its branch is not taken in this execution. This schedules conflicting
++device use across CLOSED boundaries and preserves disjoint concurrency,
++all existing sequential programs and the mixed-fat-object path.
++
++The finite contract witness in
++[ownership_witness.py](../../../.tmp/sol-notefix-s4/ownership_witness.py)
++checks these outcomes and every pair of the eight model subsets. It is
++a small model of the proposed ownership rule, not a repeated-launch ABI
++implementation. The separate read-only interpreter witness below checks
++the actual clock, console, block, entropy and inverse operations.
+ 
+ ## Recommended exact spec diff
+@@ -154,4 +211,6 @@
+ ```diff
+ +Device-model state belongs to the loaded program like classical memory (§7.1): the console byte sequence, the clock counter c and the block sector map are established at load from their initial values (the block map from layout.block_image, K10) and persist across runs, changed only by effect execution and by reversal (§7.4, T4); closing a run does not reinitialise them. The entropy position p is per-run state: it starts at 0 over the entropy tape copied at that bennett_run (§10). The effect tape is per-run.
+++The console sequence, clock counter and block sector map are exclusive
+++program-state resources subject to the run ownership rules of §10.
+ ```
+ 
+@@ -163,5 +222,7 @@
+ +separate state; the §7.1/§7.3 program-lifetime state is never reinitialised
+ +merely to start a run. This persistence rule does not prohibit disjoint
+-+concurrent runs permitted by the existing ownership rules.
+++concurrent runs with disjoint model ownership sets as well as the
+++existing register/memory conditions.
+++At bennett_run, the run atomically acquires exclusive ownership of every console, clock and block model referenced by its entry's transitive CC/R call closure. Ownership lasts until CLOSED, including while COMPLETED, FAILED or REVERSED. If any required model is owned by another non-CLOSED run, bennett_run returns E_INVALID_STATE before executing the entry or acquiring ownership. Entropy positions and effect tapes remain per-run. Disjoint concurrent runs require disjoint model ownership sets as well as the existing register/memory conditions.
+ ```
+ 
+@@ -169,7 +230,17 @@
+ positively defines the separate per-run entropy and effect-tape lifetimes;
+ the amendment does not inherit dynamic environments, history or oracle
+-workspace into later runs. The witnesses use sequential CLOSED runs and
+-invent neither a concurrent memory merge nor a new device synchronization
+-protocol.
++workspace into later runs. The original witnesses use sequential CLOSED runs. The overlap vectors
++now add explicit device ownership; no concurrent memory merge is assumed.
++
++Append to §14.3 T4, retaining its existing reversal eligibility,
++quantum exactness/error bounds, audit and observed-event qualifications:
++
++```text
++Restoration concerns the run-owned state; state belonging exclusively to disjoint runs is unaffected.
++```
++
++Here run-owned state includes the §7.3 models acquired by the transitive
++closure at launch; it never includes unrelated native host state.
++The §10 restoration wording is read with this same run-owned scope.
+ 
+ Add after the §15 suite table (a suite G requirement):
+@@ -203,4 +274,18 @@
+ +that host-minted tokens remain valid until unload, and that a device-
+ +minted token passed after its run is CLOSED returns E_ARG.
+++**Suite G — overlapping device ownership.** With disjoint live buffers,
+++let A read clock 0 and append a5, complete and remain open. A B entry
+++whose transitive CC/R closure reads that clock and appends 5a returns
+++E_INVALID_STATE at launch; c stays 1, console stays a5, and B has no
+++effects or ownership. After A closes unreversed, retry B reads 1 and
+++leaves c=2, console=a55a. After eligible A reversal then close, retry B
+++reads 0 and leaves c=1, console=5a. While A is REVERSED but not CLOSED,
+++B still conflicts; repeat while A is FAILED. Include transitive helper
+++effects, a conflicting block read after A creates sector 2, and a launch
+++requesting one free and one owned model: no partial acquisition.
+++Disjoint clock-only and console-only runs may execute concurrently under
+++the existing register/memory rules; reversing either restores its owned
+++state and leaves the other's state intact. Check separate entropy
+++positions/tapes, all bytes and block presence, not only scalar results.
+ ```
+ 
+@@ -208,8 +293,9 @@
+ 
+ ```text
+-K-new | §7.1, §7.3, §10, §15 | LOADED-PROGRAM-LIFETIME: CC/R memory,
++K-new | §7.1, §7.3, §10, §14.3, §15 | LOADED-PROGRAM-LIFETIME: CC/R memory,
+ allocation table, bump pointer and console/clock/block state persist
+ across runs in one loaded device instance; entropy position and effect
+-tape are per-run; CLOSED does not reverse. | b-isa-spec-adg | S | –
++tape are per-run; referenced console/clock/block models exclusively
++owned from launch through CLOSED; CLOSED does not reverse. | b-isa-spec-adg | S | –
+ ```
+ 
+@@ -418,6 +504,6 @@
+ 
+ Run this exact command from any directory. All generated files and Cargo
+-outputs stay under `.tmp/sol-adg-rev/`; the dependency source is read-only.
+-There are two Cargo jobs, a 4 GiB per-process address-space bound (in
++outputs stay under `.tmp/sol-notefix-s4/`; the dependency source is read-only.
++There are four Cargo jobs, a 4 GiB per-process address-space bound (in
+ addition to the runner's 14 GiB scope), no core dumps and a 240-second
+ timeout. This is one small witness executable, not a repository gate.
+@@ -425,14 +511,14 @@
+ ```sh
+ env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER \
+-  TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-adg-rev/tmp \
+-  CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-adg-rev/target \
++  TMPDIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/tmp \
++  CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/target \
+   python3 - <<'PY'
+ import os, pathlib, resource, subprocess
+ repo = pathlib.Path('/home/tobias/Projects/bennett-workspace/bennett-isa-spec')
+-job = repo / '.tmp/sol-adg-rev'
++job = repo / '.tmp/sol-notefix-s4'
+ (job / 'tmp').mkdir(parents=True, exist_ok=True)
+ crate = job / 'witness'
+ (crate / 'src').mkdir(parents=True, exist_ok=True)
+-note = (repo / 'docs/notes/2026-11-02-rev3/adg.md').read_text()
++note = (repo / 'docs/notes/2026-11-03-notefix/adg.md').read_text()
+ (crate / 'src/main.rs').write_text(note.split('```rust\n', 1)[1].split('\n```', 1)[0] + '\n')
+ (crate / 'Cargo.toml').write_text('''[package]
+@@ -451,5 +537,5 @@
+ resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+ subprocess.run(['timeout', '240s', 'cargo', 'run', '--offline',
+-                '--manifest-path', str(crate / 'Cargo.toml'), '-j2', '--quiet'], check=True)
++                '--manifest-path', str(crate / 'Cargo.toml'), '--bin', 'adg-device-witness', '-j4', '--quiet'], check=True)
+ PY
+ ```
+@@ -491,4 +577,24 @@
+ through the current one-shot interpreter.
+ 
++## Round-2 blocking items and resolution
++
++The [round-2 report](../../../../bennett/docs/council/contract-adg-2026-11-02/round-2/report.md)
++and both reviewer outputs agree on the device-ownership defect. This
++revision adopts the complete launch-time rule verbatim from sol's
++adg-R2-B1 fix, which also resolves codex's adg-R2-1. These are proposed
++resolutions pending round 3 and a Muse seat.
++
++| Item | Resolution and witness |
++|---|---|
++| adg-R2-1 / adg-R2-B1 | §§7.3/10 exclusively acquire every referenced console/clock/block model atomically at launch through CLOSED, including COMPLETED, FAILED and REVERSED. Conflict returns E_INVALID_STATE before effects or any acquisition. The clock/console overlap now blocks B before A reverses, preserving A's entry state. |
++| T4 interaction | §14.3 restores run-owned state; disjoint runs' state is unaffected. The clock-only/console-only concurrent witness exercises this distinction. |
++| Required §15 vectors | Both clock and console retry outcomes, block presence, FAILED/REVERSED retention, transitive helper footprint, no partial acquisition and independent entropy/tapes are specified. |
++
++All other round-2 content is retained, including the exact Muse adg-M1
++paragraph, accepted bennett-4ht paragraph, memory/allocator/token rules,
++sequential device vectors and interpreter witness source. Only the
++ownership/T4/vector additions, their necessary explanatory wording and
++job-local reproduction paths change. No unrelated suggestion is applied.
++
+ ## Muse blocking items and resolution
+ 
+@@ -522,2 +628,22 @@
+ continues to track the mixed-launch boundary. No full gates, spec edits,
+ interpreter changes, commits or remote operations are part of this job.
++
++## Ownership revision verification and council follow-through
++
++`timeout 30s python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/check_notes.py adg`
++checks the exact reviewer wording, preserved adg-M1/4ht bytes, T4 and
++§15 insertions, complete original Rust witness and links. The finite
++ownership model command is
++`timeout 30s python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/ownership_witness.py`.
++Both exited 0. The job-local interpreter build reproduced the five
++recorded stdout lines with complete machine-snapshot restoration; see
++`timeout 300s python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/run_witnesses.py`.
++The interpreter has no multi-launch ownership API, so the overlap rule
++has finite-model evidence and required suite G vectors, not an actual
++multi-launch implementation pass. No full repository gate was run.
++
++Open council work is acceptance of the launch-time ownership rule in
++adg round 3, then a Muse seat; publication and actual ABI conformance
++follow. The existing adg and bennett-4ht obligations remain open. This
++revision makes no new contract choice beyond the reviewers' requested
++ownership repair and reserves no K number.

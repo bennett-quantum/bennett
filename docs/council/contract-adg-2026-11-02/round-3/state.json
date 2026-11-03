@@ -1,0 +1,36 @@
+{
+ "run": "contract-adg-2026-11-02",
+ "round": 3,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-03-notefix/adg.md",
+ "doc_sha256": "79bb33bdd3b0fb6a77d916b46c90163fee2e5248eb993bfa391d93c36d25a88b",
+ "prepared": "2026-11-03T09:51:55+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-03T09:51:55+00:00",
+   "updated": "2026-11-03T09:58:41+00:00",
+   "exit": 0,
+   "seconds": 406
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-03T09:51:55+00:00",
+   "updated": "2026-11-03T09:56:10+00:00",
+   "exit": 0,
+   "seconds": 254
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 contract-repair proposal adg, round 3 (device-model ownership)",
+ "context": [
+  "docs/Bennett-NorthStar.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex"
+ ],
+ "task": ".tmp/opus-council-s3d/task-r3-adg.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec"
+}
