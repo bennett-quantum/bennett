@@ -1,0 +1,65 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "Both tracks\u2019 \u00a7\u00a712.7\u201312.8 retain the existing integer representation, partial top limb and shadow-stack conventions. The proposal changes delivery, not machine state or stepping.",
+   "change": "No repair required. Retain \u00a712.8\u2019s sentence: \u201cThe existing shadow-stack slot layout, partial top limb and push/store/call/load/pop order are unchanged.\u201d"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "The operation list matches the cited runtime-producing rows; the W>128 and overflow W>64 thresholds match those rows. The i257 result 6, ctpop(result)=2 and ctpop(a)=3 are correct. LLVM permits ctpop on arbitrary integer types with a matching result type. [LLVM 18 LangRef](https://releases.llvm.org/18.1.8/docs/LangRef.html#llvm-ctpop-intrinsic)",
+   "change": "Optional \u00a712.8 clarification: \u201cRequests select existing helper ABIs; they do not replace the distinct scalar, wide-slot and overflow-result conventions of the preceding rows.\u201d"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Discovery does not emit or reorder normalisation. Linking the same complete closure into both builds preserves the materialised reference semantics, including fault and cleanup obligations; generation failure cannot become a device fault.",
+   "change": "No repair required. Retain \u00a712.8\u2019s rule: \u201cThis discovery is a non-emitting analysis using the published rules; it does not rerun or change \u00a712.1\u2019s normative rule order.\u201d"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Generated bodies remain charged ordinary code. The note correctly requires fresh materialisation, resource and certificate bindings. No ISA instruction or ref recipe changes; I reproduced the published ref@0.9 envelope hash 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197.",
+   "change": "Optional \u00a712.8 sentence: \u201cGenerated bodies and their dependencies incur the existing step, heap, stack and recursion charges, including their shadow-stack operations.\u201d"
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "The missing public runtime delivery protocol is real; \u00a713.1 supplies the analogous arith protocol. Requests, validation, reproducibility and closure completeness are substantially decided. One manifest detail needs tightening: an externally visible data definition has no function_type.",
+   "change": "\u00a712.8 OUTPUT_JSON: state \u201cexports lists every externally visible function definition; generated non-function definitions MUST have internal or private linkage.\u201d Alternatively add versioned kind/type records for data exports; prefer internal data for v1."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "I reproduced successful LLVM 18/23 verification and absence of both required i257 definitions in both current distributions. The note accurately limits this evidence to delivery. The arithmetic and canonical request hash also reproduce; helper execution remains future conformance work.",
+   "change": "Conformance vectors: add \u201cDN MUST check the INDEX canonical request against SHA-256 74e7a75be203bc350a18a84980258fa09a3e9936837e8aa67fb01532064cdd81; integration tests MUST execute the generated i257 closure in both materialised builds and obtain product 6, ctpop(product) 2 and ctpop(a) 3.\u201d"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "All admitted widths remain obligations. The mixed-object section limits collection and comparison to marked device closures, preserves separate root certificate associations and explicitly names the remaining mixed-launch work. The standing bennett-4ht check passes.",
+   "change": "No repair required. Retain the mixed-object rule: \u201cMultiple roots may share generated bodies; each device root retains its own certificate/context association.\u201d"
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The offline interface and fixed-point procedure are implementable without producer-private knowledge. Treatment of instances already supplied by the base runtime could be stated directly to avoid unnecessary duplicate definitions.",
+   "change": "\u00a712.8 collection: add \u201cAn already linked conforming definition satisfies its instance; request only unsatisfied instances, and recompute that set after linking each response.\u201d"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "\u00a712.8 OUTPUT_JSON: state \u201cexports lists every externally visible function definition; generated non-function definitions MUST have internal or private linkage.\u201d A versioned manifest supporting typed data exports is also viable; prefer internal data for v1.",
+  "\u00a719.9 build record: add \u201cRecord each instance producer\u2019s version, canonical request hash, bitcode hash and manifest hash; use an empty instance list when no generated module is linked.\u201d This makes the note\u2019s cache and repinning requirements directly auditable.",
+  "\u00a712.8 collection: add \u201cAn already linked conforming definition satisfies its instance; request only unsatisfied instances, and recompute that set after linking each response.\u201d",
+  "K entry and publication route: state \u201cPublish in the next available full 0.2 patch version and carry the matching protocol into the 0.3 draft; update version checks and consumer pins.\u201d The workspace advanced to 0.2.13 during review, so a separate subsequent publication would use the next patch. The proposed route already permits this; no ISA K entry is needed."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already acceptable through the recommended next-patch dialect publication route, mirrored in the 0.3 draft. To raise C5 from 4 to 5, resolve the manifest\u2019s non-function export wording using the concrete v1 rule above.",
+ "summary": "The delivery gap and missing-body witness are real, the cited clauses are accurate, and the proposed fixed point repairs the gap without narrowing arithmetic or mixed-object scope. Hash consequences are correctly distinguished from unchanged ISA catalog identity. No blocking defect found.",
+ "verdict_core": "accept"
+}
