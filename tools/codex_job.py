@@ -25,7 +25,7 @@ STATE = os.path.expanduser("~/.local/state/bennett-codex-jobs")
 REFUSAL = "flagged for possible cybersecurity risk"
 NET = ("stream disconnected", "error sending request", "connection reset", "timed out", "network",
        "503", "502", "504", "429", "rate limit", "temporarily unavailable", "EOF")
-TRAILER = "\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+AGENT = "gpt-6.1-sol"  # set from --model in run(); COMMON rule 4: non-Claude commits end with "Agent: <model id>"
 
 PROTOCOL = """
 
@@ -108,7 +108,7 @@ def commit(st, cd, paths, label):
     try:
         # `git add` exits 128 on a path that does not exist yet and 1 on an ignored one, and then commits
         # nothing at all (2026-11-01: three jobs lost every checkpoint this way), so stage them one by one.
-        added = 0
+        added = 0; added_paths = []
         for p in paths:
             ignored = subprocess.run(["git", "check-ignore", "-q", "--", p], cwd=cd).returncode == 0
             tracked = subprocess.run(["git", "ls-files", "--", p], cwd=cd, capture_output=True, text=True).stdout.strip()
@@ -118,13 +118,15 @@ def commit(st, cd, paths, label):
                 continue
             subprocess.run(["git", "add", "-A", "--", p], cwd=cd, check=True, capture_output=True, timeout=120)
             added += 1
+            added_paths.append(p)
         if not added:
             log(st, f"commit ({label}): no owned path exists yet")
             return
         if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cd).returncode == 0:
             return
-        msg = f"wip(codex job {os.path.basename(st)}): {label}{TRAILER}"
-        r = subprocess.run(["git", "commit", "-q", "-m", msg], cwd=cd, capture_output=True, text=True, timeout=120)
+        msg = f"wip(codex job {os.path.basename(st)}): {label}\n\nAgent: {AGENT}"
+        # pathspec: commit only this job's owned paths, never what another job staged in the shared index
+        r = subprocess.run(["git", "commit", "-q", "-m", msg, "--", *added_paths], cwd=cd, capture_output=True, text=True, timeout=120)
         log(st, f"commit ({label}): {'ok' if r.returncode == 0 else r.stderr.strip()[:200]}")
         if r.returncode == 0:
             backup(st, cd)
@@ -175,6 +177,8 @@ def attempt(st, a, cmd, stdin_text, cd, paths, n):
 
 
 def run(a):
+    global AGENT
+    AGENT = a.model
     st = os.path.join(STATE, a.name)
     os.makedirs(st, exist_ok=True)
     cd = os.path.abspath(a.cd)
