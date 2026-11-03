@@ -7,12 +7,13 @@ repo's CLAUDE.md; council policy `docs/council/README.md`; plan `docs/plan/2026-
 
 ## Next, in order
 
-1. Maintainer ratifies docs/decisions/2026-11-02-code-quality-policy.md (nine rules); then one batched review per repo
-   under its rules 2-6, plugin first. Nothing else from that document needs building.
-2. Maintainer decisions on the contract queue: authorise (or not) in-version 0.9 K-entries for the council-accepted notes
-   (incl. b-isa-spec-0jq, HELD FOR MAINTAINER); decide the ISA 0.10 publication for l2p (north-star gap b-isa-spec-bwm),
-   fd0, lpe, sqr (b-isa-spec-56j) and dialect 0.2.13 for 2cg, 4yg.1 (b-dialect-spec-ek3). Accepted list with run dirs:
-   `.tmp/orchestrator/opus-council-s3d-PROGRESS.md`; applied so far: ISA K83 (z4c), K84 (checker-diagnostics), dialect 5u3.
+Maintainer decisions 2026-11-03 (advisor-notes.md D1-D3, R12-R14): code-quality policy RATIFIED; in-version 0.9 K track
+AUTHORISED for the nine accepted repairs, l2p/fd0/lpe to ISA 0.10; dialect 0.2.13 publishes now. Shift 4 executes.
+1. Policy in force (docs/decisions/2026-11-02-code-quality-policy.md): law 2 of every CLAUDE.md points at it; one batched
+   review per repo under rules 2-6, plugin first (sol xhigh reviewer), review documents in docs/reviews/.
+2. Contract queue per D2: spec editor applies xv4, checker-native-model, checker-resource-contexts, 4ta, 7s0, v2v, ysw,
+   2qc, sqr as K85+; 0.10 bead for l2p, fd0, lpe; council follow-ups (pe1 re-seat, 0jq + checker-fault-rate joint round,
+   adg round 3, brt-vbi round 1) then one batched Muse seat (R13). Dialect 0.2.13 for 2cg, 4yg.1 (D3).
 3. Turn the red heads green and push: bennett-isa-spec (b-isa-spec-500, `tests/source_constructor.rs:134` stack overflow;
    46 commits ahead incl. K83/K84), bennett-vm (gate.toml isa-spec pin lacks the K83 fixture), bennett-driver (runtimes pin
    ec52032 lacks scripts/native-check), bennett-sched (adopt the gate_run stub, bennett-sched-68k; old hook reads live

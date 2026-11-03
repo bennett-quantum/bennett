@@ -1,6 +1,6 @@
 # Code quality policy
 
-**Status:** PROPOSED by the advisor on 2026-11-02 from the maintainer's instructions; the maintainer ratifies at the
+**Status:** IN FORCE. Ratified by the maintainer on 2026-11-03 (advisor-notes D1: rule 5 Muse seat when quota is readable and the advisor confirms, otherwise sol xhigh plus Sonnet stand in). Proposed by the advisor on 2026-11-02; originally: the maintainer ratifies at the
 start of the next session, then law 2 in each CLAUDE.md points here. Deliberately short: the maintainer wants no
 administrivia, process theatre or review paranoia. If a rule here needs a form, a tracker or a ceremony, delete it.
 
