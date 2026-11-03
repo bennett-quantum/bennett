@@ -1,0 +1,68 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff preserves machine state and execution. Its oracle/action distinction matches ISA \u00a7\u00a75.2\u20135.3.",
+   "change": "No change required. Retain \u00a75.3's rule: 'No fault outcome.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "Owner-local inverse-pair entries, swapped orientations, primary-budget inequality, exact arg_tokens and pre-effect validation agree with \u00a74.5. K63 and K65 do not transfer ownership; K91's additional identity constraints remain applicable.",
+   "change": "No change required. Retain the proposed \u00a712.3 sentence: 'Before any effect of the enclosing CC/R region call, check coverage for every transitively executed qinplace using its owner entry and resolved token and classical arguments (\u00a74.5).'"
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "The H witness follows exactly from \u00a74.4: H\u00b2=I, while H is not a permutation. Structural claims remain distinct from comparison, numerical and channel claims. Null discharges no fault-rate obligation.",
+   "change": "No change required. Retain \u00a712.3's proposed rule: 'A structural adjoint-table or translation claim is not such a comparison claim.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "The diff changes no resource, target, schedule or catalog semantics. An independent in-memory fixture migration preserved object_hash 45bbb506541e3a8bb28a18e1bb0aef16ba01ee1e7cac74d5a190deb3ad36ef5a and function, target and schedule identities while changing certificate bytes. The catalog check reproduced all 219 recipes and its published envelope hash.",
+   "change": "No change required. Retain 'Publication and validation boundary': 'All unchanged-hash claims assume unchanged header/source and catalog envelopes.'"
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The cited defects exist: \u00a79.2 defines reference_program_hash specifically for an oracle, and \u00a712.3 requires comparison/census fields despite K13 admitting standalone structural claims. Both revised notes contain Muse's byte-identical paragraph with SHA-256 b34376b04d0d2e295018245c1f7f3ce36b4f55ad5ed18e8f127119e36b9685b0 and the identical conditional oracle sentence. Their combined rules admit one consistent encoding.",
+   "change": "No change required. Retain \u00a712.3's proposed rule: 'verification.fault_rate is required and has type null | RATE.'"
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "check_rev2.py passed all eight result lines; the joint check passed. The existing interpreter witness reproduced 256 faults at B=0 and B=1, zero at B=2, arbitrary-target/fault XOR delivery and complete machine reversal. The new verification fragment correctly distinguishes structural acceptance from census-dependent acceptance, but is explicitly not a complete certificate fixture.",
+   "change": "In 'Conformance vectors and verification', publish a complete invocation-bound structural-H certificate and state: 'Accept the adjoint_table claim with verification.oracle:null and verification.fault_rate:null; reject oracle:0, reject omission of fault_rate, and reject using null to discharge a required census or zero-fault gate.'"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The accepted bennett-4ht normative paragraph is byte-identical to round 2; only its shared-statement link was relocated. Device-root identity, separate certificates and native-only inventory exclusions remain explicit. Remaining launch and host-memory obligations are named without excluding mixed execution.",
+   "change": "No change required. Retain the proposed \u00a712.3 sentence: 'The container associates each object/root pair with its certificate; several device roots may have separate certificates.'"
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "The fixture migration correctly selects the root's table claim at index 0, leaves the numerical-only child's oracle selector null and changes both action census placeholders to null. Required-key handling, linked proof resolution, coordinated reader upgrades and conditional D2 publication authority are explicit.",
+   "change": "No change required. Retain 'Paragraph byte identity and verification': 'Every producer and closed-schema reader using these amended 0.9 certificate bytes must upgrade together for the required nullable field and context/evidence fields; older readers cannot silently accept them.'"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "0jq-M1",
+   "status": "resolved",
+   "note": "Both proposals now require null | RATE, require action null with contexts absent, and permit structural-only oracle null without discharging census obligations; paragraph bytes and the conditional oracle sentence match Muse exactly."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In 'Conformance vectors and verification', publish the complete structural-H packet described under C6, including ordinary bindings and its K13 invocation. Expected results: structural claim accepted with oracle:null and fault_rate:null; structural index oracle:0 rejected; missing fault_rate rejected; null insufficient for census-dependent or zero-fault acceptance."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes remain. To raise the lowest criterion, C6, from 4 to 5, publish the complete structural-H positive and negative certificate fixtures specified above.",
+ "summary": "0jq-M1 is resolved. The joint diffs are satisfiable with one encoding, the claimed paragraph hash is correct, and the accepted bennett-4ht statement is unchanged. No new S0 issue, regression, false technical premise or misnumbered citation was found. Accept this repair; D2's remaining joint-review and Muse conditions still govern publication.",
+ "verdict_core": "accept"
+}
