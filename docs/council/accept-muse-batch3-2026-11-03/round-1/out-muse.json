@@ -1,0 +1,95 @@
+{
+ "blocking": [],
+ "criteria": [
+  {
+   "change": "In adg \u00a710, add one sentence fixing bennett_run error precedence (see adg-S1) so launch-status behaviour is as pinned as launch-state behaviour.",
+   "evidence": "adg pins every state component's lifetime in one table (\u00a77.1 memory/table/bump, \u00a73.3 ledger, \u00a77.3 console/clock/block program-lifetime; entropy p and effect tape per-run), matching \u00a73.3 program scope, \u00a710 States and T4 entry restoration (verified at \u00a77.1 line 1689, \u00a77.3 device table, \u00a714.3 T4). No other proposal touches the machine model.",
+   "id": "C1",
+   "score": 4
+  },
+  {
+   "change": "In brt-vbi \u00a712.8 text, add the explicit op-to-symbol/type table of brt-vbi-S1, above all for smul_with_overflow/umul_with_overflow.",
+   "evidence": "No proposal adds or changes an ISA instruction. brt-vbi's op set reproduces dialect \u00a712.7 (mul, udiv, sdiv, urem, srem, shl, lshr, ashr via __bennett_rt_i<N>_<op>(ptr,ptr,ptr)) and \u00a712.8's 20 runtime rows plus the two W>64 overflow helpers exactly (checked against dialect lines 5966, 6044, 6058, 6062); only the overflow helpers' function type is left to be derived from the row rather than restated.",
+   "id": "C2",
+   "score": 4
+  },
+  {
+   "change": "None required; at publication keep adg's \u00a714.3 run-owned sentence adjacent to T4's device-model component so the scoping cannot be read as weakening single-run restoration.",
+   "evidence": "adg's launch-time atomic device ownership removes the exhibited T4 counterexample (A open at c=1/console a5, B closes, A reversal popping B's byte) while preserving disjoint concurrency; ownership_witness.py PASS in this seat (64 footprint pairs). The joint fault-rate recount is intrinsic to \u00a75.2 F_B at zero inherited controls, counts code(F_B) not the XOR-accumulated word, and never inspects superposed data; code 1 = FAULT_BUDGET_STEPS (\u00a75.x table) confirms the B=1/B=2 witness over the full 4x4x16 domain.",
+   "id": "C3",
+   "score": 4
+  },
+  {
+   "change": "In checker-fault-rate \u00a712.3, name the materialisation_hash preimage exactly (checker-fault-rate-S2) so scheduled-certificate replay needs no inference.",
+   "evidence": "No proposal changes resources, charges or target capabilities (adg and checker-fault-rate state this and their diffs confirm it). fault_rate_contexts keys reuse \u00a712.1 context keys, whose JCS bytewise ordering is already normative (verified), so the legacy first-context projection is deterministic across schedulers and checkers.",
+   "id": "C4",
+   "score": 4
+  },
+  {
+   "change": "Apply brt-vbi-S1 and checker-fault-rate-S1/S2 at publication; they are the only contract enumerations an implementer must still derive.",
+   "evidence": "0jq/checker-fault-rate now share one \u00a712.3 encoding: extracted paragraph bytes are identical in both notes, SHA-256 b34376b04d0d2e295018245c1f7f3ce36b4f55ad5ed18e8f127119e36b9685b0 recomputed in this seat, matching the previous seat's prescribed text. The published controlled-action-09 fixture confirms the defect and migration (two perm_action records already carrying oracle:null against the printed 'oracle: i' schema, root exhaustive table claim at index 0, numerical-only second record). brt-vbi mirrors the published \u00a713.1 arith instance protocol field-for-field. Certificate-byte changes and closed-schema reader upgrades are disclosed in both ISA-certificate proposals; source/interface/closure/object and ref-catalog identities genuinely do not change.",
+   "id": "C5",
+   "score": 4
+  },
+  {
+   "change": "Publish pe1's complete bound 2-bit-layout certificate and one concrete multi-context fault-rate certificate as fixtures (pe1-S3); the texts already specify their exact contents and expected verdicts.",
+   "evidence": "pe1's erratum is now complete: all six borrowed:[\"1\"] tuples, widths, covered_fraction, \u00a712.1 prose and the \u00a70.2 K67 row (before-hash ad71cdb6... and after-hash c020b858... both recomputed in this seat); an in-memory application leaves no '25-bit'/'33554432' and 2+2+4+16=24, 1/16777216. check_notes.py joint/pe1/adg and ownership_witness.py all exit 0 in this seat. Statements are correct with explicit hypotheses; the remaining gaps are unpublished bound vectors and the unimplemented multi-launch/production checkers, named as obligations in the notes themselves.",
+   "id": "C6",
+   "score": 4
+  },
+  {
+   "change": "None. This criterion is at the level the other proposals should match.",
+   "evidence": "bennett-4ht standing check passes for all five: 0jq's \u00a712.3 device-root inventory paragraph, checker-fault-rate's marked-entry thunk binding (native_build_hash identifies the marked build/entry, never whole-binary replay), brt-vbi's marked-module collection union, adg's verbatim accepted device-instance paragraph, pe1's single-subject scoping. No proposal rejects, faults or renders inert any north-star capability or demo-ladder rung; structural-only packets (already admitted by K13 standalone claims) gain an honest encoding while every census obligation for executable/scheduled acceptance is retained.",
+   "id": "C7",
+   "score": 5
+  },
+  {
+   "change": "Remove 0jq's stale jw7 pointer and merge its fat-object/owner paragraphs with the already-published K88/K92 \u00a712.3 text instead of appending duplicates (0jq-S1, 0jq-S2, 0jq-S3).",
+   "evidence": "Every diff is editor-ready anchored replacement text with worked accept/reject witnesses (adg's full table/bump states check against \u00a77.1's 2^A_tab capacity; brt-vbi's i257 vector (2^256+3)*2 mod 2^257 = 6, ctpop 2, limbs [64,64,64,64,1] recomputed). Deferred items (container/launch/host-memory contract, production checkers, multi-launch ABI implementation) are named with defaults that keep every capability. Residual friction is editorial: stale cross-reference and line number, and merge-not-duplicate work against K88/K92 text published since the notes were written.",
+   "id": "C8",
+   "score": 4
+  }
+ ],
+ "path_to_accept": "All five proposals are accepted; no changes are required before the editor applies them through their stated routes (0jq + checker-fault-rate jointly and adg/pe1 as 0.9 K repairs, brt-vbi as the next dialect 0.2 patch mirrored in 0.3). The lowest criteria sit at 4; the single change that would most raise them (C5/C6 to 5) is to publish, with the same K entries, the concrete bound fixtures the texts already specify (pe1's 2-bit-layout certificate with the exact four-draw sampler, one serialized multi-context fault-rate certificate with B=1 {\"1\":\"256\"} and B=2 {} contexts and its legacy projection, and suite G two-launch vectors against a real launch ABI) together with brt-vbi-S1's op-to-symbol/type table, so no implementer derives any contract surface from prose alone.",
+ "previous_status": [
+  {
+   "id": "0jq-M1",
+   "note": "Resolved. 0jq now carries the prescribed null encoding ('verification: { oracle: i | null, ... fault_rate: null | { ... } }', actions MUST be null, both fixture placeholders become null) and the harmonised paragraph byte-identical to checker-fault-rate (SHA-256 b34376b04d0d2e295018245c1f7f3ce36b4f55ad5ed18e8f127119e36b9685b0, recomputed from both notes in this seat). The absent-key encoding is gone; a missing fault_rate key is malformed and null discharges no obligation. check_notes.py joint exits 0.",
+   "status": "resolved"
+  },
+  {
+   "id": "checker-fault-rate-M1",
+   "note": "Resolved. The unconditional oracle MUST is replaced by the prescribed conditional sentence, verbatim in both notes (RATE required whenever a census is asserted or required for executable/scheduled acceptance including every complete-tree oracle context via fault_rate_contexts; null only when no census is asserted, discharging nothing and satisfying no zero-fault gate). The new structural-only oracle vector {\"kind\":\"oracle\",\"verification\":{\"oracle\":null,\"fault_rate\":null}} accepts standalone and rejects census/executable/scheduled/zero-fault uses; all recount, projection and classifier-bundle rules are retained. Jointly satisfiable with 0jq as one \u00a712.3 text.",
+   "status": "resolved"
+  },
+  {
+   "id": "pe1-M1",
+   "note": "Resolved. The revision adds exactly the prescribed \u00a70.2 K67 replacement sentence in the same erratum and nothing else. Before/after row hashes recomputed in this seat match the note (ad71cdb6cdfbf9b2b56b0aeaa9f65dea6173df80d92cd208f9fac94152a552c3 -> c020b85859bb1ade45b2d47ad24c956a791b85d9372ed08d50b5338267fb8a5b); applying the full erratum to an in-memory copy leaves no '25-bit' or '33554432' (the row is at line 230 in the current text, not 203 as cited; content and hash anchors are exact, see pe1-S1).",
+   "status": "resolved"
+  },
+  {
+   "id": "adg-M1",
+   "note": "Resolved. The \u00a77.3 paragraph is the previous seat's wording verbatim (console/clock/block program-lifetime from layout.block_image K10; entropy position p and effect tape per-run), the \u00a710 sentence is scoped to 'the \u00a77.1/\u00a77.3 program-lifetime state', and \u00a715 suite G carries the required vectors with the prescribed expected values (B reads clock 1 and 512 a5 bytes after unreversed A; clock 0, absent sector 2 and 512 zero bytes after reversed A; B always p=0 with its own three-entry tape). The round-2 device-ownership addition (atomic launch-time acquisition through CLOSED, E_INVALID_STATE on conflict) further closes the overlapping-run T4 hole the original item's persistence choice exposed.",
+   "status": "resolved"
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "0jq-S1 (\u00a712.3, editorial): delete the stale sentence 'Fault-rate invocation encoding is handled by jw7, not invented again here' at publication and replace it with: 'The RATE invocation, context and exclusion-evidence encoding is the checker-fault-rate \u00a712.3 text applied jointly with this repair.' The joint-revision section already governs, but the leftover pointer invites an editor to look for a third encoding.",
+  "0jq-S2 (\u00a712.3/\u00a79.2, editorial): the published text already contains a K88 mixed-fat-object scope paragraph after the \u00a712.3 schema. Merge 0jq's proposed paragraph into it (keeping its certificate-specific sentences: object_hash identifies the embedded ISA object, bindings.closure_hash selects the device root, native-only code needs no region record or census) rather than appending a second overlapping scope paragraph.",
+  "0jq-S3 (\u00a712.3, editorial): K92 (2qc, already published) inserted owner-local qinplace checker-coverage text at \u00a712.3. State the owner rule once: keep K92's checker paragraphs and reduce 0jq's owner paragraph to its transport additions (select the owner record by exact closure hash in the composed regions map; conflicting records for one closure resolve by \u00a79.3 composition or reject), cross-referencing \u00a74.5/K92 for the covering test and CC trap / FAULT_UB_TRAP consequence.",
+  "checker-fault-rate-S1 (\u00a712.3): add one sentence removing a derivable-but-implicit edge: 'For kind=oracle, fault_rate null also requires fault_rate_contexts to be absent; a null legacy field with supplied contexts rejects, since the legacy field MUST equal the first canonical context's projection whenever contexts are present.'",
+  "checker-fault-rate-S2 (\u00a712.3 exclusion evidence): name the hash preimage exactly: 'materialisation_hash is SHA-256 of the UTF-8 JCS encoding of the certificate's producer.materialisation object ({llvm_version, pipeline, normaliser_version}) exactly as recorded, without trailing LF.' Today 'the recorded materialisation configuration' must be inferred to denote that sub-object.",
+  "checker-fault-rate-S3 (\u00a712.3 exclusion evidence): after 0jq's \u00a79.2 redefinition, replace 'reference_program_hash uses \u00a79.2's oracle interface hash' with 'reference_program_hash is the \u00a79.2 interface hash of the certificate's root reference subject (here an oracle; the containing region's closure hash identifies a nested oracle record)'. The computed value is unchanged for oracle roots.",
+  "brt-vbi-S1 (dialect \u00a712.8 delivery text): add the explicit request-to-symbol table: '(op,W) with W>128 for \u00a712.7 ops and \u00a712.8 runtime rows denotes void @__bennett_rt_i<W>_<op>(ptr dst, ptr a[, ptr b, ptr c][, scalar flags in intrinsic order]); (op,W) with W<=128 for the \u00a712.8 table rows denotes iW @__bennett_rt_<op>_i<W>(<the intrinsic's operands>); smul_with_overflow/umul_with_overflow with 64<W<=128 denotes {iW, i1} @__bennett_rt_smul_with_overflow_i<W>(iW, iW) resp. umul. The manifest type check uses exactly these types.' \u00a712.8's overflow row currently names the symbol without its type, so this removes the one derivation a producer and the plugin could make differently.",
+  "brt-vbi-S2 (dialect \u00a712.8/\u00a719.1, editorial): change the insertion anchor to 'insert before \u00a712.9 Examples' (\u00a712.8 itself ends in witness blocks), cite the current dialect as 0.2.13 (0.2.12 in the note is superseded), and pin function_type printing: 'function_type is the type as printed in the definition's declare/define line by the requested major's llvm-dis, without the @name, linkage or attributes.'",
+  "adg-S1 (\u00a710): pin launch error precedence in one sentence: 'bennett_run validates positional binding (E_ARG) before acquiring register, memory or device-model ownership (E_INVALID_STATE); a launch rejected by either check acquires nothing, consumes no entropy and executes nothing.' The published text leaves the order of its pre-existing E_ARG/E_INVALID_STATE checks unstated; adg's new ownership check is the natural place to close it.",
+  "adg-S2 (\u00a710): state how the acquisition set is computed: 'The referenced-model set is computed at load from the static effect instructions (literal dev names) in the entry's transitive CC/R call closure; there is no dynamic device acquisition during a run.' This matches the note's witnesses (untaken branches included) and heads off a dynamic-touch reading by analogy with qreg.from_id.",
+  "pe1-S1 (\u00a70.2, editorial): the K67 row is at line 230 of the current published text, not line 203 as the note and the previous blocking item cite (the spec has grown since). Anchor the erratum by the row content and its before-hash ad71cdb6..., both already in the note, and drop the line number.",
+  "pe1-S2 (\u00a70.2, editorial): restore the ledger's bold label style lost by the verbatim replacement: '| K67 | \u00a712.1 | **LEGAL-REPLAY-WITNESS**. F=4 and W=8 with legal unused mapping give a 24-bit domain; witness: four singleton draws cover 1/16777216 with unchanged XOR outcomes. ...'. Content is unaffected.",
+  "pe1-S3 (\u00a715/conformance): discharge the publication obligation the note itself names: publish the complete bound certificate for the repaired 2-bit-layout oracle with the exact four-draw xoshiro256** sampler, expecting evidence 1/16777216, plus rejects for the extra borrowed position, changed argument/budget rebinding, identity row and omitted cell. The replay-suite relation tests cited do not reproduce the printed layout bytes."
+ ],
+ "summary": "0jq: ACCEPT\nchecker-fault-rate: ACCEPT\nbrt-vbi: ACCEPT\nadg: ACCEPT\npe1: ACCEPT\nAll four previous Muse blocking items are resolved as prescribed: the joint \u00a712.3 paragraph is byte-identical in both notes (hash recomputed), pe1 adds the verbatim K67 row (before/after hashes recomputed; full erratum leaves no 25-bit/33554432), and adg carries the verbatim \u00a77.3 lifetime paragraph plus launch-time device ownership closing the overlap T4 hole. Every load-bearing premise was verified against the published texts in this seat (0jq against \u00a74.5/\u00a75.3/\u00a79.2/\u00a712.1-12.3 and the controlled-action-09 fixture; checker-fault-rate against \u00a75.2 F_B, fault code 1 and \u00a712.1 context keys; adg against \u00a7\u00a73.3/5.4/7.1/7.3/10/14.3 including the 2^A_tab witness arithmetic; brt-vbi against dialect \u00a7\u00a712.7/12.8/13.1/19.1 and its i257 vector; pe1 against K70 and the \u00a712.1 witness), and author checks joint/pe1/adg/ownership all exit 0. No diff narrows north-star scope, the bennett-4ht mixed-fat-object check passes for each proposal, and all hash/catalog claims hold (certificate bytes change where disclosed; no source/interface/closure/object/target/schedule/ref-catalog identity changes). Remaining items are S1 enumerations and editorial merges against K88/K92 text published in the meantime, listed as suggestions.",
+ "verdict": "accept",
+ "verdict_core": "accept"
+}
