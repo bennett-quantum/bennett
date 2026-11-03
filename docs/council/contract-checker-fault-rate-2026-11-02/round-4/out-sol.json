@@ -1,0 +1,69 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The diff preserves \u00a7\u00a75.2/14.1's machine semantics. Intrinsic oracle recounts are explicitly distinguished from invocation reachability.",
+   "change": "No change required. Retain in \u00a712.3: 'The report is not the probability that a root execution reaches a call.'"
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "\u00a74.2 charges one step per lifted row. The two-row add/retval witness correctly faults at B=0/1 and succeeds at B=2.",
+   "change": "No change required. Retain the example's expected fault maps: {\"1\":\"256\"} at B=0/1 and {} at B=2."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Counting code(F_B), rather than the accumulated fault word, respects \u00a75.2's XOR interface. Action nulls respect \u00a75.3 without discharging nested oracle obligations.",
+   "change": "No change required. Retain in \u00a712.3: 'The final XOR-accumulated fault word is never the predicate for this count.'"
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "Exact budgets, complete scheduled contexts and host-limit outcomes follow \u00a7\u00a75.4/12.1/12.2. Target, resource and expansion semantics remain unchanged.",
+   "change": "No change required. Retain in \u00a712.3: 'If limits prevent a legal recount, report unchecked (host limit), discharging no verified fault-rate obligation.'"
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "Published \u00a712.3 genuinely lacks per-rate invocation bindings and exclusion replay rules. The repair supplies both. Both notes reproduce Muse's paragraph hash b34376b04d0d2e295018245c1f7f3ce36b4f55ad5ed18e8f127119e36b9685b0 and its conditional oracle sentence; their encodings are jointly satisfiable.",
+   "change": "No change required. Retain the shared \u00a712.3 paragraph: fault_rate is required, actions use null, and oracle null discharges no census obligation."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Read-only execution using available compiled interpreter artifacts passed all 768 interface tuples, commit/reversal checks and classifier-bundle cases. The complete serialized multi-context certificate remains accurately disclosed as unpublished.",
+   "change": "In 'Conformance vectors and verification', publish: 'A complete two-call certificate reports {\"1\":\"256\"} for B=1 and {} for B=2 using concrete \u00a712.1 keys; its legacy RATE equals the first canonical context without context_key. Missing contexts or a corrupted projection reject.'"
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "Reference recounts retain excluded tuples, preserving North Star \u00a7\u00a73.2/5.1. The entire bennett-4ht section is byte-identical to round 3 and preserves native host execution, device-root certificates and the explicit remaining boundary obligations.",
+   "change": "No change required. Retain in 'Mixed fat object': 'Unmarked host main, argv/envp and libc are not invented oracle records and need no F_B recount.'"
+  },
+  {
+   "id": "C8",
+   "score": 5,
+   "evidence": "Checked, unchecked and rejected outcomes are actionable. In-memory fixture migration changes certificate bytes while preserving object_hash and target/schedule bindings. The unchanged 219-recipe catalog envelope pin reproduces; full-version regeneration and reader upgrades are disclosed.",
+   "change": "No change required. Retain in 'Hashes, publication and consumers': 'A full-version publication instead requires regenerating version-envelope identities and dependent pins.'"
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "checker-fault-rate-M1",
+   "status": "resolved",
+   "note": "Both proposals now require action nulls and permit structural-only oracle nulls without census credit; the shared paragraph, conditional sentence and applicability vectors agree."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In 'Conformance vectors and verification', publish the complete serialized two-context certificate and rejection mutations: B=1 gives {\"1\":\"256\"}, B=2 gives {}, the legacy projection matches the first canonical context, and deletion, duplication, reordering or projection corruption rejects.",
+  "In \u00a712.3's RATE schema notation, make the existing K13 cross-reference explicit for the current K91 text: 'invocation denotes the complete K13 invocation record, including token_aliases where required; process-local ids are never serialized, and the applicable equality partition remains checked.' Update the token-free oracle fixture invocation to include token_aliases:[0]. This clarifies the shorthand without changing recount arithmetic."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "No blocking changes are required. Publishing the complete serialized two-context certificate and its acceptance/rejection mutations would raise C6 from 4 to 5.",
+ "summary": "checker-fault-rate-M1 is resolved. The joint diffs admit one consistent encoding, preserve the accepted recount contract and carry bennett-4ht unchanged. Witnesses and conditional identity claims check out; no new S0 issue or regression was found.",
+ "verdict_core": "accept"
+}

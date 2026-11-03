@@ -1,0 +1,136 @@
+--- round-3/doc.md
++++ round-4/doc.md
+@@ -76,6 +76,9 @@
+ ```text
+ F_B recounts and fault_rate_contexts apply only to kind=oracle records.
+-For kind=oracle, verification.fault_rate MUST be a RATE; null is reserved
+-for action and perm_action records.
++<!-- muse-fault-rate-paragraph -->
++verification.fault_rate is required and has type null | RATE. For action and perm_action records it MUST be null and fault_rate_contexts MUST be absent. For an oracle record it MUST be a RATE whenever a fault census is asserted or is required to discharge an executable or scheduled acceptance claim; it MAY be null only when the record asserts no fault census, and null discharges no fault-rate obligation.
++<!-- /muse-fault-rate-paragraph -->
++
++For kind=oracle, verification.fault_rate MUST be a RATE whenever a fault census is asserted or is required to discharge an executable or scheduled acceptance claim (including every oracle in the complete invocation tree of a bound schedule, via fault_rate_contexts); it MAY be null only when the record asserts no fault census, and null discharges no fault-rate obligation and satisfies no zero-fault gate.
+ For action and perm_action, verification.fault_rate MUST be null and
+ fault_rate_contexts MUST be absent. Null denotes no action-owned fault
+@@ -331,6 +334,6 @@
+ ## Round-4 executable witness and evidence boundary
+ 
+-The files [checker-fault-rate.bisa](checker-fault-rate.bisa) and
+-[oracle_witness.rs](oracle_witness.rs) exercise this exact two-row oracle
++The files [checker-fault-rate.bisa](../2026-11-02-rev4/checker-fault-rate.bisa) and
++[oracle_witness.rs](../2026-11-02-rev4/oracle_witness.rs) exercise this exact two-row oracle
+ through the read-only reference interpreter library. For B=0,1,2 and each
+ x=0..3, the witness compares the independent reference outcome with the
+@@ -340,5 +343,5 @@
+ 768 full interface tuples: 256 faults at each short budget, zero at B=2.
+ 
+-[check_rev4.py](check_rev4.py) supplies two fixed, serialized raw blobs in
++[check_rev4.py](../2026-11-02-rev4/check_rev4.py) supplies two fixed, serialized raw blobs in
+ an external in-memory bundle: a version-1 synthetic classifier selecting
+ mapped x=0, and a version-1 input map selecting tuple component 0. Their
+@@ -364,12 +367,100 @@
+ 
+ ```sh
+-bash /home/tobias/Projects/bennett-workspace/bennett-isa-spec/docs/notes/2026-11-02-rev4/run_checks.sh
++timeout 300s python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/run_witnesses.py
+ ```
+ 
+ The script unsets GUI/browser variables, sets TMPDIR and CARGO_TARGET_DIR
+-under .tmp/sol-rev4, bounds build/link processes at 6 GiB and finite replay
+-at 512 MiB, and applies timeouts. It runs no full gate or git command and
+-changes no reference-interpreter source. Its recorded outcomes are in
+-[the shared verification results](verification.md). The earlier inline
++under .tmp/sol-notefix-s4, bounds processes at 6 GiB, uses -j4 and applies
++timeouts. It runs no full gate or git command and changes no interpreter
++source. It runs the retained finite CFR-3 checker in memory against this
++revision, redirecting only the job artifact paths. The current run exited
++0: all 768 oracle tuples and classifier-bundle positive/negative cases
++passed. Historical outcomes remain in
++[the shared verification results](../2026-11-02-rev4/verification.md). The earlier inline
+ hand model remains an independently understandable counting example; the
+ actual interpreter/machine witness above supplies execution evidence.
++
++## Muse blocking items and resolution
++
++This joint revision starts from the latest graded notes: 0jq round 2
++(`19ffcda5e44a87d0878c89e357fa4ccea163d50883e031aff781fb3e43bd923e`)
++and checker-fault-rate round 3
++(`71a74c494872f94fa40271dd0d81ef140fa01d6095006ad859400a5b5037a189`).
++It proposes resolutions, not council verdicts. Both notes carry the same
++Muse paragraph above and the same conditional oracle sentence, copied
++verbatim from [out-muse.json](../../../../bennett/docs/council/accept-muse-batch2-2026-11-02/round-1/out-muse.json).
++RATE abbreviates `{invocation:{args,budget},domain,faults_by_code,
++undefined_excluded,layout_dependent_excluded,exclusion_evidence?}`.
++A non-null RATE binds its own exact invocation and full oracle domain;
++it never inherits a convenient claim's budget. For a bound schedule,
++every complete-tree oracle context, including defaults and predicated-off
++calls, needs its recount; the legacy field is the first canonical
++context's projection. Exclusions do not shrink the reference census.
++The complete context and evidence contract is retained in
++[checker-fault-rate.md](checker-fault-rate.md); these requirements neither
++invent a census for a structural-only packet nor relax acceptance gates.
++
++| Blocking item | Resolution and concrete witness |
++|---|---|
++| 0jq-M1 | The closed schema requires `fault_rate: null | RATE`; actions use null and omit `fault_rate_contexts`. Both action fault-rate placeholders become null. A missing key is malformed, and null proves no zero-fault result. The reference_program_hash definition and owner-local inverse-pair rules are unchanged. |
++| checker-fault-rate-M1 | Oracle RATE is conditional on an asserted/required census, including every oracle context in a bound schedule. A structural-only oracle may use null; it discharges no census or zero-fault gate. All accepted recount, deterministic context projection and classifier-bundle rules remain. |
++
++There are no other Muse blocking items for these two proposals. The
++accepted mixed-fat-object scope, hash conditions and prior-round fixes
++remain. Relative witness links now point to their original directories;
++historical verification reports above remain historical.
++
++### Structural-only oracle conformance vector
++
++Take a standalone oracle with body `r = lift.add x a; lift.retval r` and
++a checked structural `adjoint_table`/translation claim only, no comparison
++claim, no asserted census and no bound schedule. Supply all ordinary
++identity, signature, frame and claim fields as required. The following
++JSON is the verification fragment under test, not a complete certificate
++or a newly introduced certificate field:
++
++<!-- structural-only-oracle -->
++```json
++{"kind":"oracle","verification":{"oracle":null,"fault_rate":null}}
++```
++
++| Request for the same structurally valid packet | Expected result |
++|---|---|
++| Standalone structural validation, no census asserted | Accept as a structural packet. |
++| Executable acceptance requiring a fault census | Reject that acceptance claim: null discharges no census obligation. |
++| Scheduled acceptance requiring all oracle contexts, or a zero-fault gate | Reject that acceptance claim: no RATE/context coverage is supplied. |
++| Remove fault_rate instead of using null | Reject schema validation: required key missing. |
++| Assert a census while retaining null | Reject the asserted census. |
++
++With the same body, args=["1"] and B=1, a verified RATE counts
++256 code-1 faults over the full 4×4×16 domain; with B=2 it counts zero.
++Those are actual census results and cannot be inferred from the null
++packet. The focused script checks these applicability outcomes, action
++null versus omitted keys, the fixture migration, unchanged owner rules
++and the retained recount/bundle text. It is a finite contract test,
++not an implementation of the proposed production certificate checker.
++
++### Paragraph byte identity and verification
++
++Extract exactly the UTF-8 bytes between the two `muse-fault-rate-paragraph`
++markers, excluding the marker lines and the paragraph's terminating LF.
++There is no line reflow or Unicode normalization. These are the paragraph
++bytes quoted by Muse in 0jq-M1; the extra conditional oracle sentence
++is copied verbatim from checker-fault-rate-M1 in both notes.
++
++| Note | Shared paragraph SHA-256 |
++|---|---|
++| 0jq.md | `b34376b04d0d2e295018245c1f7f3ce36b4f55ad5ed18e8f127119e36b9685b0` |
++| checker-fault-rate.md | `b34376b04d0d2e295018245c1f7f3ce36b4f55ad5ed18e8f127119e36b9685b0` |
++
++Verification: `timeout 30s python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-isa-spec/.tmp/sol-notefix-s4/check_notes.py joint`
++exited 0. Both extracted hashes equal the values above and Muse's exact
++paragraph. No source, fixture, spec or catalog was edited.
++
++Every producer and closed-schema reader using these amended 0.9
++certificate bytes must upgrade together for the required nullable field
++and context/evidence fields; older readers cannot silently accept them.
++Remaining council work: joint sol+astra review, then a Muse acceptance
++seat. D2 keeps 0jq HELD until those conditions pass. Publication and
++producer/checker implementation follow acceptance; this revision performs
++none of those steps and reserves no K number.
