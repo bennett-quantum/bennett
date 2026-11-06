@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 
-from tools.tests.test_codex_job import RunnerFixture
+from tools.tests.fixtures import RunnerFixture
 
 SOURCE = Path(__file__).resolve().parents[2]
 
