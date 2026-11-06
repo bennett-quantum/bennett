@@ -1,5 +1,24 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-06 - shift 10 (Opus orchestrator): round-1 reviews, two mains pushed, gates found what reviews missed
+- Pushed circuits main 9ef99d8..ee20847 (pin discipline + c9l fix, circuits-main r2 CLEAR) and targets main
+  dd03671..a8f5089 (quality-targets r3 CLEAR + gate-layout fix ab4cd24 reviewed CLEAR). Both worktrees removed.
+- Launched as T3 children (codex gpt-6.1-sol xhigh): isaref r2 (critical path, P0 jple b6ds, P1 0dq0), r1 reviews of
+  arith/plugin/estimate/dialect/runtimes (one reproduction each first), round-2/3 fixes for each BLOCK, quality-sched,
+  quality-driver (cut from their CLEAR pin branches), quality-circuits (from the new circuits main).
+- Surprise: CLEAR reviews do not imply a green push gate. targets: the new test pin resolver ignored the gate run layout
+  (BENNETT_GATE_LAYOUT), so every pinned test panicked inside gate_run; runtimes: `scripts/gate --all` (not the fast
+  suite reviewers run) dies in tests/test_runtime.py allocator-18 with "bennett runtime fault 7" / SIGILL. Rule adopted:
+  run `gate_run.py run --repo <main> --sha <job head>` BEFORE launching the review, not at push.
+- Surprise: estimate main carried two never-reviewed sol-estimate checkpoints (5062ee2, 989dd04) outside the job review's
+  main..job range; their review found a K81 narrowing (pjj), whose fix then admitted non-disjoint rows (P0 yak, exact
+  label on a semantically different schedule). Rule adopted: before any push, list origin/main..main code commits after
+  the last review snapshot; each gets a <repo>-main review.
+- Dialect main holds the unpushed 0.2.14 spec draft 22f9ed6 (Opus-applied); a sol fidelity read is running; no dialect
+  push without it.
+- Gotcha: bead exports committed on each main at handoff mean job branches now merge with --no-ff (no fast-forward).
+- Quota: Codex 39 -> 42 % (17-20 behind); Claude row 41 % (0.2-0.5 behind) until 13:48Z, then HTTP 429 on every read.
+
 ## Session log - 2026-11-06 - shift 9 (Opus orchestrator): round 1 continues; first merge of the programme
 - Merged job/quality-meta into meta main (035f924) after a sol round-2 CLEAR; ran scripts/install-hooks.sh, so the meta
   push hook now fails unless at least one unittest actually passes (45 tests ran on the push 3517a0c..4055747).
