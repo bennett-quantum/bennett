@@ -34,8 +34,15 @@ threshold, no dashboard (policy rule 8): the number only needs to exist and be r
    and inherits its round-2 P0/P1 list as item 1, so there is one stream, not two.
 5. No narrowing. Deleting a tautological test or a stub is honest; deleting a capability is not. Red-by-design tests
    for promised capabilities (driver `classes`, `device_models`) stay red and visible under a named switch.
-6. Review as policy: Codex implements, Claude reviews (Sonnet bug hunt plus Opus read for semantics-bearing code),
-   three rounds max, only P0/P1 block, one document per round in `docs/reviews/`.
+6. Review on Codex, council for critical work (maintainer, 2026-11-06). Claude quota is scarce and Codex quota is
+   plentiful: sol xhigh implements AND reviews (a fresh sol session with the diff and the repo's laws, never the
+   implementer's session or conclusions); three rounds max, only P0/P1 block, one document per round in
+   `docs/reviews/`. Opus is not used as a reviewer. Critical batches go to the council (sol + astra seats, Muse seat
+   on the round that claims CLEAR under the Muse policy): reference-interpreter semantics, the checker's verdict
+   logic, soft-float rounding, scheduler core, plugin lowering, and anything touching a gate or a certificate.
+   This amends policy rule 2 (opposite model) for this programme; it is the maintainer's call and is recorded here.
+   Claude is used only where Codex cannot: the Opus orchestrator shift (kept lean, few shifts) and a small Sonnet
+   spot-check of each round's sol audit.
 
 ## Round 0: ecosystem prerequisites (meta repo, one sol job, then two cross-repo jobs)
 
@@ -67,8 +74,10 @@ R0.2 Pin discipline, one small job per affected repo (driver, arith, plugin, sch
   documented in `bennett/tools/gate_README.md`.
 
 R0.3 Audit brief becomes the standing measurement: `docs/quality/2026-11-05-audit/BRIEF.md` is the template; each
-round's reports land in `docs/quality/<date>-audit/`. Auditors are Sonnet (Haiku for targets and meta), never the
-implementer's model family.
+round's reports land in `docs/quality/<date>-audit/`. Auditors are sol xhigh via `codex_job.py` (read-only jobs, one
+per repo, same brief); a single Sonnet spot-check re-grades two repos per round so the sol grading has an outside
+anchor. The 2026-11-05 baseline was Sonnet-graded; the first sol audit re-grades the baseline repos it touches so
+the two scales can be compared once.
 
 Round 0 exit: meta hook real and tested; codex_job branch mode verified on a scratch repo; the five pin jobs merged
 after Claude review; `cargo test` green in driver (except the two red-by-design), arith circuits tests, plugin
@@ -147,12 +156,12 @@ open after that is a maintainer decision, not a fourth round (policy rule 3 appl
   stop rule "this repo's default test run, not a consumer gate", and COMMON.md.
 - Concurrency: at most five Rust jobs building at once (21 GB, 12 cores; isa-spec and vm count double), Python
   jobs unconstrained. Heavy gates (arith 8 h, vm dual-engine, ladder) only at bead close, one at a time (R3).
-- Reviews: Sonnet bug-hunt review on every job's batch, Opus added for isaref, vm, sched, checker, plugin lowering,
-  arith soft-float (policy rule 5 semantics-bearing). Muse not used (contracts unchanged). Review briefs from
-  `s4/mkrev.py`.
+- Reviews: a fresh sol xhigh review job per batch (brief from `s4/mkrev.py`, diff + laws, re-runs what is cheap).
+  Council rounds (sol + astra, Muse on the CLEAR candidate, `tools/council.py`, `rubric-impl.md`/`task-impl.md`) for
+  the critical batches named in principle 6. No Opus reviewers, no Sonnet reviewers.
 - Orchestration: an Opus shift per the standing protocol (`.tmp/orchestrator/shift-N.md`); the advisor sets
-  direction and spawns shifts; quota row before each launch; Claude kept within pace, Codex per the maintainer's
-  2026-11-06 direction.
+  direction and spawns shifts; quota row before each launch; Claude spend limited to the orchestrator and the
+  spot-checks, Codex per the maintainer's 2026-11-06 direction.
 - Order of launch: R0.1 first (one job, about half a day), then R0.2 (five small jobs) and quality-arith,
   quality-checker, quality-estimate, quality-targets in parallel (they do not depend on branch mode beyond the
   runner itself); the large crates (isaref, vm, sched, plugin, driver, circuits, dialect, runtimes) as slots free.
@@ -169,3 +178,5 @@ open after that is a maintainer decision, not a fourth round (policy rule 3 appl
   Recommended: delete the stub now (no capability is lost; the Python checker is the validator); revisit when a
   consumer needs a linkable validator.
 - D8: target grades as in the table (no repo below B on tests, B- on code). Confirm or change.
+- D9 (DECIDED, maintainer 2026-11-06): reviews run on sol, not Claude; Opus is not a reviewer; critical work goes to
+  the council. Applied in principle 6 and Execution.
