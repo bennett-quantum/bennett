@@ -168,15 +168,15 @@ open after that is a maintainer decision, not a fourth round (policy rule 3 appl
 - Rung-4 critical path (factored points-to on rung4-plugin, bp-6rz) is NOT paused: it runs as its own job on its
   branch; quality-plugin stays out of Analysis.cpp.
 
-## Decisions needed from the maintainer
+## Decisions (maintainer, 2026-11-06 ~06:30Z)
 
-- D5: Codex jobs commit to `job/<name>` branches, never to main; the orchestrator merges after review (amends git
-  policy 9 of 2026-10-29). Recommended: yes.
-- D6: R17 (no Codex launch while Codex is at or ahead of linear pace) suspended for this programme; `--pace-margin`
-  set so the guard still stops a runaway. Recommended: suspend until the round-2 audit, then reinstate.
-- D7: dialect `validator/`: delete the stub and state that the validator is Python, or fund a Rust validator.
-  Recommended: delete the stub now (no capability is lost; the Python checker is the validator); revisit when a
-  consumer needs a linkable validator.
-- D8: target grades as in the table (no repo below B on tests, B- on code). Confirm or change.
-- D9 (DECIDED, maintainer 2026-11-06): reviews run on sol, not Claude; Opus is not a reviewer; critical work goes to
-  the council. Applied in principle 6 and Execution.
+- D5 DECIDED yes: Codex jobs commit to `job/<name>` branches, never to main; the orchestrator merges after review
+  (amends git policy 9 of 2026-10-29). Until `codex_job.py` has branch mode (R0.1), jobs run in a git worktree on
+  their job branch, which gives the same isolation.
+- D6 DECIDED: no suspension of R17; "see how it goes". Launch while `quota` shows Codex behind linear pace. The moment
+  it shows Codex at or ahead of pace: launch nothing new, running jobs finish their current bead and stop, the shift
+  writes its handoff and WAITS for the maintainer's further approval. (R25 in advisor-notes.)
+- D7 DECIDED: delete the dialect `validator/` stub; README states the validator is Python; revisit when a consumer
+  needs a linkable validator.
+- D8 DECIDED: target table as written.
+- D9 DECIDED (06:00Z): reviews on sol, not Claude; Opus is not a reviewer; critical work goes to the council.
