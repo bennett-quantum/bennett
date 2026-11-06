@@ -111,6 +111,45 @@ exec "$root/scripts/pre-push" "$@"
 
 Without `core.hooksPath`: `ln -s ../../scripts/pre-push .git/hooks/pre-push`.
 
+In the meta repository, `scripts/install-hooks.sh` installs an executable wrapper at
+`git rev-parse --git-path hooks/pre-push`, so it follows the effective `core.hooksPath` and works in linked
+worktrees. The wrapper executes the current worktree's `scripts/pre-push`. This repo's own hook runs
+`python3 -m unittest discover tools/tests` and fails if discovery finds zero tests. Installers and hook tests
+use scratch repositories; installation into a runner-owned checkout belongs to the orchestrator.
+
+## Ecosystem ignore convention
+
+Every repository's quality job copies these patterns into its own `.gitignore`:
+
+```gitignore
+__pycache__/
+*.pyc
+*.log
+.beads/**/LOCK
+*.darc
+```
+
+Ignore rules do not untrack existing files. Remove tracked generated files from the index in the owning repo;
+keep Beads source and its passive exports tracked. Council run logs under `docs/council/` are generated output.
+
+## Codex job branches
+
+`python3 tools/codex_job.py run --name N --repo R --prompt FILE --paths tools scripts --progress REL`
+creates `job/N` from R's local `main` (`master` for older repositories) in `../<repo>-job-N`.
+`--worktree DIR` overrides that location. `--cd DIR` reuses an existing worktree already on `job/N`;
+a main/master or detached checkout is refused. Resume with the same name reuses the recorded worktree.
+Each name has a runner lock, and concurrent names have separate branches and worktrees. Status records
+`cd`, `branch`, `worktree`, owned paths and process identities. Checkpoints and attempt commits stay on the
+job branch, with backup at `origin`'s `wip/N`. The orchestrator reviews and merges onto main.
+
+Quota is checked before every attempt. A missing, malformed or failed `quota --json` result stops with
+`stopped-pace-unknown`; `--pace-margin` is a finite, per-launch percentage-point allowance. There is no bypass.
+`stop --name N` terminates the Codex process group, commits owned paths, attempts the WIP backup, records
+`stopped` and exits the runner. `stop --name N --after-current-attempt` writes a stop-request file and leaves
+the current attempt running; the loop checks that file before another attempt, including during pace/backoff
+waits. An explicit subsequent `run` clears the request. `commit_ok`/`commit_errors`, `backup_ok`/`backup_error`
+and `stop_ok` expose preservation failures; inspect `runner.log` before treating a stopped job as backed up.
+
 ## Adopting a repo
 
 1. Write `gate.toml`: the same checks the old `scripts/pre-push` ran, each sibling it reads, each binary it needs.

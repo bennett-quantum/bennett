@@ -771,146 +771,15 @@ def aggregate_cmd(a):
 # -------------------------------------------------------------- selftest
 
 def selftest():
-    import contextlib
-    import io
-    from unittest.mock import patch
-
-    good = {"criteria": [{"id": c, "score": 3, "evidence": "e", "change": "c"}
-                         for c in CRITERIA],
-            "blocking": [], "suggestions": ["s"], "verdict": "accept", "summary": "ok",
-            "path_to_accept": "none", "verdict_core": "accept", "previous_status": [], "regressions": []}
-    assert validate(good) == [], validate(good)
-    bad = json.loads(json.dumps(good))
-    bad["criteria"][0]["score"] = 6
-    bad["verdict"] = "accept"
-    bad["blocking"] = [{"id": "B1", "section": "§3", "scope": "core", "severity": "S0", "problem": "p", "fix": "f"}]
-    errs = validate(bad)
-    assert any("outside 1-5" in e for e in errs) and any("accept with non-empty" in e for e in errs), errs
-    assert validate({"criteria": "x"}) == ["criteria missing"]
-    assert extract_json('noise {"a": 1} more {"b": [1,2]} tail') == {"b": [1, 2]}
-    assert extract_json("none") is None
-    opus_wrap = json.dumps({"type": "result", "structured_output": good, "result": "x"})
-    assert parse_member_output("opus", opus_wrap, Path("/nonexistent")) == good
-    sch = schema()
-    assert set(sch["required"]) >= {"criteria", "blocking", "suggestions", "verdict", "path_to_accept", "summary"}
-    assert "verdict_core" in sch["properties"] and "previous_status" in sch["properties"]
-    with tempfile.TemporaryDirectory() as td:
-        rdir = Path(td)
-        atomic_write(rdir / "prompt.md", "p")
-        atomic_write(rdir / "schema.json", json.dumps(sch))
-        for m in MEMBERS:
-            cmd, env, stdin, out = member_cmd(m, rdir)
-            executable = "claude" if m in ("opus", "fable") else "codex" if m == "sol" else m
-            assert cmd[0] == executable, cmd
-            if m in ("opus", "fable"):
-                assert not any(k.startswith("CLAUDE_CODE_") or k == "CLAUDECODE" for k in env)
-                assert "--allowedTools" in cmd and cmd[-1] != "p", "prompt must go on stdin"
-            if m in ("sol", "codex"):
-                assert cmd[-1] == "-" and stdin is not subprocess.DEVNULL
-                assert cmd[cmd.index("-m") + 1] == ("gpt-6.1-sol" if m == "sol" else "gpt-6-astra")
-                assert "model_reasoning_effort=xhigh" in cmd
-            if stdin is not subprocess.DEVNULL:
-                stdin.close()
-        st = State(rdir)
-        st.update("codex", status="running", attempts=1)
-        assert json.loads((rdir / "state.json").read_text())["members"]["codex"]["attempts"] == 1
-    with tempfile.TemporaryDirectory() as td:
-        rdir = Path(td)
-        atomic_write(rdir / "schema.json", json.dumps(sch))
-        atomic_write(rdir / "prompt.md", "p")
-        cmd, env, stdin, out = member_cmd("fable", rdir, "/tmp")
-        assert "--model" in cmd and cmd[cmd.index("--model") + 1] == "fable"
-        assert any(c.startswith("Bash(cargo test") for c in cmd) and "Write" not in cmd
-        stdin.close()
-        st = State(rdir)
-        st.d["member_list"] = ["fable", "codex", "muse"]; st.d["cwd"] = "/tmp"; st.save()
-        assert run_members(rdir) == ("fable", "codex", "muse") and run_cwd(rdir) == "/tmp"
-        tf = rdir / "task.md"; atomic_write(tf, "task for SUBJECT")
-        pr = build_prompt("DOC", "r", 1, subject="X", rubric=str(RUBRIC), task_file=str(tf))
-        assert "task for X" in pr and "Convergence rules for this council" not in pr
-    # Exercise the public CLI without launching models or touching real council rounds.
-    with tempfile.TemporaryDirectory() as td, patch(__name__ + ".COUNCIL", Path(td)):
-        def cli(*args, error=None):
-            output = io.StringIO()
-            with patch.object(sys, "argv", [str(Path(__file__).resolve()), *args]), \
-                    contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                try:
-                    main()
-                except SystemExit as e:
-                    if error is None:
-                        raise
-                    assert e.code != 0, e.code
-                    message = output.getvalue() + str(e.code)
-                    assert error in message, message
-                else:
-                    assert error is None, f"expected failure: {error}"
-            return output.getvalue()
-
-        doc = Path(td) / "fixture.md"
-        atomic_write(doc, "Council fixture document")
-        cli("prepare", "--run", "external", "--round", "1", "--doc", str(doc),
-            "--members", "sol,codex,muse", "--cwd", td)
-        rdir = round_dir("external", 1)
-        common = ("--run", "external", "--round", "1")
-        assert cli("prompt-path", *common).splitlines() == [str(rdir / "prompt.md"), td]
-        assert run_members(rdir) == ("sol", "codex", "muse")
-        cli("run", *common, "--dry-run")
-        source = Path(td) / "member.json"
-        for m in ("sol", "codex", "muse"):
-            raw = "member status\n" + json.dumps(good) + "\nfinished\n"
-            atomic_write(source, raw)
-            os.utime(source, (1_700_000_000, 1_700_000_000))
-            cli("collect", *common, "--member", m, "--file", str(source))
-            assert json.loads((rdir / f"out-{m}.json").read_text()) == good
-            record = (rdir / f"raw-{m}-1.txt").read_text()
-            assert raw in record and "collected externally" in record, record
-            state = State(rdir).d["members"][m]
-            assert state["status"] == "done" and state["attempts"] == 1, state
-            assert state["exit"] == 0 and state["seconds"] >= 0 and state["updated"], state
-            assert dt.datetime.fromisoformat(state["started"]).timestamp() == source.stat().st_mtime
-        cli("aggregate", *common)
-        consensus = json.loads((rdir / "consensus.json").read_text())
-        assert consensus["agree"] and consensus["core_agree"], consensus
-        assert consensus["members"] == ["sol", "codex", "muse"], consensus
-        assert "sol" in (rdir / "report.md").read_text()
-        # Reject schema violations, including ones the legacy semantic checks miss.
-        invalid = json.loads(json.dumps(good))
-        invalid["criteria"][0]["score"] = 6
-        atomic_write(source, json.dumps(invalid))
-        cli("collect", *common, "--member", "sol", "--file", str(source), error="outside 1-5")
-        assert State(rdir).d["members"]["sol"]["status"] == "failed"
-        assert (rdir / "raw-sol-2.txt").exists()
-        assert json.loads((rdir / "out-sol.json").read_text()) == good
-        for field, value in (("previous_status", "invalid"), ("regressions", [3]),
-                             ("blocking", 1), ("unexpected", True)):
-            atomic_write(source, json.dumps(dict(good, **{field: value})))
-            cli("collect", *common, "--member", "sol", "--file", str(source), error=field)
-        # The saved schema, rather than a fresh schema(), is authoritative.
-        saved_schema = json.loads(json.dumps(sch))
-        saved_schema["properties"]["summary"]["enum"] = ["round-specific summary"]
-        atomic_write(rdir / "schema.json", json.dumps(saved_schema))
-        atomic_write(source, json.dumps(good))
-        cli("collect", *common, "--member", "sol", "--file", str(source), error="summary")
-        external_errors = State(rdir).d["members"]["sol"]["errors"]
-        # A subprocess returning the same text must report the same validation errors.
-        with patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 0, source.read_text(), "")), \
-                contextlib.redirect_stdout(io.StringIO()):
-            run_member("muse", rdir, State(rdir), timeout=1, attempts=1, dry=False)
-        assert State(rdir).d["members"]["muse"]["errors"] == external_errors
-        atomic_write(rdir / "schema.json", json.dumps(sch))
-        atomic_write(source, "not JSON")
-        cli("collect", *common, "--member", "sol", "--file", str(source), error="no JSON object in output")
-        cli("collect", *common, "--member", "unknown", "--file", str(source), error="invalid choice")
-        cli("collect", *common, "--member", "fable", "--file", str(source), error="not a member")
-        missing = ("--run", "missing", "--round", "1")
-        cli("collect", *missing, "--member", "sol", "--file", str(source), error="not prepared")
-        cli("prompt-path", *missing, error="not prepared")
-        assert not round_dir("missing", 1).exists()
-        atomic_write(source, json.dumps(good))
-        for m in ("sol", "muse"):
-            cli("collect", *common, "--member", m, "--file", str(source))
-            assert State(rdir).d["members"][m]["errors"] == []
-    print("selftest ok")
+    """Compatibility entrypoint for the council unittest suite (also works under -O)."""
+    import unittest
+    root = Path(__file__).resolve().parent.parent
+    suite = unittest.defaultTestLoader.discover(str(root / "tools/tests"),
+                                              pattern="test_council*.py", top_level_dir=str(root))
+    if not suite.countTestCases():
+        raise SystemExit("council selftest: no tests discovered")
+    if not unittest.TextTestRunner().run(suite).wasSuccessful():
+        raise SystemExit(1)
 
 
 def main():

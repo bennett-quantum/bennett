@@ -13,3 +13,7 @@ target/
 *.gate.lock*
 .tmp/
 __pycache__/
+*.pyc
+*.log
+.beads/**/LOCK
+*.darc
