@@ -1,5 +1,27 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-06 - shift 8 (Opus orchestrator): quality floor round 0 + start of round 1
+
+What changed: round 0 of docs/plan/2026-11-06-quality-floor-remediation.md launched 06:24-06:28Z (quality-meta, pin-driver,
+-arith, -plugin, -sched, -circuits) plus round-1 quality-checker, -estimate, -targets, each in a git worktree
+`../<repo>-job-<name>` on branch `job/<name>` (D5; nothing committed to any main). At 06:50Z the maintainer retired
+`codex exec` runners (R26): live runners were drained after their current attempt by .tmp/orchestrator/s4/r26_drain.py and
+all follow-on work runs as T3 delegate children (codex gpt-6.1-sol xhigh). Reviews are fresh sol sessions
+(s4/mkrev8.py, D9). Results so far: pin-arith CLEAR; pin-sched r1 BLOCK -> fixed (a3e36b3) -> r2 check running;
+quality-meta trimmed to its non-runner parts (hook, council tests, litter) -> r1 BLOCK (bennett-dog) -> r2 running;
+pin-plugin, pin-circuits complete -> reviews running; quality-targets items 1-8 done (65 validator tests reproduced);
+quality-isaref batch 1 and quality-arith started. Full state: .tmp/orchestrator/shift-8.md.
+
+Gotchas: (1) The Codex sandbox cannot create sibling worktrees, so pinned-sibling caches must be materialised by the
+orchestrator: `gate_run verify --repo <MAIN checkout> --sha <job branch head>`; with --repo <worktree> bwrap cannot
+chdir through the worktree's .tmp/gate/cache symlink. (2) The committed codex_job.py loops into a new attempt on its own;
+"finish the current attempt" needed an external watcher (r26_drain.py) that stops the scope at the outcome log line,
+which the runner writes after its attempt-end commit and wip backup.
+Surprises / root causes: most consumer pins (isa-spec ecaaac0) predate fixtures and K91 token_aliases that consumer tests
+already need, while the isa-spec commits that support them are unreviewed sol-ref09 WIP under a review BLOCK. So
+quality-isaref batch 1 is the critical path for re-pinning sched, checker, arith (b-isa-spec-3wl9, bennett-arith-4ss).
+arith's three "K91" reds were live drift (pinned run green), but its objects will break once the pin passes K91.
+
 ## Session log - 2026-11-05/06 - advisor: ecosystem quality audit and remediation plan
 
 Advisor session (Fable), no orchestrator shift, nothing launched in any repo; Codex runners stayed stopped.
