@@ -1,11 +1,34 @@
 #!/usr/bin/env bash
-# Local quality gate (no CI): run cargo test in every Rust crate dir.
+# Meta repository quality gate (no CI).
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel)"
-found=0
-while IFS= read -r toml; do
-  d=$(dirname "$toml"); found=1
-  echo "== cargo test in $d"; (cd "$d" && cargo test)
-done < <(find . -name Cargo.toml -not -path './target/*' -not -path '*/target/*')
-[ "$found" = 1 ] || echo 'no Rust crates; nothing to test'
-exit 0
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE DISPLAY WAYLAND_DISPLAY DBUS_SESSION_BUS_ADDRESS BROWSER
+root="$(git rev-parse --show-toplevel)"
+if [ "${BENNETT_GATE_HOOK_PROBE:-}" = 1 ]; then
+  echo "bennett-gate-hook-chained $root"
+  exit 0
+fi
+cd "$root"
+export TMPDIR="$root/.tmp/meta-tests/tmp"
+mkdir -p "$TMPDIR"
+python3 - <<'PY'
+import sys
+import unittest
+
+
+class GateResult(unittest.TextTestResult):
+    successful_tests = 0
+
+    def addSuccess(self, test):
+        super().addSuccess(test)
+        self.successful_tests += 1
+
+
+suite = unittest.defaultTestLoader.discover('tools/tests')
+if suite.countTestCases() == 0:
+    sys.exit('pre-push: no tests discovered under tools/tests')
+result = unittest.TextTestRunner(resultclass=GateResult).run(suite)
+if not result.wasSuccessful():
+    sys.exit(1)
+if result.successful_tests == 0:
+    sys.exit('pre-push: no tests ran and passed under tools/tests')
+PY

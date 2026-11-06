@@ -17,7 +17,7 @@ from pathlib import Path
 
 FENCE = {".rs": "rust", ".py": "python", ".md": "markdown", ".toml": "toml", ".json": "json",
          ".bisa": "", ".comments": "", ".txt": "", ".sh": "bash", ".h": "c", ".c": "c"}
-DEFAULT_EXCLUDE = ["target/*", "target", "__pycache__/*", "*.lock", ".git/*"]
+DEFAULT_EXCLUDE = ["target/*", "target", "__pycache__/*", "**/__pycache__/*", "*.lock", ".git", ".git/*"]
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
         if not p.is_file():
             continue
         rel = p.relative_to(root).as_posix()
-        if any(fnmatch.fnmatch(rel, g) or rel.startswith(g.rstrip("*")) for g in excl):
+        if any(fnmatch.fnmatch(rel, g) or rel.startswith(g.rstrip("/") + "/") for g in excl):
             continue
         files.append(rel)
     order = [f for f in a.first if f in files] + [f for f in files if f not in a.first]

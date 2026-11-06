@@ -111,6 +111,31 @@ exec "$root/scripts/pre-push" "$@"
 
 Without `core.hooksPath`: `ln -s ../../scripts/pre-push .git/hooks/pre-push`.
 
+In the meta repository, `scripts/install-hooks.sh` installs an executable wrapper at
+`git rev-parse --git-path hooks/pre-push`, so it follows the effective `core.hooksPath` and works in linked
+worktrees. The wrapper executes the current worktree's `scripts/pre-push`. This repo's own hook runs
+`python3 -m unittest discover tools/tests` and fails if discovery finds zero tests. Installers and hook tests
+use scratch repositories; installation into the main checkout belongs to the orchestrator.
+
+## Ecosystem ignore convention
+
+Every repository's quality job copies these patterns into its own `.gitignore`:
+
+```gitignore
+__pycache__/
+*.pyc
+*.log
+.beads/**/LOCK
+*.darc
+```
+
+Ignore rules do not untrack existing files. Remove tracked generated files from the index in the owning repo;
+keep Beads source and its passive exports tracked. Council run logs under `docs/council/` are generated output.
+
+Under R26, the orchestrator creates each T3 child's worktree at `../<repo>-job-<name>` on `job/<name>`.
+The child commits owned paths and pushes `HEAD` to `wip/<name>` after every commit.
+The orchestrator merges the job branch after review.
+
 ## Adopting a repo
 
 1. Write `gate.toml`: the same checks the old `scripts/pre-push` ran, each sibling it reads, each binary it needs.

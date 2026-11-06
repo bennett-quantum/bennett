@@ -27,6 +27,9 @@ for r in $repos; do
     gh repo create "$ORG/$r" --public --source "$d" --remote origin --push \
       --description "$(head -c 200 "$d/README.md" | sed -n '3p' | cut -c1-120 || echo "Bennett: $r")"
   fi
-  if [ -x "$d/scripts/install-hooks.sh" ]; then (cd "$d" && ./scripts/install-hooks.sh >/dev/null 2>&1 && echo "   hooks installed") || true; fi
+  if [ -x "$d/scripts/install-hooks.sh" ]; then
+    (cd "$d" && ./scripts/install-hooks.sh)
+    echo "   hooks installed"
+  fi
 done
 echo "done: $(echo "$repos" | wc -l) repos under https://github.com/$ORG"
