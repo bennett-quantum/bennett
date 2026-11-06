@@ -46,18 +46,11 @@ threshold, no dashboard (policy rule 8): the number only needs to exist and be r
 
 ## Round 0: ecosystem prerequisites (meta repo, one sol job, then two cross-repo jobs)
 
-R0.1 `quality-meta` (bennett/tools, bennett/scripts). Red-first:
-- `tools/codex_job.py`: every job works on branch `job/<name>` cut from the repo's main at launch; checkpoints and
-  attempt-end commits go to that branch and are backed up to `wip/<job>` as today; nothing is ever committed to
-  `main` by a runner. Merging to main is the orchestrator's act after the review round (fast-forward or merge, gate
-  green). This amends git policy 9 and needs the maintainer's ratification (decision D5 below).
-- Pace guard fails closed: a quota read failure stops the runner after the current bead and logs why
-  (`codex_job.py:77-78`, `196-199`). Honour the maintainer's 2026-11-06 direction by a `--pace-margin` large enough
-  for this programme, set per launch, never by disabling the guard.
-- Commit routine: skip owned paths with nothing tracked and nothing untracked (the sched `pathspec 'examples'`
-  failure); add a `stop` subcommand that does what `winddown.py` does for one job.
-- Tests for `codex_job.py` and `review_packet.py` (pace parsing, branch creation, owned-path commit, backup, exclude
-  globs): unittest, about 150 lines, run by the meta repo's pre-push.
+R0.1 `quality-meta` (bennett/tools, bennett/scripts). Red-first. (R26 superseded the `codex_job.py` items: jobs
+are T3 delegate children on `job/<name>` worktrees, so branch mode, pace guard and `stop` for the runner are moot;
+D5 is implemented by the orchestrator's worktree-per-job convention instead.)
+- Tests for `review_packet.py` (exclude globs, `--first` ordering) and for whatever of `codex_job.py` remains in use
+  (none expected): unittest, run by the meta repo's pre-push.
 - `scripts/install-hooks.sh` installs `tools/gate_pre-push.template`; the meta repo's hook fails when it finds nothing
   to run. `council.py` selftest asserts become tests under `tools/tests/`; `|| true` in `create-remotes.sh` removed.
 - Untrack `docs/council/**/*.log`; `.gitignore` for `__pycache__/`, `*.pyc`, `*.log`, `.beads/**/LOCK`, `*.darc` in
@@ -150,10 +143,13 @@ open after that is a maintainer decision, not a fourth round (policy rule 3 appl
 
 ## Execution
 
-- Implementer: gpt-6.1-sol xhigh via `tools/codex_job.py` on branch `job/<name>` (after R0.1), under
-  `systemd-run --user --scope` (`.tmp/orchestrator/resume_job.py`), `--network` where crates are needed. Briefs in
-  `.tmp/orchestrator/briefs/quality-<repo>.md`: the per-repo audit report, the common list above, owned paths, the
-  stop rule "this repo's default test run, not a consumer gate", and COMMON.md.
+- Implementer (R26, maintainer 2026-11-06): gpt-6.1-sol xhigh as a T3 `delegate_task` child (provider codex,
+  reasoningEffort xhigh, async), one per job, working in a git worktree the orchestrator creates on branch
+  `job/<name>`. No `codex exec` runners (`tools/codex_job.py`) any more; the eight started on 2026-11-06 finish their
+  current attempt and are not resumed. Children commit their own paths at least every 20 minutes and back up gate-free
+  to `wip/<name>`; the orchestrator relaunches a dead child from its PROGRESS.md. Briefs in
+  `.tmp/orchestrator/briefs/quality-<repo>.md`: the per-repo audit report, the common list above, the worktree path,
+  the stop rule "this repo's default test run, not a consumer gate", and COMMON.md.
 - Concurrency: at most five Rust jobs building at once (21 GB, 12 cores; isa-spec and vm count double), Python
   jobs unconstrained. Heavy gates (arith 8 h, vm dual-engine, ladder) only at bead close, one at a time (R3).
 - Reviews: a fresh sol xhigh review job per batch (brief from `s4/mkrev.py`, diff + laws, re-runs what is cheap).
