@@ -1,5 +1,17 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-06 - shift 9 (Opus orchestrator): round 1 continues; first merge of the programme
+- Merged job/quality-meta into meta main (035f924) after a sol round-2 CLEAR; ran scripts/install-hooks.sh, so the meta
+  push hook now fails unless at least one unittest actually passes (45 tests ran on the push 3517a0c..4055747).
+- Launched quality-dialect and quality-runtimes as T3 children (worktrees bennett-dialect-spec-job-quality,
+  bennett-runtimes-job-quality). Dialect's contract P0/P1 beads and the unpushed 0.2.14 draft are out of its scope.
+- Gotcha: merging a branch that `git rm --cached` files deletes them from the main checkout's working tree; the council
+  logs were restored from the first parent as ignored local copies.
+- Gotcha: two live orchestrator shifts (R26: the old one idles until its children end) both react to the old shift's child
+  completions. Shift 9 checks shift-8.md's log before acting; a read-only watcher over T3's statev2.sqlite
+  (orchestration_v2_projection_runs) wakes the new shift when an old child finishes.
+- Paused early under R28(b): Claude weekly 38 %, +0.4 % ahead of linear pace at 07:13Z. Codex children keep running.
+
 ## Session log - 2026-11-06 - shift 8 (Opus orchestrator): quality floor round 0 + start of round 1
 
 What changed: round 0 of docs/plan/2026-11-06-quality-floor-remediation.md launched 06:24-06:28Z (quality-meta, pin-driver,
