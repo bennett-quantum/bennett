@@ -13,8 +13,22 @@ mkdir -p "$TMPDIR"
 python3 - <<'PY'
 import sys
 import unittest
+
+
+class GateResult(unittest.TextTestResult):
+    successful_tests = 0
+
+    def addSuccess(self, test):
+        super().addSuccess(test)
+        self.successful_tests += 1
+
+
 suite = unittest.defaultTestLoader.discover('tools/tests')
 if suite.countTestCases() == 0:
     sys.exit('pre-push: no tests discovered under tools/tests')
+result = unittest.TextTestRunner(resultclass=GateResult).run(suite)
+if not result.wasSuccessful():
+    sys.exit(1)
+if result.successful_tests == 0:
+    sys.exit('pre-push: no tests ran and passed under tools/tests')
 PY
-exec python3 -m unittest discover tools/tests

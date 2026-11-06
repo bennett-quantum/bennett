@@ -42,7 +42,7 @@ class ReviewPacketTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertLess(result.stdout.index("## `z.md`"), result.stdout.index("## `a.py`"))
         self.assertIn("`````markdown", result.stdout)
-        self.assertIn("image.bin` binary, 2 bytes, sha256", result.stdout)
+        self.assertIn("image.bin` binary, 2 bytes, sha256 ea5dbf9596d1", result.stdout)
         self.assertNotIn("## `image.bin`", result.stdout)
         self.assertIn("fixture-sha", result.stdout)
 

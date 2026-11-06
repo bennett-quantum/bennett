@@ -28,6 +28,48 @@ class HookTests(RunnerFixture):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn("no tests", result.stderr.lower())
 
+    def test_gate_fails_with_only_skipped_tests(self):
+        (self.tests / "test_fixture.py").write_text(
+            "import unittest\n@unittest.skip('deferred')\n"
+            "class Fixture(unittest.TestCase):\n"
+            "    def test_fails(self): self.fail('must execute')\n")
+        result = self.run_script(self.repo / "scripts/pre-push")
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("no tests ran and passed", result.stderr)
+
+    def test_gate_fails_with_only_expected_failures(self):
+        (self.tests / "test_fixture.py").write_text(
+            "import unittest\nclass Fixture(unittest.TestCase):\n"
+            "    @unittest.expectedFailure\n"
+            "    def test_fails(self): self.fail('known failure')\n")
+        result = self.run_script(self.repo / "scripts/pre-push")
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("no tests ran and passed", result.stderr)
+
+    def test_gate_fails_with_only_skipped_subtests(self):
+        (self.tests / "test_fixture.py").write_text(
+            "import unittest\nclass Fixture(unittest.TestCase):\n"
+            "    def test_subtests(self):\n"
+            "        for value in (1, 2):\n"
+            "            with self.subTest(value=value): self.skipTest('deferred')\n")
+        result = self.run_script(self.repo / "scripts/pre-push")
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("no tests ran and passed", result.stderr)
+
+    def test_gate_accepts_pass_and_skip_with_one_discovery_and_run(self):
+        (self.tests / "test_fixture.py").write_text(
+            "import unittest\nfrom pathlib import Path\n"
+            "with Path('executions').open('a') as log: log.write('import\\n')\n"
+            "class Fixture(unittest.TestCase):\n"
+            "    @unittest.skip('deferred')\n"
+            "    def test_deferred(self): self.fail('must skip')\n"
+            "    def test_passes(self):\n"
+            "        with Path('executions').open('a') as log: log.write('pass\\n')\n")
+        result = self.run_script(self.repo / "scripts/pre-push")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Ran 2 tests", result.stderr)
+        self.assertEqual((self.repo / "executions").read_text(), "import\npass\n")
+
     def test_gate_runs_tests_and_propagates_failures(self):
         test = self.tests / "test_fixture.py"
         for expected, assertion in ((0, "True"), (1, "False")):
