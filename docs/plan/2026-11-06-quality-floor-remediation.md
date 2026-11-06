@@ -97,6 +97,16 @@ Common work list for every job, in this order, each item red-first and committed
 7. Fail-fast sweep: silent fallbacks found by the auditor (list per repo below) become errors with a test.
 8. Litter: bead and job identifiers out of source, error strings and emitted output (test names and review docs may
    keep them); tracked pycache/logs/locks removed; README and SPEC_VERSIONS pins made true.
+9. Back pressure in the gate (maintainer-ratified 2026-11-06 after the SlopCodeBench reading): record a quality baseline
+   in `docs/quality.md` (function-length distribution and cognitive-complexity mass per file via one small script in
+   `scripts/`, plus the litter and process-identifier greps from item 8) and add ONE `gate.toml` check that fails when a
+   push makes any of them worse than the recorded baseline. Ratchet against the repo's own baseline only; no threshold,
+   no dashboard; pair the complexity figure with a trivial-wrapper count so splitting cannot game it (policy rule 8).
+10. Per-repo HANDOFF.md is retired: it is stale context the next agent reads (isa-spec and circuits were wrong at audit).
+   Delete it; the README gets one line pointing at `bennett/HANDOFF.md`; dated `docs/reviews/` and `docs/quality/`
+   stay as the record. Progress lives in `.tmp/`.
+11. Every job reads the "Anti-slop rules" section of `.tmp/orchestrator/briefs/COMMON.md` (good/bad examples) before
+   writing code; reviewers check against the same list.
 
 Per-repo specifics (from the audit; the job reads the full report first):
 
