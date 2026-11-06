@@ -1,5 +1,13 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-05/06 - advisor: ecosystem quality audit and remediation plan
+
+Advisor session (Fable), no orchestrator shift, nothing launched in any repo; Codex runners stayed stopped.
+- 2026-11-05 07:56Z-08:25Z: twelve read-only auditors (ten Sonnet, one per code repo; Haiku for targets + meta tools) ran a common brief (`docs/quality/2026-11-05-audit/BRIEF.md`): composition, build/test timings, coverage where cheap, 15-20 hand-classified tests per repo, policy rule 9 patterns. Reports and synthesis under `docs/quality/2026-11-05-audit/`.
+- Headline: oracle layer is real (~65 % of ~230 sampled tests useful, <5 % tautological) but 7 of 11 code repos are red at HEAD for two root causes (Codex attempt-end WIP commits landing on main; tests reading the live sibling instead of the gate pin, in driver, arith, plugin, sched and circuits), one real checker regression (conformance `resource_contexts.rs:476`), blind tolerances in arith (280k assertions at 1-4 ulp, observed max 0.5 ulp; both open P0s pass), self-authored oracles (runtimes native twin, dialect labels + rehash), build loops unusable in isa-spec/sched/vm/driver (isa-spec: 70 test binaries x 110 MB; the gate runs a 23.8 GB test), 500-1200 line functions in every large crate, bead IDs in error strings and emitted output in six repos.
+- Gotchas: auditors under `ulimit -v 8 GB` OOM'd circuits `oracles` (needs 6.75 GB, HANDOFF says 5); load 17-20 during measurement so timings are upper bounds; the meta repo's installed pre-push hook is the cargo-only stub and always passes; `codex_job.py` pace guard fails open on a quota read error.
+- 2026-11-06 05:25Z: maintainer direction "raise the quality floor, use Codex (sol xhigh) extensively, a couple of rounds until grades improve". Plan written: `docs/plan/2026-11-06-quality-floor-remediation.md` (round 0 root causes + pin discipline, round 1 one sol job per repo with the round-2 review debt folded in, round 2 oracle independence, re-audit with the same brief after each round; decisions D5-D8 for the maintainer). Not yet launched.
+
 ## Session log - 2026-11-03 (afternoon) - shifts 5-7: cross-checks and round-2 checks, Claude-seat reviews of Codex code, session wind-down
 
 Written by the shift-7 orchestrator (Opus) at session end; covers ~11:20Z to the wind-down at ~13:10Z. Records: `.tmp/orchestrator/shift-5.md`, `shift-6.md`, `shift-7.md`; rulings R20-R24 and the wind-down order in `.tmp/orchestrator/advisor-notes.md`; current state in `HANDOFF.md`.
