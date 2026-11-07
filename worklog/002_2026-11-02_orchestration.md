@@ -8,7 +8,8 @@
 - Found a contract gap: rungs 1/2 accept plugin/vm revisions but cannot select runtimes/driver/ISA revisions;
   recorded bennett-t9r. The runner fails loud on unsupported selectors rather than claim current-main coverage.
 - Real scheduler run waited for the heavy scope, then caught an isolation adapter --chdir gap (ERROR);
-  red-first regression fixed it. Bounded retry waits on a new arithmetic measurement; rung-1 skipped for that lock.
+  red-first regression fixed it. Bounded scheduler retry PASSED at 17:36:50Z (3fc4d7bdc399, exit 0),
+  after waiting for the shared heavy slot; rung-1 skipped for the live lock at 17:28Z.
 - Focused suite: 16 PASS; meta suite: 61 PASS. Full unfiltered --once remains the orchestrator's post-merge check.
   Detailed bounded-run evidence and log paths are in the job progress file.
 
