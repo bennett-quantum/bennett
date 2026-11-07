@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# Keep the active Beads hook directory, but delegate the entire input ref stream
-# to the clean pushed-SHA gate. No Dolt sync or network operation belongs here.
 set -euo pipefail
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
-hook_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-root="$(dirname "$(dirname "$hook_dir")")"
+root="$(git rev-parse --show-toplevel)"
 exec "$root/scripts/pre-push" "$@"
