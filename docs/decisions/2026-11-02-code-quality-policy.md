@@ -12,15 +12,21 @@ administrivia, process theatre or review paranoia. If a rule here needs a form, 
 2. **Opposite model reviews.** Codex work is reviewed by Claude; Claude work by gpt-6.1-sol xhigh, the best reviewer.
    Sonnet is good at bug hunting and may run alongside. The reviewer gets the diff and the repo's laws, not the
    implementer's conclusions, and re-runs what is cheap.
-3. **Three rounds, maximum.** Round 1 reviews, round 2 checks the fixes, round 3 is final. Anything still open after
-   that is a decision for the advisor or maintainer, not a fourth round.
-4. **Only P0 and P1 block.** P0: wrong result, silent fallback, spec violation, data loss. P1: a bug on a reachable
-   path, a narrowing, a claimed behaviour without a test. Everything else is a nit: one bead labelled `nit`, swept
-   later, never argued in-round.
-5. **Stakes pick the seat.** Routine code: rule 2. Semantics-bearing code (executors, reference interpreter, plugin
-   lowering, checker, certificates, scheduler core, soft-float): rule 2 plus one Muse call on the round that claims
-   CLEAR, under the Muse quota policy. Published contracts, the gate itself, the scheduling interface, certificate
-   schema and launch ABI: the council.
+3. **Two rounds, then merge or revert** (amended 2026-11-07, was three). Round 1 reviews, round 2 checks the fixes.
+   After round 2 the batch merges with every remaining finding filed as a P2 bead, unless a blocking finding (rule 4)
+   is still open; then the offending commit is reverted and re-landed later, not iterated a third time.
+4. **Only P0 and P1 block, and only on the ladder route** (amended 2026-11-07). A finding is P0/P1 only if it
+   (a) produces a wrong result or a silent fallback on a product path that a north-star §8 rung exercises, (b) makes
+   an oracle unsound (reference interpreter, checker verdicts, certificates), or (c) breaks a build, link, gate or
+   push hook. The reviewer names the rung affected; a finding that names no rung is P2. Linters, test-harness
+   hygiene, edge cases outside the ladder route (overflow at usize::MAX, relative paths through PATH, hash drift
+   with unchanged observables) and narrowings of paths no rung uses are P2 by definition: one bead, never a repair
+   round. Everything else is a nit.
+5. **Stakes pick the seat** (amended 2026-11-07). Routine code: one sol review. Councils (sol + astra + Muse) only
+   where the oracle lives: the reference interpreter, checker verdict logic, certificates, and published contracts.
+   Plugin lowering, soft-float, scheduler core and gates get one sol review; a council may still be convened there
+   as a one-round advisory whose findings become beads, never a fix cycle. Astra is a review and council seat only,
+   never an implementer (R31).
 6. **Output is one short document** in `docs/reviews/`: verdict, P0/P1 findings with file, line, failure scenario
    and what was run, beads filed. That is the whole record.
 
@@ -45,3 +51,20 @@ administrivia, process theatre or review paranoia. If a rule here needs a form, 
 Review debt is real: about 700 commits in 48 hours, seven review documents, none for plugin, runtimes, driver,
 conformance, arith, circuits or targets. First task: one batched review per repo under rules 2 to 6, plugin first.
 Then new work resumes with rule 1 in force. Nothing else from this document needs building.
+
+## Amendment 2026-11-07 (maintainer): velocity over repair cycles
+
+Tally after 25 review rounds of the quality-floor programme: about 20 of 33 blocking findings met the strict test in
+rule 4 (eight were soundness holes in the reference interpreter, the rest concrete rung-3 blockers); about 13 did not
+(three successive lexical holes in a regex linter, four rounds on an estimator path no rung uses, overflow at
+usize::MAX). Roughly a third of review effort bought no velocity. Hence the amendments to rules 3, 4 and 5 above and:
+
+10. **Prototype mode.** The workspace is modular and every boundary is a published contract; the dialect already says an
+    unavailable mechanic fails loud with its section number. A prototype may therefore land on `main` behind the gate
+    after one review round with its known gaps filed as P2 beads, in the expectation of being replaced. Replacement is
+    cheap because the contract is fixed. What may not land: a silent fallback, a narrowing of a rung path, or an
+    unsound oracle (rule 4 a-c).
+11. **Old unreviewed commits ride with the next job.** Commits already on a main without a review are covered by the
+    review of the next job that touches that repo, in the same round, not by a separate main-branch review series.
+12. **Gate before review, gate before push.** Unchanged and not relaxed: every job head runs the repo's full gate
+    before its review is launched, and the push hook re-gates. The gate has caught what review missed three times.

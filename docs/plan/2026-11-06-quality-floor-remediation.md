@@ -43,6 +43,16 @@ threshold, no dashboard (policy rule 8): the number only needs to exist and be r
    This amends policy rule 2 (opposite model) for this programme; it is the maintainer's call and is recorded here.
    Claude is used only where Codex cannot: the Opus orchestrator shift (kept lean, few shifts) and a small Sonnet
    spot-check of each round's sol audit.
+   AMENDED 2026-11-07 (maintainer; policy rules 3-5, 10-12): two review rounds then merge-with-P2-beads or revert;
+   P0/P1 only for wrong results or silent fallbacks on a rung path, oracle unsoundness, or build/gate breakage, with
+   the rung named; councils only for the reference interpreter, checker verdicts, certificates and published
+   contracts (plugin lowering, soft-float, sched core, gates: one sol review; council at most a one-round advisory
+   whose findings become beads); prototypes land after one round with P2 beads; old unreviewed main commits ride
+   with the next job's review. Applies to every review launched from 2026-11-07T10:00Z, including batches in flight.
+7. No repair cycles on tiny issues. A review round that does not move a rung closer is a cost, not a safeguard: the
+   tally on 2026-11-07 was a third of all rounds spent on linter holes, edge cases outside the ladder and paths no
+   rung uses. The strict blocking test above exists to stop that; the orchestrator re-grades to P2 anything that
+   fails it, without asking.
 
 ## Round 0: ecosystem prerequisites (meta repo, one sol job, then two cross-repo jobs)
 
