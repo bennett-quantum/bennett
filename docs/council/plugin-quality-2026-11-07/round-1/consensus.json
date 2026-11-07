@@ -1,0 +1,126 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise",
+  "muse": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "revise",
+  "muse": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-S0-1",
+    "section": "Dialect \u00a7\u00a714.2,17.1,19.4\u201319.5; src/Production.cpp::sharesGlobalState / replaceHostEntries / hostStub",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "The source has one persistent classical memory across H/CC/R/L, and indirect-call candidates belong to the device closure. Calling a helper that increments global g twice must preserve its first increment. The documented approved interim may instead stop with exit125 and a promised/pending diagnostic before silently resetting state.",
+      "by": "clause:dialect \u00a717.1, \"There is one classical memory, shared by H, CC, R and the entry state of every L invocation\"; clause:dialect \u00a714.2, \"The device closure includes every candidate\"; docs/quality.md, Contracts and remaining mechanics, approved native adapter interim."
+     },
+     {
+      "n": "2",
+      "claim": "sharesGlobalState recursively visits functions found among IR operands, but an integer entry parameter converted to a function pointer has no helper Function operand. Analysis::candidates nevertheless includes the address-taken, type-compatible helper, and Entry::lowerCall emits a static call to its global-mutating CC body. Consequently top is scanned as unshared even though its generated device closure accesses mutable g.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-plugin-council-2ecdd90/src/Production.cpp:2280; src/Production.cpp:1392; src/Analysis.cpp:708; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-sol/indirect-global.ll; witness:tmp-sol/mapped-indirect18/top/launch.bennett."
+     },
+     {
+      "n": "3",
+      "claim": "On LLVM18 and LLVM23, use the default production budget and the same integer argument 4198720, the real source-native helper address. A validated comparison-layout file maps that address to the emitted helper; structure correspondence and host bitcode verification both pass. Source-native calls print \"1 2 host_global=2\"; generated host calls exit0, print \"1 1 host_global=0\", and produce no diagnostic. This also reproduces without a supplied layout using its standalone function address.",
+      "by": "witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-sol/reproduce_mapped_indirect.py; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-sol/mapped-indirect-result.json; witness:tmp-sol/indirect-layout18.json; witness:tmp-sol/indirect-layout23.json."
+     },
+     {
+      "n": "4",
+      "claim": "The native launch adapter silently violates the shared-memory result and bypasses its approved fail-loud interim. This is S0 contract divergence, with the prior direct-call ordering fix only partially covering the dependency problem; it does not establish a defect in the emitted device helper rows themselves.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "problem": "S0: an indirect entry can invoke a mutable-global helper without triggering the shared-global guard. The host adapter creates and unloads a fresh program per call, discarding the device global and leaving the host global unchanged. Both supported majors silently produce the wrong observable values. The exact fixture and same-input, real-address comparison-layout reproduction are retained under tmp-sol.",
+    "fix": "In src/Production.cpp::sharesGlobalState and replaceHostEntries, compute dependencies over the same complete direct/indirect candidate closure used by Entry::lowerCall, while all original entry/helper bodies still exist; pass Analysis or preserve its reachable-function/global sets before body replacement. Dialect \u00a717.1 says \"There is one classical memory, shared by H, CC, R and the entry state of every L invocation\" and \u00a714.2 says \"The device closure includes every candidate\". Under the already-approved interim in docs/quality.md, every affected indirect entry must emit the existing promised/pending diagnostic containing bp-acm and b-dialect-spec-6u6, exit125 and emit no result output; full sharing, when implemented, must instead preserve 1 2 host_global=2. Add a regression in tests/review_regressions.py::global_cases with @g=global i32 0, an address-taken helper that loads g/adds1/stores/returns it, @keep=constant ptr @helper, and a marked top(i64 %fn) that inttoptr-casts %fn and calls it. Use a real resolved comparison map, pass the helper address for both calls, and use the default budget 1048576,1048576,65536,256,65536. Assert the source-native baseline and the interim generated-host exit/output/diagnostic on LLVM18/23 and in both helper/top orders. The current code exits0 with 1 1 host_global=0, so this test is red now. No spec change is needed."
+   }
+  ],
+  "codex": [
+   {
+    "id": "codex-S0-1",
+    "section": "Dialect \u00a7\u00a714.2, 16.3, 16.4; ISA \u00a73.6; src/Scalar.cpp Scalar::lowerCall (lines 317-333) and Scalar::body compare-tree naming",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "Compare-tree blocks created in source block i are named ^b<i>.s<j> in creation order; each indirect call retains its own leaves/default/continuation and lowers to a valid ISA CFG.",
+      "by": "clause:DLT-16.3 (\"a block created by a compare tree in block i ... in creation order\"); clause:DLT-16.4 (\"Y is a new block\"); clause:ISA-3.6"
+     },
+     {
+      "n": "2",
+      "claim": "The extracted lowerCall resets unsigned serial=0 for each indirect call. Two two-candidate calls in the same block both emit ^b0.s1. The switch and indirectbr paths also allocate from the same source-block name prefix independently.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-plugin-council-2ecdd90/src/Scalar.cpp:317; src/Scalar.cpp:324; src/Scalar.cpp:457"
+     },
+     {
+      "n": "3",
+      "claim": "The saved fixture defines one(x)=x+1, two(x)=x+2, selects their pointers, and calls the selected pointer twice in one block. LLVM 18 and 23 both lower successfully; bennett-isa-ref check and run-oracle both exit 1 with \u00a73.6: duplicate block label. Expected with input 1,7 is payload 9, and with 0,7 payload 11, code 0 at budget 100,0,256,8.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/two-calls.ll; witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/reproduce.py; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/two-calls-18-check.json; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/two-calls-23-check.json"
+     },
+     {
+      "n": "4",
+      "claim": "A well-formed supported indirect-call composition produces an ill-formed object instead of the specified computation, an S0 lowering defect. This is inherited in the extracted code, not evidence of a newly introduced regression.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "problem": "S0: compare-tree label numbering is call-local instead of source-block-local. The checked and executed object is rejected before either valid source path can run. The same reset is present in base 5a092cd; the current refactored Scalar::lowerCall still carries it.",
+    "fix": "Change src/Scalar.cpp Scalar::lowerCall and the switch/indirectbr emission in Scalar::body to share a monotonically increasing compare-block counter for each original BasicBlock. Dialect \u00a716.3 requires \"a block created by a compare tree in block i ... in creation order\" and \u00a716.4 requires \"Y is a new block\". Do not merely add the call ordinal to .s labels, which would change canonical naming. Add tmp-codex/two-calls.ll as a permanent scalar regression: on LLVM 18 and 23 compilation and ISA check must succeed; run-oracle ref --input 1,7 --budget 100,0,256,8 must return code 0/payload 9 and --input 0,7 must return code 0/payload 11. Add an indirect-call-followed-by-switch variant to prove the counter is shared across producers."
+   },
+   {
+    "id": "codex-S0-2",
+    "section": "Dialect \u00a714.2 no-match/no-bitcode rule; src/Scalar.cpp Scalar::lowerCall (line 339), collectScalarFunction (lines 760-774)",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "An indirect pointer that names a function without bitcode produces F(4) when reached; the compiler must still retain and execute the valid alternatives.",
+      "by": "clause:DLT-14.2 (\"No match ... of a function without bitcode ... F(4) FAULT_UB_TRAP\")"
+     },
+     {
+      "n": "2",
+      "claim": "collectScalarFunction skips declarations, while Scalar::lowerCall retains those declarations in its candidate list and unconditionally evaluates functions.at(sorted[k]) for every leaf.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-plugin-council-2ecdd90/src/Scalar.cpp:339; src/Scalar.cpp:760"
+     },
+     {
+      "n": "3",
+      "claim": "The saved valid LLVM fixture selects @one or declared @missing, supplies distinct comparison addresses through function metadata, and makes one indirect call. Both LLVM verifiers accept it. Both plugins abort with SIGABRT and std::out_of_range / map::at, even when the runtime selector would choose @one.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing-callee.ll; witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing_probe.py; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing-18-metadata.json; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing-23-metadata.json"
+     },
+     {
+      "n": "4",
+      "claim": "The required runtime fault alternative has become an unconditional compiler abort, preventing the valid branch too; this is S0. The same unchecked lookup exists at the base commit, so it is not labelled a new regression.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "problem": "S0: a declaration in an indirect-call candidate set is absent from the lproc map but is indexed as if it had a definition. Compiler process termination replaces a defined fault outcome and also rejects inputs that choose the fully linked alternative.",
+    "fix": "Change src/Scalar.cpp Scalar::lowerCall together with collectScalarFunction as needed so a candidate with no definition selects the \u00a714.2 fault-4 outcome, never functions.at on a missing entry. The controlling text is \u00a714.2: \"of a function without bitcode ... F(4) FAULT_UB_TRAP\". Preserve all defined candidates and canonical compare-tree ordering. Add the exact missing-callee.ll fixture: compilation and ISA check must pass on both majors without a stack dump; with shape IN(1,zext),IN(8,zext);tgt=8, stack capacity 256 and runtime budget 100,0,256,8, input 1,7 must return code 0/payload 8, while input 0,7 must return code 4/payload 0."
+   }
+  ],
+  "muse": []
+ },
+ "means": {
+  "C1": 3.67,
+  "C2": 4.0,
+  "C3": 3.67,
+  "C4": 4.0,
+  "C5": 4.0,
+  "C6": 3.67,
+  "C7": 4.0,
+  "C8": 3.67
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}

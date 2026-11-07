@@ -1,0 +1,82 @@
+exit 0 in 28s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "Changed legality paths match dialect §3.4/§3.5: Production.cpp allocateRegister (line 1227) rejects a singleton class index outside the bennett.classes table with BD-E-OPERAND and dispatches finite/top domains with a runtime trap (T-CLASS), complementing checkOperands in BennettPlugin.cpp:295; Scalar.cpp scalarModuleFlag (line 702) turns a non-integer module flag into BD-E-ENTRY-RUNTIME instead of a cast<> abort. tests/entry_runtime.py passed on LLVM 18 in my run (missing helpers diagnosed, no stack dump).",
+      "change": "Add executed legality cases for __bennett_qborrow with cls=1 and with a dynamic cls in tests/register_classes.py (currently qalloc-only), expecting reference run-program COMPLETED and the configured class name in the qreg.new rows."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "Function-address identity: Production.cpp Entry::functionAddress now records every materialised A(F) (lines 584-604, merged from callees at line 2781); linkReferences places the standalone heap after the largest A(F) (line 1826), preserves the default heap capacity capacities[1] when no reference layout exists (line 1836), and fails BD-E-COMPARISON-LAYOUT on A(F)/heap overlap (line 1837), matching dialect §4.4/§19.5 disjointness. I recomputed sha256 of the attached dialect 0.2.13 text: 803c2e55...bda15, equal to SPEC_VERSIONS.toml dialect_sha256; contract_policy and pin_policy passed in my run. Scalar §9.2 envelope construction in publishScalarObject (prefix, JCS-sorted signature, first-reference hash list, bytewise-sorted layout leaves, SCC $index/member hash) is unchanged by the split and bennett-isa-ref check hashes equal the plugin's symbols (tests/scalars.py run, 21/21).",
+      "change": "Add one executed standalone-layout case where the address-taken function is last in module order and the CC entry also allocates heap, asserting the emitted layout heap_base is above that A(F) and the program returns the native result, in tests/production_dispatch.py."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "Changed lowering rows execute against the pinned reference: missing-import calls now emit F(8) via unresolvedCall/reportedFault (Production.cpp:447-455, 1482-1492) and name the source tail in an unreachable ^missing<N>tail block so successor phis stay valid; tests/review_regressions.py unresolved-call passed 10/10 cases on LLVM 18 and 23 in my run, including host fault payload 0800000000000000 and a trapped coverage row (dialect §4.5 item 4). My independent probe with a finite non-singleton class domain {1,2} via select lowered, checked, and ran COMPLETED with result 1 on both inputs. The 36e27f9 phase split is a pure move by added/removed line-multiset comparison except the two intended hardenings (scalarModuleFlag, collectScalarFunction null check).",
+      "change": "In Production.cpp allocateRegister, when a finite VS(cls) is disjoint from the class table (keys empty), consider failing BD-E-OPERAND at compile time like the singleton path; the current always-trap object is defensible under §3.4's dispatched-operand sentence, so record the chosen reading in a comment either way."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "R-tier semantics are untouched except diagnostic de-identification (BennettPlugin.cpp:425-439, Reversible.inc:29) and Reversible.inc:146 now passing the frozen sharesGlobalState into hostStub. tests/reversible.py --major 18 passed 8/8 in my run, with forward/reverse (REVERSED) cases and the expected blocked:BD-B-ISA7 verdict for the §19.2 R entry; the unresolved-call safe path also reversed with equals_entry=true. No rstep-counting or inverse-list code changed in 5a092cd..2ecdd90 (src diff is only BennettPlugin.cpp, Production.cpp, Reversible.inc, Scalar.cpp).",
+      "change": "No semantic change needed for this changeset; to raise evidence, add the LLVM 23 reversible run to the bounded default suite list in docs/quality.md's coverage commands so the recorded measurement covers both majors for Reversible.inc."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Host/device boundary: sharesGlobalState (Production.cpp:2280) transitively follows functions, users and global initialisers from each entry and flags any non-constant global; replaceHostEntries (line 2523) freezes all entries' results before any host body is rewritten, removing the r1 function-order dependence. hostStub emits the maintainer-approved promised/pending diagnostic and _Exit(125) before any launch (line 2324). tests/review_regressions.py global-diagnostic passed on LLVM 18 and 23 in my run (both source orders). The interim and its promised test (--promised-bp-acm) are disclosed in README.md:15 and docs/quality.md:54.",
+      "change": "Harden hostStub's sharedState branch (Production.cpp:2324-2335): if the user module already declares write or _Exit with a different signature, getOrInsertFunction can yield a bitcast callee and CreateCall may assert; check the existing declaration's type first and add a regression fixture declaring i32 @write(i32,ptr,i32) next to a shared-global entry in tests/review_regressions.py."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "Configured register classes (previously unimplemented for cls != 0) are now lowered for singleton, finite and top domains and executed in tests/register_classes.py (passed LLVM 18 and 23 in my run, including invalid dynamic classes 3 and 2^64-1 failing at run time per §3.4 T-CLASS). Two combinations of the new code have no executed test: __bennett_qborrow with a configured/dynamic class (same allocateRegister call site, Production.cpp:1440), and a dynamic-class qalloc whose handle sits in files (a §6.5 register-file site crossing an oracle/descriptor), where the fresh per-leaf qreg instance is bound only as the done block's parameter.",
+      "change": "Add two executed cases to tests/register_classes.py: (1) qborrow with cls selected between 1 and 2, used in a gate and returned clean, run to COMPLETED; (2) a dynamic-class qalloc whose handle is passed through a __bennett_oracle descriptor (files path), run to COMPLETED with the expected result. Both currently have no witness."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Test integrity improved as claimed: contracts.validate_normalisation parses the actual generated module with an LLVM reader before clang (tests/contracts.py:63, tests/normalisation_check.cpp); tests/normalisation_scope.py rejected 5/5 real-module mutations on both majors in my run; scalars retain 21/21 byte-exact corpus objects with independent reference runs; review_regressions executes and reverses rather than grepping IR. scripts/gate now runs build_defaults plus the whole scripts/test instead of the removed individual drivers, and scripts/test's 23 commands are a superset of the removed lines (smoke/gate_policy/contract_policy policies; recognition/analysis_edges/validation/scalars drivers). Not 5: scripts/test hard-fails the whole run at a fixed 180 s total allowance (measured 92 s on this host in docs/quality.md), which is a load-sensitive gate failure mode, and the recorded 66.86% coverage is a partial-suite measurement (truthfully disclosed).",
+      "change": "In scripts/test main(), make the 180-second allowance scale or report elapsed-per-command before failing (e.g. an env override BENNETT_TEST_BUDGET_S defaulting to 180), so a loaded gate machine fails on a named slow driver rather than a global timeout with no culprit."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "Diagnostics cite spec sections and fail fast: unimplemented() is [[noreturn]] fail() with exit 1 (BennettPlugin.cpp:62); my grep over the src diff found no TODO/unsupported/silent-fallback additions, and process identifiers were removed from product diagnostics except the two D4-mandated ids in the native-sharing message (verified by scripts/quality.py --check, which passed). docs/quality.md records coverage method, the promised bp-acm/bp-ace items and the two remaining >300-line functions with owners; docs/PROGRESS.md and HANDOFF.md were retired in this range with README pointing at the current state, so convergence-rule references to PROGRESS.md map to docs/quality.md + docs/verification.json. No SPEC-QUESTIONS file exists in this repository (find/grep empty); the one deliberate reading (loud exit 125 interim for shared globals) is recorded in README/docs and the spec's own blocker list.",
+      "change": "Add a SPEC-QUESTIONS.md (or a readings section in docs/quality.md) listing the two deliberate readings in this changeset - runtime T-CLASS trap vs compile-time BD-E-OPERAND for a finite class domain disjoint from the table, and BD-E-COMPARISON-LAYOUT on A(F)/heap overlap in a supplied comparison layout - each with the chosen reading and spec sentence, so future councils need not re-derive them."
+    }
+  ],
+  "blocking": [],
+  "previous_status": [
+    {
+      "id": "bp-kya",
+      "status": "resolved",
+      "note": "replaceHostEntries freezes every entry's sharesGlobalState before rewriting any host body (Production.cpp:2523); global-diagnostic passes in both source orders on LLVM 18 and 23 in my run."
+    },
+    {
+      "id": "bp-9t7",
+      "status": "resolved",
+      "note": "contracts.validate_normalisation reads the actual generated module incl. helpers before clang; normalisation_scope rejected 5/5 mutations on both majors in my run."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "tests/register_classes.py: add executed cases for __bennett_qborrow with configured/dynamic class and for a dynamic-class qalloc at a §6.5 handle-file site (handle crossing __bennett_oracle), each lowered, isa-ref checked and run to COMPLETED with hand-derived results; today only plain qalloc sites are witnessed.",
+    "src/Production.cpp hostStub sharedState branch (line 2324): guard getOrInsertFunction(\"write\"/\"_Exit\") against a pre-existing user declaration of a different type, and add a review_regressions fixture declaring i32 @write(i32,ptr,i32) beside a shared-global entry, expecting the promised/pending diagnostic and exit 125 rather than an IRBuilder assert.",
+    "scripts/test: the fixed 180 s total allowance (main loop) has under 2x headroom over the measured 92 s; make it overridable via an environment variable and print per-command elapsed times on failure so gate flakes name the slow driver.",
+    "src/Production.cpp allocateRegister (line 1248): record the chosen reading for a finite VS(cls) disjoint from the class table (runtime T-CLASS trap object vs compile-time BD-E-OPERAND) in a comment citing dialect §3.4; both readings are defensible, the singleton path already chose BD-E-OPERAND.",
+    "CMakeLists.txt arith resolution (line ~59): on failure the FATAL_ERROR embeds a raw Python traceback from tests/contracts import; wrap it to print the pinned-sibling materialisation hint from tests/pinned_siblings.py sibling() so a clean checkout fails with an actionable message."
+  ],
+  "verdict": "accept",
+  "path_to_accept": "Already accept. The single change that would raise the lowest criterion (C6, 3) by one point: add the two executed register-class cases named in suggestions (qborrow with dynamic class; dynamic-class qalloc at a §6.5 handle-file site) to tests/register_classes.py and record both majors passing in docs/quality.md.",
+  "summary": "Hand reproductions (rubric method): (1) Lifted-oracle results at tight budgets from the dialect corpus via tests/scalars.py (21/21 byte-exact objects, LLVM 18): inc8 255->0 in 5 steps at budget 5,0,7,1, code 1 at a 4-step budget and code 3 at 5,0,6,1; add2 200+100=300 in 6 steps; oracle-empty-fault code 4 in 2 steps - all as the fixtures state. Fault path: missing-import F(8) executed with host fault payload 08.. and trapped coverage (review_regressions unresolved-call, 10/10 on both majors); dynamic class 3 and 2^64-1 FAILED at run time (T-CLASS). Identity: sha256 of dialect 0.2.13 text recomputed by hand equals SPEC_VERSIONS dialect_sha256; §9.2 envelope bytes traced in publishScalarObject (isa/ptr_width prefix, sorted JCS signatures and layout leaves, first-reference hash order, SCC $index rule) and bennett-isa-ref check hashes match the plugin's symbol hashes. (2) Inverse/reversal: tests/reversible.py 8/8 (LLVM 18) including REVERSED outcomes, and the unresolved-call safe path reversed with equals_entry; §19.2 R entry remains blocked:BD-B-ISA7 as the spec's §25.1 records (pre-existing, unchanged). (3) SPEC-QUESTIONS: none exists in this repo; audited the recorded readings in docs/quality.md and README (bp-acm loud interim, bp-ace promised target execution) against §3.4/§6.6/§19.5 - defensible and disclosed. (4) Grep classification: no TODO/unsupported/for-now additions in the src diff; all unimplemented( sites are noreturn fail() exits naming a spec section and milestone. (5) List comparison: markers() has the 23 §3.2 markers smoke accepts; checkOperands op tables (gate<=8, gate2/rot<=3, gate3<=1, cls<=classes) match §3.4; the class table is read from the same module flag in BennettPlugin.cpp, NativeComparison.cpp and Production.cpp. Own probes: finite class domain {1,2} via select executes correctly; a scalar module with ss_push only in an unrelated pruned function is accepted cleanly (no abort). Focused runs green: register_classes (18,23), entry_runtime (18), normalisation_scope (18,23), scalars (18), reversible (18), review_regressions global-diagnostic+unresolved-call (18,23), smoke/gate_policy/contract_policy/pin_policy, quality.py --check, quality_ratchet. The 36e27f9 split is a pure move by line-multiset diff apart from two intended hardenings. No S0 divergence, omission, narrowing or silent fallback found in the changeset; both sol-r1 P0s (bp-kya, bp-9t7) verified fixed.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/muse.json

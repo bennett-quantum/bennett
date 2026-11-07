@@ -1,0 +1,130 @@
+exit 0 in 28s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 3,
+      "evidence": "Scalar::lowerCall emits duplicate compare-tree labels for two valid indirect calls in one LLVM block. Both majors return success, but the pinned ISA checker rejects the object under §3.6. Existing marker recognition and the independent residual checker remain intact.",
+      "change": "In src/Scalar.cpp, allocate compare-tree labels once per source block across indirect calls, switch and indirectbr; add the two-calls fixture to tests/scalars.py and require ISA check plus execution on both majors."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "publishScalarObject retains the §9.2 envelope/SCC implementation. Independently transcribed inc8 L1 envelope hashes to a8c86313c60cd75a4f013bdaaa43ed5db78c444b0338a3d41d98a3871929250e; emitted inc8 is byte-identical to dialect §16.6 on LLVM 18 and 23. Runtime-class objects are also identical across those majors.",
+      "change": "Add a multi-call, multi-block SCC identity fixture to tests/scalars.py after repairing compare-tree labels, asserting literal expected canonical text and independently derived envelope bytes rather than only two compiler outputs agreeing."
+    },
+    {
+      "id": "C3",
+      "score": 3,
+      "evidence": "inc8 gives (code,payload,steps)=(0,8,5) with budget 5,0,7,1, (1,0,4) with 4,0,7,1, and (3,0,1) with 5,0,6,1. However Scalar::lowerCall unconditionally indexes functions.at(candidate) for a declaration, aborting compilation instead of materialising the §14.2 no-bitcode fault path.",
+      "change": "In src/Scalar.cpp Scalar::lowerCall, route declaration candidates to the prescribed fault-4 path without looking up an absent lproc. Add one indirect call selecting a defined function or a declaration and assert successful defined execution and fault 4 for the missing definition."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Traced inc8 lift.ret and its full inverse using ISA §3.6 and R5^-1 through R1^-1 in §3.7; restored caller result, callee locations, counters, pc scratch and delivery/successor slots. Pinned step-check passes all 256 inc8 inputs on each major. This plugin emits rows; the step executor is a separate pinned component.",
+      "change": "Extend tests/scalars.py --step-check with the repaired two-indirect-call fixture, covering both selectors and all i8 inputs, then include tight step and call-stack budgets to exercise reversal across both dispatch continuations."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "The generated cc-calls object executes input 3 to 9 and reverses in 95 steps on both majors: equals_entry=true, memory_equals_entry=true and first_difference=null. Traced a nested touch/nested/write call-ret segment in reverse frame order against §7.4. R typed-fault limitations and the native global-sharing interim are explicitly disclosed rather than silently treated as completed semantics.",
+      "change": "Add a focused generated-CC history fixture in tests/cc_calls.py that observes a store before a call, changes it inside a nested call, reverses that completed segment, and checks the original byte plus retained pure result; also assert whole-run reversal does not undo a cancelled segment twice."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "Entry::allocateRegister now lowers configured classes and runtime class dispatch. Independently ran values 0,1,2,3,2^64-1 on both majors: valid classes return measured bit 1, invalid classes report fault 4. Target-aware load enforcement is explicitly pending in docs/quality.md, so these results are not evidence that target class constraints execute. Existing broader M3 generation work is context, not claimed complete by this batch.",
+      "change": "In tests/register_classes.py, add finite-domain select/phi classes and qborrow cases, checking selected class names, the measured result and the invalid-class trap; retain a separately named target-aware load test until the pinned executor supports it."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "AST-normalised comparisons distinguish many formatting-only test changes from semantic changes. The shared run_checked helper retains status assertions; normalization checks inspect the real generated module, including helpers, before clang. scripts/quality.py --check and both quality-ratchet tests pass. Current scalar tests omit composition of multiple indirect calls and a declaration candidate, leaving the two confirmed defects undetected.",
+      "change": "Add both blocking witnesses to the normal dual-major scalar test driver with explicit expected results and checker status, and keep a mutation that resets the per-block label counter so this coverage cannot regress."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The pin resolver, contextual missing-entry-helper diagnostics, shared-state pre-scan and restored actual-output normalization checks improve reporting. docs/design/launch-global-state-question.md records the native sharing ambiguity and the approved interim remains explicit. The declaration-candidate std::out_of_range abort is the concrete remaining fail-loud/reporting violation in the extracted lowering path.",
+      "change": "Remove the unguarded declaration lookup in Scalar::lowerCall and make tests assert absence of a stack dump as well as the runtime fault result; in docs/PLAN.md replace its deleted PROGRESS.md resume link with docs/quality.md and the current ecosystem handoff destination."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "codex-S0-1",
+      "section": "Dialect §§14.2, 16.3, 16.4; ISA §3.6; src/Scalar.cpp Scalar::lowerCall (lines 317-333) and Scalar::body compare-tree naming",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "Compare-tree blocks created in source block i are named ^b<i>.s<j> in creation order; each indirect call retains its own leaves/default/continuation and lowers to a valid ISA CFG.",
+          "by": "clause:DLT-16.3 (\"a block created by a compare tree in block i ... in creation order\"); clause:DLT-16.4 (\"Y is a new block\"); clause:ISA-3.6"
+        },
+        {
+          "n": "2",
+          "claim": "The extracted lowerCall resets unsigned serial=0 for each indirect call. Two two-candidate calls in the same block both emit ^b0.s1. The switch and indirectbr paths also allocate from the same source-block name prefix independently.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-plugin-council-2ecdd90/src/Scalar.cpp:317; src/Scalar.cpp:324; src/Scalar.cpp:457"
+        },
+        {
+          "n": "3",
+          "claim": "The saved fixture defines one(x)=x+1, two(x)=x+2, selects their pointers, and calls the selected pointer twice in one block. LLVM 18 and 23 both lower successfully; bennett-isa-ref check and run-oracle both exit 1 with §3.6: duplicate block label. Expected with input 1,7 is payload 9, and with 0,7 payload 11, code 0 at budget 100,0,256,8.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/two-calls.ll; witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/reproduce.py; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/two-calls-18-check.json; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/two-calls-23-check.json"
+        },
+        {
+          "n": "4",
+          "claim": "A well-formed supported indirect-call composition produces an ill-formed object instead of the specified computation, an S0 lowering defect. This is inherited in the extracted code, not evidence of a newly introduced regression.",
+          "by": "step:1; step:2; step:3"
+        }
+      ],
+      "problem": "S0: compare-tree label numbering is call-local instead of source-block-local. The checked and executed object is rejected before either valid source path can run. The same reset is present in base 5a092cd; the current refactored Scalar::lowerCall still carries it.",
+      "fix": "Change src/Scalar.cpp Scalar::lowerCall and the switch/indirectbr emission in Scalar::body to share a monotonically increasing compare-block counter for each original BasicBlock. Dialect §16.3 requires \"a block created by a compare tree in block i ... in creation order\" and §16.4 requires \"Y is a new block\". Do not merely add the call ordinal to .s labels, which would change canonical naming. Add tmp-codex/two-calls.ll as a permanent scalar regression: on LLVM 18 and 23 compilation and ISA check must succeed; run-oracle ref --input 1,7 --budget 100,0,256,8 must return code 0/payload 9 and --input 0,7 must return code 0/payload 11. Add an indirect-call-followed-by-switch variant to prove the counter is shared across producers."
+    },
+    {
+      "id": "codex-S0-2",
+      "section": "Dialect §14.2 no-match/no-bitcode rule; src/Scalar.cpp Scalar::lowerCall (line 339), collectScalarFunction (lines 760-774)",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "An indirect pointer that names a function without bitcode produces F(4) when reached; the compiler must still retain and execute the valid alternatives.",
+          "by": "clause:DLT-14.2 (\"No match ... of a function without bitcode ... F(4) FAULT_UB_TRAP\")"
+        },
+        {
+          "n": "2",
+          "claim": "collectScalarFunction skips declarations, while Scalar::lowerCall retains those declarations in its candidate list and unconditionally evaluates functions.at(sorted[k]) for every leaf.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-plugin-council-2ecdd90/src/Scalar.cpp:339; src/Scalar.cpp:760"
+        },
+        {
+          "n": "3",
+          "claim": "The saved valid LLVM fixture selects @one or declared @missing, supplies distinct comparison addresses through function metadata, and makes one indirect call. Both LLVM verifiers accept it. Both plugins abort with SIGABRT and std::out_of_range / map::at, even when the runtime selector would choose @one.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing-callee.ll; witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing_probe.py; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing-18-metadata.json; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex/missing-23-metadata.json"
+        },
+        {
+          "n": "4",
+          "claim": "The required runtime fault alternative has become an unconditional compiler abort, preventing the valid branch too; this is S0. The same unchecked lookup exists at the base commit, so it is not labelled a new regression.",
+          "by": "step:1; step:2; step:3"
+        }
+      ],
+      "problem": "S0: a declaration in an indirect-call candidate set is absent from the lproc map but is indexed as if it had a definition. Compiler process termination replaces a defined fault outcome and also rejects inputs that choose the fully linked alternative.",
+      "fix": "Change src/Scalar.cpp Scalar::lowerCall together with collectScalarFunction as needed so a candidate with no definition selects the §14.2 fault-4 outcome, never functions.at on a missing entry. The controlling text is §14.2: \"of a function without bitcode ... F(4) FAULT_UB_TRAP\". Preserve all defined candidates and canonical compare-tree ordering. Add the exact missing-callee.ll fixture: compilation and ISA check must pass on both majors without a stack dump; with shape IN(1,zext),IN(8,zext);tgt=8, stack capacity 256 and runtime budget 100,0,256,8, input 1,7 must return code 0/payload 8, while input 0,7 must return code 4/payload 0."
+    }
+  ],
+  "previous_status": [],
+  "regressions": [],
+  "suggestions": [
+    "For the M3 work already staged in docs/PLAN.md, add the saved tmp-codex/gate2.ll production fixture to tests/review_regressions.py and implement gate2 dispatch in src/Production.cpp Entry::lowerCall/Entry::gate. Dialect §§3.2-3.4 define CX/CZ/SWAP; the fixture applies X to wire 0, CX(0,1), measures wire 1, undoes CX and X, then frees the clean register. Expected result is i1 1 at budget 1000,0,0,0. Both current majors instead exit 1 with unimplemented §17.4. This is disclosed broader generation work, not a new narrowing introduced by the quality refactor; do not describe this batch as full marker-lowering conformance.",
+    "In tests/contracts.py and the focused drivers, allow an explicit artifact-root override and use it for all output paths. TMPDIR currently redirects temporary files but tests such as scalars.py and register_classes.py still write fixed ROOT/.tmp paths. Require two simultaneous focused runs with different artifact roots to leave disjoint outputs; this would remove the shared-checkout interference noted in the council brief.",
+    "In docs/quality.md and docs/PLAN.md, keep the measured default-suite/coverage claims separate from complete dialect conformance, replace the stale PROGRESS.md link, and include a compact marker/normalization/CLI obligation matrix naming each owning stage and its executable witness. Keep the native-sharing question linked to the approved pending-contract diagnostic rather than presenting exit 125 as shared-memory implementation."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Repair per-source-block compare-tree numbering, including its interaction with switch/indirectbr, and add the two-call checker/result regression. 2. Materialise the missing-definition indirect-call outcome as fault 4 instead of an absent-map lookup, and add defined/missing-selector execution tests. 3. Run those focused regressions on LLVM 18/23 plus existing byte-exact scalar fixtures and step checks. The two findings are inherited defects in the currently extracted lowering body, not newly introduced regressions; broader expressly staged generation work remains contextual to this quality-floor review.",
+  "summary": "Reviewed the quality-floor snapshot at 2ecdd90 against 5a092cd and the supplied dialect/ISA contracts; two concrete S0s survive in the extracted Scalar::lowerCall. No newly introduced semantic regression was established. There is no previous council round, hence previous_status is empty. Method 1: hand-derived inc8(7)=8 from call/const/add/ret/retval (5 steps), step exhaustion at B=4 gives (code 1,payload 0,steps 4), and a six-cell stack cannot hold R_L1=3+(1 param+1 result+2 regs)=7, giving (3,0,1). Both majors matched. Transcribed the complete L1 identity envelope independently (isa and ptr_width lines, JCS signature, header through lift.ret and final LF; no data/layout/reference suffix for this leaf); SHA-256 matches a8c86313c60cd75a4f013bdaaa43ed5db78c444b0338a3d41d98a3871929250e. Method 2: traced the successful inc8 lift.ret at fp=0,sp=7,depth=1,v0=8: inverse pc commit/successor cleanup, R5 restores depth/fp, R4 restores caller r and delivery value 8, R3 restores callee a0=7,r=0,c0=1,v0=8, R2 clears delivery, R1 clears succ, then dispatch clears. Step-check passed all 256 inputs per major. Traced the generated nested touch/nested/write segment in §7.4 LIFO order: undo ret/result links, remove add/load instances, undo nested ret, restore the store bytes, then retire its call boundary and the enclosing frames. An uncall of that completed segment would mark these frames reversed; a later whole-run traversal skips them. Executed the generated cc-calls program with input 3: hand result 3+3+2+1=9, full reversal restores memory and complete entry state on both majors (95 steps). Method 3: no SPEC-QUESTIONS file exists in this snapshot; audited docs/design/launch-global-state-question.md against §§4.3/19.4 and ISA §10. Its missing native-memory bridge is recorded, and the approved interim is not silently credited as shared-state semantics. Method 4: scanned src for the rubric strings plus C++ unimplemented/llvm_unreachable/assert forms; retained the complete output in tmp-codex/source-obligations.json. Hits classify as explicit staged implementation failures, documented ISA blockers, invariant-only llvm_unreachable paths, and lexical matches for llvm.assume or simplifyInstruction. The unguarded map::at is separately reproduced rather than inferred from a keyword scan. Method 5: compared marker ABI/operand tables, the scalar row and indirect-call dispatch, budget fault paths, emitted CC call/ret frames, identity envelope fields and producer CLI/record boundaries with the corresponding spec sections. The producer is not the reference executor, so ISA interpreter CLI/scheduler capabilities are not attributed to this C++ plugin. The marker comparison also confirms staged gate2 production is still unavailable, recorded as a suggestion rather than a new refactor regression. Additional evidence: real runtime class inputs 0/1/2 return measured 1 and invalid 3/2^64-1 fault on both majors; quality baseline and both ratchet tests pass. AST comparisons of changed tests distinguish formatting-only rewrites from substantive harness/expectation changes; the actual-output normalization verifier and explicit exit=3 reversible checks are preserved. Full suites/builds/gates were not run; no tracked files were changed. All witness inputs, commands and outputs are under /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-codex."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/codex.json

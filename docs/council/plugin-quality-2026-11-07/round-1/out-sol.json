@@ -1,0 +1,115 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Producer scope: BennettPlugin.cpp::markers contains all 23 dialect \u00a73.2 markers (independent set comparison saved in tmp-sol/marker-inventory.json). Scalar.cpp::prepareScalarModule retains the actual direct/indirect device closure and validates required replay/init definitions; allocateRegister checks malformed class metadata and constant class indices. The extracted scalar aggregate/call paths retain their previous row structure. No new producer well-formedness divergence established.",
+   "change": "In tests/register_classes.py, add malformed bennett.classes node/name cases and a constant out-of-table index; assert BD-E-OPERAND, nonzero compilation status and no launch object on LLVM 18 and 23, matching dialect \u00a7\u00a73.4/22.1."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Scalar.cpp::publishScalarObject preserves ISA \u00a79.2 envelope/SCC construction; linkReferences now separates observed function identities from the standalone heap and rejects supplied-map heap collisions. Independently constructed the dialect \u00a716.6 L1/ref envelope bytes and reproduced a8c86313...9250e and 151baad5...b94a. Both majors produced byte-identical published inc8 objects and accepted hashes. No identity deviation found in this change set.",
+   "change": "Extend tests/scalars.py or a dedicated identity fixture with a mutually recursive closure containing at least 11 lprocs; independently state its bytewise SCC member order, reference substitutions and envelopes, so L1/L10/L2 ordering is checked after publishScalarObject refactors."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "Scalar.cpp::lowerAggregate, lowerCall and lowerReturn preserve flattened fields, packed aggregate results, argument capture through lift.call and one-row fault termination. Hand-derived inc8: input255 at (5,0,7,1) -> payload0/code0/steps5; input7 at (4,0,7,1) -> payload0/code1/steps4; stack6 or depth0 -> code3 after the first row. All six published boundary runs passed on both majors. The reference interpreter is a pinned dependency, not implemented by this producer.",
+   "change": "Add a published-map regression in tests/aggregate_rows.py returning {i8,i16} fields 7 and 300 through an aggregate call; assert packed payload 76807 and independently count the constant/call/unpack/pack/return rows at the exact success budget and one row below."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Producer emits ISA lifted rows rather than implementing their inverses. Traced the complete recursive sum lift.call forward/inverse sequence under ISA \u00a7\u00a73.6\u20133.7, including restoring sp/fp before record addresses and clearing capture slots after restoring recursive argument locations; all frame fields clear. The pinned step-check accepted all 256 inc8 inputs on both LLVM majors; exact results and envelope bytes are preserved by the Scalar refactor.",
+   "change": "Add a bounded tests/scalars.py --case inc8 --step-check command to scripts/test for each major and update its command-count evidence in docs/quality.md, so the default suite retains the 256-input prefix-reversal check after future row refactors."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Production.cpp::lowerCall preserves the direct/indirect CC ABI and explicit unresolved-call trapping while naming the unreachable tail. Focused review_regressions global-diagnostic/unresolved-call passed 10/10 per major. tests/cc_calls.py passed 2/2 on LLVM18, including recursion and full memory/environment reversal. Independently traced a nested call/ret segment with an overwritten byte and a pure copy before uncall: LIFO reversal restores the byte, and whole-run reversal skips cancelled frames. The native adapter defect is contract-scoped below.",
+   "change": "Extend tests/cc_calls.py with a generated indirect nested-call case whose callee stores a byte, then assert its forward return and both equals_entry and memory_equals_entry after --reverse, covering the extracted indirect lowerCall branch with a state-changing callee."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Production.cpp::allocateRegister now emits any or the 1-based configured class name and a runtime compare tree with a trapping default, as dialect \u00a73.4 requires. tests/register_classes.py passed constant/dynamic and invalid-index cases on both majors. Target-aware class execution remains explicitly disclosed as pending in docs/quality.md; these passes do not establish target-class enforcement. No changed Q/control semantic defect established.",
+   "change": "In tests/register_classes.py add structural mutation checks that swap the alpha/beta branch destinations and require failure; assert the index-to-class association at each generated compare-tree leaf, since merely checking the set of qreg.new classes cannot detect swapped selections in the pinned class-insensitive executor."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Reviewed assertion changes and AST-normalized semantic changes across every rewritten Python suite, retaining substantive native numerical checks rather than treating formatting churn as test deletion. contracts.py::validate_normalisation checks the actual generated module and all helper definitions. Five real-module residue mutations were independently rejected on each major. quality.py --check and git diff --check passed. Direct-only shared-global fixtures miss SOL-S0-1. The full scripts/test and gate were deliberately not run in the shared snapshot.",
+   "change": "Add the SOL-S0-1 address-taken indirect-global fixture to tests/review_regressions.py::global_cases on both majors; retain the source-native 1 2 host_global=2 baseline and require the approved exit125 diagnostic from the generated host until sharing is implemented."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "No tracked SPEC-QUESTIONS entries exist to audit. Pin defaults and shared harness resolution now use immutable gate pins; diagnostic identifiers retained by the approved interim are documented. However sharesGlobalState walks syntactic operands rather than the same indirect-call closure that is emitted, so hostStub silently loads/unloads isolated global state for a valid indirect entry. The claimed guard coverage is therefore incomplete despite the direct-order fix.",
+   "change": "Change Production.cpp::sharesGlobalState and replaceHostEntries to include every analysis-resolved indirect candidate before rewriting any host entry, then add the reproducible SOL-S0-1 regression and correct docs/quality.md to describe the verified indirect coverage."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-S0-1",
+   "section": "Dialect \u00a7\u00a714.2,17.1,19.4\u201319.5; src/Production.cpp::sharesGlobalState / replaceHostEntries / hostStub",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "The source has one persistent classical memory across H/CC/R/L, and indirect-call candidates belong to the device closure. Calling a helper that increments global g twice must preserve its first increment. The documented approved interim may instead stop with exit125 and a promised/pending diagnostic before silently resetting state.",
+     "by": "clause:dialect \u00a717.1, \"There is one classical memory, shared by H, CC, R and the entry state of every L invocation\"; clause:dialect \u00a714.2, \"The device closure includes every candidate\"; docs/quality.md, Contracts and remaining mechanics, approved native adapter interim."
+    },
+    {
+     "n": "2",
+     "claim": "sharesGlobalState recursively visits functions found among IR operands, but an integer entry parameter converted to a function pointer has no helper Function operand. Analysis::candidates nevertheless includes the address-taken, type-compatible helper, and Entry::lowerCall emits a static call to its global-mutating CC body. Consequently top is scanned as unshared even though its generated device closure accesses mutable g.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-plugin-council-2ecdd90/src/Production.cpp:2280; src/Production.cpp:1392; src/Analysis.cpp:708; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-sol/indirect-global.ll; witness:tmp-sol/mapped-indirect18/top/launch.bennett."
+    },
+    {
+     "n": "3",
+     "claim": "On LLVM18 and LLVM23, use the default production budget and the same integer argument 4198720, the real source-native helper address. A validated comparison-layout file maps that address to the emitted helper; structure correspondence and host bitcode verification both pass. Source-native calls print \"1 2 host_global=2\"; generated host calls exit0, print \"1 1 host_global=0\", and produce no diagnostic. This also reproduces without a supplied layout using its standalone function address.",
+     "by": "witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-sol/reproduce_mapped_indirect.py; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/plugin-quality-2026-11-07/tmp-sol/mapped-indirect-result.json; witness:tmp-sol/indirect-layout18.json; witness:tmp-sol/indirect-layout23.json."
+    },
+    {
+     "n": "4",
+     "claim": "The native launch adapter silently violates the shared-memory result and bypasses its approved fail-loud interim. This is S0 contract divergence, with the prior direct-call ordering fix only partially covering the dependency problem; it does not establish a defect in the emitted device helper rows themselves.",
+     "by": "step:1; step:2; step:3"
+    }
+   ],
+   "problem": "S0: an indirect entry can invoke a mutable-global helper without triggering the shared-global guard. The host adapter creates and unloads a fresh program per call, discarding the device global and leaving the host global unchanged. Both supported majors silently produce the wrong observable values. The exact fixture and same-input, real-address comparison-layout reproduction are retained under tmp-sol.",
+   "fix": "In src/Production.cpp::sharesGlobalState and replaceHostEntries, compute dependencies over the same complete direct/indirect candidate closure used by Entry::lowerCall, while all original entry/helper bodies still exist; pass Analysis or preserve its reachable-function/global sets before body replacement. Dialect \u00a717.1 says \"There is one classical memory, shared by H, CC, R and the entry state of every L invocation\" and \u00a714.2 says \"The device closure includes every candidate\". Under the already-approved interim in docs/quality.md, every affected indirect entry must emit the existing promised/pending diagnostic containing bp-acm and b-dialect-spec-6u6, exit125 and emit no result output; full sharing, when implemented, must instead preserve 1 2 host_global=2. Add a regression in tests/review_regressions.py::global_cases with @g=global i32 0, an address-taken helper that loads g/adds1/stores/returns it, @keep=constant ptr @helper, and a marked top(i64 %fn) that inttoptr-casts %fn and calls it. Use a real resolved comparison map, pass the helper address for both calls, and use the default budget 1048576,1048576,65536,256,65536. Assert the source-native baseline and the interim generated-host exit/output/diagnostic on LLVM18/23 and in both helper/top orders. The current code exits0 with 1 1 host_global=0, so this test is red now. No spec change is needed."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "bp-kya",
+   "status": "partially",
+   "note": "Both direct helper/top orders are frozen before replacement and pass the inherited five diagnostic cases on both majors; the same dependency-guard objective still fails for indirect candidates (SOL-S0-1)."
+  },
+  {
+   "id": "bp-9t7",
+   "status": "resolved",
+   "note": "The actual generated numerical modules and helper bodies are checked before clang; independently reran all five residue mutations on LLVM18/23 and all were rejected."
+  },
+  {
+   "id": "bp-lfb",
+   "status": "resolved",
+   "note": "The inherited pin-review CMake default-path defect is fixed by invoking arith_path for the selected major and embedding its validated absolute pinned path; checked the resulting configure logic and regressions."
+  },
+  {
+   "id": "bp-88d",
+   "status": "resolved",
+   "note": "contracts.py::drift compares both consumer ISA fields against the immutable dialect registry; inspected both-field corruption coverage in the pin-policy tests."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Correct tests/normalisation_check.cpp:14 to cite dialect \u00a712.2 N22 for integer memory widths being multiples of eight; N25 handles ABI copies/aggregate returns. In docs/quality.md replace \"byte-sized memory operations\" with \"byte-multiple integer memory widths\" to match residueType, which correctly accepts i16/i32/etc.",
+  "Keep the pending target-aware class check explicitly distinguished in tests/register_classes.py documentation: its default execution verifies lowering/results and trapping, while --promised-target-bp-ace additionally requests target enforcement. Add leaf-association mutation coverage as described under C6 so swapping alpha and beta cannot pass the default checks."
+ ],
+ "verdict": "revise",
+ "verdict_core": "accept",
+ "path_to_accept": "1. Extend the pre-rewrite shared-state dependency calculation to indirect analysis candidates in Production.cpp. 2. Add and run the same-input SOL-S0-1 native-host regression on LLVM18/23, including both source orders, requiring the existing exit125 promised/pending behavior until real sharing is available; retain the source-native shared-memory baseline. 3. Rerun the affected focused review_regressions cases and update docs/quality.md with the verified coverage. No other S0 fix is required by this review. Core acceptance applies to the changed producer/device-row scope; SOL-S0-1 is in the generated native launch adapter.",
+ "summary": "Reviewed 5a092cd..2ecdd90 as the LLVM producer quality-floor change set, with unchanged executor/scheduler implementations treated as pinned dependencies. Required hand work: (1) derived the six inc8 boundary results, including five-row success, four-row step exhaustion and first-row stack/depth failure; both majors matched. Independently constructed L1/ref envelope bytes from dialect \u00a716.6 and ISA \u00a79.2 and reproduced both published hashes (tmp-sol/inc8-*-envelope.txt). (2) traced a complete recursive lift.call inverse through C5/C4/C3/C2/C1 with restored sp/fp and recursive argument captures, and a nested call/ret/store/pure-copy/uncall history reversal including skipping already-reversed frames (tmp-sol/hand-reproductions.json); inc8 step-check passed 256 cases per major, and generated CC recursion/reversal passed on LLVM18. (3) No tracked SPEC-QUESTIONS entries exist. (4) Ran the required anti-stub/fallback search: the hits are LLVM simplifyInstruction, llvm.assume normalization/allowlist entries, a negative diagnostic assertion, and explicitly classified unsupported fixture contexts; no additional confirmed S0 emerged. (5) Compared the 23 marker signatures, changed class dispatch, scalar aggregate/call/return rows, object signature/layout fields, fault and blocker classifications, test commands and suite staging against dialect \u00a7\u00a73,14,16\u201319,21\u201322 and ISA \u00a7\u00a73\u20137,9,15\u201316. AST-normalized test diffs and assertion inventories expose the semantic changes across the rewritten suites. Focused results: 10/10 global-diagnostic/unresolved-call cases per major; five real-output normalization mutations rejected per major; configured-class cases passed per major; quality baseline and diff whitespace checks passed. Shared frozen snapshot remained clean; all reviewer files and redirected execution artifacts stayed under tmp-sol, and no whole default suite, build or gate was run. Council round1 has no previous council report; previous_status records the named inherited quality/pin reviewer findings supplied in the packet. The confirmed new witness is SOL-S0-1: on both majors, with an actual comparison map and identical input4198720, source-native prints 1 2 host_global=2 while the generated adapter silently prints 1 1 host_global=0. The native adapter therefore requires revision despite core producer-row acceptance."
+}
