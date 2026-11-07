@@ -1,0 +1,67 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "Within the classical R boundary, \u00a7\u00a717.1\u201317.6 and 18.1/18.6 inherit ISA \u00a7\u00a77.1/7.3/7.4/10: ordinary reversible memory, dynamic-instance history, one terminal fault record, retained open activations, and explicit whole-run reversal. The new wording correctly keeps descriptor liveness and stdio buffers in ordinary memory and distinguishes the active tape from the saved journal.",
+   "change": "Add a single worked state-transition table after \u00a718.6: \"After a successful console write followed by fault 2, status is FAILED, values are empty, exactly one fault record has code 2, and the byte and active tape entry remain; after eligible reversal, memory/devices/active tape equal entry state while the saved journal still contains that write.\" This would consolidate the currently distributed state rules."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "\u00a7\u00a711.5/17.5/17.6 agree with ISA \u00a7\u00a74.9/5.4 on fault 0 becoming 4, unchanged nonzero uint64 causes, trap being code 4 only, and no caller successor. The literal-only ISA operand is acknowledged explicitly; nonconstant primitive operands require value-preserving dispatch. The focused corpus distinguishes trap from fault 2 and exercises max-u64, but its emitted fault operands are literals.",
+   "change": "Add a producer-lowering witness under \u00a717.6 with a runtime-selected primitive argument in {0,2,18446744073709551615}; state \"The three launches report respectively 4, 2 and 18446744073709551615, each with zero values, one terminal record and no caller successor.\" Check generated literal dispatch rather than replacing constants in hand-written ISA."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "This score concerns preservation of the ungraded coherent contract, not acceptance of the whole quantum draft. \u00a71.7 expressly retains every applicable ungraded obligation; \u00a7\u00a717.6/19.9 distinguish full-width classical causes from the coherent fault register, and \u00a718.6 leaves quantum reversal eligibility with ISA \u00a710. The candidate introduces no new coherent operation, measurement exception or change to prefix reversal.",
+   "change": "No semantic change is required within this grading boundary. Retain the \u00a71.7 sentence \"They remain specified and binding wherever applicable\" and the existing ISA \u00a710 eligibility reference in the published profile."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "\u00a7\u00a79.2\u20139.5 retain resolved budgets and frozen capacities; \u00a717.6 fixes the pre-instruction R charge boundary, includes returns, excludes recursive counting of instrumentation, and separates executor fuel from source budgets. The 0/1/2-step witness has the correct console-prefix outcomes. Cleanup code remains charged ordinary code under \u00a711.2.",
+   "change": "Add a \u00a717.6/\u00a711.2 cleanup-boundary witness stating \"With the step budget exhausted immediately before the first flush effect, fault 1 leaves console and active tape unchanged; exhaustion after an emitted write preserves that write and performs no further cleanup.\" Publish the counted materialised instructions so these boundaries can be checked independently."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "\u00a7\u00a71.7/19.9/23 establish a distinct full identity 0.3-r1, ISA 0.9, map 0.3, normaliser 0.2.8, unchanged marker/descriptor ABIs, exact plugin/options/flag checks, and build-record binding through producer.version. Re-materialisation and dependent hash recomputation are required. \u00a718.6 adopts the saved-journal tool contract without extending the ISA envelope. \u00a7\u00a717.1/19.1/23 retain selected device closures and exclude host-only code from their inventories.",
+   "change": "Extend corpus/legality/r-contract/identity.json and its consumer test with a valid profile bundle plus mismatched dialect_version, replay_profile and build-record digest cases. State \"Each mismatched bundle is rejected before execution; a valid ISA 0.9 object alone does not establish 0.3-r1 bundle admission.\" The normative obligation already exists in \u00a719.9."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "The four focused R-contract groups passed independently in this review using the packet-pinned ISA executable and SHA-256, with temporary output redirected to the permitted tmp-codex directory. The corpus checks literal fault outcomes, version-dependent identity rejection, native formatting/descriptor errors, console atomicity, and saved-journal corruption/cancellation. The packet accurately disclaims plugin-generated musl execution, both-executor completion, and direct inspection of rollback after a replay mismatch. No proof or full-rung claim is inferred from these finite tests.",
+   "change": "Add an executor-level replay witness for clock.read or entropy.read that deliberately mismatches transferred bytes and observes unchanged destination memory, device position/counter, logical history and replay cursor at the rejected step. State \"After repairing the supplied entry, retry commits exactly once.\" Keep this a conformance test of the existing \u00a718.6 obligation, not a new public undo-frame format."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The profile preserves north-star rung 3: linked musl vfprintf, integer width/precision formatting, normal-return output without a newline, exact reversal and deterministic replay on both executors. \u00a71.7 explicitly says the workload is an evidence target rather than a restriction on legal programs. The mixed-fat-object standing check is satisfied by \u00a7\u00a717.1/19.1/19.9/23: selected root/closure and certificate/context association are retained, while the native host entry, argv/envp and host-only libc remain outside device inventories. The existing general mixed pointer/container launch obligations are named rather than silently replaced.",
+   "change": "No scope repair is required. Preserve the publication wording \"Contract acceptance does not establish completion of rung 3 on either executor\" alongside the \u00a71.7 workload and the packet evidence limits."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "The packet, rationale and normative overrides provide usable implementation boundaries and explicitly distinguish source faults, admission failures and replay tool errors. Console cleanup is emitted runtime code, not an executor convenience. Some inherited commentary still describes now-available ISA support as requested or blocked, which makes navigation less clear even though the normative 0.9 rules settle it.",
+   "change": "Update \u00a71.5 to describe run-cc/reverse/run-program as available in the pinned reference tool and remove \"subject to BLK-5 on ISA 0.9\" from the n-rstep-return commentary (\u00a712.2). Replace that parenthesis with \"realised by ISA 0.9 K5/K6\"; do not change its expected budget outcomes."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "S1 \u2014 \u00a718.6 provenance: add \"saved-tape-v1 is the Saved-tape profile v1 interface published in bennett-isa-spec c1d13200acb08af4922535f5a15a1ab872b78b41, reference-interpreter/README.md; this section fixes the adopted contract independently of subsequent tool releases.\" The rationale already supplies this pin; moving it beside the normative adoption makes the reference self-contained. Also spell the referenced prefix option as reverse --steps N.",
+  "S1 \u2014 \u00a711.2 wording and adverse cleanup vector: qualify the unconditional-looking flush sentence as \"Normal-return cleanup attempts the ordinary musl flush path, including bytes lacking a newline; successful writes emit exactly those bytes, and closed-descriptor/error returns retain the preceding EBADF and no-effect rules.\" Add a fully buffered stdout case that buffers x, closes fd 1, then returns normally: cleanup must not invent console output through the closed descriptor. The existing descriptor rule supplies the intended reading; this is a clarification and an additional boundary test, not a proposal to waive cleanup.",
+  "S1 \u2014 corpus/legality/r-contract/faults.json: add implicit-cause fixtures, beyond explicit fault literals, for division by zero, signed-overflow division, exhausted allocation, exhausted entropy and an invalid memory effect after a successful write. State \"The resulting codes are respectively 5, 6, 2, 10 and 7; each preserves the successful prefix and adds no partial failing-step effect.\" This would test cause generation separately from terminal-record transport.",
+  "S1 \u2014 corpus/legality/r-contract/tape.json: expand the strict-reader matrix with unknown/missing keys, odd or nonhex bytes, negative/fractional/exponent integers, small integers incorrectly encoded as strings, unsafe JSON numeric integers, and values above u128. Add a positive uppercase-hex read and canonical lowercase output vector. State \"Invalid encodings are tool errors with no success JSON or tape-output write; uppercase hex changes no transferred bytes.\" The current duplicate-key and semantic-corruption cases are useful but do not enumerate this already-specified schema.",
+  "S1 \u2014 readiness evidence: keep a separately identity-bound rung-3 integration row stating \"A producer-generated musl vfprintf closure must emit xy -7 9 2a Z 00012 abc (22 bytes, no newline), return successfully, reverse to entry state and replay identically on both executors with LLVM 18 and 23.\" Record the actual runtime/producer/object identities and compare against the native build. The existing native libc oracle and hand-written ISA fixtures must retain their present narrower labels.",
+  "Ruling 1: yes, the named full compatibility identity 0.3-r1 is publishable for the exact \u00a71.7 classical R boundary; this is neither ratification of bare 0.3 nor permission to weaken an ungraded capability. Ruling 2: yes, the effective fault table and terminal-prefix/reversal rules agree with ISA \u00a7\u00a74.9/5.4/10. Ruling 3: yes, the plugin/options/module-flag checks and mandatory hashed build record distinguish this profile from 0.2.14/ISA 0.8 while map stays 0.3; no new ISA field is needed. Ruling 4: yes, the close clarification is retained and normal main return uses emitted musl cleanup exactly once, including buffered no-newline output, subject to ordinary descriptor errors. Ruling 5: adopt saved-tape-v1 as the mandatory tool contract for this profile: candidate-before-commit validation, retained cancelled-effect journal, separate active tape, and explicit replay/tool errors are all stated correctly."
+ ],
+ "verdict": "accept",
+ "verdict_core": "accept",
+ "path_to_accept": "No blocking edit is required for publication of the classical R-contract profile. The five requested rulings are affirmative as detailed in suggestions. This acceptance is confined to \u00a71.7 and does not certify the ungraded full draft or completed musl execution on both executors. To raise C6 from 4 to 5, first add the directly observed replay-mismatch rollback witness, then the producer-generated dynamic-fault and normal-return cleanup vectors with recorded identities and both-executor results. Those improve conformance evidence; they are not missing semantic obligations or conditions for this contract verdict.",
+ "summary": "Accept / core accept: no confirmed S0 blocker or candidate regression. The 0.3-r1 identity, exact typed R terminal faults, emitted console lifecycle and saved-tape-v1 replay contract are mutually consistent with the cited ISA 0.9 rules and preserve the mixed fat object. Review execution: focused r-contract family 4/4 passed against the immutable packet-pinned reference binary; the full tooling suite and production musl/both-executor integration were not rerun. Round 1 has no previous-round blocking IDs to disposition."
+}
