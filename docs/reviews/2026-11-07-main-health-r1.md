@@ -23,10 +23,14 @@ P2+ nits: **bennett-zpf** — remove orchestration rule/shift identifiers from s
 (`tools/main_health.py:18,56,83`); existing **bennett-t9r** tracks unsupported ladder revision selectors, which correctly
 produce ERROR rather than a false PASS.
 
-Real acceptance remains pending: the existing shared status records the earlier scheduler ERROR (exit 3, old
-isolation adapter); the corrected bounded retry's log still reports a busy heavy scope. Other rows remain UNKNOWN.
-Neither a scheduler PASS nor a completed ladder run is claimed. The queued run and unfiltered acceptance belong
-to the orchestrator.
+Bounded acceptance completed during review: shared status, child exit record and the isolated pinned-gate JSON
+independently agree on scheduler **PASS**, SHA `3fc4d7bdc399a5c6e3df4cd51ce01c4a040eb2fc`, exit 0,
+2026-11-07T17:36:50Z. All four configured checks exited 0 (including slow exhaustive simulations).
+Evidence: main checkout `.tmp/main-health/logs/bennett-sched-1794072409242209999.log` and its `.exit`;
+gate record under `.tmp/main-health/bennett-sched/<sha>/bennett-sched/.tmp/gate/records/<sha>.json`.
+The concurrent acceptance-only commit `65b6edce4c9a0756324f6643052012dbdd1fa05b` changes the worklog only;
+that diff was checked and the reviewed tool/tests/docs remain unchanged. Other repos and both ladders are UNKNOWN;
+no full unfiltered or ladder success is claimed. The unfiltered acceptance remains the orchestrator's.
 
 Coverage: read closely all 407 tool lines, all 308 test lines, docs and worklog diff; checked every anti-slop rule,
 revision/exit propagation, state/history, merge attribution and lock/resource behavior. Read the pinned gate's
