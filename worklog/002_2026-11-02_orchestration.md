@@ -1,5 +1,14 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-07 - local post-merge main health runner
+- Added the local runner, detached fetched-main gate caches, persistent status/history and merge attribution.
+  Existing repo stubs retain their pinned tool/sibling selection; no push hook or remote automation is added.
+- Heavy checks mirror qgate scope/load/memory waits. R40: hang guards produce TIMEOUT/UNKNOWN, not red.
+  Tests use local Git remotes and mocked lock probes/clock, with no elapsed-time assertions.
+- Found a contract gap: rungs 1/2 accept plugin/vm revisions but cannot select runtimes/driver/ISA revisions;
+  recorded bennett-t9r. The runner fails loud on unsupported selectors rather than claim current-main coverage.
+- Validation and bounded real-run evidence are recorded in the job progress file for orchestrator review.
+
 ## Session log - 2026-11-07 - shift 13 (Opus orchestrator): rung-3 preparation lane; dialect 0.3-r1 council-accepted and pushed
 - Second orchestrator lane beside shift 12 (R33b). Six sol jobs on job/r3-* worktrees + read-only re-auditors. Landed:
   runtimes main d6a4f80 (integer printf fixtures with hand-derived bytes incl. the no-newline return-time flush, native
