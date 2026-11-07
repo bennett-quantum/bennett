@@ -1,0 +1,101 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "certificate.rs::validate_claim now rejects absent/mismatching subject schedules; isa09_certificate (5 tests) and isa09_token_aliases (18 tests) passed, including the unchanged closed 0.8 schema. The new shared-claim witness parses and check_hashes succeeds, so B1 is an applicability defect, not malformed input.",
+   "change": "In tests/isa09_qinplace.rs add the B1 fixture as a positive admission case: two inverse_pairs entries may reference one exhaustive claim, even when the pairs have differently ordered classical parameter names. Preserve this admitted form when repairing applicability."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Identity/linking code is unchanged. Independently assembled the 261-byte ISA 0.9 inc8 envelope and obtained ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e, matching the binary and published vector. All 21 identity tests passed, including FIPS vectors, four published 0.8 hashes, SCCs and layout cases.",
+   "change": "In tests/identity.rs add a literal ISA 0.9 inc8 envelope assertion alongside all_four_published_hashes_and_printed_envelopes; require the independently assembled bytes and ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e, rather than deriving the expected envelope with identity()."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "No row-engine changes. Hand-derived Example 7 g(3;2,1)=2 at B=3 and budget fault (payload 0, code 1) at B=2; fresh CLI outputs were respectively (2,0,3 steps) and (0,1,2 steps). Entry-bound exhaustive pair proofs at B=2/3/9 are exercised by the passing focused tests.",
+   "change": "Extend tests/isa09_qinplace.rs with the B1 two-entry theorem: independently assert h(x; b,a)=x+a mod 4 and hinv(h(0;0,1);0,1)=2, while both compositions are identity for the proved domain a=0,b=1. Use these values to distinguish theorem correctness from applicability."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "No step-machine changes. Traced an inc8 lift.add inverse through inverse pc exchanges, successor XOR, destination/slot exchange and slot uncomputation against \u00a73.6; exhaustive CLI step-check for inc8 at B=3 passed all 256 inputs with complete frame restoration. The changed pair verification retains sequential/literal engine comparison and reversal checks.",
+   "change": "In tests/isa09_qinplace.rs keep the multi-entry applicability regression separate from the existing engine-equivalence checks: establish the theorem over its declared domain with both engines, then independently require rejection of the uncovered invocation. An engine agreement assertion alone must not discharge domain binding."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Classical history code is unchanged. Traced call/ret/uncall in classical.rs and the nested clock fixture: undo ret, restore overwritten bytes/clock/tape, undo call, then skip the marked segment and uncall marker in the enclosing traversal. All four classical tests passed. ISA 0.9 Example 5 main(2) reversed 26 steps with equals_entry=true. B1 breaks the pre-effect prerequisite of region execution, rather than the history traversal itself.",
+   "change": "When adding B1 to tests/isa09_qinplace.rs, assert that rejected execution leaves the complete QuantumState equal to its entry snapshot; add a CC/R caller assertion for FAULT_UB_TRAP before the first region effect, as required by \u00a74.5."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The source qinplace lexical alias repair and both source orientations pass. Library identity checks, zero-trip inventory, disabled predicates and transitive owner checks pass. However B1 proves that inverse_pair_theorem09 returns the first entry\u2019s argument interpretation for a different matched pair: an invalid invocation is Established, and execution changes quantum state before E_QREG_NOT_CLEAN.",
+   "change": "Fix src/claims/pairs09.rs::inverse_pair_theorem09 and src/claims/qinplace09.rs::check_qinplace_site09 to retain the specific matched entry and its domain-to-parameter mapping through exhaustive and linked-library resolution; never use entries[0] as the domain function for every pair."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "84 focused tests passed: 59 across isa09_certificate, isa09_claim_replay, isa09_qinplace and isa09_token_aliases, plus 25 classical/identity tests. New table tests retain reference-relation coverage while declining scheduled Proof. Forwarding keeps the 4096-input literal sweep and a separately gated, capped slow witness. Existing qinplace tests use one pair per claim and miss B1. No full-suite or slow-witness rerun is claimed.",
+   "change": "Port tmp-codex/probe.rs into tests/isa09_qinplace.rs with direct and linked-library variants, both pair orientations, both entry orders, and both covered/uncovered bindings. Require a=0,b=1 to establish and execute cleanly; a=1,b=0 must reject before effects. Reordering entries must not change either result."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "CertificateReport preserves unresolved root obligations independently of claim/record collections, and scheduled replay returns Unverified without coverage. The prior empty-record, uniform and missing-library regressions pass. B1 nevertheless produces a false Established outcome. SPEC-QUESTIONS.md explicitly describes ISA 0.8; entries 21 and 26 need clearer pointers to the implemented 0.9 rules.",
+   "change": "After repairing B1, update docs/quality.md\u2019s certificate-remediation evidence to include multi-entry argument binding and its pre-effect check. Add version-qualified notes beside SPEC-QUESTIONS.md entries 21 and 26 pointing to the 0.9 K13/K4/K92 paths, without rewriting the historical 0.8 readings."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "CODEX-R1-B1",
+   "section": "ISA 0.9 \u00a7\u00a74.5, 12.1\u201312.3 K4/K92; reference-interpreter/src/claims/pairs09.rs:221 inverse_pair_theorem09; reference-interpreter/src/claims/qinplace09.rs:276\u2013295 check_qinplace_site09",
+   "scope": "core",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "A qinplace entry covers only arguments in the domain proved for its resolved pair; uncovered invocations must reject before any effect. The checker must apply this test at every reached site.",
+     "by": "clause:ISA 0.9 \u00a74.5 qinplace row: \"every other args value lies in its claim\u2019s args domain\" and \"Before any effect\"; \u00a712.3 Qinplace checker coverage (K92): \"rejecting any uncovered site\"."
+    },
+    {
+     "n": "2",
+     "claim": "The witness has two entries sharing exhaustive claim 0, both at [3,0,0,0]. Entry 0 is identity g/ginv with parameters (a:i2,b:i2). Entry 1 is h/hinv with parameters (b:i2,a:i2), both computing x+a mod 4. Claim 0 covers all x,y and exactly a=0,b=1; consequently both entry theorems are true. The owner calls qinplace @h @hinv tk x (y) () (b,a).",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-codex/probe.rs constructs this source, rehashes it, parses the certificate and checks its hashes; /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-codex/multi-entry-uncovered.bisa is the generated uncovered invocation. \u00a712.1 exhaustive inverse_pair relation evaluates each entry with its own g argument domain."
+    },
+    {
+     "n": "3",
+     "claim": "inverse_pair_theorem09 returns pair(entries[0]).g for every entry sharing the claim. check_qinplace_site09 therefore converts domain a=0,b=1 using g\u2019s order to ranges slot0=0,slot1=1, then compares them against h\u2019s actual (b,a) positions. It accepts a=1,b=0 and rejects a=0,b=1.",
+     "by": "witness:reference-interpreter/src/claims/pairs09.rs:217\u2013221 and reference-interpreter/src/claims/qinplace09.rs:276\u2013295; timeout 1200 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-codex/probe"
+    },
+    {
+     "n": "4",
+     "claim": "The probe prints Proof plus Established for a=1,b=0. Execution returns \u00a74.3 E_QREG_NOT_CLEAN with state_unchanged=false. By hand, from x=0 each of h and hinv adds 1: hinv(h(0))=2, so the qinplace temporary is not cleaned. The genuinely covered tuple a=0,b=1 instead produces no covering inverse-pair entry.",
+     "by": "witness:timeout 1200 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-codex/probe; the probe asserts both certificate outcomes and prints the execution error/state comparison. Modular arithmetic: (0+1+1) mod 4 = 2, whereas a=0 makes both maps identity."
+    },
+    {
+     "n": "5",
+     "claim": "This is an S0 domain-binding regression: a valid standalone theorem is applied to an unproved noninverse invocation, falsely reported Established, and allowed to mutate state before failure; a valid covered invocation is also rejected.",
+     "by": "step:1; step:2; step:3; step:4"
+    }
+   ],
+   "problem": "S0. The new theorem resolver collapses a claim with multiple entry bindings to the first entry\u2019s Function. Domain names are then converted to the wrong positional slots for another pair. This is not an invalid certificate: every exhaustive entry theorem is true on its declared domain, and the schema permits multiple entries to reference the same claim. The saved probe reproduces false acceptance, failure after effects, and false rejection. The earlier direct path used args_domain(self, p.g, claim.domain), preserving the selected entry\u2019s mapping.",
+   "fix": "In reference-interpreter/src/claims/pairs09.rs::inverse_pair_theorem09, resolve the requested entry/pair and retain the matching terminal exhaustive donor entry and its argument-slot correspondence through every library link, rather than returning entries[0].g. In src/claims/qinplace09.rs::check_qinplace_site09, apply that matched theorem domain to the actual pair\u2019s parameter positions. Keep validation of every entry and do not ban shared claim indices. \u00a74.5 determines the result: \"every other args value lies in its claim\u2019s args domain\"; \u00a712.3 K92 requires \"rejecting any uncovered site\". Add the saved probe as a regression in tests/isa09_qinplace.rs: g/ginv identity with (a,b), h/hinv both x+a mod4 with (b,a), claim domain a=0,b=1 and full x,y, entries both budget [3,0,0,0], owner actuals (b,a), tk=[3,0,0,0]. For binding a=1,b=0, verify_certificate and verify_claim must reject applicability and execution must reject before any quantum-state change; a CC/R wrapper must trap/fault 4 before effects. For a=0,b=1, report Established and execute/adjoint with clean scratch and unchanged x,y. Repeat with entry order swapped and with a linked-library donor so both resolution routes preserve the correct domain."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [
+  "CODEX-R1-B1: be109bd check_qinplace_site09 interpreted the selected entry\u2019s domain with args_domain(self, p.g, ...). The change replaces that with inverse_pair_theorem09\u2019s first-entry Function, reversing covered/uncovered outcomes when one exhaustive claim backs pairs with different parameter orders. Confirmed by source comparison and the current-head executable witness."
+ ],
+ "suggestions": [
+  "In reference-interpreter/tests/isa09_qinplace.rs::source_qinplace_adjoints_preserve_instruction_allocation_and_release_order add a source whose input wire is named qinplace_x_0 (and another with a trailing underscore). Require the same arithmetic and full reversal in both orientations, exercising the new collision-avoidance loop rather than only the noncolliding Example 7 spelling.",
+  "In reference-interpreter/SPEC-QUESTIONS.md entries 21 and 26 add explicit ISA 0.9 cross-references to K13 and K4/K92. State that 0.9 replay binds concrete invocations, scheduled subjects remain unverified until realised execution, and qinplace uses owner-local entry proofs plus invocation-specific applicability. Retain the existing historical ISA 0.8 text as such."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "1. Repair CODEX-R1-B1 by preserving the matched entry\u2019s argument-domain interpretation through direct and linked-library theorem resolution. 2. Add positive and negative two-entry regressions, entry-order invariance, both orientations, and pre-effect state-equality assertions; the existing saved probe must stop accepting a=1,b=0 and start accepting a=0,b=1. 3. Rerun the focused qinplace/certificate/replay/token-alias suites and appropriate regression checks. The documented deferred runtime/coverage work and the suggestions are not blockers for this change set.",
+ "summary": "Reviewed the quality-floor change set at frozen e9ab12a (code head 8056ecf); no tracked files changed or commits made. Verdict is revise for one reproduced S0 core regression, CODEX-R1-B1. Prior local-review scenarios for missing inventory, empty root reports, wrong-pair library reuse and valid library execution pass their focused tests; this is council round 1, so previous_status is empty. Method 1: independently derived Example 7 g(3;2,1)=2 in exactly 3 rows; B=2 yields payload 0, code 1, steps 2. Fresh CLI results agree. Independently assembled inc8\u2019s 261-byte ISA 0.9 semantic envelope, including its final LF and no layout/dependency lines; hashlib and the CLI agree on ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e. Derived the B1 two-composition counterexample separately from the checker. Method 2: traced inc8 lift.add inversion through pc restoration, successor cancellation, reverse slot exchange and XOR uncomputation against \u00a73.6; CLI step-check at B=3 passes all 256 inputs and restores frames. Traced the nested clock call/ret/uncall segment against \u00a77.4, including marked-frame and marker skipping; four classical tests pass. ISA 0.9 Example 5 main(2) reverses 26 steps to the exact entry state. Method 3: read all 33 historical SPEC-QUESTIONS entries and checked the change-relevant certificate/qinplace readings against 0.9 K13/K4/K92; this scoped review does not re-certify all unchanged 0.8 subsystems. Method 4: scanned the production tree for the rubric\u2019s fallback/panic markers (329 matching lines in 34 files, including inline tests), and inspected the changed-file hits: test assertions, validated JSON shapes, certificate-presence preconditions and internally constructed source nodes; no new reachable panic was established. Unchanged hits were not exhaustively re-proved. Method 5: checked the changed schema/claim dispatch, pair entry fields, invocation token partitions, report consumers and source-qinplace adapter against the corresponding spec lists; row/opcode/fault/history/CLI dispatch is unchanged. 84 focused tests passed (59 certificate/replay/qinplace/token-alias plus 25 classical/identity). No full crate/conformance sweep or wide slow-forwarding run is claimed. Probe source and fixture are retained under /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-codex."
+}

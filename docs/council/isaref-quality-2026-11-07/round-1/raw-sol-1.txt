@@ -1,0 +1,132 @@
+exit 0 in 27s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "The changed certificate admission checks reject absent/mismatching schedule hashes; isa09_certificate and isa09_token_aliases passed. The scheduled replay fast path nevertheless bypasses the subject/owner closure consistency check (SOL-R1-B02). The ISA grammar and opcode admission sets are unchanged by this range.",
+      "change": "In reference-interpreter/src/certificate.rs::validate_claim, validate that a K13 subject resolves to the enclosing region closure before accepting either a scheduled or reference-only claim; add the conflicting-subject regression described in SOL-R1-B02."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "No identity/linking algorithm or published object bytes changed. Independently assembled the 261-byte ISA 0.9 inc8 envelope, including its final LF; SHA-256 is ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e. CLI check reproduced the published inc8, zero, sum and sum_db interface hashes. Certificate-only mutations in the replay tests preserve object_hash.",
+      "change": "Extend reference-interpreter/tests/identity.rs with an explicit envelope-byte assertion for Example 7, including the two qinplace symbol references, and assert that adding its certificate changes no source/interface/closure/object identity."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "The reference row interpreter is unchanged. Hand-derived Example 7 g(3;2,1)=2 with exactly three rows; B=2 yields payload 0/code 1/steps 2. Both results matched the prebuilt CLI. udiv(9,0) faults with code 5 after one row. pairs09::verify_inverse_pair_claim09 checks both compositions, fault freedom, the independent machine and workspace reversal at the entry tuple.",
+      "change": "In reference-interpreter/tests/isa09_qinplace.rs add a parameterised pair whose oracle forwards a token argument to a nested call; independently specify the outcomes for exact versus changed arg_tokens tuples and for primary budgets at and above the minimum."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "No forward/inverse step algorithm changed. Traced a complete lift.call inverse against C5^-1 through C1^-1 and the generic pc/fault/frame sequence; the 16-cell sum_db call restores its pre-step counters, locations, stack and frame. The focused recursive call/ret pre-step snapshot test passed. The changed pair checker preserves independent-engine comparison and B inverse steps.",
+      "change": "Add a compact table-driven test in reference-interpreter/tests/isa09_qinplace.rs comparing g and ginv to OracleVectorMachine at every budget cut 0..9, asserting literal payload/code/step expectations and complete snapshot restoration after each prefix."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Classical history, effects, token lifetime and uncall implementations are unchanged. Traced nested -> f -> g, where g clock.read is cancelled by the inner uncall and skipped during the outer uncall: clock and effect tape return to zero exactly once. classical::nested_uncall_and_effects_are_reversed_exactly_once passed.",
+      "change": "Add a CC/R wrapper regression in reference-interpreter/tests/isa09_qinplace.rs that mints the token, calls the library-certified action, performs segment uncall, and then whole-run reversal; assert restored register contents, active history and token validity."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The source adapter now gives the private x formal a legal lexical alias while preserving its constructor identity. Published Example 7 source remains byte-identical. New tests independently check allocation/release order, x+y+a modulo 4, preserved y, both orientations, B=3/9 and complete reversal. Exact pair and token-context checks prevent the earlier g/g proof transfer.",
+      "change": "Extend source_qinplace_adjoints_preserve_instruction_allocation_and_release_order in reference-interpreter/tests/isa09_qinplace.rs with a user wire named qinplace_x_0 and an inherited predicate, checking that alias collision avoidance preserves both controlled orientations and all interface values."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Ran 59 focused tests across isa09_certificate, isa09_claim_replay, isa09_qinplace and isa09_token_aliases, plus the recursive machine and nested-history reversal tests: 61 passed, no failures. The scheduled-table expectation change correctly removes a false realised proof while retaining a separate reference-only proof. The slow materialisation test has a named ignore, a capped gate command and recorded measurements; no new exhaustive semantic obligation was dropped. Two independent probes expose gaps outside the new fixtures.",
+      "change": "Add permanent regressions for both SOL-R1-B01 and SOL-R1-B02, including the no-local-qinplace import variant and valid scheduled-subject controls; retain the current arithmetic and reversal assertions."
+    },
+    {
+      "id": "C8",
+      "score": 3,
+      "evidence": "CertificateReport correctly keeps K92 obligations independently of claims and region records; unresolved uniform/scheduled contexts override checked contexts. However, a pinned missing body panics or suppresses the obligation, and a conflicting scheduled subject becomes Unverified instead of rejection. SPEC-QUESTIONS remains explicitly 0.8-oriented and several proposed 0.9 readings have since been superseded.",
+      "change": "Fix the checker outcomes in SOL-R1-B01/B02. Then annotate SPEC-QUESTIONS.md entries 21, 26, 31 and 33 with the applicable 0.9 K13/K4/K47/K91/K92 rules and retain their old readings only under an explicit ISA 0.8 heading."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-R1-B01",
+      "section": "ISA 0.9 §12.3 K92, §9.3; reference-interpreter/src/claims/qinplace09.rs::check_qinplace_bindings09 and qinplace_coverage09 (notably lines 76–83 and 466–469)",
+      "scope": "contract",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "A required linked body that cannot be resolved or checked must leave an explicit unestablished applicability obligation; a checker must not infer absence from an unchecked context.",
+          "by": "clause:ISA 0.9 §12.3 K92: \"If a required invocation, linked body or context cannot be resolved or checked, report that obligation unestablished\"; \"an implementation work limit is not proof of absence or applicability\"."
+        },
+        {
+          "n": "2",
+          "claim": "The admitted witness binds addya at tk=(3,0,0,0), a=1. addya calls imported @missing, whose signature and pinned closure hash are supplied but whose body is not linked. The certificate has an empty regions map; an unused local inner body contains qinplace. Object::parse and check_hashes both succeed. The pin was derived from an actual matching @missing body, not invented.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/import-pinned.bisa; construction: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/import-probe.rs (uses the frozen isa09_qinplace.rs fixture helpers)."
+        },
+        {
+          "n": "3",
+          "claim": "verify_certificate panics at qinplace09.rs:468:48 with \"no entry found for key\" because traversal indexes self.functions[\"missing\"]. Removing the unused local inner source/symbol leaves the same unresolved root tree, but the global any-qinplace shortcut instead returns CertificateReport { claims: [], qinplace_applicability: {} }.",
+          "by": "witness:timeout 60 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/import-probe /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/import-pinned.bisa; the probe catches/asserts the panic and also writes/asserts the empty-report variant /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/import-pinned-no-local.bisa."
+        },
+        {
+          "n": "4",
+          "claim": "Both outcomes violate the required checker contract: the same unresolved imported tree must retain its bound-root obligation independently of unrelated local source sites, and must not panic.",
+          "by": "step:1; step:2; step:3"
+        }
+      ],
+      "problem": "S0: K92 traversal assumes every referenced function body is locally present. Pinned imports allow a defined root closure before linking, so this is a reachable public verify_certificate panic. The early global inventory shortcut also silently loses the unresolved-root obligation when no local qinplace is known.",
+      "fix": "Change reference-interpreter/src/claims/qinplace09.rs::check_qinplace_bindings09/qinplace_coverage09 to use checked body resolution for action/oracle/qinplace callees and preserve unresolved-tree status under the bound root closure. Do not use absence of locally visible qinplace sites as proof that an unresolved imported subtree has none. ISA 0.9 §12.3 K92 says \"If a required invocation, linked body or context cannot be resolved or checked, report that obligation unestablished\". For import-pinned.bisa and its no-local variant, the expected result is a normal CertificateReport with claims=[] and bindings.closure_hash -> Unestablished(reason identifying the missing linked body), never panic or an empty applicability map. Add these two fixtures as tests in tests/isa09_qinplace.rs, with Object::parse/check_hashes positive controls and catch_unwind around verify_certificate; require the same root obligation for both variants. After supplying the matching linked body and valid inner-owner entry, add an Established positive control."
+    },
+    {
+      "id": "SOL-R1-B02",
+      "section": "ISA 0.9 §12.1 CLAIM-REPLAY and §12.3 Invocation binding (K13); reference-interpreter/src/claims/replay09.rs::verify_replay09 (lines 350–365), certificate.rs::validate_claim",
+      "scope": "contract",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "An exhaustive claim names the closure of its subject, and absent or conflicting invocation bindings must reject before replay; an unavailable realised executor does not validate a conflicting closure binding.",
+          "by": "clause:ISA 0.9 §12.1 CLAIM-REPLAY: claims \"MUST name their subject: { closure_hash, variant, inherited_controls, schedule_hash? }\"; §12.3 K13: \"A checker MUST reject absent or conflicting bindings before replay\"."
+        },
+        {
+          "n": "2",
+          "claim": "Starting from accepted-k91-09/pair-distinct.bisa, the witness keeps the region record for pair (closure f15d13a4fe340d1c90a842be295bba8bcde42b2cc59068cdf8b2a945bb276166), its valid table, invocation and matching schedule hash, but sets that claim subject.closure_hash to ab repeated 32 times, a closure absent from the object. Parsing succeeds.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/conflicting-subject.bisa; reproducible constructor: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/binding-probe.rs."
+        },
+        {
+          "n": "3",
+          "claim": "Both verify_claim(pair,0) and verify_certificate return Ok with Unverified(\"scheduled subject needs realised target/schedule execution\"). The newly introduced schedule early return precedes invocation09, which otherwise rejects \"claim subject differs from its region closure\".",
+          "by": "witness:timeout 60 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/binding-probe /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-sol/conflicting-subject.bisa; source: reference-interpreter/src/claims/replay09.rs::verify_replay09 and invocation09."
+        },
+        {
+          "n": "4",
+          "claim": "The scheduled fast path changes a definite conflicting-binding rejection into an unchecked outcome and suppresses an already implemented K13 validity check.",
+          "by": "step:1; step:2; step:3"
+        }
+      ],
+      "problem": "S0: returning Unverified for a scheduled relation now bypasses the existing subject/owner closure check. A malformed claim naming a nonexistent subject is admitted and reported as merely awaiting realised execution, although this binding is already demonstrably invalid.",
+      "fix": "In reference-interpreter/src/certificate.rs::validate_claim and/or claims/replay09.rs::verify_replay09, enforce the subject closure binding to the enclosing record before the scheduled-subject Unverified return. Preserve staged realised execution for valid subjects. The determining sentence is ISA 0.9 §12.3 K13, \"A checker MUST reject absent or conflicting bindings before replay\", together with §12.1's mandatory subject closure. Add tests in tests/isa09_certificate.rs that set subject.closure_hash to \"ab\" repeated 32 times while retaining the correct schedule_hash, for both table and program relations. Object::parse followed by either public verification API must yield Err for the conflicting binding; the same fixtures with the correct owner closure must continue to yield Unverified with no coverage. Add a reference-only conflicting-subject control to keep the prior rejection behaviour."
+    }
+  ],
+  "previous_status": [],
+  "regressions": [
+    "SOL-R1-B02: before this change, the same scheduled table/program claim reached replay09::invocation09 and rejected a subject closure differing from its owner; the new scheduled early return bypasses that rejection.",
+    "SOL-R1-B01: verify_certificate now enters the shared invocation-tree traversal before enumerating claims, exposing unchecked imported-callee indexing even with an empty certificate region map."
+  ],
+  "suggestions": [
+    "Update reference-interpreter/SPEC-QUESTIONS.md entries 21/26/31/33 with explicit version boundaries: keep the historical 0.8 readings, then name the accepted 0.9 K13 replay encoding, K4 parameterised certificates, K47 key-component-array envelopes, and K91/K92 binding/applicability rules. The current proposed-0.9 wording should no longer read as the active 0.9 contract.",
+    "Add a lexical-collision control to tests/isa09_qinplace.rs::source_qinplace_adjoints_preserve_instruction_allocation_and_release_order: name an input qinplace_x_0, use a controlled call and its adjoint, and assert the same independently calculated arithmetic and clean reversal. This directly exercises the new alias-selection loop."
+  ],
+  "verdict": "revise",
+  "verdict_core": "accept",
+  "path_to_accept": "1. Make unresolved imported subtrees produce independent bound-root Unestablished obligations without unchecked indexing or the no-local-site shortcut (SOL-R1-B01). 2. Reject conflicting claim subject closures before the scheduled Unverified fast path (SOL-R1-B02). 3. Run the new negative/positive controls and rerun the 59 focused certificate/replay/qinplace/token-alias tests. No core semantic change or spec amendment is needed for these findings.",
+  "summary": "Reviewed the submitted be109bd..e9ab12a quality change set (code head 8056ecf); embedded changed files match the frozen snapshot, allowing the prompt-added final LF on gate.toml. The earlier missing-owner, below-minimum, g/g library-transfer and valid-library-execution regressions remain covered and pass; this is council round 1, so there is no previous council blocking list. Method 1: independently derived g(3;2,1)=2 at B=3 with 3 rows; at B=2 derived (payload,code,steps)=(0,1,2); derived udiv(9,0)=(0,5,1); all matched CLI execution. Independently assembled inc8's 261-byte LF-terminated envelope and reproduced its published SHA-256; checked all four Example 1/2 interface hashes. Method 2: traced generic pc/frame inversion and lift.call C5^-1,C4^-1,C3^-1,C2^-1,C1^-1 at the 16-cell sum_db call, plus cancellation-aware nested f/g clock segment reversal; the focused complete-pre-step recursive call/ret and nested-history tests passed. Method 3: audited all 33 SPEC-QUESTIONS entries as legacy readings against the relevant 0.9 replacements; stale version guidance is S1. Method 4: scanned the crate for the prescribed stub, panic, unsupported and assumption patterns, separating test scaffolding/comments, explicit staged outcomes and internal invariant checks; no new todo!/unimplemented! path was found, while the import probe demonstrates an unchecked-index panic outside those textual patterns. Method 5: compared affected dispatch and schema inventories with §§3.6–3.7, 4.2/4.8, 5.4, 12 and README CLI commands: row/opcode/fault/frame/CLI sets are unchanged; K92 missing-body resolution and K13 closure validation are the two contract divergences. Validation: 59 focused tests plus 2 reversal tests passed; independent import and conflicting-subject probes reproduced both S0 findings. No full crate/conformance/gate rerun is claimed. Tracked files in the frozen worktree remain unchanged. Core accept applies to this change-set review; unchanged subsystems were contextual checks, not a fresh whole-ISA certification."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/sol.json
