@@ -1,5 +1,26 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-07 - shift 12 (Opus orchestrator): isa-spec 0.9 reference interpreter pushed; R31/R32 cut the review cycle
+- Pushed isa-spec main 9825c42..3b10907 (merge --no-ff job/quality-isaref). Council round 3 (sol + astra; sol joined because the
+  fix reached pairs09.rs) resolved CODEX-R2-B1 but both seats found one new member of the same family: with imported pair bodies
+  unavailable, decidable K91 partition checks are deferred to Unverified instead of rejecting. Re-graded P2 under R32 (the oracle
+  never certifies the malformed pair, no rung named) -> b-isa-spec-qf44; merged. Third round in a row of "check placed after the
+  missing-body deferral": the bead asks for a generated imported-vs-local differential family, not another round.
+- Maintainer R31: astra never codes (review/council only); estimate stops its fix cycle: estimate-revert reverted the two
+  unreviewed recompute checkpoints + four fix rounds (10 revert commits, kept separable measurement support from 5062ee2), gate
+  PASS a66610d, review running; recompute re-lands spec-first (bennett-estimate-e9a). driver v4f -> P2, tokenizer bead
+  bennett-driver-tlg; driver merges after plugin main.
+- Maintainer R32 (velocity): P0/P1 only with a named rung / oracle / gate; 2 rounds then merge-with-P2 or revert; councils only for
+  oracle code and contracts. Plugin and arith council round 2 dropped; bp-trh (prior-object hash drift, unchanged observables)
+  -> P2.
+- plugin: gatefix2 found the duplicate __bennett_rt_ss_push (pruning dropped implicit init while keeping push/pop) and moved every
+  bounded gate driver into scripts/test (82 cmds, ~140 s); gatefix3 traced the remaining receipt failure to deliberate layout
+  commits 6231c2d/6091986 and re-recorded 16 objects through the writer (312 kept, 74 oracle vectors agree): full gate PASS
+  c085c2e. Lesson repeated: the gate, not the suite, found both.
+- quality-vm round 1 done (8bc9d78; 359 tests 53 s; cov 82 %); its gate waits for the heavy queue. arith re-pin to 3b10907 running.
+- Gotchas: council.py --context takes one path per flag (repeat the flag); gatefix children run gate_run in-process (no scope), so
+  new s4/qgate.sh waits on both bennett-heavy scopes and gate_run processes; s4/mkpacket.sh rebuilds council packets.
+
 ## Session log - 2026-11-07 - shift 11 (Opus orchestrator): first three implementation councils, two mains pushed, gates keep finding what suites miss
 - Pushed dialect main e0456ee..b6a6e46 (quality-dialect r2 CLEAR + 0.2.14 spec, fidelity CLEAR) and circuits main ee20847..5d10d65
   (quality-circuits r1 BLOCK drw -> r2 BLOCK n0p -> r3 CLEAR). Both worktrees removed.
