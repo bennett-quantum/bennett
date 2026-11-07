@@ -1,5 +1,26 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-07 - shift 11 (Opus orchestrator): first three implementation councils, two mains pushed, gates keep finding what suites miss
+- Pushed dialect main e0456ee..b6a6e46 (quality-dialect r2 CLEAR + 0.2.14 spec, fidelity CLEAR) and circuits main ee20847..5d10d65
+  (quality-circuits r1 BLOCK drw -> r2 BLOCK n0p -> r3 CLEAR). Both worktrees removed.
+- Councils (sol gpt-6.1-sol + astra gpt-6-astra on codex, Muse muse-wonder-full-1.0), all run as T3 seat children over a frozen
+  detached worktree per round: isaref r1 REVISE (3 S0) -> fix -> r2 split (2 accept; astra CODEX-R2-B1, an early `continue` added by
+  the r1 fix skips the mandatory K92 rejection) -> fix running, r3 = astra fix round. plugin r1 split (indirect-call guard bypass,
+  duplicate labels, declaration abort). arith r1 REVISE (PPC sin tiny-argument low part in every mode; token_aliases rejected by
+  the pinned ISA reader). New task files docs/council/task-impl-plugin.md, task-impl-arith.md (task-impl.md is isa-ref specific).
+- MERGE RULE 2 found 33 unpushed isa-spec main code commits only skimmed by r1: rev-isaspec-main-r1 BLOCK P0 dnjq (a reversed
+  mint's token still ran through public oracle APIs) -> fixed -> r2 CLEAR. Lesson: "reviewed range" is not "reviewed"; read the
+  Coverage line of the review doc before counting commits as covered.
+- Gate before review (MERGE RULE 1) caught nothing on dialect/driver/circuits/estimate, but the plugin push gate failed twice on a
+  head whose scripts/test, two sol reviews and a council were all green: production-CC soft-float records and shadow-stack link
+  cases never ran in the default suite. Fix children now move each failing gate record into scripts/test.
+- Review rounds on heuristic linters (driver hygiene ratchet: inline bodies -> raw strings -> stringify!) and on one scheduling
+  rule (estimate K81/§6.2: adjacency -> disjointness -> restored inputs -> reads of restored inputs) did not converge within the
+  round limit; both stopped for the advisor (R30 gave estimate a fourth round on astra for model diversity; it fixed tdf, r4 found w2b).
+- Gotchas: a council seat's JSON failed collect on a trailing period in `step:3.`; the orchestrator removed the one character and
+  kept the original beside it. Driver tests need TMPDIR set (KeyError by design). A turn that ends waiting on a bare systemd
+  scope is never woken: launch gates from a background Bash.
+
 ## Session log - 2026-11-06 - shift 10 (Opus orchestrator): round-1 reviews, two mains pushed, gates found what reviews missed
 - Pushed circuits main 9ef99d8..ee20847 (pin discipline + c9l fix, circuits-main r2 CLEAR) and targets main
   dd03671..a8f5089 (quality-targets r3 CLEAR + gate-layout fix ab4cd24 reviewed CLEAR). Both worktrees removed.
