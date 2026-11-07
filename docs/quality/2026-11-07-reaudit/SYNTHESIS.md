@@ -114,3 +114,9 @@ The orchestrator files the “to file” entries; this synthesis creates none. S
 - **To file: runtimes residual test scratch isolation** — seven named legacy scripts still use shared fixed scratch roots instead of caller TMPDIR; give this concrete residual inventory an owner and isolated-run witness, deduplicating any existing TMPDIR bead ([bennett-runtimes.md:179](/home/tobias/Projects/bennett-workspace/bennett/docs/quality/2026-11-07-reaudit/bennett-runtimes.md:179)).
 
 No additional dialect bead is inferred from its already disclosed independent-label backlog. Sonnet's u128-to-u64 step-count cast is an unverified reachability observation, not a demonstrated truncation defect (SPOTCHECK.md:120).
+
+## Addendum (2026-11-07T11:59:54Z, orchestrator): plugin re-audited after its push
+
+plugin re-audited by a sol auditor at pushed main 6ff4b01 ([bennett-plugin.md](bennett-plugin.md)): code C- -> B-, tests B- -> B,
+build C -> C; measured line coverage 60.83 % (baseline: none). Not covered by this round's Sonnet spot-check (taken before the
+push); apply the calibration above (sol ~0.3 step generous) when comparing. Round-3 verdict for plugin is not inferred here.
