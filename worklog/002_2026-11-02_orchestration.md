@@ -18,6 +18,11 @@
   commits 6231c2d/6091986 and re-recorded 16 objects through the writer (312 kept, 74 oracle vectors agree): full gate PASS
   c085c2e. Lesson repeated: the gate, not the suite, found both.
 - quality-vm round 1 done (8bc9d78; 359 tests 53 s; cov 82 %); its gate waits for the heavy queue. arith re-pin to 3b10907 running.
+- After handoff: estimate main pushed 54f2c1c..f0add8a (revert candidate, rev CLEAR 47aead7); plugin main pushed 0ac6180..6ff4b01
+  after the push-hook gate failed twice on load-sensitive 120 s per-command limits in mixed-native device-fp (gatefix4 a4f7708:
+  release checker, 480 s from a measured 204.5 s worst case; bp-1zr); driver main pushed 54d32fa..2bd06fe. arith re-pin to
+  3b10907 admits token_aliases but 37 adjoint_table claims stay Unverified and 3 receipts time out (JOB-BLOCKED, successor decides).
+  Lesson: with two orchestrator lanes the push hook's wall-clock limits are the weak point; s4/qpush.sh waits for load < 8.
 - Gotchas: council.py --context takes one path per flag (repeat the flag); gatefix children run gate_run in-process (no scope), so
   new s4/qgate.sh waits on both bennett-heavy scopes and gate_run processes; s4/mkpacket.sh rebuilds council packets.
 
