@@ -1,0 +1,108 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "Producer applicability: ISA \u00a7\u00a71.2, 9.1, 15 suite F. Direct checks of all 129 published circuit objects with the gate.toml-pinned ecaaac0 interpreter fail on invocation.token_aliases. The base one-bit Cuccaro publication passes the same reader. SOL-R1-S0-1 records this release-admission regression. The offline request parser and fixed carrier signatures are separately explicit; this repository does not implement the ISA parser.",
+   "change": "In gate.toml and tests/circuits/test_objects.py, make raw publication admission an unconditional check using a reviewed interpreter revision supporting the emitted K91/K4 schema; every manifest entry must check successfully without interpreter_view. Add the one-bit Cuccaro raw-object regression specified in SOL-R1-S0-1."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Reconstructed the LF-terminated ISA \u00a716.3 inc8 envelope and obtained 8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93. Both LLVM publications have 1,141 exports with unchanged names/signatures, matching bitcode SHA-256, SHA256SUMS, source SHA-256 and Git blob hashes. All 129 circuit file digests match their manifest, and their pre-certificate semantic bytes are unchanged from base. A scratch LLVM18 rebuild is byte-identical to its publication. Raw loading remains blocked as C1 records.",
+   "change": "Extend tests/circuits/test_objects.py::Published with an independent raw-object identity/admission test for the smallest ordinary and modular publications, then apply it to the manifest. Require status=ok and the existing interface/object hashes on the actual published bytes under the release pin."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "Applied to arithmetic semantics, since this producer does not own the \u00a714.1 interpreter. Hand-derived binary16 midpoint, half-minimum subnormal, directed overflow, invalid sqrt and fused binary64 cancellation cases pass with exact flags on freshly linked published bitcode. The 11,970-case quick IEEE directed sweep passes. trans_domain/trans_core/trans_pack retain the exact-case dispatch and operation-local flags; no new arithmetic divergence was confirmed in the reviewed changes.",
+   "change": "In tests/test_directed.py::run, add independent expected flag assertions to the published _rm calls, starting with sin_f16_rm(+0,R)=+0/flags 0, tanh_f16_rm(0x54e0,1)=0x3bff/flags 16, and exp_f64_rm(-100000,2)=minimum positive subnormal/flags 24. Preserve unrelated sticky flag bits."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Traced \u00a73.7 C5-to-C1 and R5-to-R1 inverses for the attached lifted inc8 wrapper, including captured argument 7, seven stack cells, return index, destination delivery and restored counters. The pinned executor's exhaustive step-check passes all 256 inputs for both the memoryless and lproc inc8 examples. Changed circuit bodies are unchanged except the normalized modular constant builder; 48 emitted-oracle cases for k=31,-2,11*2^80+9 at width 4/modulus 11 pass with budget 9.",
+   "change": "In tests/circuits/test_adders.py::Differential.test_mulmod_unbounded_constants, exercise both emitted reference oracles and their composition for each existing k and x. Require ginv(g(x))=x, nine-row success, and code 1 with zero payload at budget 8; keep these checks separate from certificate admission."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "CC/R execution is a dependency, not an arith deliverable. For rubric method 2, hand-traced the pinned classical.bisa nested fixture: g's clock.read is undone by its inner uncall; the outer uncall f skips the already-reversed g segment and inner marker. run-cc returns 0 with clock 0 and empty effect tape; reverse reports equals_entry=true and memory_equals_entry=true. No CC/R implementation is changed by this diff.",
+   "change": "In docs/circuits-port.md under Test strategy, state the producer-only applicability of CC/R obligations and record a pinned consumer round-trip fixture and expected outcomes (clock 0, empty tape, equals_entry=true), so arithmetic verification is distinguishable from ownership of the VM implementation."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Applicable ISA \u00a7\u00a74.4, 5.3, 5.6 and 6 obligations are permutation gates, clean scratch and restored borrowed/input wires. The independent text simulator checks these in the focused SmallCircuits adder, multiplier and three QROM construction tests; the single-word QROM CLI regression also passes. Existing tests exercise inherited controls. The parity selector is shared by exact pair rounding and sqrt, and all 12 zero-low midpoint/value/flag checks pass. There is no new gate-body or borrow-frame construction change in the published objects.",
+   "change": "In tests/circuits/test_objects.py, include one small dirty SELECT-SWAP publication in the unconditional raw certificate check and independently replay every borrowed/input configuration and both inherited-control values. Require borrowed and input wires unchanged and all allocated scratch clean, as ISA \u00a7\u00a75.3/5.6 specify."
+  },
+  {
+   "id": "C7",
+   "score": 3,
+   "evidence": "Adaptive directed MPFR brackets replace the former numeric tolerances and fail on inconclusive intervals. Phase invariants and 112 LLVM23 APFloat named-format overflow comparisons pass using seat-local generated includes. scripts/test now always regenerates support and relinks the current publication, addressing the prior stale-bridge finding. However, the default/gate circuit paths check interpreter_view output; the opt-in raw test covers only six modular objects, while all 129 raw publications currently fail admission. No full shared-worktree suite was run.",
+   "change": "In tests/circuits/test_objects.py and tests/test_default.py::suite, add an unconditional raw ordinary-object admission regression, and in tests/circuits/run require raw checks for every published object under the supported reader. Keep the diagnostic view as supplementary evidence; the current Cuccaro fixture must fail the new regression until SOL-R1-S0-1 is fixed."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "softfloat/README.md and docs/quality.md disclose approximation limits, sparse-PPC failures and the diagnostic compatibility view; they do not establish full release conformance. No repository-owned SPEC-QUESTIONS.md exists. The supplied packet attaches dialect 0.2.10/ISA 0.8, while SPEC_VERSIONS.toml and manifests now select dialect 0.2.13 and circuit ISA 0.9 plus K91. The supplied 0.2.10 \u00a713.4 expressly waives correct rounding for ordinary libm; I have not converted the newer accuracy contract or its disclosed pending work into an unsupported additional S0 finding.",
+   "change": "Refresh docs/council/arith-quality-2026-11-07/round-1/prompt.md's contract attachments to the actual frozen pins for the next round, explicitly retaining the softfloat ISA 0.8/circuit ISA 0.9 distinction. Update docs/quality.md's raw-admission evidence to state that K91 currently rejects all 129 publications, including ordinary adders, and link the raw Cuccaro witness."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R1-S0-1",
+   "section": "ISA \u00a7\u00a71.2, 9.1, 15 suite F; adders/circuits.py::_invocation, Object._region, interpreter_view; gate.toml; tests/circuits/test_objects.py::Published",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "A library producer must deliver well-formed objects and satisfy suite F's schema obligations; the published bytes must be admitted under the contract and reader selected for their release. Removing certificate fields before validation does not discharge raw-object admission.",
+     "by": "clause:ISA \u00a71.2 Producer: 'well-formed objects (\u00a79, \u00a716) and regions (\u00a75, \u00a76); suite F'; \u00a79.1: 'unknown sections or fields are errors'; \u00a715 F includes 'schemas; envelope and hashes; linking'."
+    },
+    {
+     "n": "2",
+     "claim": "The frozen head adds token_aliases to every published circuit invocation, but its gate.toml reader rejects the unmodified one-bit Cuccaro object with exit 1 and 'unknown field token_aliases'. A manifest-wide direct check produced the same rejection for all 129 objects, including 123 ordinary non-qinplace publications.",
+     "by": "witness:from /home/tobias/Projects/bennett-workspace/bennett-arith-council-015b424 run env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-sol timeout 1200 .tmp/gate/cache/bennett-isa-spec@ecaaac060c44/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref check adders/objects/arith.add.cuccaro.w1.bisa. Manifest-wide receipt: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-sol/raw-all.json."
+    },
+    {
+     "n": "3",
+     "claim": "This broadens the failure beyond the inherited modular K4 obligation: the base Cuccaro file is admitted by the same reader, and its executable body, interface hash and object hash equal head's. The new certificate fields introduce the observed ordinary-object regression.",
+     "by": "witness:git show 6764ad2:adders/objects/arith.add.cuccaro.w1.bisa reproduces /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-sol/base-cuccaro-w1.bisa; invoking the reader from step:2 with check on that file exits 0, status=ok, interface_hash=0e350e9c21db62e93d801271076c0f77424fb2ca4f0986a856a8312102036dae and object_hash=30ba2aad41507e86851dea8407bce0b8831b206dee976ab52dd615585d669449."
+    },
+    {
+     "n": "4",
+     "claim": "The active tests cannot catch this raw ordinary-object failure: interpreter_view removes bindings.invocation.token_aliases and claim invocation aliases before REF.check; test_pinned_interpreter_diagnostic_view checks that rewritten text. The only raw publication test is opt-in and filters to qinplace objects.",
+     "by": "witness:adders/circuits.py::interpreter_view; tests/circuits/test_objects.py::Published.test_pinned_interpreter_diagnostic_view and test_raw_modular_publications_bennett_arith_gdg; tests/test_default.py::suite."
+    },
+    {
+     "n": "5",
+     "claim": "The released producer/reader combination has an S0 contract-level admission and suite-F omission: a previously admitted ordinary library publication is unusable through the pinned reader, and the active validation substitutes different certificate bytes. The documented diagnostic status explains the limitation but the council brief does not stage ordinary-object release admission out of the deliverable.",
+     "by": "step:1; step:2; step:3; step:4"
+    }
+   ],
+   "problem": "S0: K91 serialization is released before the configured independent reader supports it. This rejects every raw circuit publication, including the smallest ordinary adder that was accepted at base. Current diagnostic-view checks and the modular-only opt-in test leave the enlarged release-admission failure outside the mandatory gate.",
+   "fix": "Change gate.toml's bennett-isa-spec pin to a reviewed interpreter revision that implements the published K91 invocation partitions and K4 inverse-pair records emitted by adders/circuits.py::_invocation/Object._region, and materialize that exact revision through scripts/pinned_sibling.py. Preserve the required alias metadata and inverse-pair obligations. ISA \u00a71.2 requires 'well-formed objects (\u00a79, \u00a716) and regions (\u00a75, \u00a76); suite F'; \u00a79.1 says 'unknown sections or fields are errors'. Add Published.test_raw_ordinary_publication_admitted in tests/circuits/test_objects.py and include it in tests/test_default.py::suite: pass the unmodified adders/objects/arith.add.cuccaro.w1.bisa to REF.check, require exit 0/status=ok and interface hash 0e350e9c21db62e93d801271076c0f77424fb2ca4f0986a856a8312102036dae. It currently fails with unknown field token_aliases. Extend mandatory release validation to all 129 raw manifest entries, including the six modular entries and their inverse-pair claims; every entry must pass under the selected reader without certificate rewriting or an opt-in environment switch. Update docs/quality.md with the resulting raw-byte receipt."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "P1-1 / bennett-arith-awg",
+   "status": "resolved",
+   "note": "The prior non-council Sol review's stale-bridge blocker is addressed: scripts/test regenerates bridge/constants and relinks unconditionally, failing before suite execution on preparation errors. tests/test_default_cache.py contains real publication-change, support-refresh and failed-rebuild regressions; this seat independently used fresh bridges and a fresh byte-identical LLVM18 rebuild. Council round 1 has no previous council blocking list."
+  }
+ ],
+ "regressions": [
+  "SOL-R1-S0-1: the base arith.add.cuccaro.w1.bisa passes the pinned ecaaac0 reader; head's same body and semantic identities fail because of the new token_aliases certificate fields. Direct checks now reject all 129 head publications at that field."
+ ],
+ "suggestions": [
+  "In tests/test_named_overflow.py::run, retain the independent LLVM23 APFloat oracle but invoke the actual offline-generated conversion bitcode for the same 112 cases. The committed test currently recompiles named.c; docs/quality.md records an artifact comparison only as a separate focused run. For example, convert_to Float8E5M2 from f32 0x501502f9 with R=1 and Sat=0 must return 0x7b; the negative input 0xd01502f9 with R=2 must return 0xfb. Add a regression that corrupts an emitted conversion wrapper and fails this artifact comparison.",
+  "In tests/test_directed.py::run, independently check operation-local IEEE flags as well as MPFR-selected carrier bits, following dialect \u00a713.5's 'ORs the IEEE flags it raises'. Add the literal zero, tanh-limit and extreme-exp flag vectors listed under C3 and require existing unrelated sticky bits to survive. This strengthens evidence without assuming a full-domain proof from the finite sweep.",
+  "For the next council packet, regenerate docs/council/arith-quality-2026-11-07/round-1/prompt.md's context from the frozen SPEC_VERSIONS.toml pins: dialect 0.2.13 and the ISA 0.9/K91 circuit contract, with softfloat_isa_version=0.8 called out. Then grade the disclosed elementary-full-domain-accuracy and ppc-full-domain-arithmetic obligations against that matching text. The attached 0.2.10 \u00a713.4 waives the ordinary-libm correct-rounding claim and cannot silently stand in for the newer accuracy contract."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1. Align the released circuit schema and pinned independent reader by landing/reviewing the required K91/K4 reader support and pinning that revision. 2. Add mandatory direct checks of the actual published bytes, with the ordinary Cuccaro regression in the bounded suite and raw manifest/inverse-pair checks in the circuit release gate. 3. Record successful raw admission for all 129 objects and retain the existing exact numerical checks and truthful pending-obligation reporting. These changes remove the sole confirmed S0. Refresh the stale context attachments before using a later round to claim full conformance to dialect 0.2.13.",
+ "summary": "Reviewed the frozen 6764ad2..015b424 change set read-only; confirmed all 22 embedded post-change files match the snapshot and all 129 changed circuit semantic bodies are unchanged. Rubric method 1: derived binary16 1+2^-11 -> even 1 with inexact, half-minimum/2 -> zero or upward minimum with flags 24, directed overflow, invalid sqrt, fused (nearest 0.1)*10-1 -> 2^-54, and tanh(78) downward -> 0x3bff; all nine value/flag cases pass. Reproduced ISA inc8 at B=3/2/0 with steps 3/2/0 and codes 0/1/1, the lifted wrapper at B=5/4 and stack=7/6 with expected success/step/depth faults, and the exact LF envelope hash 8ce5e64f...6d5be93. Method 2: traced the complete lifted call/ret inverse lists (argument capture, seven-cell record, counter restoration, delivery, slot clearing) and nested R call/ret/uncall history with clock.read; two 256-case prefix checks pass and nested reversal equals entry. These executor probes check the consumer contract, not an arith-owned VM. Method 3: no repository-owned SPEC-QUESTIONS file; inspected the documented PPC, approximation and certificate compatibility readings and the actual pins. Method 4: classified grep hits: seven __builtin_trap sites guard invalid API parameters or impossible operation dispatch; approximation hits describe the versioned libm and independent sqrt comments; unsupported-op in the independent simulator fails loudly; license hits are irrelevant. No todo!/unimplemented!/unwrap/expect/panic/unreachable implementation stubs were found. Method 5: compared the applicable seven-format \u00a713 carrier rows, wide conversions, pair order, rounding modes and flags with generators/dispatch and publication exports; all 1,141 literal names/signatures are preserved on each major. CC/R, launch and scheduler implementations belong to dependencies. Additional checks: 11,970 directed IEEE calls, 12 PPC parity/flag cases, phase invariants, 112 named-overflow APFloat source comparisons, four focused circuit/CLI tests and 48 oversized/negative modular-constant oracle cases pass. Both publications' hashes, source provenance and integer-only exports match; a scratch LLVM18 rebuild is byte-identical. All 129 raw circuit checks fail at token_aliases, with a same-reader base-pass/head-fail witness for an ordinary one-bit adder. Core verdict accepts the reviewed arithmetic changes against the supplied semantic context; whole-crate verdict revises for SOL-R1-S0-1. The packet's older semantic attachments do not establish conformance to the snapshot's newer 0.2.13 accuracy contract. No whole scripts/test, scripts/build or scripts/gate run and no tracked-file modification or commit occurred.",
+ "verdict_core": "accept"
+}

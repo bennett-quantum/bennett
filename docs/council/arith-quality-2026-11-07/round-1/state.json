@@ -1,0 +1,49 @@
+{
+ "run": "arith-quality-2026-11-07",
+ "round": 1,
+ "doc": "docs/council/arith-quality-2026-11-07/packet.md",
+ "doc_sha256": "b4d25c230c2de959c0d7434e9696d3899441898d9f97590593595eea8e05dae7",
+ "prepared": "2026-11-07T07:56:24+00:00",
+ "members": {
+  "muse": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-07T08:04:38+00:00",
+   "exit": 0,
+   "seconds": 40,
+   "errors": [],
+   "updated": "2026-11-07T08:05:18+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 2,
+   "started": "2026-11-07T08:05:49+00:00",
+   "exit": 0,
+   "seconds": 0,
+   "errors": [],
+   "updated": "2026-11-07T08:05:49+00:00"
+  },
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-07T08:15:05+00:00",
+   "exit": 0,
+   "seconds": 39,
+   "errors": [],
+   "updated": "2026-11-07T08:15:45+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "bennett-arith quality-floor change set job/quality-arith (6764ad2..015b424; sol r2 CLEAR): soft-float rounding and published library objects",
+ "context": [
+  ".tmp/council/arith-quality-2026-11-07/context-dialect-spec-023f5a7.md",
+  ".tmp/council/arith-quality-2026-11-07/context-isa-spec-f88b32f.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-impl-arith.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-arith-council-015b424"
+}

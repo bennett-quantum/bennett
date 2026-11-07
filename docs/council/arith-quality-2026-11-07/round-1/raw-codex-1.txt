@@ -1,0 +1,102 @@
+exit 0 in 29s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "Producer scope, rather than an implementation of the entire ISA parser: adders/circuits.py emits canonical objects and softfloat/instantiate.py validates offline requests. All 130 generated circuit publication files reproduce. The new K91 invocation field is consistently emitted, but the pinned reader rejects it on the table-replay path (codex-R1-1). The packet explicitly identifies the circuit objects as ISA 0.9; their version difference from the attached ISA 0.8 background is not independently charged as a defect.",
+      "change": "In tests/circuits/test_objects.py, repair Published.test_interpreter_replays_table_rows as specified in codex-R1-1, retaining separate raw-publication admission checks and explicitly identifying diagnostic execution views."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "Independently assembled the ISA §9.2 envelope for arith.add.cuccaro.w1, including the final LF, and reproduced 0e350e9c21db62e93d801271076c0f77424fb2ca4f0986a856a8312102036dae. Both dist/llvm18 and dist/llvm23 SHA256SUMS match their files; tests/test_contract.py passes bitcode hashes, source SHA-256 provenance, 1,141 signatures per major and three parametric families. adders/generate.py check reproduces 130 files. Fresh bridges linked directly to both publications avoid the stale-oracle cache.",
+      "change": "Extend tests/test_contract.py to verify each recorded git_blob_sha1 as well as sha256 and independently compare the disassembled public function signatures with the manifest in the bounded publication check; retain the separate full rebuild gate."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "The relevant executable functions are softfloat/core.c and the changed trans.h/ppc_round.h/ppc_sum.h paths, not an owned ISA interpreter. Hand-derived half ties, subnormal rounding, overflow, invalid sqrt, and strict finite tanh limits match both publications with exact flags. Each major passes 11,970 focused directed IEEE libm checks and 12 zero-low PPC midpoint checks through freshly linked bridges. For mulmod_const(4,31,11), the generated nine-row oracle returns payload 5/code 0/steps 9 on input 3 and payload 0/code 1/steps 8 with budget 8. No new core divergence was established against the attached contract.",
+      "change": "In tests/test_directed.py, add independent expected flag checks for its mathematical exact cases, poles, overflow and tiny outputs; its current general sweep compares carrier bits but leaves Edge.check's flags argument unset."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "The library emits memoryless lifted modular reference bodies and flat circuit actions; it does not implement the §3.6 executor. Traced the complete forward/inverse dispatch, successor and commit sequence and the C1-C5/R1-R5 call/ret inverse lists by hand. The modular normalization k %= m preserves the total identity extension for x >= m, and a tight-budget oracle witness agrees with §5.2. There is no newly introduced step-machine implementation to grade as missing.",
+      "change": "Add a focused test beside Differential.test_mulmod_unbounded_constants in tests/circuits/test_adders.py that checks the generated oracle at B=8 and B=9, asserting the complete payload/code/steps tuple rather than only successful payloads."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "CC/R history, effects and segment uncall belong to the consumer executor, not this arithmetic producer. Hand-traced §7.4's call/ret segment with a store and a pure copied result: uncall reverses ret, the store and call, restores memory, retains the copied instance, and whole-run reversal skips the cancelled segment and uncall marker. The publication wrappers keep the runtime-owned fenv external; hand checks preserve unrelated sticky flag bits. No implementation omission is inferred from the inherited interpreter rubric.",
+      "change": "Add a scope-to-owner table to docs/quality.md mapping inherited C3-C6 executor obligations to the pinned consumer and the producer-side tests, so library verification is not mistaken for full CC/R executor conformance."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "adders/circuits.py uses literal adjoints and unconditional workspace lifetimes; tests/circuits/harness.py checks clean qfree and exact basis-state phase. The changed certificate token partitions distinguish empty argument lists, token-bearing invocations and universal structural claims. The known raw K4/K91 admission limitation is disclosed; diagnostic compatibility views do not establish raw release compatibility. The newly broken nonmodular replay path is a contract finding, not evidence that the underlying gates compute an incorrect permutation.",
+      "change": "Broaden Published.test_raw_modular_publications_bennett_arith_gdg into an explicitly named all-publication raw-admission obligation, since K91 is now emitted on nonmodular objects too; retain distinct diagnostic execution coverage while the pinned reader lacks admission support."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "The new MPFR interval refinement and exact carrier comparison strengthen the old tolerance checks, and scripts/test now rebuilds its bridge unconditionally. However, Published.test_interpreter_replays_table_rows fails before its first semantic comparison because it writes raw K91 text; this unconditionally selected circuits gate test is absent from the bounded default selection. The failure was reproduced without running the full suite and its base object succeeds with the identical interpreter. See codex-R1-1 and tmp-codex/replay_witness.log.",
+      "change": "Fix codex-R1-1 and add one bounded end-to-end publication-to-interpreter replay smoke test to tests/test_default.py, covering serialization, compatibility transformation and execution together."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The requested sentinel grep found no todo!/unimplemented!/unwrap/expect/panic/unreachable implementation stubs: approximation hits identify the disclosed libm algorithm or mathematical comments; the harness unsupported-op hit raises loudly; the license hit is irrelevant. No SPEC-QUESTIONS file exists in this snapshot. Audited the substitute readings and gap disclosures in softfloat/README.md, docs/circuits-port.md and manifest metadata. docs/circuits-port.md G4/G6 are stale relative to K91 and SPEC_VERSIONS.toml. The council packet attaches dialect 0.2.10/ISA 0.8, whereas the publications claim dialect 0.2.13 and the circuit manifest records ISA 0.9 plus K91.",
+      "change": "Update docs/circuits-port.md G4/G6 to name K91 and the actual pins, and regenerate the council packet with those pinned spec texts before requesting a verdict on the stronger 0.2.13 full-domain accuracy contract."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "codex-R1-1",
+      "section": "ISA §15 suites C/F and §12.1; tests/circuits/test_objects.py: Published.test_interpreter_replays_table_rows, especially the raw path.write_text(text) before REF.many",
+      "scope": "contract",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "Producer verification must exercise the circuit against the reference interpreter and compare complete tuples; an unconditionally selected test claiming table replay must reach those comparisons.",
+          "by": "clause:ISA §15 suite C, 'T6 agreement among VM, specialiser, transformed forms and the reference interpreter'; §12.1 exhaustive claims, 'compare full tuples'; implementation rubric S0, 'A test that does not test its claim'."
+        },
+        {
+          "n": "2",
+          "claim": "The change adds token_aliases to every published invocation. The pinned ecaaac060c44e317d1181345fa6b8e38c096c099 interpreter rejects that field. The diagnostic check and write_object helper remove it, but Published.test_interpreter_replays_table_rows still writes the raw publication before invoking run-action. gate.toml selects tests/circuits/run, which runs this test unconditionally.",
+          "by": "witness:git diff 6764ad2 015b424 -- adders/circuits.py tests/circuits/test_objects.py; gate.toml; tests/circuits/run; tests/circuits/test_objects.py:199-221."
+        },
+        {
+          "n": "3",
+          "claim": "The focused replay test fails on its first object, arith.add.cuccaro.w1, with 'unknown field token_aliases', before replaying any table row. Directly executing the 6764ad2 object with mut=1,0 returns mut=[1,1] and phase +1 using the same binary; the current raw object fails. Thus this is a regression in existing nonmodular verification, beyond the separately disclosed promised modular admission test.",
+          "by": "witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-codex/replay_witness.py ; recorded output: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-codex/replay_witness.log. The script sets TMPDIR and unsets desktop variables; it redirects every test-created file into tmp-codex."
+        },
+        {
+          "n": "4",
+          "claim": "The normal circuits gate cannot complete and its advertised interpreter replay is lost; the green bounded suite does not cover this path. This is an S0 contract/test-infrastructure defect, without establishing a core arithmetic defect.",
+          "by": "step:1; step:2; step:3."
+        }
+      ],
+      "problem": "S0: K91 publication migration leaves the unconditional reference-interpreter table replay incompatible with the pinned reader. Every ordinary circuit receives the new field, so the first Cuccaro object fails to parse and none of the promised >300 tuple comparisons run. The default suite's narrower selection masks the failure. This is separate from the acknowledged, opt-in raw modular admission obligation.",
+      "fix": "Change tests/circuits/test_objects.py::Published.test_interpreter_replays_table_rows to execute an explicitly labelled diagnostic compatibility view of the stored object with the pinned pre-K91 reader, as test_pinned_interpreter_diagnostic_view already does. Prefer factoring adders/circuits.py::interpreter_view so it can transform the stored text without substituting a newly generated body; keep table expectations and hashes from the raw publication, and keep raw-admission validation separate and visible for all object families. ISA §12.1 says 'compare full tuples' and §15 suite C requires reference-interpreter agreement. Expected: arith.add.cuccaro.w1 on mut=[1,0] yields mut=[1,1], in=[], state amplitude exactly +1; all four width-one input tuples replay, and the existing test reaches its replayed >300 assertion. Add that width-one end-to-end replay to the bounded default suite and rerun the existing table-replay test. It fails now on token_aliases and must pass after the compatibility path is applied; do not merely skip the replay or weaken its assertions."
+    }
+  ],
+  "previous_status": [],
+  "regressions": [
+    "codex-R1-1: The base 6764ad2 arith.add.cuccaro.w1 raw publication executes successfully on the pinned interpreter; the 015b424 publication is rejected for token_aliases, breaking the existing unconditional Published.test_interpreter_replays_table_rows gate test."
+  ],
+  "suggestions": [
+    "In tests/test_trans.py::Oracle.rounded, handle MPFR exponent-range overflow/underflow before refining precision indefinitely. A focused call rounded('exp', Fraction(2**100), 0, f=FORMATS['f64'], rm=1) currently ends with 'MPFR bracket inconclusive at 65536 bits', although the mathematical result necessarily rounds to binary64 max finite. Retain the sound fail-loud behavior, but use analytic range bounds or an explicit range sentinel to resolve this case; add the dual exp(-2**100), upward case expecting minimum positive subnormal. This is an oracle coverage/ergonomics suggestion, not a demonstrated false green.",
+    "Expand tests/test_named_overflow.py::run beyond its seven named formats and direct C compilation: include Float8E8M0FNU and the three finite-only formats, and run the overflow probes against the actual offline-generated carrier exports. Compare APFloat operation status as well as raw bits so the documented poison-to-zero policy is accounted for rather than incorrectly treating all APFloat nonfinite encodings as expected carrier values.",
+    "Update docs/circuits-port.md's interpreter and pin descriptions, and attach the actual pinned dialect 0.2.13 and ISA 0.9/K91 texts to the next council packet. The attached 0.2.10 §13.4 explicitly waives correct rounding and states no one-local-ulp bound; the README describes stronger 0.2.13 requirements and openly failing sparse-PPC cases. Do not turn this round's core verdict under the attached text into a claim that those stronger pending obligations passed."
+  ],
+  "verdict": "revise",
+  "path_to_accept": "1. Repair the unconditional table-replay compatibility path in codex-R1-1 without dropping its comparisons or disguising diagnostic views as raw admission. 2. Add the bounded width-one publication replay and demonstrate that both it and Published.test_interpreter_replays_table_rows pass against the exact gate.toml pin, then run the affected circuits gate in a nonshared validation checkout. These are the minimal changes for acceptance of this change set under the attached contract. A separate full-domain 0.2.13 conformance decision needs the matching specification and resolution of the already disclosed pending obligations.",
+  "summary": "Round 1; no prior council blocking IDs were supplied, hence previous_status is empty. Applied the inherited interpreter rubric to the stated arithmetic-producer scope, not to unrelated executor features. Method 1: independently derived binary16 1+2^-11 as an even tie to 0x3c00 with inexact; minimum subnormal times 1/2 as 0 with underflow|inexact for nearest and 1 for upward; max finite plus itself toward zero as 0x7bff with overflow|inexact; sqrt(-1) as canonical 0x7e00 with invalid; and finite tanh(78), downward, as 0x3bff with inexact. All six cases passed on both fresh publication bridges. Derived modular 3*31 mod 11=5, nine executed rows; observed (5,0,9) at B=9 and (0,1,8) at B=8. Constructed the Cuccaro width-one envelope independently and reproduced its recorded hash. Method 2: hand-traced a recursive lift.call with old fp=4, sp=12, depth=1, two callee locations (5,9), R_f=5 and one captured argument 5: forward stores the old locations at stack[15:17], binds the argument and sets (fp,sp,depth)=(12,17,2); C5 inverse restores counters before C4/C3/C2/C1 undo, leaving all slots and headers clean. Traced the corresponding ret of 8: restore callee fp before undoing delivery, then restore callee locations before clearing the result capture and successor. Included dispatch and pc exchanges in both traces. Also traced a §7.4 call/store/ret, pure copy, uncall sequence: the store is restored once and the pure copied result survives until its own reversal. These are spec derivations, not claims that this library owns a CC/R executor. Method 3: no SPEC-QUESTIONS file; reviewed the documented PPC priority/parity readings, libm limits and six circuit-gap entries, noting stale pin/admission prose. Method 4: classified all requested grep hits in production/test source; no silent stub was identified. Method 5: checked the seven-format §13 entry-point families, wide/powi/pair routes and generated op dispatch against the manifest; all 1,141 signatures per major and three parametric families are accounted for. ISA gate/row, frame and fault inventories were checked for the producer's emitted subset; execution of un-emitted general ISA features belongs to the consumer. Validation: 11,970 exact directed IEEE checks and 12 PPC parity checks per major, source/hash audits, both checksum sets, and 130 reproduced circuit files passed. The focused circuit replay failed reproducibly; base/current comparison isolates the regression. No full suite, scripts/build, scripts/gate, commit, or tracked-file modification was performed.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/codex.json

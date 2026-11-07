@@ -1,0 +1,132 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise",
+  "muse": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept",
+  "muse": "revise"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R1-S0-1",
+    "section": "ISA \u00a7\u00a71.2, 9.1, 15 suite F; adders/circuits.py::_invocation, Object._region, interpreter_view; gate.toml; tests/circuits/test_objects.py::Published",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "A library producer must deliver well-formed objects and satisfy suite F's schema obligations; the published bytes must be admitted under the contract and reader selected for their release. Removing certificate fields before validation does not discharge raw-object admission.",
+      "by": "clause:ISA \u00a71.2 Producer: 'well-formed objects (\u00a79, \u00a716) and regions (\u00a75, \u00a76); suite F'; \u00a79.1: 'unknown sections or fields are errors'; \u00a715 F includes 'schemas; envelope and hashes; linking'."
+     },
+     {
+      "n": "2",
+      "claim": "The frozen head adds token_aliases to every published circuit invocation, but its gate.toml reader rejects the unmodified one-bit Cuccaro object with exit 1 and 'unknown field token_aliases'. A manifest-wide direct check produced the same rejection for all 129 objects, including 123 ordinary non-qinplace publications.",
+      "by": "witness:from /home/tobias/Projects/bennett-workspace/bennett-arith-council-015b424 run env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-sol timeout 1200 .tmp/gate/cache/bennett-isa-spec@ecaaac060c44/bennett-isa-spec/reference-interpreter/target/debug/bennett-isa-ref check adders/objects/arith.add.cuccaro.w1.bisa. Manifest-wide receipt: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-sol/raw-all.json."
+     },
+     {
+      "n": "3",
+      "claim": "This broadens the failure beyond the inherited modular K4 obligation: the base Cuccaro file is admitted by the same reader, and its executable body, interface hash and object hash equal head's. The new certificate fields introduce the observed ordinary-object regression.",
+      "by": "witness:git show 6764ad2:adders/objects/arith.add.cuccaro.w1.bisa reproduces /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-sol/base-cuccaro-w1.bisa; invoking the reader from step:2 with check on that file exits 0, status=ok, interface_hash=0e350e9c21db62e93d801271076c0f77424fb2ca4f0986a856a8312102036dae and object_hash=30ba2aad41507e86851dea8407bce0b8831b206dee976ab52dd615585d669449."
+     },
+     {
+      "n": "4",
+      "claim": "The active tests cannot catch this raw ordinary-object failure: interpreter_view removes bindings.invocation.token_aliases and claim invocation aliases before REF.check; test_pinned_interpreter_diagnostic_view checks that rewritten text. The only raw publication test is opt-in and filters to qinplace objects.",
+      "by": "witness:adders/circuits.py::interpreter_view; tests/circuits/test_objects.py::Published.test_pinned_interpreter_diagnostic_view and test_raw_modular_publications_bennett_arith_gdg; tests/test_default.py::suite."
+     },
+     {
+      "n": "5",
+      "claim": "The released producer/reader combination has an S0 contract-level admission and suite-F omission: a previously admitted ordinary library publication is unusable through the pinned reader, and the active validation substitutes different certificate bytes. The documented diagnostic status explains the limitation but the council brief does not stage ordinary-object release admission out of the deliverable.",
+      "by": "step:1; step:2; step:3; step:4"
+     }
+    ],
+    "problem": "S0: K91 serialization is released before the configured independent reader supports it. This rejects every raw circuit publication, including the smallest ordinary adder that was accepted at base. Current diagnostic-view checks and the modular-only opt-in test leave the enlarged release-admission failure outside the mandatory gate.",
+    "fix": "Change gate.toml's bennett-isa-spec pin to a reviewed interpreter revision that implements the published K91 invocation partitions and K4 inverse-pair records emitted by adders/circuits.py::_invocation/Object._region, and materialize that exact revision through scripts/pinned_sibling.py. Preserve the required alias metadata and inverse-pair obligations. ISA \u00a71.2 requires 'well-formed objects (\u00a79, \u00a716) and regions (\u00a75, \u00a76); suite F'; \u00a79.1 says 'unknown sections or fields are errors'. Add Published.test_raw_ordinary_publication_admitted in tests/circuits/test_objects.py and include it in tests/test_default.py::suite: pass the unmodified adders/objects/arith.add.cuccaro.w1.bisa to REF.check, require exit 0/status=ok and interface hash 0e350e9c21db62e93d801271076c0f77424fb2ca4f0986a856a8312102036dae. It currently fails with unknown field token_aliases. Extend mandatory release validation to all 129 raw manifest entries, including the six modular entries and their inverse-pair claims; every entry must pass under the selected reader without certificate rewriting or an opt-in environment switch. Update docs/quality.md with the resulting raw-byte receipt."
+   }
+  ],
+  "codex": [
+   {
+    "id": "codex-R1-1",
+    "section": "ISA \u00a715 suites C/F and \u00a712.1; tests/circuits/test_objects.py: Published.test_interpreter_replays_table_rows, especially the raw path.write_text(text) before REF.many",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "Producer verification must exercise the circuit against the reference interpreter and compare complete tuples; an unconditionally selected test claiming table replay must reach those comparisons.",
+      "by": "clause:ISA \u00a715 suite C, 'T6 agreement among VM, specialiser, transformed forms and the reference interpreter'; \u00a712.1 exhaustive claims, 'compare full tuples'; implementation rubric S0, 'A test that does not test its claim'."
+     },
+     {
+      "n": "2",
+      "claim": "The change adds token_aliases to every published invocation. The pinned ecaaac060c44e317d1181345fa6b8e38c096c099 interpreter rejects that field. The diagnostic check and write_object helper remove it, but Published.test_interpreter_replays_table_rows still writes the raw publication before invoking run-action. gate.toml selects tests/circuits/run, which runs this test unconditionally.",
+      "by": "witness:git diff 6764ad2 015b424 -- adders/circuits.py tests/circuits/test_objects.py; gate.toml; tests/circuits/run; tests/circuits/test_objects.py:199-221."
+     },
+     {
+      "n": "3",
+      "claim": "The focused replay test fails on its first object, arith.add.cuccaro.w1, with 'unknown field token_aliases', before replaying any table row. Directly executing the 6764ad2 object with mut=1,0 returns mut=[1,1] and phase +1 using the same binary; the current raw object fails. Thus this is a regression in existing nonmodular verification, beyond the separately disclosed promised modular admission test.",
+      "by": "witness:timeout 1200 python3 -B /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-codex/replay_witness.py ; recorded output: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/tmp-codex/replay_witness.log. The script sets TMPDIR and unsets desktop variables; it redirects every test-created file into tmp-codex."
+     },
+     {
+      "n": "4",
+      "claim": "The normal circuits gate cannot complete and its advertised interpreter replay is lost; the green bounded suite does not cover this path. This is an S0 contract/test-infrastructure defect, without establishing a core arithmetic defect.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "problem": "S0: K91 publication migration leaves the unconditional reference-interpreter table replay incompatible with the pinned reader. Every ordinary circuit receives the new field, so the first Cuccaro object fails to parse and none of the promised >300 tuple comparisons run. The default suite's narrower selection masks the failure. This is separate from the acknowledged, opt-in raw modular admission obligation.",
+    "fix": "Change tests/circuits/test_objects.py::Published.test_interpreter_replays_table_rows to execute an explicitly labelled diagnostic compatibility view of the stored object with the pinned pre-K91 reader, as test_pinned_interpreter_diagnostic_view already does. Prefer factoring adders/circuits.py::interpreter_view so it can transform the stored text without substituting a newly generated body; keep table expectations and hashes from the raw publication, and keep raw-admission validation separate and visible for all object families. ISA \u00a712.1 says 'compare full tuples' and \u00a715 suite C requires reference-interpreter agreement. Expected: arith.add.cuccaro.w1 on mut=[1,0] yields mut=[1,1], in=[], state amplitude exactly +1; all four width-one input tuples replay, and the existing test reaches its replayed >300 assertion. Add that width-one end-to-end replay to the bounded default suite and rerun the existing table-replay test. It fails now on token_aliases and must pass after the compatibility path is applied; do not merely skip the replay or weaken its assertions."
+   }
+  ],
+  "muse": [
+   {
+    "id": "B1",
+    "section": "dialect 0.2.13 ss13.4 accuracy envelope (pin adopted by this change set in SPEC_VERSIONS.toml and dist manifest 'dialect: 0.2.13'); softfloat/trans.h tn/trans_core via tsc, softfloat/ppc_round.h ppc_round",
+    "scope": "core",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "The adopted contract requires every finite own-format transcendental result within one local ulp of the exact result over the full finite domain, using ordered canonical-pair values for ppcf128, and the correctly rounded (directed-neighbour) outcome for constrained modes; the dist manifest itself states the contract as '0.2.13 13.4: full-domain one-local-ulp; constrained correctly rounded selection and exact flags'. (The packet's attached 0.2.10 text waives correct rounding; this change set re-pins to 0.2.13, so 0.2.13 is the governing text.)",
+      "by": "clause:dialect-13.4"
+     },
+     {
+      "n": "2",
+      "claim": "The implementation evaluates PPC transcendentals at TRANS_BITS=240 significant working bits: softfloat/trans.h tn() jams every finite value to 240 bits, and trans_domain explicitly notes 'PPC sparse residuals require their own full-precision treatment' but provides none outside the exp near-zero path, so a sparse pair near 2^-700 gets only ~240-bit relative accuracy while its local pair ulp is 2^-1074 absolute.",
+      "by": "witness:softfloat/trans.h tn() and trans_domain in the frozen snapshot at 015b424"
+     },
+     {
+      "n": "3",
+      "claim": "Hand derivation: for x = pair(2^-700), sin(x) = x - x^3/6 + ... = 2^-700 - 2^-2102.58..., bracketed by canonical pairs (2^-700, -2^-1074) below and (2^-700, +0) above at distance 2^-2102.58 from the upper. So nearest/upward/nearest-away must return (2^-700,+0) and downward/towardzero (2^-700,-2^-1074), flags exactly inexact (16). The published LLVM18 bitcode returns (2^-700, -2^-940) (hi bits 0x1430000000000000, lo bits 0x8530000000000000) in all five modes: below the exact result for upward mode and 2^134 local ulps from it, i.e. outside the one-local-ulp envelope.",
+      "by": "witness:private bridge built from dist/llvm18/bennett-arith.bc (generate.py + clang-18 in tmp-muse) calling __bennett_sf_sin_ppcf128_rm(0x1430000000000000, rm) for rm 0..4; equivalently BENNETT_ARITH_PROMISED=1 python3 -B -I tests/test_directed.py 18 --quick, documented failing in docs/quality.md"
+     },
+     {
+      "n": "4",
+      "claim": "Therefore the published ppcf128 transcendental carriers diverge from the change set's own adopted ss13.4 contract on a concrete well-formed input, in the council's stated focus area (soft-float rounding); disclosure via conformance_pending and the PROMISED opt-in does not make the returned bits conform.",
+      "by": "step:1; step:2; step:3"
+     }
+    ],
+    "problem": "sin_ppcf128_rm(pair(2^-700), rm) returns (2^-700,-2^-940) in all five modes instead of the ss13.4 neighbours (2^-700,+0)/(2^-700,-2^-1074); error 2^-940 absolute vs local ulp 2^-1074, and on the wrong side for round.upward.",
+    "fix": "(a) File/function: softfloat/trans.h - give fi==6 a sparse full-precision treatment in trans_domain/trans_core (e.g. an exact near-zero series path for sin/cos/tan/asin/atan/sinh/tanh mirroring ppc_exp_near_zero, evaluating the residual against adjacent canonical pairs at the 2^-1074 quantum), or raise the PPC working width in tn() so relative error is below half the local pair ulp at the operand's exponent. (b) Spec sentence: dialect 0.2.13 ss13.4 'the implementation MUST return a B value within one local ulp of that exact result, over the entire finite input domain ... For ppcf128 use ss13.1's ordered canonical-pair values', also stated in dist manifest numerical_accuracy.contract. (c) Expected: sin_ppcf128_rm(0x1430000000000000, rm) = raw hi 0x1430000000000000 with lo +0 for rm in {0,2,4} and lo bits 0x8000000000000001 (-2^-1074) for rm in {1,3}, flag word exactly 16. (d) Test: add this five-mode witness plus the exp sparse pair (tests/ppc_exp_sparse_witness.py bounds) to tests/test_directed.py outside the BENNETT_ARITH_PROMISED gate; it fails on current code (all modes return lo 0x8530000000000000) and passes after the fix. Acceptable interim alternative: downgrade dist manifest dialect/contract claim and SPEC_VERSIONS pin back to the text actually met, so no publication claims 0.2.13 ss13.4."
+   }
+  ]
+ },
+ "means": {
+  "C1": 3.33,
+  "C2": 4.0,
+  "C3": 4.0,
+  "C4": 3.67,
+  "C5": 3.67,
+  "C6": 4.0,
+  "C7": 3.67,
+  "C8": 3.67
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}

@@ -1,0 +1,114 @@
+exit 0 in 40s
+--stdout--
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "Mapped to object/manifest well-formedness for this arith subject. Published .bisa certificates (adders/circuits.py Object._region/_inverse_pair_claim) now carry token_aliases and inverse_pair records that no pinned checker admits on raw bytes: tests/circuits/test_objects.py:80-110 checks only interpreter_view() (which strips token_aliases and inverse_pair claims) and skips every qinplace object; raw admission is the skipUnless BENNETT_ARITH_PROMISED test, documented red in docs/quality.md (unknown field token_aliases). Manifest/JSON shapes themselves are consistent (1141 exports, staged_exports empty, both majors).",
+   "change": "In tests/circuits/test_objects.py, make one non-PROMISED test run the pinned bennett-isa-ref check on the raw bytes of at least one qinplace and one perm_action object once a K91-capable interpreter is pinned in gate.toml; until then keep the diagnostic-view name and state in adders/objects/manifest.json that raw admission is unverified."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Hand-verified: sha256 over the pre-certificate base of adders/objects/arith.add.cuccaro.w1.bisa equals cert bindings.object_hash; dist/llvm18 SHA256SUMS verifies (bc + manifest OK); LLVM18/23 manifest export name sets are identical (1141, symmetric diff 0) and match README's 1,141. K91 re-serialisation left object_hash/closure_hash unchanged in the diff, as the be109bd K91 note requires. scripts/pinned_sibling.py now resolves siblings only at gate.toml SHAs and fails loud on mismatch.",
+   "change": "In adders/generate.py build(), also record the SHA-256 of each full .bisa file's certificate line in adders/objects/manifest.json (entries already hash the whole file; add cert_sha256) so certificate-only re-serialisations are distinguishable from body changes at a glance."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "Mapped to dialect ss13.1/ss13.5 carrier rows. Hand-derived and reproduced on the published LLVM18 bitcode via a privately built bridge: PPC FMA zero-low midpoint (h=1+2^-52, u=2^-1074) returns (h,+0) with inexact in both directions; f128 0x3c030000000000001200000000000000 -> PPC returns (0x0030000000000001,+0) flags 16; tanh_f16_rm(0x54e0=78) gives 0x3c00 nearest/up and 0x3bff down/towardzero. 240 additional exact MPFR-bracket probes over the changed tan/asin/tanh tiny-linear and tanh-threshold paths (f32/f64/f128, all 5 modes) had 0 mismatches. named.c directed-overflow logic matches IEEE directed overflow outcomes by hand. One core divergence remains: sparse PPC transcendentals (blocking B1).",
+   "change": "Fix blocking B1 in softfloat/trans.h (see blocking.fix); that single change raises this criterion most."
+  },
+  {
+   "id": "C4",
+   "score": 3,
+   "evidence": "Mapped to inverse-pair/adjoint reversal in the circuit objects. adders/circuits.py publishes inverse_pair claims with token_aliases [0] and an adjoint_table structural claim for g/ginv, and tests/circuits/test_objects.py test_inverse_pair_obligation_is_published/test_token_aliases check their presence and integer budget typing. But interpreter_view deletes exactly these records before the pinned interpreter sees the object, so no gate run machine-checks reversal for qinplace objects; the mulmod differential (test_adders.py test_mulmod_unbounded_constants) also strips to _base() 'to isolate arithmetic from certificate admission'.",
+   "change": "In adders/circuits.py keep interpreter_view, but add a Python-side replay in tests/circuits/test_objects.py that, for every published inverse_pair entry, simulates g then ginv through harness.simulate on the claim domain (exhaustive at w<=4, sampler seed otherwise) and asserts identity, so reversal is checked even while the Rust checker lacks K4/K91."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "Mapped to execution of published objects on the pinned reference interpreter. tests/circuits/harness.py ref_binary() now resolves only the gate.toml-pinned ISA checkout (ecaaac0) via scripts/pinned_sibling.py and fails loud if absent - a real improvement. But exercised objects are the stripped diagnostic view and qinplace objects are skipped, so CC/R-style execution evidence does not cover the published bytes or the modular (qinplace) family at all in the default gate.",
+   "change": "In gate.toml, pin a bennett-isa-spec commit whose reference-interpreter admits K91 token_aliases and K4 inverse_pair records, then drop the qinplace skip in test_pinned_interpreter_diagnostic_view (tests/circuits/test_objects.py:88-89) so the circuits gate executes raw published objects."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "Mapped to the Q constructions (adders, multipliers, QROM). mulmod_const now reduces k %= m before kinv/tag emission (adders/constructions.py:584), fixing fixed-width emission for unbounded/negative k; the new differential checks k in (31,-2,11*2^80+9) against k*x % 11 for all x<16. adders/generate.py CLI now parses the table tuple only as argument 0 of the three qrom families, with test_qrom.test_cli_single_word_table covering the previously crashing single-word table. Default suite exhaustively verifies small adders/multipliers/QROM through the text simulator (tests/test_default.py SmallCircuits).",
+   "change": "In adders/generate.py main() 'one' branch, reject a comma in any non-table argument with a message naming the family and argument index instead of the bare ValueError from int(a,0), and add that case to tests/circuits/test_qrom.py test_cli_single_word_table's family table."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Tests were strengthened, not weakened: tests/test_trans.py Oracle.rounded replaces <=4-ulp and <=1-ulp tolerances with directed MPFR brackets refined to 65536 bits that raise when inconclusive, and test_trans_boundaries/test_trans_extra now assert exact carrier equality. scripts/test regenerates support and relinks the bridge unconditionally (sol r1 P1 fix), with tests/test_default_cache.py mutating the publication between real runs in the gate. Weaknesses: the exact PPC libm sweep in test_trans_extra.py empties its value list unless BENNETT_ARITH_PROMISED is set (known-failing, blocking B1), and the default suite is LLVM18-only (LLVM23 numeric sweeps are gate-only).",
+   "change": "Move the sparse-PPC witness of blocking B1 (sin_ppcf128_rm at pair(2^-700), all five modes) out of the BENNETT_ARITH_PROMISED gate into tests/test_directed.py's default PPC section once B1 is fixed, so the exact PPC sweep cannot silently shrink again."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "docs/quality.md truthfully records the red PROMISED obligations, measured coverage (45.98% Python statements) and timings, and the dist manifests carry conformance_pending [ppc-full-domain-arithmetic, elementary-full-domain-accuracy] with contract_questions now []. But reporting is version-incoherent: SPEC_VERSIONS.toml pins dialect 0.2.13/ISA spec 0.9 (ecaaac0) yet also softfloat_isa_version 0.8 and a stale status 'softfloat-v2-concrete-published-parametric-contracts-open'; dist manifests say isa 0.8 while certificates say isa/cert 0.9 with K91 from be109bd, a commit whose spec text is not the pinned ecaaac0 text (no token_aliases there). A reader cannot tell from the repo alone which text each artifact conforms to.",
+   "change": "In SPEC_VERSIONS.toml, update status to name the two open obligations (ppc-full-domain-arithmetic, elementary-full-domain-accuracy) and add one line per artifact class (dist bitcode: dialect 0.2.13 ss13, ISA 0.8; .bisa objects: ISA spec be109bd K91) so each publication's governing text is stated exactly once."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B1",
+   "section": "dialect 0.2.13 ss13.4 accuracy envelope (pin adopted by this change set in SPEC_VERSIONS.toml and dist manifest 'dialect: 0.2.13'); softfloat/trans.h tn/trans_core via tsc, softfloat/ppc_round.h ppc_round",
+   "scope": "core",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "The adopted contract requires every finite own-format transcendental result within one local ulp of the exact result over the full finite domain, using ordered canonical-pair values for ppcf128, and the correctly rounded (directed-neighbour) outcome for constrained modes; the dist manifest itself states the contract as '0.2.13 13.4: full-domain one-local-ulp; constrained correctly rounded selection and exact flags'. (The packet's attached 0.2.10 text waives correct rounding; this change set re-pins to 0.2.13, so 0.2.13 is the governing text.)",
+     "by": "clause:dialect-13.4"
+    },
+    {
+     "n": "2",
+     "claim": "The implementation evaluates PPC transcendentals at TRANS_BITS=240 significant working bits: softfloat/trans.h tn() jams every finite value to 240 bits, and trans_domain explicitly notes 'PPC sparse residuals require their own full-precision treatment' but provides none outside the exp near-zero path, so a sparse pair near 2^-700 gets only ~240-bit relative accuracy while its local pair ulp is 2^-1074 absolute.",
+     "by": "witness:softfloat/trans.h tn() and trans_domain in the frozen snapshot at 015b424"
+    },
+    {
+     "n": "3",
+     "claim": "Hand derivation: for x = pair(2^-700), sin(x) = x - x^3/6 + ... = 2^-700 - 2^-2102.58..., bracketed by canonical pairs (2^-700, -2^-1074) below and (2^-700, +0) above at distance 2^-2102.58 from the upper. So nearest/upward/nearest-away must return (2^-700,+0) and downward/towardzero (2^-700,-2^-1074), flags exactly inexact (16). The published LLVM18 bitcode returns (2^-700, -2^-940) (hi bits 0x1430000000000000, lo bits 0x8530000000000000) in all five modes: below the exact result for upward mode and 2^134 local ulps from it, i.e. outside the one-local-ulp envelope.",
+     "by": "witness:private bridge built from dist/llvm18/bennett-arith.bc (generate.py + clang-18 in tmp-muse) calling __bennett_sf_sin_ppcf128_rm(0x1430000000000000, rm) for rm 0..4; equivalently BENNETT_ARITH_PROMISED=1 python3 -B -I tests/test_directed.py 18 --quick, documented failing in docs/quality.md"
+    },
+    {
+     "n": "4",
+     "claim": "Therefore the published ppcf128 transcendental carriers diverge from the change set's own adopted ss13.4 contract on a concrete well-formed input, in the council's stated focus area (soft-float rounding); disclosure via conformance_pending and the PROMISED opt-in does not make the returned bits conform.",
+     "by": "step:1; step:2; step:3"
+    }
+   ],
+   "problem": "sin_ppcf128_rm(pair(2^-700), rm) returns (2^-700,-2^-940) in all five modes instead of the ss13.4 neighbours (2^-700,+0)/(2^-700,-2^-1074); error 2^-940 absolute vs local ulp 2^-1074, and on the wrong side for round.upward.",
+   "fix": "(a) File/function: softfloat/trans.h - give fi==6 a sparse full-precision treatment in trans_domain/trans_core (e.g. an exact near-zero series path for sin/cos/tan/asin/atan/sinh/tanh mirroring ppc_exp_near_zero, evaluating the residual against adjacent canonical pairs at the 2^-1074 quantum), or raise the PPC working width in tn() so relative error is below half the local pair ulp at the operand's exponent. (b) Spec sentence: dialect 0.2.13 ss13.4 'the implementation MUST return a B value within one local ulp of that exact result, over the entire finite input domain ... For ppcf128 use ss13.1's ordered canonical-pair values', also stated in dist manifest numerical_accuracy.contract. (c) Expected: sin_ppcf128_rm(0x1430000000000000, rm) = raw hi 0x1430000000000000 with lo +0 for rm in {0,2,4} and lo bits 0x8000000000000001 (-2^-1074) for rm in {1,3}, flag word exactly 16. (d) Test: add this five-mode witness plus the exp sparse pair (tests/ppc_exp_sparse_witness.py bounds) to tests/test_directed.py outside the BENNETT_ARITH_PROMISED gate; it fails on current code (all modes return lo 0x8530000000000000) and passes after the fix. Acceptable interim alternative: downgrade dist manifest dialect/contract claim and SPEC_VERSIONS pin back to the text actually met, so no publication claims 0.2.13 ss13.4."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "bennett-arith-awg",
+   "status": "resolved",
+   "note": "Sol r1 P1 (stale oracle.so false green): scripts/test now regenerates generate.py/constants.py outputs and relinks oracle.so from the current dist bitcode unconditionally under set -e; regression tests/test_default_cache.py runs in scripts/gate."
+  },
+  {
+   "id": "bennett-arith-hd9",
+   "status": "resolved",
+   "note": "tests/ppc_exact_oracle.py docstring now states 0.2.13 and the total nearest-even midpoint selector, and to_pair implements the either-low-nonzero rule matching softfloat/ppc_round.h ppc_even_neighbour."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Raw .bisa admission (contract, external dependency): published objects carry K91 token_aliases/K4 inverse_pair from ISA text be109bd, but gate.toml pins the interpreter at ecaaac0 whose schema rejects them ('unknown field token_aliases', docs/quality.md). Pin a K91-capable bennett-isa-spec commit in gate.toml siblings and flip tests/circuits/test_objects.py test_raw_modular_publications_bennett_arith_gdg out of skipUnless; until then README.md's 'circuit objects with certificates' should keep its 'raw modular certificate admission awaits interpreter support' qualifier (it does - keep it until the flip).",
+  "Version coherence: SPEC_VERSIONS.toml status still reads 'softfloat-v2-concrete-published-parametric-contracts-open' although README/softfloat README say arbitrary-format instances and signaling comparison are delivered; rewrite status to enumerate exactly the two manifest conformance_pending obligations.",
+  "softfloat/trans.h trans_exact_domains gives EXP2/EXP10 only EXACT_INFINITY and LOG2/LOG10 no domain, relying on trans_exact_math intercepting exp2(0)=1 and log2(1)=0 before the core path; add EXACT_ZERO to EXP2/EXP10 and EXACT_ONE to LOG2/LOG10 (or a comment naming the intercept that makes the core rows unreachable) so the exact-case table is correct standalone, with a flag assertion for exp2_f64_rm(0) in tests/test_trans_phases.py.",
+  "tests/test_named_overflow.py covers only named formats 0..6 and only the directed sign/mode combinations that saturate to max; extend cases to formats 7..10 (NSCALE/NFINITE) and the opposite directed combinations (expect inf bits for NI, 0 per N1 for no-infinity kinds) against the same APFloat oracle.",
+  "scripts/build now ignores TMPDIR for its build directory ($root/.tmp/llvm$major) while scripts/gate and scripts/test honor TMPDIR; make scripts/build use ${TMPDIR:-$root/.tmp}/llvm$major like the others, or comment why the build path is intentionally root-relative (byte-identical detached builds), so parallel gate runs in one worktree cannot collide silently.",
+  "The council packet's background specs (dialect 0.2.10, ISA 0.8) predate this change set's own re-pins (0.2.13, ISA 0.9/K91 be109bd); record in docs/quality.md which spec version each artifact class claims so a future council packet can attach the governing texts instead of the base pins."
+ ],
+ "verdict": "revise",
+ "path_to_accept": "1) Fix B1: sparse PPC transcendentals in softfloat/trans.h meet 0.2.13 ss13.4 (exact test in the fix field passes in the default directed suite on both majors), or downgrade the dist/SPEC_VERSIONS claim to the contract actually met and re-run scripts/gate to republish. 2) Republish both majors if any softfloat source changes (scripts/build 18/23, manifests + SHA256SUMS). Nothing else blocks: with B1 resolved and the same evidence re-run, I would return accept; the K91 raw-admission and version-statement items are tracked suggestions, not conditions, because they are disclosed and depend on a sibling interpreter pin.",
+ "summary": "Hand reproductions (method 1): derived by hand the PPC FMA zero-low midpoint ((1+2^-52,2^-1074)*1/2+(1+2^-52)/2 -> (1+2^-52,+0), flags 16), the f128->PPC conversion witness 0x3c03...1200... -> (0x0030000000000001,+0), tanh_f16 directed at 78, and sparse sin(2^-700) neighbours; built a private LLVM18 bridge from the published dist bitcode in tmp-muse and compared: first three match exactly in all modes, sparse sin diverges (blocking B1). Also ran 240 exact directed-MPFR-bracket probes over the changed tiny-linear and tanh-threshold paths: 0 mismatches. Method 2: traced inverse_pair/adjoint claims and token_aliases through adders/circuits.py and test_objects.py; reversal is published but stripped before any interpreter replay (C4/C5). Method 3: audited recorded readings - manifest contract_questions is now [], pending obligations are named in docs/quality.md; version incoherence noted in C8/suggestions. Method 4: grep for todo/unsupported/approximat etc. found only the disclosed deterministic-approximation claims in trans.h/generate.py and fail-loud simulator errors. Method 5: compared spec lists to code - 1141 exports per major, identical name sets, no staged exports; certificate fields vs ISA ss12.3 (0.8 attached) and the be109bd K91 text; scripts/quality_metrics.py and tests/test_quality.py run green in my scratch. I did not run scripts/test or scripts/gate whole (shared worktree; per brief). Verdict revise on B1 alone; the rounding work actually changed in this set (PPC parity, named directed overflow, exact-bracket tests, stale-bridge fix) verified correct wherever I probed it.",
+ "verdict_core": "revise"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/arith-quality-2026-11-07/muse.json
