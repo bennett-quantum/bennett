@@ -1,5 +1,26 @@
 # Worklog chunk 002
 
+## Session log - 2026-11-07 - shift 13 (Opus orchestrator): rung-3 preparation lane; dialect 0.3-r1 council-accepted and pushed
+- Second orchestrator lane beside shift 12 (R33b). Six sol jobs on job/r3-* worktrees + read-only re-auditors. Landed:
+  runtimes main d6a4f80 (integer printf fixtures with hand-derived bytes incl. the no-newline return-time flush, native
+  goldens LLVM 18/23); dialect main 4bca41b (classical R profile 0.3-r1 for ISA 0.9: typed R faults, producer identity,
+  console lifecycle, saved-tape-v1; council round 1 ACCEPT unanimous sol/astra/muse, meta 21bccf6; bare 0.3 stays ungraded);
+  meta f3337d2/d14de7d (2026-11-07 re-audit: 7 sol reports, Sonnet SPOTCHECK, SYNTHESIS).
+- Handed to shift 12: job/r3-gate (conformance ladder/rung-3: formatted workload, parametrised dialect/ISA contract row,
+  multi-stage native receipt audit; r1 BLOCK -> r2 CLEAR). Conformance main's own gate is red (bennett-conformance-mnr:
+  checker/tests/published_certificates.rs reads ../../bennett-isa-spec live); it never had a PASS record at e39501e.
+- Plugin N23 varargs integrated into R production (job/r3-varargs, gated + CLEAR): reference forward = native and exact
+  reversal on both majors. Step T (typed R faults) running on a disjoint branch; joint review pending (R31e).
+- Gotcha: this lane's builds pushed load to 14 and shift 12's plugin push-hook gate timed out (120 s per-command limit, bp-1zr).
+  Fix: prep-lane builds wait for load < 8 AND no bennett-heavy scope (briefs/r3-common.md). Heavy gates have priority.
+- Gotcha: the quality ratchets (dialect, plugin, driver) fail any job that adds files; every r3 job needed a baseline fixup.
+  Brief the ratchet into the first job round next time.
+- Surprise (rung-3 risk): the VM never finishes a 225956-step produced R object that the reference interpreter runs in 1.86 s;
+  stepping looks superlinear (bennett-vm-8f3, P1). Formatted musl through the driver's native comparison faults 7 inside
+  musl pop_arg (brt-9yk); full vfprintf R analysis exhausts its allowance (bp-owg).
+- Surprise: the Sonnet spot-check found sol re-audit grades ~0.3 step generous and a reference-interpreter CC-tier ashr
+  mutation that survives 152 tests (b-isa-spec-cj6e). SYNTHESIS calls for Round 3 on dialect-spec, runtimes, meta, isa-spec.
+
 ## Session log - 2026-11-07 - shift 12 (Opus orchestrator): isa-spec 0.9 reference interpreter pushed; R31/R32 cut the review cycle
 - Pushed isa-spec main 9825c42..3b10907 (merge --no-ff job/quality-isaref). Council round 3 (sol + astra; sol joined because the
   fix reached pairs09.rs) resolved CODEX-R2-B1 but both seats found one new member of the same family: with imported pair bodies
