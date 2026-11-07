@@ -7,7 +7,10 @@
   Tests use local Git remotes and mocked lock probes/clock, with no elapsed-time assertions.
 - Found a contract gap: rungs 1/2 accept plugin/vm revisions but cannot select runtimes/driver/ISA revisions;
   recorded bennett-t9r. The runner fails loud on unsupported selectors rather than claim current-main coverage.
-- Validation and bounded real-run evidence are recorded in the job progress file for orchestrator review.
+- Real scheduler run waited for the heavy scope, then caught an isolation adapter --chdir gap (ERROR);
+  red-first regression fixed it. Bounded retry waits on a new arithmetic measurement; rung-1 skipped for that lock.
+- Focused suite: 16 PASS; meta suite: 61 PASS. Full unfiltered --once remains the orchestrator's post-merge check.
+  Detailed bounded-run evidence and log paths are in the job progress file.
 
 ## Session log - 2026-11-07 - shift 13 (Opus orchestrator): rung-3 preparation lane; dialect 0.3-r1 council-accepted and pushed
 - Second orchestrator lane beside shift 12 (R33b). Six sol jobs on job/r3-* worktrees + read-only re-auditors. Landed:

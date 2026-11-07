@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -23,8 +24,8 @@ MAX_LOAD = 12
 COMMAND_TIMEOUT_SECONDS = 7000
 # Git/help hang guard mirrors gate_run.py hook probe's 60s guard, 2026-11-07.
 CONTROL_TIMEOUT_SECONDS = 60
-# Termination grace uses timeout's TERM/KILL convention; local guard policy, 2026-11-07.
-KILL_GRACE_SECONDS = 30
+# Termination grace is one qgate polling period (hang guard policy), 2026-11-07.
+KILL_GRACE_SECONDS = POLL_SECONDS
 LADDER_REPOS = ("bennett-plugin", "bennett-vm", "bennett-runtimes",
                 "bennett-driver", "bennett-isa-spec")
 RUNGS = ("rung-1", "rung-2")
@@ -164,7 +165,10 @@ while index < len(args) and args[index] == "--tmpfs":
     if args[index + 2:index + 3] != ["--bind-try"] or len(args[index:index + 5]) != 5:
         sys.exit("main-health: unsupported gate isolation mount")
     index += 5
-if index >= len(args) or args[index].startswith("--"):
+if args[index:index + 1] == ["--chdir"]:
+    if len(args[index:]) < 4 or args[index + 2] != "--":
+        sys.exit("main-health: unsupported gate isolation chdir")
+elif index >= len(args) or args[index].startswith("--"):
     sys.exit("main-health: unsupported gate isolation command")
 os.execvp("bwrap", ["bwrap", *args[:index], "--bind", {str(checkout)!r}, {str(checkout)!r}, *args[index:]])
 ''')
@@ -321,9 +325,6 @@ class Runner:
             row.update(result=Result.ERROR.value, detail=str(exc))
         row["when"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         row["duration_s"] = time.monotonic() - started
-        row["delta"] = f'{previous["result"]} → {row["result"]}'
-        if row["shas"] != previous["shas"]:
-            row["delta"] += "; revisions changed"
         if row["result"] == Result.PASS:
             row["last_green_shas"] = row["shas"].copy()
         else:
@@ -332,10 +333,15 @@ class Runner:
                 if green and green != sha:
                     try:
                         row["merges"][repo] = git(self.source(repo), "log", "--merges", "--format=%H %s", f"{green}..{sha}").splitlines()
-                    except (HealthError, OSError, subprocess.TimeoutExpired) as exc:
+                    except subprocess.TimeoutExpired as exc:
+                        row.update(result=Result.TIMEOUT.value, detail=f'merge attribution guard expired: {exc}')
+                    except (HealthError, OSError) as exc:
                         row.update(result=Result.ERROR.value, detail=f'merge attribution failed: {exc}')
                 elif not green:
                     row["detail"] += f"; {repo}: no prior green SHA for merge attribution"
+        row["delta"] = f'{previous["result"]} → {row["result"]}'
+        if row["shas"] != previous["shas"]:
+            row["delta"] += "; revisions changed"
         with log.open("a") as output:
             output.write(row["detail"] + "\n")
         return row, True
@@ -347,7 +353,11 @@ class Runner:
         for name in (*self.repos, *(f"ladder/{rung}" for rung in RUNGS)):
             rows.setdefault(name, blank_row())
         selected = [*self.selected, *(f"ladder/{rung}" for rung in self.rungs)]
+        save_status(self.state, rows)
         for name in selected:
+            if name.startswith("ladder/"):
+                # Repo gates may take hours; each rung must freshly snapshot current mains.
+                self.shas.clear()
             row, changed = self.check(name, rows[name])
             rows[name] = row
             if changed:
@@ -374,8 +384,8 @@ def main():
     parser.add_argument("--command-timeout", type=float, default=COMMAND_TIMEOUT_SECONDS, help="command hang guard (seconds)")
     args = parser.parse_args()
     try:
-        if args.max_wait < 0 or args.command_timeout <= 0:
-            raise HealthError("wait must be nonnegative and command timeout positive")
+        if not math.isfinite(args.max_wait) or not math.isfinite(args.command_timeout) or args.max_wait < 0 or args.command_timeout <= 0:
+            raise HealthError("wait must be finite and nonnegative; command timeout finite and positive")
         if args.meta is None:
             args.meta = main_checkout(Path(__file__).resolve().parents[1])
         runner = Runner(args)

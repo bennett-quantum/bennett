@@ -10,6 +10,8 @@ import unittest
 from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "main_health.py"
+# Subprocess hang guards (20/30s) exceed 10x this whole suite's measured 1.3s
+# on the shared 12-core / 30 GiB workstation, 2026-11-07; never test verdicts.
 
 
 def load_tool():
@@ -75,7 +77,13 @@ class HealthTests(unittest.TestCase):
         self.git("commit", "-qm", message)
 
     def run_health(self, *args):
-        return subprocess.run([sys.executable, "-I", str(SCRIPT), "run", "--once",
+        # CLI Git/status behavior is real; the host's changing load is not a test input.
+        bootstrap = ('import importlib.util, sys\n'
+                     'path = sys.argv.pop(1)\n'
+                     'spec = importlib.util.spec_from_file_location("health_fixture", path)\n'
+                     'module = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(module)\n'
+                     'module.heavy_blocker = lambda: None\nraise SystemExit(module.main())\n')
+        return subprocess.run([sys.executable, "-I", "-c", bootstrap, str(SCRIPT), "run", "--once",
                                "--meta", str(self.meta), "--state-dir", str(self.state),
                                *args], env=self.env, text=True, capture_output=True, timeout=30)
 
@@ -220,13 +228,63 @@ class HealthTests(unittest.TestCase):
                                 capture_output=True, text=True, timeout=20)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout), [*prefix, "--bind", str(checkout), str(checkout), "true"])
+        build_command = ["--chdir", str(checkout), "--", "cargo", "build", "--offline"]
+        build = subprocess.run([wrapper, *prefix, *build_command], env=self.env,
+                               capture_output=True, text=True, timeout=20)
+        self.assertEqual(build.returncode, 0, build.stderr)
+        self.assertEqual(json.loads(build.stdout), [*prefix, "--bind", str(checkout), str(checkout), *build_command])
         unknown = subprocess.run([wrapper, "--unrecognized", "true"], env=self.env,
                                  capture_output=True, text=True, timeout=20)
         self.assertNotEqual(unknown.returncode, 0)
         self.assertIn("unsupported", unknown.stderr)
 
+    def test_default_state_anchors_to_main_checkout_from_worktree(self):
+        module = load_tool()
+        worktree = self.root / "linked-meta"
+        self.git("worktree", "add", "--detach", str(worktree), "HEAD")
+        self.assertEqual(module.main_checkout(worktree), self.repo)
+
+    def test_ladder_refetches_after_repo_gate(self):
+        module = load_tool()
+        (self.meta / "manifest.toml").write_text(''.join(
+            f'[repos."{name}"]\npath = "fixture"\n'
+            for name in ("bennett-conformance", *module.LADDER_REPOS)))
+        args = type("Args", (), dict(meta=self.meta, state_dir=self.state, repos="bennett-plugin",
+                    ladder="rung-1", force=False, max_wait=100, command_timeout=100))()
+        before, after = "1" * 40, "2" * 40
+        with patch.object(module, "fetch_main", side_effect=[before, *([after] * 6)]), \
+                patch.object(module.Runner, "gate", return_value=(module.Result.PASS, 0)), \
+                patch.object(module.Runner, "ladder", return_value=(module.Result.PASS, 0)), \
+                patch("builtins.print"):
+            self.assertEqual(module.Runner(args).cycle(), 0)
+        rows = self.rows()
+        self.assertEqual(rows["bennett-plugin"]["sha"], before)
+        self.assertEqual(rows["ladder/rung-1"]["shas"]["bennett-plugin"], after)
+
 
 class LockTests(unittest.TestCase):
+    def test_scope_and_legacy_process_probes_block_before_resource_reads(self):
+        module = load_tool()
+        scope = subprocess.CompletedProcess([], 0, "bennett-heavy-other.scope loaded active running", "")
+        with patch.object(module, "control", return_value=scope) as control:
+            self.assertIn("bennett-heavy-other.scope", module.heavy_blocker())
+        self.assertEqual(control.call_count, 1)
+        idle = subprocess.CompletedProcess([], 0, "", "")
+        process = subprocess.CompletedProcess([], 0, "1234", "")
+        with patch.object(module, "control", side_effect=[idle, process]):
+            self.assertIn("1234", module.heavy_blocker())
+
+    def test_resource_thresholds_with_mocked_proc_data(self):
+        module = load_tool()
+        idle = subprocess.CompletedProcess([], 1, "", "")
+        # Hand-derived KiB conversion: 6 GiB = 6 * 1024 * 1024 KiB.
+        for available, load, blocked in ((6, 11, False), (5, 0, True), (6, 12, True)):
+            with self.subTest(available=available, load=load), \
+                    patch.object(module, "control", return_value=idle), \
+                    patch.object(module.Path, "read_text", side_effect=[
+                        f"MemAvailable: {available * 1024 * 1024} kB\n", f"{load} 0 0 1/1 1\n"]):
+                self.assertEqual(module.heavy_blocker() is not None, blocked)
+
     def test_wait_uses_mocked_probe_and_clock(self):
         module = load_tool()
         with patch.object(module, "heavy_blocker", side_effect=["bennett-heavy-busy", "memory", None]) as probe, \
