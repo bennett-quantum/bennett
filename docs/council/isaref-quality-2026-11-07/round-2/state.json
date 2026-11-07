@@ -1,0 +1,55 @@
+{
+ "run": "isaref-quality-2026-11-07",
+ "round": 2,
+ "doc": "docs/council/isaref-quality-2026-11-07/packet-round-2.md",
+ "doc_sha256": "b677f7b9f18e7eb7637853811f4283542b29c0828d9652b0161a20b79a6b9b4d",
+ "prepared": "2026-11-07T08:13:09+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-07T08:36:12+00:00",
+   "exit": 0,
+   "seconds": 14,
+   "errors": [],
+   "updated": "2026-11-07T08:36:27+00:00"
+  },
+  "muse": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-07T08:37:37+00:00",
+   "exit": 0,
+   "seconds": 25,
+   "errors": [],
+   "updated": "2026-11-07T08:38:02+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-07T08:38:25+00:00",
+   "exit": 0,
+   "seconds": 10,
+   "errors": [],
+   "updated": "2026-11-07T08:38:35+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "Bennett ISA 0.9 reference interpreter quality-floor change set job/quality-isaref, round 2 acceptance vote (be109bd..5b71208; round-1 blockers reported fixed)",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md",
+  "../bennett-conformance/proofs/INDEX.md",
+  "../bennett-conformance/proofs/INV-1-matched-pairs.md",
+  "../bennett-conformance/proofs/INV-2-no-clone.md",
+  "../bennett-conformance/proofs/INV-3-discipline-soundness.md",
+  "../bennett-conformance/proofs/INV-4-envelope-injective.md",
+  "../bennett-conformance/proofs/INV-5-schedule-selection.md",
+  "../bennett-conformance/proofs/INV-6-certificate-soundness.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-impl.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-council-5b71208"
+}

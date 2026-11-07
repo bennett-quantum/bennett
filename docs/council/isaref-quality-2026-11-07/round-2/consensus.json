@@ -1,0 +1,70 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "accept",
+  "codex": "revise",
+  "muse": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept",
+  "muse": "accept"
+ },
+ "blocking": {
+  "sol": [],
+  "codex": [
+   {
+    "id": "CODEX-R2-B1",
+    "section": "ISA 0.9 \u00a712.3 Qinplace checker coverage (K92), \u00a79.3; reference-interpreter/src/claims/qinplace09.rs::check_qinplace_bindings09, lines 95-105",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "Every qinplace source site in a supplied owner record requires an inverse_pairs entry for its exact resolved pair. Missing required pairs reject even when a separate invocation or linked-body obligation is unestablished.",
+      "by": "clause:ISA 0.9 \u00a712.3 K92: 'MUST reject a missing pair or invalid referenced claim' and 'Malformed bindings and missing required pairs still reject'; \u00a79.3 pins bind the imported closure identities."
+     },
+     {
+      "n": "2",
+      "claim": "The witness retains example 7's local addya body, qinplace @g @ginv tk x (y) () (a), but supplies g and ginv as signature-compatible imports pinned to their real published closures. The addya certificate record is supplied, with claims=[] and verification.inverse_pairs=[]. The bound arguments are tk=[3,0,0,0], a=1. Parsing and check_hashes both succeed, and both pair closure identities are available without their bodies.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/import-missing-inventory.bisa; reproducible constructor: python3 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/import-inventory-probe.py; pins are g=0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e and ginv=786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9."
+     },
+     {
+      "n": "3",
+      "claim": "verify_certificate returns Ok(CertificateReport { claims: [], qinplace_applicability: { addya: Unestablished('missing linked body for @g') } }). The new early continue at lines 95-105 prevents the empty owner entry list from reaching the mandatory missing-pair rejection at lines 128-132.",
+      "by": "witness:timeout 1200 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/import-inventory-probe /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/import-missing-inventory.bisa; probe source: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/import-inventory-probe.rs; source: reference-interpreter/src/claims/qinplace09.rs:95-105."
+     },
+     {
+      "n": "4",
+      "claim": "The control with the actual local g/ginv bodies and the same empty owner inventory correctly returns Err('\u00a712.3 K92: missing owner-local inverse-pair entry in @addya'). Thus the absence of bodies suppresses a decidable static rejection, rather than merely leaving proof replay unestablished.",
+      "by": "witness:timeout 1200 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/import-inventory-probe /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r2-codex/local-missing-inventory.bisa reject"
+     },
+     {
+      "n": "5",
+      "claim": "This is an S0 checker-contract divergence: the required missing-pair rejection is replaced by an unchecked obligation outcome. No claim of executable acceptance or quantum-state corruption is needed for this diagnostic-class counterexample.",
+      "by": "step:1; step:2; step:3; step:4"
+     }
+    ],
+    "problem": "S0: the missing-body shortcut runs before static owner-pair inventory validation. A supplied qinplace owner with an empty inverse_pairs list is therefore not rejected when its exact pair is available as pinned imports. K92 expressly preserves rejection of missing required pairs independently of unestablished body/applicability obligations.",
+    "fix": "Change reference-interpreter/src/claims/qinplace09.rs::check_qinplace_bindings09. Enforce the owner-local pair inventory before the missing-body continue: resolve available closure identities from identity.closure_hashes, including import pins, and require a matching entry in either orientation. Do not run pair-body proof replay until bodies are available; that separate obligation may remain Unestablished. The determining \u00a712.3 K92 sentences are 'MUST reject a missing pair or invalid referenced claim' and 'Malformed bindings and missing required pairs still reject'. Add the saved imported witness to tests/isa09_qinplace.rs with an expect_err assertion for the K92 missing-owner-pair diagnostic. It must fail on 5b71208, whose verification instead returns Ok with Unestablished. Keep the local-body control, repeat without bindings.invocation to exercise static inventory independently, and retain the existing unresolved-action-tree tests so a genuinely unavailable obligation still reports Unestablished without a panic. Expected for the supplied fixture at tk=[3,0,0,0], a=1: Err for missing owner-local inverse-pair entry, not a successful CertificateReport."
+   }
+  ],
+  "muse": []
+ },
+ "means": {
+  "C1": 4.33,
+  "C2": 4.33,
+  "C3": 4.33,
+  "C4": 4.33,
+  "C5": 4.33,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}
