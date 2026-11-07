@@ -1,0 +1,109 @@
+exit 0 in 58s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "K94 leaves the machine and state model unchanged and explicitly scopes its theorem to the containing reference action, full D and inherited controls.",
+      "change": "No machine-model change is needed."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "The new AdjointStep classification covers the action families in §5.3, including normalized adj/ctl calls, predicate pairs, complete qif expansions and both loop forms. It introduces no instruction or alternate inverse-body encoding.",
+      "change": "Add direct positive fixtures spanning the less-exercised §5.3 families to make this correspondence easier to maintain."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "The stated theorem correctly preserves borrowed/external systems, clean workspace and controls, and does not confuse inversion with involution. However, codex-B01 demonstrates Proof despite an unchecked, violated source lifetime/predicate premise in a zero-trip body.",
+      "change": "Enforce the zero-trip body invariants before issuing the structural proof, as specified in codex-B01."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "This is a reference-only theorem. K94 explicitly excludes scheduled-realisation comparison and preserves host-resource diagnostics; it changes no target or resource semantics.",
+      "change": "No resource or target contract change is needed."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "The existing closed witness {}, local earlier subclaim indices and invocation schema are retained. K94 separates theorem proof from K92 applicability. Existing §12.3 mixed-fat-object scope binds records to selected device closures, so the new rule does not require a native-host certificate inventory.",
+      "change": "Keep the existing envelopes and scoped applicability report while fixing the checker."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "Independently ran all 20 isa09_adjoint_table tests and the conformance test covering both F-adjoint-table cases; all pass. A separate source-level probe nevertheless returns Proof for the two malformed zero-trip bodies in codex-B01. The CLI conformance positive case checks admission rather than a claim verdict.",
+      "change": "Add the two negative proof-verdict regressions and a balanced zero-trip positive control; extend conformance to exercise established versus rejected claim outcomes when that interface is available."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "The repair restores universal empty-subclaim adjoint proofs for the published arithmetic fixture, retains non-involution actions and full inherited-control scope, and preserves the mixed-object boundary under §12.3. These support north-star certificate rung 4(a). The implementation blocker is reported separately rather than traded for narrower scope.",
+      "change": "Repair the missing premise check without requiring replay subclaims, forbidding zero-trip loops, or requiring whole-binary lowering."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The three premises, priority of rejection over Unverified, and named unavailable outcomes are clear. Shared current-definition revalidation is a good implementation boundary, but it is insufficient where the shared validator discards a zero-trip body state before checking its invariants.",
+      "change": "Make the zero-trip validation boundary explicit in code and cover it with verdict tests."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "codex-B01",
+      "section": "§12.1 K94 premise 2 and outcome rule; §4.6 loop bindings; §5.1 lifetimes; reference-interpreter/src/claims/adjoint09.rs:232-258 and src/validation.rs:172-175",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "K94 requires checking lifetime/cleanup and control premises even in zero-trip bodies, and requires rejection when a syntactic premise is violated. §4.6 requires a loop body to preserve its entry/exit live names and types; §5.1 requires each allocation to have a matching release.",
+          "by": "clause:ISA-12.1 K94, premise 2 and outcome paragraph; ISA-4.6 loop-binding paragraph; ISA-5.1. witness: \"including nested bodies, both `qif` arms and zero-trip loop bodies\"; \"All source operand, signature, bounds, read-only/control, version, lifetime/cleanup and borrow conditions of §§3–6 MUST hold\"; \"Malformed claims, violated syntactic premises and refuted subclaims reject.\""
+        },
+        {
+          "n": "2",
+          "claim": "The new proof path delegates source discipline to validate_function. Its qloop n=0 branch validates instructions on a clone of the entry state, then discards that clone without comparing its live bindings or predicate stack with entry. Consequently opcode/operand checks run, but the loop-body exit obligations do not.",
+          "by": "witness: reference-interpreter/src/claims/adjoint09.rs, validate_adjoint_source09, final self.validate_function(f); reference-interpreter/src/validation.rs:172-175: if n == 0 { self.validate_action_sequence(f, &i.bodies[0], &mut s.clone())?; continue; }"
+        },
+        {
+          "n": "3",
+          "claim": "A source-parsed perm_action @a with mut x:wire, bounds [0], no arguments, body qloop 0 { d = qalloc any 1 }, and the ordinary uniform adjoint_table claim with {} witness and [] subclaims passes parsing and check_hashes. There is no release for d, and its body exit has an additional live name. The analogous body qloop 0 { qpred x } also passes. The probe constructs and rehashes fresh source objects, rather than relying on post-parse public-field mutation.",
+          "by": "witness: reproducible Rust probe source, using only the candidate test helpers:\ninclude!(\"/home/tobias/Projects/bennett-workspace/bennett-isa-spec-council-80732c7/reference-interpreter/tests/isa09_adjoint_table.rs\");\nfn main() {\n    for (tag, body) in [\n        (\"unmatched_alloc\", \"qloop 0 {\\nd = qalloc any 1\\n}\"),\n        (\"unmatched_predicate\", \"qloop 0 {\\nqpred x\\n}\"),\n        (\"balanced\", \"qloop 0 {\\nd = qalloc any 1\\nqfree d\\n}\"),\n    ] {\n        let sig = r#\"{\"abi\":\"0.9\",\"args\":[],\"bounds\":[0],\"in\":[],\"kind\":\"perm_action\",\"mem\":[],\"mut\":[1],\"tier\":\"q\"}\"#;\n        let src = support::object(&[(\"a\",sig,&format!(\"perm_action @a (x:wire mut) () () () ()\\nregs {{  }} bounds {{0}}\\n^entry():\\n{body}\"))],\"{}\", \"\").replace(\"0.8\",\"0.9\");\n        let base = support::rehash(&src);\n        let (text,root)=attach(&base,vec![support::json(CLAIM)]);\n        let o=Object::parse(&text).unwrap();\n        o.check_hashes().unwrap();\n        println!(\"{tag}: claim={:?}; certificate={:?}\", o.verify_claim(&root,0),o.verify_certificate().map(|c|c.claims[0].verdict.clone()));\n    }\n}\n"
+        },
+        {
+          "n": "4",
+          "claim": "For both malformed bodies the public claim API and whole-certificate API return Proof. The balanced allocation/release body is the positive control. Observed output: unmatched_alloc: claim=Ok(Proof); certificate=Ok(Proof) / unmatched_predicate: claim=Ok(Proof); certificate=Ok(Proof) / balanced: claim=Ok(Proof); certificate=Ok(Proof).",
+          "by": "witness: env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isa-adjoint-table-2026-11-07/tmp-codex timeout 600 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isa-adjoint-table-2026-11-07/tmp-codex/probe. To rebuild: after cargo test --locked --manifest-path reference-interpreter/Cargo.toml -j3 --test isa09_adjoint_table with CARGO_TARGET_DIR=$TMPDIR/target, pipe the source in step 3 to rustc --edition=2021 -Awarnings --crate-name council_codex_probe - --extern bennett_isa_ref=<the libbennett_isa_ref-*.rlib in $TMPDIR/target/debug/deps> -L dependency=$TMPDIR/target/debug/deps -o $TMPDIR/probe. Set CARGO_MANIFEST_DIR to the snapshot/reference-interpreter and CARGO_BIN_EXE_bennett-isa-ref to the snapshot/reference-interpreter/target/debug/bennett-isa-ref."
+        },
+        {
+          "n": "5",
+          "claim": "The reference oracle establishes a claim without establishing its mandatory source premises. This is S0 under the council definition even though the dynamic zero-trip operation itself is identity: the defect is certification contrary to the explicit syntactic-premise contract, not an assertion that executing zero iterations leaks a qubit. It affects certificate rung 4(a).",
+          "by": "step:1; step:2; step:3; step:4"
+        }
+      ],
+      "problem": "S0 (severity); oracle; north-star rung 4(a). The repair promotes malformed zero-trip sources to established/proof because its shared validator discards the body-exit state. The stated finite syntactic premises have not all been discharged. This is newly exposed by the repair issuing Proof; it is not a new parser regression.",
+      "fix": "Keep K94's existing requirement. In §12.1, an explicit implementation-facing sentence may say: \"For a zero-trip loop, check the body's syntactic entry/exit live-name and type agreement, predicate-stack balance, and lifetime/cleanup obligations before discarding its hypothetical exit state; nonexecution does not waive these premises.\" Implement that check in the shared qloop validator (preferred), or add an equivalent check in adjoint_source validation. Preserve valid same-name/same-type rebinding and legal version changes; do not require identical quantum values or forbid zero-trip loops. Add claim and certificate regressions requiring rejection of qloop 0 { d = qalloc any 1 } and qloop 0 { qpred x }, with qloop 0 { d = qalloc any 1; qfree d } still proving. Merely changing these cases to Unverified would also contradict K94's rejection rule."
+    }
+  ],
+  "previous_status": [],
+  "regressions": [
+    "The formerly blanket-Unverified adjoint_table path now produces Proof for the malformed zero-trip sources in codex-B01. The underlying source-validator omission predates this repair, but the false assertion that its premises were checked is introduced by the new proof path."
+  ],
+  "suggestions": [
+    "Ruling (1): The specified adjoint law and its three premise groups are a sound reading of §5.3 and §12.1: generated adjoint, full D, arbitrary inherited controls, optional additional conjuncts, and no independent inverse-body or involution inference. The implementation is incomplete at codex-B01; acceptance requires that repair.",
+    "Ruling (2): The two named Unverified branches are appropriately confined to unavailable linked definitions and listed subclaims that have not established proof. Partial-domain/sample/image-relative results are not promoted. The repeated-unverified and later-refutation tests pass. Host failures remain separate diagnostics. No additional unsupported Unverified policy was found; malformed zero-trip sources must reject, not use that policy.",
+    "Ruling (3): The K94 compatibility statement holds for unchanged artifacts: no envelope, grammar, serializer, target, schedule, certificate, recipe or catalog change is introduced. Published fixture hash checks pass, and the shared empty-body guards retain the old diagnostic strings. Checker verdicts and validation caches must be rechecked. Correcting an actually malformed source will naturally change that corrected artifact's identity; K94 only promises stability for unchanged bytes.",
+    "S1: Add positive and negative verdict fixtures for multi-block lifetimes, cross-arm qif lifetimes, bounded/while loops, memory operations, controlled calls, and independent K92 applicability. Most new tests concentrate on binding and current-definition mutation rather than exercising the full adjoint-table family.",
+    "S1: The requested severity field is absent from schema.json and blocking items forbid additional properties; severity S0 is therefore recorded explicitly in the blocker problem and conclusion."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "1. Fix codex-B01 by validating zero-trip body exit invariants before issuing the adjoint proof, retaining the full source capability. 2. Add the two rejecting claim/certificate witnesses and balanced positive control, then rerun isa09_adjoint_table and the two F-adjoint-table conformance cases. No envelope change or mandatory replay premise is needed. The three requested rulings are stated in suggestions; only the demonstrated implementation gap blocks acceptance.",
+  "summary": "One S0 core blocker: the reference oracle returns Proof despite missing zero-trip lifetime/predicate premises. The stated adjoint theorem, named Unverified policy, and unchanged-byte/hash compatibility are otherwise appropriate. Independently verified all 12 embedded files match snapshot 80732c7f5c0d3da3ca09a416c1f5c598443843c7; 20 adjoint tests and both conformance cases pass. The additional probe exposes the missing negative case. No tracked snapshot files were modified."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isa-adjoint-table-2026-11-07/r1-codex.json

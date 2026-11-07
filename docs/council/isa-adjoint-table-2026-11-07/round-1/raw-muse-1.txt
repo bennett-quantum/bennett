@@ -1,0 +1,80 @@
+exit 0 in 27s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "The repair touches no tier, state or step-relation text. The theorem's state scope is stated exactly: full \u00a75.3 domain D, clean workspace/local images, identity on borrowed and external reference systems, every inherited effective control set (spec/Bennett-ISA-Spec-0.9.md:3842-3855, K94 para 1, deps ISA-5.3/5.6/12.3). Two implementers draw the same containing-region subject: no subject/variant/domain field exists for this rule and no variant spelling selects an adjoint.",
+      "change": "In premise 1 write 'an action or perm_action' instead of 'an action', matching the theorem paragraph and the implementation check (adjoint09.rs:88)."
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "Premise 2 enumerates the complete \u00a75.3 replacement set (reverse+renumber, alloc/release, copy/uncopy, load/unload, gate pairs, negated rotations, qinplace pair exchange, retained oracle_call, toggled action-call adjoints, predicate pairs, complete qif expansion, bounded-loop and while-flag constructions). I checked AdjointStep::parse (adjoint09.rs:35-53) against the \u00a74.4 gate list, the \u00a75.3 Body list and the \u00a74.8 Q(actions) row: coverage is total and exact, including adj/ctl call forms via normalize_call. Nested bodies, both qif arms and zero-trip loops are walked (check_steps, adjoint09.rs:56-76).",
+      "change": "Add an explicit ctl row to the \u00a75.3 table (ctl w @a maps to ctl w of the adjoint call); today it is derived from the Control paragraph plus 'toggle action-call adjoints', which the implementation already assumes."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "Soundness fencing is explicit and correct: the claim asserts the conditional adjoint law only ('denotes U-dagger when that region's reference semantics denotes U'), asserts neither U=U-dagger nor any separately written inverse or scheduled realisation, and does not discharge forward table/program relations, borrow-frame relations, qinplace inverse-pair truth or K92 applicability (K94 paras 1 and 5). Premises are sufficient: \u00a7\u00a73-6 source validity gives a clean unitary on D and the \u00a75.3 table is total over the action body forms, so the generated adjoint denotes the inverse, under inherited controls by \u00a73.5/\u00a74.6 unconditional lifetimes. Rejection takes precedence over Unverified and every premise is checked (adjoint09.rs:105-138; test a_refuted_later_premise_is_not_hidden_by_an_unverified_one). I found no path where the oracle certifies too much (rung 4(a) certificates and 'oracle' scope checked).",
+      "change": "Make premise 2 name reached oracle and lproc bodies explicitly ('all source conditions of \u00a7\u00a73-6, including every reached oracle/lproc definition and data definition in the closure'); the implementation already revalidates them and the current 'all source' wording is the one phrase a narrow reader could scope to action bodies only."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "No resource-vector, target, cost or budget-unit decision is taken or altered. The claim's \u00a712.3 invocation binds classical arguments, budget and K91 token identities, or the parameter-uniform form; a reference-only proof in an object containing a schedule still establishes only the reference law (K94 para 5), so no scheduler or vendor reading is affected. Uniform claims over token-bearing actions require token_aliases:\"all\" (adjoint09.rs:97-103), consistent with \u00a712.3 K91.",
+      "change": "None needed for resources/targets; the single change that most raises this is the same uniform-invocation explicitness already carried by \u00a712.3, so leave as is."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Contract surface is decided to checker level: closed claim schema (witness exactly {}, no subject/variant/domain, earlier local subclaim indices), the two named Unverified reasons, rejection for malformed/refuted/violated premises, and the K94 compatibility statement (spec:257). I verified compatibility holds: the published arith fixture is byte-identical to the conformance object (cmp equal), its hashes check (published_arithmetic_adjoint_claims_establish; CLI check reports the unchanged object_hash b8de99d8...), loader empty-body diagnostics are byte-identical (test loader_empty_body_diagnostics_remain_byte_identical), and the regenerated spec/isa-0.8-to-0.9.diff equals a freshly generated diff -u byte for byte (399220 bytes). No bytes, hashes, grammar or envelope change; only checker verdicts and validation caches move, as the K row states.",
+      "change": "Add one mixed-fat-object sentence to the K94 text (no certificate bytes change; the rule checks the marked device object's certificate as loaded). Nothing in the repair assumes the device object is the whole binary, so the fat object stays reachable, but the standing check prefers it stated."
+    },
+    {
+      "id": "C6",
+      "score": 3,
+      "evidence": "The theorem is stated with explicit hypotheses and decidable finite syntactic premises, and the reference tests pin the verdicts well (isa09_adjoint_table.rs, 20 tests, all pass in my run; published arith claim 1 establishes Proof, evidence/sampled/restricted subclaims are not promoted, unavailable linked body stays Unverified with the named reason). The gap is conformance-level pinning: the two new suite-F cases only run the CLI 'check' command (admission/hashes); the reference CLI has no claim-verdict command, so a checker that still returned Unverified for every adjoint_table claim would pass F-adjoint-table-published. The verdict contract is pinned by API tests, not by the conformance suite a second implementer runs.",
+      "change": "Pin verdicts in conformance: add a verify-claim/verify-certificate CLI command (or a conformance case kind that asserts claim verdicts) and cases asserting Proof for the published claim, Unverified with each named reason, and rejection for a refuted subclaim."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Consistent with the north star and narrowing nothing: claims the previous text left checkable-in-principle but unspecified (37 published universal claims in bennett-arith, empty subclaims, parameter-uniform invocation) now establish as proof, which is what rung 4(a) certificates consume; no well-formed true claim I tested is rejected (concrete-invocation and nested/ adj-call dependency probes establish and revalidate correctly). The narrow reading is honoured: generated adjoint only, no self-adjointness or variant-name inference, no mandatory replay subclaim, sampled/restricted observations never promoted by listing. Standing mixed-fat-object check: pass in substance (no object/certificate/launch/budget/handle decision; the checker operates on the loaded device object's certificate), short of an explicit sentence.",
+      "change": "State the mixed-fat-object sentence from C5 in \u00a712.1 or the K94 row."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "A checker author can implement from the text alone: premises are finite, syntactic and ordered, outcomes and their precedence are pinned, and the two Unverified reasons are named verbatim. The one gap an implementer names at once is the premise-2 scope phrase ('all source ... conditions') for lifted callees, which the reference implementation resolves by revalidating every reached definition in the dependency closure (validate_adjoint_source09, adjoint09.rs:208-261) scoped to that closure only (unreached invalid definitions do not block, per test). Deferred items: none introduced; host-resource failure remains an explicit checker diagnostic, correctly outside the verdict set.",
+      "change": "The premise-2 explicit-scope sentence from C3."
+    }
+  ],
+  "blocking": [],
+  "previous_status": [
+    {
+      "id": "P0-1 (sol code review round 1, b-isa-spec-krbe): reached linked oracle/lproc bodies not revalidated, Proof on invalid linked body (oracle certifies too much, rung 4(a))",
+      "status": "resolved",
+      "note": "a900cf9+80732c7 revalidate every current reached definition (actions, oracles, transitive lprocs, data) through the canonical source validators, with shared loader body-shape guards. Verified: candidate tests invalid_current_linked_oracle_rejects_after_an_earlier_proof, invalid_current_transitive_lproc_rejects..., both_linked_action_kinds_..., linked_data_..., renamed_definition_..., empty_current_lifted_bodies_... all pass; my own probes additionally confirm revalidation for callees reached only inside a qloop body and only via adj action_call, and rejection of a mutated operand inside a qif arm."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1 (C3/C8, spec text): premise 2 should explicitly include every reached oracle/lproc definition (and data definition) in 'all source operand/signature/bounds/... conditions of \u00a7\u00a73-6 MUST hold'. The implementation does this; foreclosing the narrow action-only reading in text removes the only divergence risk I found, and it only bites checkers that do not fully validate lifted bodies at load.",
+    "S1 (C6, conformance): F-adjoint-table-published only exercises CLI admission ('check', status ok) and would pass under the pre-repair Unverified behaviour; the CLI exposes no verdict command. Add verdict-level conformance (Proof for the published claim; each named Unverified reason; refuted-subclaim rejection). Same point as review nit b-isa-spec-hqlj.",
+    "S1 (C2, spec text): give \u00a75.3's table an explicit ctl row (adjoint of ctl w @a is ctl w applied to the adjoint call). AdjointStep accepts ctl via normalize_call; the text currently derives it from the Control paragraph and 'toggle action-call adjoints'.",
+    "S1 (C1, wording): premise 1 'The containing region is an action' -> 'an action or perm_action', matching the theorem paragraph.",
+    "S1 (C5/C7, standing fat-object check): add one sentence that K94 changes no certificate layout or bytes and, in a mixed fat object, applies to the marked device ISA object's certificate as loaded, with token_aliases binding as already stated in \u00a712.3. Reachability is not in doubt; the sentence is for explicitness.",
+    "S1 (C3, wording): in the theorem paragraph, attach the existing final-paragraph fencing locally, e.g. '...identity on the full \u00a75.3 domain D, with clean workspace/local images, whenever the source's semantic preconditions (including any qinplace inverse-pair obligation) hold', so a rung-4(a) consumer cannot read the clean-workspace phrase as itself proving pair truth.",
+    "S1 (tests): pin the two invocation edges I probed green but which the candidate tests do not cover: a concrete (non-uniform) invocation establishes Proof, and a missing invocation rejects (the 0.9 schema marks invocation optional for structural claims, so the MUST-carry rule of \u00a712.3 is enforced only by claim.get in verify_adjoint_table09). Also pin uniform-without-token_aliases:all rejection for a token-bearing action as a named test.",
+    "S1 (robustness, non-normative): verify_adjoint_table09 indexes f.params[3] directly; on a hand-mutated Object with fewer parameter groups this panics instead of returning a diagnostic. A checked lookup would keep the public-API threat model the fix otherwise serves. Panic is not Proof, so this is not soundness."
+  ],
+  "verdict": "accept",
+  "path_to_accept": "Accept as-is; no change is required. Rulings requested: (1) Yes - the side conditions are the right and complete reading of \u00a75.3 + \u00a712.1: the \u00a75.3 table is total over action body forms, premise 2 adds full \u00a7\u00a73-6 source validity over the linked dependency closure (finite graph, no unrolling), and the theorem is correctly scoped to full D, borrowed/external identity and every inherited control set, asserting neither self-adjointness nor any separately written inverse or realisation; nothing a true claim needs is missing (empty subclaims and parameter-uniform claims establish; concrete invocations establish in my probe) and nothing unsound is admitted (subclaims must independently be established proof, labels never substitute, rejection outranks Unverified). (2) Yes - 'Unverified with a named reason' is confined to genuinely uncheckable premises: the two named reasons (listed subclaim not an established proof; linked definition unavailable) are the only unchecked-premise outcomes, everything malformed, violated or refuted rejects, and host-resource failure stays a checker diagnostic outside the verdict set. (3) Yes - the K row compatibility statement holds: no grammar/envelope change, published fixture bytes and object/interface/closure hashes unchanged (verified by cmp, check_hashes and CLI check), loader diagnostics byte-identical, generated 0.8-to-0.9 diff reproducible byte for byte; only verdicts/caches require rechecking. What would raise the lowest criterion (C6, 3->4): conformance cases that pin claim verdicts, not just CLI admission (suggestion 2).",
+  "summary": "Accept, core and whole (verdict_core=accept, verdict=accept, no blocking items). The K94 text gives adjoint_table a precise conditional theorem (generated \u00a75.3 adjoint denotes U-dagger on full D including inherited controls), a finite decidable premise set, optional conjunctive subclaims that must independently prove, and exactly two named Unverified reasons with rejection taking precedence; the reference implementation is faithful, including the sol-P0 fix revalidating every reached current definition, so the oracle does not certify too much for rung 4(a) certificates and no well-formed true claim is narrowed away. Verified in the frozen snapshot at 80732c7: isa09_adjoint_table 20/20 pass, conformance adjoint_table 1/1 pass, full reference-interpreter suite reported no failures, published arith object establishes Proof and passes hash checks, fixture byte-identical to the conformance object, regenerated isa-0.8-to-0.9.diff byte-identical to a fresh generation, and six adversarial probes of my own pass (concrete invocation establishes; missing invocation rejects; uniform token claim without token_aliases:\"all\" rejects; invalid callees reached only via qloop body or adj action_call reject after an earlier proof; mutated operand inside a qif arm rejects). Checked for regressions in the two shared-code changes: the verify_claim_guarded active-set refactor only removes entries on paths where all callers propagate errors with ?, and StructuralRule::parse rejecting unknown rules is unobservable because the closed claim schema already enumerates the three rules. Residual S1 items are conformance verdict pinning (C6=3) and small explicitness wording (premise-2 lifted scope, ctl row, fat-object sentence).",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isa-adjoint-table-2026-11-07/r1-muse.json
