@@ -1,0 +1,130 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "object/lexical.rs now checks canonical atom spelling and spacing, including the repaired i04 and bounds cases. However object.rs::build_function/parse_header_groups and eval.rs::parse_seq do not establish the complete \u00a716.2 grammar (CODEX-S0-1), and execution skips \u00a73.3 operand checks in zero-trip bodies (CODEX-S0-2). Both yield verified/proof on invalid input bytes.",
+   "change": "Validate complete structured syntax and static operand legality before any certificate proof can be emitted."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "The \u00a79.2 acyclic envelope was constructed independently with Python hashlib, not the checker: isa=0.9 LF, ptr_width=32 LF, JCS signature LF, canonical function bytes LF. The canonical identity example hashes to 0d09586889f37fcdace6d76e964ec55aada811f82d98c57a109b88ecb831129e and object 24421cef3e12371ac6a06522b87f9d70bdc4943fec895cd60f85a5b600254d35; checker and pinned reference accept those bindings. Published inc8, mutual-SCC and sum_db hash tests passed.",
+   "change": "Retain independent envelope construction in new admission regressions so stale hashes cannot mask a parser defect."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "Independent complete 256-row tables for a two-bit increment oracle (const, add, retval) establish exactly three executed rows for success: B=3 gives target XOR ((x+1) mod 4), unchanged fault; B=2 gives unchanged target and fault XOR 1. Both claims return proof with fraction 1/1. The overall oracle reports remain unchecked for separate obligations. Procedure/memory/fault and replay-differential tests also passed; unsupported execution paths use named unchecked outcomes.",
+   "change": "Separate static admission from dynamic replay so an unexecuted row cannot escape well-formedness checks."
+  },
+  {
+   "id": "C4",
+   "score": 3,
+   "evidence": "The checker explicitly withholds expected:oracle certification until the realised \u00a75.2 expansion/\u00a73.6 step-machine check exists. The replay extraction preserves this guard. Hand tracing an assignment step and its inverse clears the displaced-value slot, old_pc and successor scratch; the \u00a73.7 call inverse must restore counters before record addresses and capture uncomputation. This is a spec trace, not evidence that the checker implements the complete reversible step machine.",
+   "change": "Complete independently checked step-machine expansion as the already disclosed capability work; do not replace the unchecked guard with reference self-comparison."
+  },
+  {
+   "id": "C5",
+   "score": 3,
+   "evidence": "This certificate checker does not claim a complete CC/R executor. The \u00a77.4 hand trace call; store; ret; pure result-copy; uncall restores the store while retaining the pure copy, marks the segment reversed, and whole-run reversal skips that segment and the uncall marker. Existing oracle procedure tests passed, but these do not establish CC/R history/tape semantics.",
+   "change": "Keep CC/R and T4 evidence explicitly separate from the implemented reference-oracle subset."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The full run passes coherent-phase, qif/loop lifetime, numerical/channel, structural borrow, native-model and recompute-cleanup tests. K89 selected-frame claims return unchecked before ordinary interface replay and carry neither proof nor count/coverage. However a zero-trip qloop containing cx c c is certified despite \u00a73.3 disjointness (CODEX-S0-2), so basis agreement alone does not establish source legality.",
+   "change": "Check structural and static quantum obligations independently of executed iterations before using T3 proof classification."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Fresh isolated build/run: 14 unit plus 277 integration tests passed, no failures or ignored tests. lexical_differential compares Object::parse admission with the pinned black-box check in both directions, and separately prohibits overall verified or claim proof on oracle-rejected candidates. Mutation tests assert six wrong binding hashes, eight wrong output bits and four shifted before rows with expected diagnostics; positive controls are present. The generated alphabet does not cover deletion/addition of braces or extra header tokens, as the new byte witnesses demonstrate.",
+   "change": "Add complete-grammar and dead-body semantic mutations with valid neighboring controls, rather than treating the 1,933 lexical cases as complete source admission coverage."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "docs/checker.md accurately discloses K89 domain/occurrence/sampler deferral, recompute cleanup, and implementation host limits; CLI status tests and pin-environment negative tests passed. The phase extraction preserves observable returns because check_replay_claim collapses Ok(outcome) and Err(outcome). A producer variant is correctly an opaque nonempty string (\u00a712.3), not an ISA-defined forward/adjoint enum. No SPEC-QUESTIONS file was found in the snapshot.",
+   "change": "Preserve precise claim/overall distinctions and update admission claims after the two core defects are repaired."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "CODEX-S0-1",
+   "section": "ISA \u00a716.2 and \u00a712.1; checker/src/object.rs::build_function/parse_header_groups; checker/src/eval.rs::parse_seq/parse_blocks",
+   "scope": "core",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "A function header ends after its five parameter lists, and a structured instruction body has a closing brace; malformed source cannot establish a certificate proof.",
+     "by": "clause: ISA \u00a716.2, fhead production and instr production: \"(SP \"{\" NL instr+ \"}\" ...)? NL\"; ISA \u00a712.1 requires replay of the subject reference semantics."
+    },
+    {
+     "n": "2",
+     "claim": "The identity control is independently bound and accepted. Its source is perm_action @a (t:wire mut) (c:wire in) () () (); regs {  } bounds {2}; ^entry():; qloop 2 {; cx c t; } (semicolons here denote LF). Two CX operations restore every (t,c), so the four rows 00,01,10,11 all map to themselves.",
+     "by": "witness: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/canonical.bisa and /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/canonical.json; timeout 600 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/target/debug/bennett-check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/canonical.json --object /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/canonical.bisa; observed exit 0, overall=verified, outcome=proof, elements=4, covered_fraction=1/1. timeout 600 /home/tobias/Projects/bennett-workspace/bennett-conformance-council-a00ab18/.tmp/gate/cache/bennett-isa-spec@3b1090790d82/bennett-isa-spec/reference-interpreter/target/release/bennett-isa-ref check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/canonical.bisa exits 0."
+    },
+    {
+     "n": "3",
+     "claim": "Delete only the final closing-brace line and independently recompute all hashes. The pinned reference rejects with \"\u00a716.2: empty or unterminated structured body\", but the checker returns exit 0, overall=verified, outcome=proof, elements=4, fraction=1/1, and no errors or unchecked items. parse_seq accepts EOF as an implicit close. Additional saved witnesses add an unmatched closing brace or append \" junk\" to the function header; both also receive verified/proof while the reference rejects.",
+     "by": "witness: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/missing_close.bisa and /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/missing_close.json; timeout 600 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/target/debug/bennett-check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/missing_close.json --object /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/missing_close.bisa; timeout 600 /home/tobias/Projects/bennett-workspace/bennett-conformance-council-a00ab18/.tmp/gate/cache/bennett-isa-spec@3b1090790d82/bennett-isa-spec/reference-interpreter/target/release/bennett-isa-ref check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/missing_close.bisa. Additional input pairs: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/extra_close.{bisa,json} and /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/header_junk.{bisa,json}."
+    },
+    {
+     "n": "4",
+     "claim": "The certificate oracle certifies an object outside the published grammar, affecting certificates at rung 4(a). Canonical lexical atoms do not discharge structured syntax.",
+     "by": "step:1; step:2; step:3"
+    }
+   ],
+   "problem": "Severity S0; oracle; rung 4(a). Complete source syntax is not validated before proof emission. build_function drops closing braces, parse_seq tolerates an unterminated body, and parse_header_groups counts five groups without rejecting trailing header tokens. This is not an unsupported capability reported unchecked: the saved malformed byte inputs receive an unconditional verified/proof result.",
+   "fix": "In checker/src/object.rs::build_function/parse_header_groups, enforce complete \u00a716.2 fhead, block and structured-instr productions, consuming every token and requiring nonempty, balanced bodies. Make checker/src/eval.rs::parse_seq/parse_blocks propagate malformed structure rather than accept EOF/skip trailing source. The determining spec words are \u00a716.2 fhead with exactly five plist groups and instr with \"SP \"{\" NL instr+ \"}\"\". Expected result for missing_close, extra_close and header_junk is rejected/E_CERT_OBJECT before any claim proof. Add byte-entry regressions using these saved inputs with rebound hashes; all three currently fail that assertion. canonical.bisa must remain verified/proof."
+  },
+  {
+   "id": "CODEX-S0-2",
+   "section": "ISA \u00a73.3 Disjointness, \u00a74.4/\u00a74.6, \u00a712.1; checker/src/eval.rs::ActionEnv::exec_block/exec_perm_gate and source admission",
+   "scope": "core",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "Wire operands must be pairwise distinct as a well-formedness condition. A counted loop executing zero times does not waive the source operand rule.",
+     "by": "clause: ISA \u00a73.3 Disjointness: \"The wire operands of one instruction are pairwise distinct\"; \u00a74.6 counted qloop semantics; \u00a712.1 certificate replay obligations."
+    },
+    {
+     "n": "2",
+     "claim": "The valid zero-trip control declares bounds {0} and has qloop 0 { LF cx c t LF }. Its full four-row identity table is correct. Both the reference check and checker accept it.",
+     "by": "witness: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_valid.bisa and /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_valid.json; timeout 600 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/target/debug/bennett-check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_valid.json --object /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_valid.bisa; observed exit 0, overall=verified, claim=proof, elements=4, fraction=1/1. timeout 600 /home/tobias/Projects/bennett-workspace/bennett-conformance-council-a00ab18/.tmp/gate/cache/bennett-isa-spec@3b1090790d82/bennett-isa-spec/reference-interpreter/target/release/bennett-isa-ref check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_valid.bisa exits 0."
+    },
+    {
+     "n": "3",
+     "claim": "Replace the loop instruction with cx c c and independently rebind hashes. The reference rejects with \"\u00a73.3: overlapping wire operands\". The checker still emits overall=verified, claim=proof, fraction=1/1, no errors and no unchecked items. The counted-loop branch performs zero exec_stmts calls, so exec_perm_gate never checks the operands. A separate zero_bad_instruction byte witness using cx missing t similarly verifies despite the reference rejecting an unknown/live wire.",
+     "by": "witness: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_alias.bisa and /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_alias.json; timeout 600 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/target/debug/bennett-check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_alias.json --object /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_alias.bisa; timeout 600 /home/tobias/Projects/bennett-workspace/bennett-conformance-council-a00ab18/.tmp/gate/cache/bennett-isa-spec@3b1090790d82/bennett-isa-spec/reference-interpreter/target/release/bennett-isa-ref check /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_alias.bisa. Additional witness: /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex/zero_bad_instruction.{bisa,json}."
+    },
+    {
+     "n": "4",
+     "claim": "Runtime identity over all four inputs is being used to certify statically invalid source. This is an oracle over-certification at rung 4(a), separate from missing-brace parsing.",
+     "by": "step:1; step:2; step:3"
+    }
+   ],
+   "problem": "Severity S0; oracle; rung 4(a). Action well-formedness currently depends on execution visiting each instruction. Zero-trip bodies bypass live-wire, arity and disjointness validation and can receive a full-domain proof. The alternative reading that dead operations need no dynamic effects is correct for execution, but cannot erase the unconditional \u00a73.3 source constraint; the pinned reference enforces that distinction.",
+   "fix": "Add a static validation pass over the complete structured action and reachable source closure before check_replay_inner can issue proof. In checker/src/eval.rs, factor operand validation out of ActionEnv::exec_perm_gate and ensure the zero-trip branch of exec_block does not bypass it; maintain source lifetimes and effective controls without executing gate effects. \u00a73.3 says \"The wire operands of one instruction are pairwise distinct\" and defines wire ownership independently of basis execution. zero_alias.bisa and zero_bad_instruction.bisa must reject with E_CERT_OBJECT, while zero_valid.bisa remains verified/proof. Add byte-level regressions for all three (with rebound hashes), including zero-trip unknown, overlapping and wrong-arity operands. A disclosed unchecked result is appropriate only for static obligations not yet derived, never a proof based solely on zero iterations."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "bennett-conformance-mge / P1-1",
+   "status": "resolved",
+   "note": "The exact prior i04 and bounds { 2 } witnesses are now rejected by the lexical reader; their dedicated tests and the generated pinned differential passed. CODEX-S0-1 identifies remaining complete-grammar admission defects, rather than asserting those exact repaired spellings regressed."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Rung 4(a): finish the retained clause-map update (fv9). The current map predates the pinned spec and reports only 6 strong plus 23 weak mappings; use separate obligations for source admission, complete replay, and frame-domain proof so line coverage cannot obscure missing preconditions.",
+  "Retain the optional/default audit (hql) and extend positive certificate checks to semantics-preserving, reference-accepted generated lexical candidates. The existing differential can detect both parser admission directions, but its full certificate anti-proof assertion is only applied to reference-rejected candidates."
+ ],
+ "verdict": "revise",
+ "verdict_core": "revise",
+ "path_to_accept": "Resolve CODEX-S0-1 and CODEX-S0-2, preserving the canonical and zero-trip valid controls, and rerun the checker tests with the same pin. Requested ruling (1): yes, two byte witnesses prove verdict paths certify too much, but no such over-certification was found in the new K89 or recompute guards: selected borrow_frame always defers normative domain/occurrence/sampler/tensor replay with no proof/count/coverage, and trace rejects deriving a reverse-cleanup trace for a schedule containing recompute. Requested ruling (2): the replay phase extraction preserves existing outcome semantics on the reviewed paths: table/program/enumeration/finish logic is moved, and helper Err(outcome) versus the old early Ok(outcome) is collapsed identically by check_replay_claim. K89 admission and the explicit fail-fast changes are intentional behavior changes outside a purely mechanical split. No split-induced verdict regression was reproduced. Requested ruling (3): yes, the lexical differential can fail for either parser admission direction and for an oracle-rejected candidate receiving proof; the value sweeps can fail on wrong hashes, after values and before-row correspondence, with positive baselines elsewhere. Neither suite is a proof of complete grammar or static-semantic coverage, as the new witnesses establish.",
+ "summary": "Reviewed frozen a00ab1876db7da9861dd6313ab55b9be6f71b3ed against ISA pin 3b1090790d82a00ac95d30b8da6b42d1d7a9f5d1. Read the packet and verified all 56 full-file sections byte-for-byte against the snapshot. Ran cargo test --manifest-path checker/Cargo.toml -j3 with BENNETT_ISA_SPEC set to the pin and CARGO_TARGET_DIR under tmp-codex: 14 unit + 277 integration tests passed (integration phase 34.93 s), none failed/ignored. All executable probes used timeout 600, TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/checker-quality-2026-11-07/tmp-codex, and DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset. Independent Python JCS-for-integer-documents and SHA-256 envelope construction supplied fresh object/certificate bytes; reference implementation source was not used. Hand reproductions: (a) two CX operations restore all four tuples; canonical control verifies; (b) three-row two-bit increment at B=3 produces target XOR ((x+1) mod 4), at B=2 commits payload zero/code 1, and all 256 tuples match in both checker claims; the overall oracle report stays unchecked for distinct obligations; (c) independently constructed \u00a79.2 envelope and object hashes match the accepted control; (d) \u00a73.6 assignment inverse restores pc/location and clears displacement/successor/history fields, and \u00a73.7 call inverse restores counters before record addresses and capture sources; (e) \u00a77.4 call/store/ret/pure-copy/uncall traversal restores memory once while retaining the copy until its own reversal. The inverse/history checks were hand traces of the contract, not claims that this checker executes those full machines. Adversarial byte probes found verified/proof for missing_close, extra_close, header_junk, zero_alias and zero_bad_instruction; the pinned reference rejects each. Inspected claim dispatch, K89 deferral, recompute trace gating, extraction return propagation and test assertions; searched unsupported/default/panic sites in the changed paths. This is not a completed audit of every inherited default or every ISA instruction. No new regression attributable specifically to the extraction is asserted. Both blockers are core severity S0 and affect the certificate oracle at rung 4(a); severity is recorded in problem text because the supplied closed schema has no severity property. Tracked snapshot files remain unchanged; review artifacts are confined to the authorized tmp-codex directory and this JSON."
+}
