@@ -1,0 +1,106 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "object.rs, schema.rs, validation.rs and metadata_schema.rs retain versioned parsing, operand/tier admission and recursive metadata validation. The fix changes certificate semantic checking, not the source grammar; the published 0.9 examples used in the hand checks parse and their stored identities validate. No new source-admission regression was established.",
+   "change": "In reference-interpreter/tests/isa09_qinplace.rs, extend the imported-entry negative matrix to distinguish grammar-valid but semantically inconsistent token partitions from unavailable proof replay; the former must return a K91 diagnostic."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "identity.rs retains separate import fingerprints and closure pins, SCC grouping and versioned structured layout paths. Independently assembled the nine LF-terminated inc8 envelope lines for ISA 0.9 and obtained ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e with Python hashlib; check agrees. All 21 identity tests passed, including four legacy published vectors, mutual SCC ordering and collision-path controls. Imported witness pins were also derived from actual local bodies.",
+   "change": "In reference-interpreter/tests/identity.rs, add the independently assembled 0.9 inc8 envelope as a literal byte comparison alongside the existing 0.8 printed-envelope test, preserving the exact digest and final LF."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "oracle.rs and machine.rs retain the separate sequential and literal engines for the \u00a74.2 row families. Hand derivation and prebuilt CLI agree: inc8(8), B=3 gives payload 9, code 0, steps 3; B=2 gives payload 0, code 1, steps 2. Example 9 at x=1,B=1 gives payload 0, code 4, steps 1, whereas x=0,B=1 gives code 1. The step-machine arithmetic, allocation and memory fault controls passed.",
+   "change": "In reference-interpreter/tests/isa09_review.rs, retain an explicit table for example 9 at B=0,1,2 and both input bits, asserting payload, effective fault code and executed-row count independently of the other engine."
+  },
+  {
+   "id": "C4",
+   "score": 5,
+   "evidence": "machine.rs::inverse_call and inverse_ret follow the printed C5^-1 through C1^-1 and R5^-1 through R1^-1 lists, restoring counters before evaluating stack addresses and delivery conditions. Traced a recursive call with two callee locations, R_f=5, old sp=5,fp=0,depth=1: capture, saved locations and boundary XORs all clear after reversal, returning sp=5,fp=0,depth=1. Six step_machine tests passed, including complete recursive call/ret pre-step equality, idle HALT, allocator faults and the complete tiny-memory tuple family.",
+   "change": "In reference-interpreter/tests/step_machine.rs, add one literal recursive-call intermediate-state table for the R_f=5 example, exposing counter and stack expectations before and after C5^-1 rather than relying only on final snapshot equality."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "classical.rs::undo_record, undo_frame, reverse and call/ret/uncall dispatch retain cancellation-aware LIFO reversal. Traced call\u2192clock.read\u2192ret reversal: remove caller results, restore overwritten bytes and clock/tape, then remove callee parameter instances and activation; reversed frames and uncall markers are skipped in enclosing traversal. All four classical tests and 13 isa09_budget_mint tests passed, including nested cancellation, terminal faults, token revocation, expired owners and observer rollback.",
+   "change": "In reference-interpreter/tests/isa09_budget_mint.rs, add a nested completed call that mints and returns a token, then uncall it and assert the retained alias rejects both public oracle entry paths while full reversal restores entry."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "All 42 isa09_qinplace tests passed, including every x/y/a of the published pair, adjoints, disabled predicates, zero-trip static inventory, transitive invocation bindings and library-domain preservation. The original K92 missing-pair bypass is fixed. SOL-R3-B1 identifies a remaining certificate-contract validation error for a tuple-inconsistent partition when imported bodies are unavailable; executable pre-effect checking with local bodies still rejects it.",
+   "change": "Change claims/pairs09.rs::pair_context to preserve every token tuple that is positionally knowable without a body, including the sole argument-token tuple, before qinplace09.rs can defer. Primary [3,0,0,0], sole argument [2,0,0,0], aliases [0,0] must reject under K91."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "This review ran 101 tests successfully across classical, identity, isa09_budget_mint, isa09_certificate, isa09_claim_replay, isa09_qinplace and step_machine; one pre-existing exhaustive recursive sweep remained ignored and was not run here. The new imported inventory and invalid-budget/alias-shape tests reproduce the reported fix, but the alias tests cover arity/gaps rather than the remaining known-tuple inconsistency. The typed imported/local probe independently reproduces that missing case.",
+   "change": "In tests/isa09_qinplace.rs, add a one-token imported-pair matrix over primary/argument steps 3/3 and 3/2 and partitions [0,0]/[0,1], testing both verify_certificate and verify_claim, with local-body controls. The 3/2,[0,0] case must be Err, and both consistent controls must retain Unverified/Unestablished when the donor is absent."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "CertificateReport separates standalone claims from root/owner applicability, and the original empty-report, uniform-context and scheduled-context fixes remain covered. All 33 SPEC-QUESTIONS entries were read as version-qualified background, with 0.9 clauses taking precedence over historical 0.8 proposals. docs/quality.md correctly records missing-pair rejection but overstates the necessity of a body for positional tuple checks: one argument token has only one possible position.",
+   "change": "In docs/quality.md, replace the blanket sentence that positional tuple comparisons require a body with a distinction between known positions (including a single token argument) and genuinely unresolved formal ordering, and record the regression from SOL-R3-B1. Also mark historical SPEC-QUESTIONS proposals with their superseding 0.9 clauses."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-R3-B1",
+   "section": "ISA 0.9 \u00a712.3 K91/K92; reference-interpreter/src/claims/pairs09.rs::pair_context:46-68 and qinplace09.rs::check_qinplace_bindings09:128-131",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "An inverse-pair token partition with equal labels requires equal tuples; a malformed binding must reject even when linked proof replay cannot be established. This is a decidable local condition for exactly one token argument.",
+     "by": "clause:ISA 0.9 \u00a712.3 K91: \"Equal labels denote one valid token identity and require equal tuples\" and \"Inverse-pair entries bind the primary/argument token partition when relevant\"; clause:ISA 0.9 \u00a712.3 K92: \"Malformed bindings and missing required pairs still reject\"."
+    },
+    {
+     "n": "2",
+     "claim": "Construct a well-typed token-bearing variant of example 7: add k:token before a:i2 to both g and ginv; add k:token between tk and a in addya; use qinplace @g @ginv tk x (y) () (k, a). Keep the original three arithmetic rows of each oracle. Derive and pin their real closure hashes, g=b2e4610bcfc9e9c00595a1051c6b1b66c8ff3f58acf39c9d56ddbe913c0aeb8a and ginv=513f302a60d5a132dfa3dd8b3394eb2f83a851119cc420a1380b6cab1577a695. Remove the two bodies, retaining imports with args:[\"token\",\"i2\"]. The addya owner closure is e937e20b66139f5e0a238ddff46eb8077a8649993af2f5e661827d9e216113f8.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/target-r3-sol/typed-alias-probe; constructor uses published_source(), imported_pair_library_certificate(false), fields() and support::object/rehash from reference-interpreter/tests/isa09_qinplace.rs and tests/support/mod.rs; all source text and certificates are constructed in memory, and both Object::parse and check_hashes succeed."
+    },
+    {
+     "n": "3",
+     "claim": "Supply addya claim 0 as structural inverse_pair_library, subclaims=[], witness={library_closure_hash:g,claim_index:0}, invocation={args:\"all\",budget:\"all\",token_aliases:\"all\"}; no donor region record and no root bindings.invocation. Its exact owner-local entry is {g:G,ginv:H,claim:0,budget:[3,0,0,0],arg_tokens:{k:[2,0,0,0]},token_aliases:[0,0]}. Both verify_certificate and verify_claim return Ok: the former carries an Unverified library claim and Unestablished applicability, and the latter returns Unverified. pair_context passes [None,None] to alias_binding, discarding the known tuples before the missing-body exit.",
+     "by": "witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r3-sol timeout 1200 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/target-r3-sol/typed-alias-probe; source:reference-interpreter/src/claims/pairs09.rs:63-68; source:reference-interpreter/src/claims/qinplace09.rs:128-131."
+    },
+    {
+     "n": "4",
+     "claim": "Retaining the local g/ginv bodies with the same owner closure, entry, unavailable donor and claim makes both APIs return Err(\"\u00a712.3 K91: ... equal token_aliases labels have unequal tuples\"). Imported and local controls with k=3,[0,0] or k=2,[0,1] correctly retain Unverified/Unestablished. Thus neither a proof nor any executable acceptance is being demanded, and the failure is isolated to a malformed equality hidden by unavailable bodies.",
+     "by": "witness:the same typed-alias-probe command prints all six imported/local combinations and both public checker results; source:reference-interpreter/src/claims/pairs09.rs::pair performs the known positional tuple check when bodies exist."
+    },
+    {
+     "n": "5",
+     "claim": "The imported malformed binding must produce the same K91 rejection as the local control. There is no ambiguity about formal order: the primary token is first and k is the only argument token. Returning an unavailable obligation instead violates the checker diagnostic contract, so this is S0, contract scope.",
+     "by": "step:1; step:2; step:3; step:4"
+    }
+   ],
+   "problem": "S0: unavailable pair bodies still suppress a locally decidable K91 tuple-equality rejection. pair_context validates each budget and partition shape but deliberately supplies no known tuples to alias_binding. For the single-token witness, [0,0] equates [3,0,0,0] and [2,0,0,0]; missing formal names or donor proof cannot make that equality consistent. Both public checker APIs return Ok with unavailable outcomes instead of Err. This does not allege quantum-state corruption or an established executable verdict.",
+   "fix": "Change reference-interpreter/src/claims/pairs09.rs::pair_context, called before the missing-body/missing-donor exits. The determining \u00a712.3 K91 sentence is \"Equal labels denote one valid token identity and require equal tuples\"; K92 adds \"Malformed bindings and missing required pairs still reject\". Preserve the primary budget as a known tuple and, when arg_tokens has one entry, pass [Some(budget),Some(the sole argument tuple)] to tokens::alias_binding, rather than [None,None]. Keep pair()'s exact formal-name/order validation once bodies are available; do not guess BTreeMap name order for multiple unavailable formals. Also reject any multi-token equality contradiction decidable independently of formal ordering, leaving genuinely unresolved positions unestablished. Add the typed example-7 variant described in steps 2\u20133 to tests/isa09_qinplace.rs: primary minimum [3,0,0,0], arg_tokens.k=[2,0,0,0], aliases [0,0], uniform inverse_pair_library claim and absent donor. With imported g/ginv and no root invocation, assert both verify_certificate and verify_claim return Err containing K91 and unequal tuples; those assertions fail on 185e9ba. Repeat with local bodies and retain imported k=3,[0,0] and k=2,[0,1] controls, which must remain Unverified/Unestablished without proof replay. Update docs/quality.md to state that only genuinely unavailable positional information is deferred."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "CODEX-R2-B1",
+   "status": "resolved",
+   "note": "The exact saved imported missing-inventory fixture now rejects under K92 with and without bindings.invocation; local controls, invalid referenced-claim cases and both valid pair orientations passed. The separate remaining known-tuple inconsistency is SOL-R3-B1."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In reference-interpreter/SPEC-QUESTIONS.md, add a per-entry version/status marker and link each adopted or superseded reading to ISA 0.9 \u00a70 and its normative clause. In particular, distinguish historical entries 16, 21, 26, 31\u201333 from the current versioned free, replay, parametrised-pair, layout-path and binding contracts; these archival proposals should not read as overrides of 0.9.",
+  "In tests/isa09_qinplace.rs, expand the missing-body context matrix after the blocking one-token repair to include two token arguments with reversed formal-name order, equal/different tuples, both pair orientations and absent/present donor records. Expected rejections should be derived from K91 equality constraints, and valid distinct equal-tuple identities must remain admitted.",
+  "In docs/quality.md, accompany the early-exit sweep table with the independently decidable conditions each exit preserves: exact pair identity, claim rule/index, valid budgets, alias arity/label shape and known tuple equality. Link the final test for each condition so the table cannot conflate shape validation with the full binding contract."
+ ],
+ "verdict": "revise",
+ "verdict_core": "accept",
+ "path_to_accept": "1. Fix SOL-R3-B1 in pair_context so the single-argument imported partition rejects a known unequal-tuple equality before unavailable-body/donor outcomes; preserve exact local checks and genuinely unresolved outcomes. 2. Add the imported/local matrix and both consistent controls to isa09_qinplace.rs, checking both public verifier APIs, and rerun the 42-test family plus certificate/replay/mint controls. 3. Correct the docs/quality.md sentence that currently defers all positional tuple comparisons. No core execution change, specification amendment or additional council round is required by this finding.",
+ "summary": "Round-3 sol review at frozen 185e9baabd54dae8c56c7c776fd404d98a2c9679. Loaded the complete 1,500,357-byte prompt and verified every attached changed-file body against the snapshot; inspected the fix and earlier quality changes read-only. CODEX-R2-B1 is resolved, but an additional S0 checker-contract witness remains, SOL-R3-B1. No regression from a previously correct behavior was established, and no core-scoped blocker was reproduced. Required method 1: independently derived inc8(8) at B=3 => (payload 9,code 0,steps 3), B=2 => (0,1,2), and zero_cause at B=1 => (0,4,1) for x=1 versus (0,1,1) for x=0; CLI results agree. Independently assembled the 0.9 inc8 envelope, including every LF, and Python SHA-256 gives ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e, matching the published and checked identity. Method 2: traced the full recursive lift.call inverse C5^-1\u2192C1^-1 with R_f=5 and restored sp/fp/depth before stack addressing; read the complete lift.ret inverse R5^-1\u2192R1^-1 and checked the recursive per-step snapshot test. Traced \u00a77.4 call/clock.read/ret segment reversal, cancellation marks and enclosing marker skips through undo_record/undo_frame and the nested-uncall test. Method 3: read all 33 SPEC-QUESTIONS entries against the governing 0.9 clauses, distinguishing historical 0.8 proposals and disclosed staged consumers; no new spec-gap blocker is asserted. Method 4: scanned every requested pattern throughout the crate (330 src-line hits, 3,270 integration/support-line hits); test assertions/failure injection, validated schema/type destructuring, nonempty/unique collection invariants, and UTF-8/ASCII/internal-format invariants account for unwrap/expect/panic/unreachable uses inspected. Unsupported-version/device hits are explicit rejections; approximate-amplitude hits are diagnostic rendering or declared epsilon metadata, not substituted exact semantics; there is no todo!/unimplemented! stub hit. Method 5: compared \u00a74.2 row families, \u00a74.8 opcode families, \u00a75.4 codes 0\u201310, \u00a77.4 frame kinds, the nine object sections and eight CLI commands with schema.rs/object.rs, the sequential/literal/classical/Q dispatch and metadata schema; target/launch/realised-schedule/interval consumers remain the disclosed staged work, not newly certified here. Validation: 101 passed, 0 failed, 1 existing ignored sweep across seven focused integration targets, using the prescribed private target/TMPDIR, cargo -j3 and four test threads. The ignored exhaustive recursive sweep was not run in this review. The independent in-memory typed-alias probe demonstrates both public APIs accepting the malformed imported entry while local bodies reject it, with valid equal/distinct-identity controls retained. Tracked snapshot status remained clean; only this JSON deliverable and permitted private build/temp artifacts were written."
+}

@@ -1,0 +1,102 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-R3-B1",
+    "section": "ISA 0.9 \u00a712.3 K91/K92; reference-interpreter/src/claims/pairs09.rs::pair_context:46-68 and qinplace09.rs::check_qinplace_bindings09:128-131",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "An inverse-pair token partition with equal labels requires equal tuples; a malformed binding must reject even when linked proof replay cannot be established. This is a decidable local condition for exactly one token argument.",
+      "by": "clause:ISA 0.9 \u00a712.3 K91: \"Equal labels denote one valid token identity and require equal tuples\" and \"Inverse-pair entries bind the primary/argument token partition when relevant\"; clause:ISA 0.9 \u00a712.3 K92: \"Malformed bindings and missing required pairs still reject\"."
+     },
+     {
+      "n": "2",
+      "claim": "Construct a well-typed token-bearing variant of example 7: add k:token before a:i2 to both g and ginv; add k:token between tk and a in addya; use qinplace @g @ginv tk x (y) () (k, a). Keep the original three arithmetic rows of each oracle. Derive and pin their real closure hashes, g=b2e4610bcfc9e9c00595a1051c6b1b66c8ff3f58acf39c9d56ddbe913c0aeb8a and ginv=513f302a60d5a132dfa3dd8b3394eb2f83a851119cc420a1380b6cab1577a695. Remove the two bodies, retaining imports with args:[\"token\",\"i2\"]. The addya owner closure is e937e20b66139f5e0a238ddff46eb8077a8649993af2f5e661827d9e216113f8.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/target-r3-sol/typed-alias-probe; constructor uses published_source(), imported_pair_library_certificate(false), fields() and support::object/rehash from reference-interpreter/tests/isa09_qinplace.rs and tests/support/mod.rs; all source text and certificates are constructed in memory, and both Object::parse and check_hashes succeed."
+     },
+     {
+      "n": "3",
+      "claim": "Supply addya claim 0 as structural inverse_pair_library, subclaims=[], witness={library_closure_hash:g,claim_index:0}, invocation={args:\"all\",budget:\"all\",token_aliases:\"all\"}; no donor region record and no root bindings.invocation. Its exact owner-local entry is {g:G,ginv:H,claim:0,budget:[3,0,0,0],arg_tokens:{k:[2,0,0,0]},token_aliases:[0,0]}. Both verify_certificate and verify_claim return Ok: the former carries an Unverified library claim and Unestablished applicability, and the latter returns Unverified. pair_context passes [None,None] to alias_binding, discarding the known tuples before the missing-body exit.",
+      "by": "witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r3-sol timeout 1200 /home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/target-r3-sol/typed-alias-probe; source:reference-interpreter/src/claims/pairs09.rs:63-68; source:reference-interpreter/src/claims/qinplace09.rs:128-131."
+     },
+     {
+      "n": "4",
+      "claim": "Retaining the local g/ginv bodies with the same owner closure, entry, unavailable donor and claim makes both APIs return Err(\"\u00a712.3 K91: ... equal token_aliases labels have unequal tuples\"). Imported and local controls with k=3,[0,0] or k=2,[0,1] correctly retain Unverified/Unestablished. Thus neither a proof nor any executable acceptance is being demanded, and the failure is isolated to a malformed equality hidden by unavailable bodies.",
+      "by": "witness:the same typed-alias-probe command prints all six imported/local combinations and both public checker results; source:reference-interpreter/src/claims/pairs09.rs::pair performs the known positional tuple check when bodies exist."
+     },
+     {
+      "n": "5",
+      "claim": "The imported malformed binding must produce the same K91 rejection as the local control. There is no ambiguity about formal order: the primary token is first and k is the only argument token. Returning an unavailable obligation instead violates the checker diagnostic contract, so this is S0, contract scope.",
+      "by": "step:1; step:2; step:3; step:4"
+     }
+    ],
+    "problem": "S0: unavailable pair bodies still suppress a locally decidable K91 tuple-equality rejection. pair_context validates each budget and partition shape but deliberately supplies no known tuples to alias_binding. For the single-token witness, [0,0] equates [3,0,0,0] and [2,0,0,0]; missing formal names or donor proof cannot make that equality consistent. Both public checker APIs return Ok with unavailable outcomes instead of Err. This does not allege quantum-state corruption or an established executable verdict.",
+    "fix": "Change reference-interpreter/src/claims/pairs09.rs::pair_context, called before the missing-body/missing-donor exits. The determining \u00a712.3 K91 sentence is \"Equal labels denote one valid token identity and require equal tuples\"; K92 adds \"Malformed bindings and missing required pairs still reject\". Preserve the primary budget as a known tuple and, when arg_tokens has one entry, pass [Some(budget),Some(the sole argument tuple)] to tokens::alias_binding, rather than [None,None]. Keep pair()'s exact formal-name/order validation once bodies are available; do not guess BTreeMap name order for multiple unavailable formals. Also reject any multi-token equality contradiction decidable independently of formal ordering, leaving genuinely unresolved positions unestablished. Add the typed example-7 variant described in steps 2\u20133 to tests/isa09_qinplace.rs: primary minimum [3,0,0,0], arg_tokens.k=[2,0,0,0], aliases [0,0], uniform inverse_pair_library claim and absent donor. With imported g/ginv and no root invocation, assert both verify_certificate and verify_claim return Err containing K91 and unequal tuples; those assertions fail on 185e9ba. Repeat with local bodies and retain imported k=3,[0,0] and k=2,[0,1] controls, which must remain Unverified/Unestablished without proof replay. Update docs/quality.md to state that only genuinely unavailable positional information is deferred."
+   }
+  ],
+  "codex": [
+   {
+    "id": "CODEX-R3-B1",
+    "section": "ISA 0.9 \u00a712.3 K91/K92; reference-interpreter/src/claims/pairs09.rs::pair_context (lines 46\u201370), inverse_pair_theorem09 (Library branch), and claims/qinplace09.rs::check_qinplace_bindings09 (lines 129\u2013133)",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "An inverse-pair entry binds the oracle primary/argument token partition. A pair whose oracle signatures have no token-typed args has exactly one identity slot, its primary token, hence partition [0]. Malformed bindings must reject even if pair bodies or the library proof are unavailable.",
+      "by": "clause:ISA 0.9 \u00a712.3 K91, \"A token-free oracle has [0]\" and \"Inverse-pair entries bind the primary/argument token partition when relevant\"; \u00a712.3 K92, \"Malformed bindings and missing required pairs still reject\"; \u00a79.3 imported signatures."
+     },
+     {
+      "n": "2",
+      "claim": "Use the committed imported missing-inventory fixture, whose pinned g and ginv signatures both have args:[\"i2\"]. Remove bindings.invocation; supply one parameter-uniform inverse_pair_library claim naming g, and one matching pair entry at budget [3,0,0,0] with arg_tokens:{absent:[3,0,0,0]} and token_aliases:[0,1]. No oracle argument can occupy that second identity slot; the signatures determine this without body or formal-name resolution.",
+      "by": "witness:reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa plus this exact in-memory constructor and retained probe command:\ncd /home/tobias/Projects/bennett-workspace/bennett-isa-spec-council-185e9ba\npython3 - <<'PYPROBE'\nimport json,subprocess\nfrom pathlib import Path\ns,c=Path('reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa').read_text().split('section certificate\\n')\nc=json.loads(c); c['bindings'].pop('invocation')\ng='0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e'\nh='786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9'\nr=next(iter(c['regions'].values()))\nr['claims']=[{'kind':'structural','rule':'inverse_pair_library','subclaims':[],'witness':{'library_closure_hash':g,'claim_index':0},'invocation':{'args':'all','budget':'all','token_aliases':'all'}}]\nr['verification']['inverse_pairs']=[{'g':g,'ginv':h,'claim':0,'budget':[3,0,0,0],'arg_tokens':{'absent':[3,0,0,0]},'token_aliases':[0,1]}]\nsubprocess.run(['/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r3-codex/certificate-probe'],input=s+'section certificate\\n'+json.dumps(c,sort_keys=True,separators=(',',':'))+'\\n',text=True,check=True)\nPYPROBE"
+     },
+     {
+      "n": "3",
+      "claim": "At frozen 185e9ba, parsing and check_hashes succeed. verify_certificate returns Ok(CertificateReport) with claim Unverified(\"library ... is not linked into this certificate\") and applicability Unestablished(\"parameter-uniform invocation tree is not checked\"); verify_claim(owner,0) also returns Ok(Unverified(...)). pair_context allocates token slots as vec![None; tokens.len()+1], so the malformed entry invents its own valid-looking arity. The missing-body branches bypass pair(), which performs the actual formal-token check.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r3-codex/certificate-probe, linked against the fresh target-r3-codex rlib from 185e9ba. Probe Rust source (stdin input): use bennett_isa_ref::Object; use std::io::Read; fn main(){ let mut s=String::new(); std::io::stdin().read_to_string(&mut s).unwrap(); let o=Object::parse(&s).expect(\"parse\"); o.check_hashes().expect(\"hashes\"); println!(\"parse and hashes: OK\"); println!(\"certificate: {:?}\",o.verify_certificate()); let h=o.identity().unwrap().closure_hashes[\"addya\"].clone().unwrap(); println!(\"claim: {:?}\",o.verify_claim(&h,0)); }; source:reference-interpreter/src/claims/pairs09.rs:46-70,272-300; source:reference-interpreter/src/claims/qinplace09.rs:129-133."
+     },
+     {
+      "n": "4",
+      "claim": "The control with the same imported pair and missing donor but no arg_tokens or token_aliases correctly remains Unverified/Unestablished. Thus the defect is specifically failure to reject a decidable malformed partition, not failure to establish an unavailable theorem. A second tested mutation, absent:[4,0,0,0] with aliases [0,0], is also incorrectly deferred despite declaring one identity with unequal tuples.",
+      "by": "witness:repeat the step-2 constructor with arg_tokens and token_aliases removed for the control, or change them to {\"absent\":[4,0,0,0]} and [0,0] for the second negative; both were run through certificate-probe."
+     },
+     {
+      "n": "5",
+      "claim": "The required malformed-binding error is replaced by a successful checker return carrying unavailable-proof outcomes. This is an S0 contract diagnostic-class divergence; it does not assert executable acceptance or a Q-state failure. The prior missing-inventory witness is separately fixed.",
+      "by": "step:1; step:2; step:3; step:4"
+     }
+    ],
+    "problem": "S0: unavailable imported pair bodies still hide malformed inverse-pair token bindings. The checker trusts the supplied arg_tokens cardinality when constructing alias slots, even though the pinned import signatures prove that neither oracle has a token argument. A two-slot [0,1] partition and invented absent token are therefore deferred instead of rejected by both public checker APIs.",
+    "fix": "Change reference-interpreter/src/claims/pairs09.rs::pair_context and its callers in inverse_pair_theorem09 and claims/qinplace09.rs::check_qinplace_bindings09. Resolve available pair signature information by closure hash or import pin before the missing-body/missing-donor return. Validate the number of token arguments and alias slots from the signatures rather than from the untrusted arg_tokens map; for args:[\"i2\"], require an empty arg_tokens map and a single primary identity slot ([0], explicitly or by the existing default). Retain full formal-name/positional tuple checks when bodies are available, and defer only constraints that truly cannot be resolved. ISA 0.9 \u00a712.3 K91 says \"A token-free oracle has [0]\"; K92 says \"Malformed bindings and missing required pairs still reject\". Add the exact step-2 fixture mutation to tests/isa09_qinplace.rs using imported_pair_library_certificate(false); verify_certificate and verify_claim(owner,0) must both return Err citing K91/K92 or K4, rather than Ok(Unverified/Unestablished). Test both orientations and presence/absence of bindings.invocation, and retain the no-extra-token unavailable-library control. Also reject a repeated alias label with unequal known tuples before deferral wherever the mapping is decidable. Update docs/quality.md with this signature-known versus body-dependent distinction."
+   }
+  ]
+ },
+ "means": {
+  "C1": 4.5,
+  "C2": 5.0,
+  "C3": 4.5,
+  "C4": 4.5,
+  "C5": 4.5,
+  "C6": 4.0,
+  "C7": 4.0,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex"
+ ]
+}

@@ -1,0 +1,105 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "The versioned parser, schema::arity and certificate validators retain the 0.8/0.9 separation; the published 0.9 examples and imported fixture parse and hash correctly. CODEX-R3-B1 is a certificate semantic-admission defect: imported signature.args is available but inverse-pair token arity is inferred from the supplied arg_tokens map instead.",
+   "change": "In reference-interpreter/src/claims/pairs09.rs::pair_context, resolve the pair signatures by local closure or import pin and validate the token-slot count against signature.args before permitting an unavailable-body result. For the witness, reject the nonempty arg_tokens map and two-slot partition because both signatures have args:[\"i2\"]."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "identity.rs preserves the \u00a79.2 envelope and \u00a79.3 import pins. Independently constructed the exact LF-terminated 0.9 inc8 envelope and obtained ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e with Python hashlib; the executable agrees. All four 0.9 published hashes agree, and all 21 identity tests, including legacy vectors, SCC order and layout-path cases, pass.",
+   "change": "No identity implementation change is required by this review. Extend tests/versions.rs with an explicit byte-for-byte 0.9 envelope assertion for all four published symbols, alongside the existing 0.8 envelope assertions in tests/identity.rs, so future version changes retain equally visible independent byte witnesses."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "The 26 \u00a74.2 row families map to oracle.rs execution and machine.rs flag/value/direct/successor paths. Independently derived inc8(255): B=3 gives payload=0, code=0, steps=3; B=2 gives payload=0, code=1, steps=2. Both observed CLI results agree. Memory, arithmetic and fault-prefix tests pass; no new interpreter divergence was established.",
+   "change": "In tests/step_machine.rs, supplement the cross-engine arithmetic/fault comparison with a compact literal expectation table derived from \u00a74.2/\u00a75.4 for each row family and its first-fault budget cut, asserting payload, code and executed-row count independently of run_oracle."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Traced inverse_step and inverse_call through \u00a73.6 and C5^-1..C1^-1, including counter restoration before stack addressing and recursive argument restoration before capture uncompute; inspected R5^-1..R1^-1 in inverse_ret. Six ordinary step-machine tests pass, including every-step recursive call/ret restoration and memory/nonzero-target/fault domains. One existing exhaustive recursive-prefix sweep was ignored in this review, not counted as executed.",
+   "change": "In tests/step_machine.rs::recursive_call_and_ret_each_invert_the_complete_pre_step_tuple add literal intermediate checkpoints for the first sum_db call at n=2: capture (2,0,4096), R_f=16, fp=0, sp=16, depth=1, return index=3, followed by restored pre-call state and a clean frame after inversion. Keep the existing complete-snapshot comparisons."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Traced classical.rs call/ret/uncall, undo_frame and undo_record against \u00a77.4: inner g is undone once, reversed frames and uncall markers are skipped by outer f reversal. The nested fixture returns zero, clock and tape return to zero, and CLI reversal reports exact entry equality. All four classical and 13 mint tests pass, including token revocation, run expiry and observer rollback.",
+   "change": "In tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once add checkpoint assertions immediately after inner g returns and immediately after its uncall: clock/tape should be (1,1) then (0,0), and remain (0,0) after outer f uncall. This makes the \u00a77.4 exactly-once traversal claim directly observable."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "All 42 isa09_qinplace tests and 18 isa09_token_aliases tests pass. Existing tests cover parameter domains, pair orientation, disabled predicates, transitive pre-effect checks and instruction adjoints. The original missing-owner inventory is repaired. The remaining finding is in certificate contract validation for unavailable imported pairs; no new Q execution or reversal counterexample was established.",
+   "change": "Extend tests/isa09_qinplace.rs::imported_pair_rejects_invalid_alias_structure_before_missing_body_outcome with the CODEX-R3-B1 signature-arity witness, testing verify_certificate and verify_claim. Retain imported_pair_inventory_resolves_pins_in_either_orientation_without_proof_replay as the valid unresolved-body control."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The added fixture, independent pins and seven recorded baseline failures support the reported round-2 repair. This review rebuilt the frozen snapshot and ran 104 passing tests across classical, identity, isa09_budget_mint, isa09_qinplace, isa09_token_aliases and step_machine; one pre-existing sweep remained ignored. A separate probe linked against the freshly built rlib reproduces CODEX-R3-B1 despite these passes.",
+   "change": "Add a signature-versus-entry token-count matrix in tests/isa09_qinplace.rs: zero-token imports with an extra map entry, token-bearing imports with missing entries, malformed aliases, and valid unavailable-body controls in both pair orientations. Assert errors for decidably malformed bindings through both public checker APIs, independently of proof availability."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Reviewed SPEC-QUESTIONS 1\u201333 as legacy 0.8 readings against their cited clauses and the settled 0.9 changes. No additional unjustified reading was established. Explicit staged target/schedule/interval outcomes remain Unverified and were not penalized as newly claimed completion. docs/quality.md accurately describes the inventory fix but its missing-body discussion does not distinguish unavailable formal names from signature-known token arity.",
+   "change": "After CODEX-R3-B1 is fixed, revise docs/quality.md, Missing-body rejection ordering, to say import signatures establish token count and partition arity before body availability; only genuinely unavailable formal-name/order-dependent checks defer. In SPEC-QUESTIONS.md add 0.9 status cross-references for entries 1, 7, 26, 31 and 33 so legacy readings are not mistaken for the current 0.9 contract."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "CODEX-R3-B1",
+   "section": "ISA 0.9 \u00a712.3 K91/K92; reference-interpreter/src/claims/pairs09.rs::pair_context (lines 46\u201370), inverse_pair_theorem09 (Library branch), and claims/qinplace09.rs::check_qinplace_bindings09 (lines 129\u2013133)",
+   "scope": "contract",
+   "kind": "implementation",
+   "steps": [
+    {
+     "n": "1",
+     "claim": "An inverse-pair entry binds the oracle primary/argument token partition. A pair whose oracle signatures have no token-typed args has exactly one identity slot, its primary token, hence partition [0]. Malformed bindings must reject even if pair bodies or the library proof are unavailable.",
+     "by": "clause:ISA 0.9 \u00a712.3 K91, \"A token-free oracle has [0]\" and \"Inverse-pair entries bind the primary/argument token partition when relevant\"; \u00a712.3 K92, \"Malformed bindings and missing required pairs still reject\"; \u00a79.3 imported signatures."
+    },
+    {
+     "n": "2",
+     "claim": "Use the committed imported missing-inventory fixture, whose pinned g and ginv signatures both have args:[\"i2\"]. Remove bindings.invocation; supply one parameter-uniform inverse_pair_library claim naming g, and one matching pair entry at budget [3,0,0,0] with arg_tokens:{absent:[3,0,0,0]} and token_aliases:[0,1]. No oracle argument can occupy that second identity slot; the signatures determine this without body or formal-name resolution.",
+     "by": "witness:reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa plus this exact in-memory constructor and retained probe command:\ncd /home/tobias/Projects/bennett-workspace/bennett-isa-spec-council-185e9ba\npython3 - <<'PYPROBE'\nimport json,subprocess\nfrom pathlib import Path\ns,c=Path('reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa').read_text().split('section certificate\\n')\nc=json.loads(c); c['bindings'].pop('invocation')\ng='0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e'\nh='786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9'\nr=next(iter(c['regions'].values()))\nr['claims']=[{'kind':'structural','rule':'inverse_pair_library','subclaims':[],'witness':{'library_closure_hash':g,'claim_index':0},'invocation':{'args':'all','budget':'all','token_aliases':'all'}}]\nr['verification']['inverse_pairs']=[{'g':g,'ginv':h,'claim':0,'budget':[3,0,0,0],'arg_tokens':{'absent':[3,0,0,0]},'token_aliases':[0,1]}]\nsubprocess.run(['/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r3-codex/certificate-probe'],input=s+'section certificate\\n'+json.dumps(c,sort_keys=True,separators=(',',':'))+'\\n',text=True,check=True)\nPYPROBE"
+    },
+    {
+     "n": "3",
+     "claim": "At frozen 185e9ba, parsing and check_hashes succeed. verify_certificate returns Ok(CertificateReport) with claim Unverified(\"library ... is not linked into this certificate\") and applicability Unestablished(\"parameter-uniform invocation tree is not checked\"); verify_claim(owner,0) also returns Ok(Unverified(...)). pair_context allocates token slots as vec![None; tokens.len()+1], so the malformed entry invents its own valid-looking arity. The missing-body branches bypass pair(), which performs the actual formal-token check.",
+     "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/council/isaref-quality-2026-11-07/tmp-r3-codex/certificate-probe, linked against the fresh target-r3-codex rlib from 185e9ba. Probe Rust source (stdin input): use bennett_isa_ref::Object; use std::io::Read; fn main(){ let mut s=String::new(); std::io::stdin().read_to_string(&mut s).unwrap(); let o=Object::parse(&s).expect(\"parse\"); o.check_hashes().expect(\"hashes\"); println!(\"parse and hashes: OK\"); println!(\"certificate: {:?}\",o.verify_certificate()); let h=o.identity().unwrap().closure_hashes[\"addya\"].clone().unwrap(); println!(\"claim: {:?}\",o.verify_claim(&h,0)); }; source:reference-interpreter/src/claims/pairs09.rs:46-70,272-300; source:reference-interpreter/src/claims/qinplace09.rs:129-133."
+    },
+    {
+     "n": "4",
+     "claim": "The control with the same imported pair and missing donor but no arg_tokens or token_aliases correctly remains Unverified/Unestablished. Thus the defect is specifically failure to reject a decidable malformed partition, not failure to establish an unavailable theorem. A second tested mutation, absent:[4,0,0,0] with aliases [0,0], is also incorrectly deferred despite declaring one identity with unequal tuples.",
+     "by": "witness:repeat the step-2 constructor with arg_tokens and token_aliases removed for the control, or change them to {\"absent\":[4,0,0,0]} and [0,0] for the second negative; both were run through certificate-probe."
+    },
+    {
+     "n": "5",
+     "claim": "The required malformed-binding error is replaced by a successful checker return carrying unavailable-proof outcomes. This is an S0 contract diagnostic-class divergence; it does not assert executable acceptance or a Q-state failure. The prior missing-inventory witness is separately fixed.",
+     "by": "step:1; step:2; step:3; step:4"
+    }
+   ],
+   "problem": "S0: unavailable imported pair bodies still hide malformed inverse-pair token bindings. The checker trusts the supplied arg_tokens cardinality when constructing alias slots, even though the pinned import signatures prove that neither oracle has a token argument. A two-slot [0,1] partition and invented absent token are therefore deferred instead of rejected by both public checker APIs.",
+   "fix": "Change reference-interpreter/src/claims/pairs09.rs::pair_context and its callers in inverse_pair_theorem09 and claims/qinplace09.rs::check_qinplace_bindings09. Resolve available pair signature information by closure hash or import pin before the missing-body/missing-donor return. Validate the number of token arguments and alias slots from the signatures rather than from the untrusted arg_tokens map; for args:[\"i2\"], require an empty arg_tokens map and a single primary identity slot ([0], explicitly or by the existing default). Retain full formal-name/positional tuple checks when bodies are available, and defer only constraints that truly cannot be resolved. ISA 0.9 \u00a712.3 K91 says \"A token-free oracle has [0]\"; K92 says \"Malformed bindings and missing required pairs still reject\". Add the exact step-2 fixture mutation to tests/isa09_qinplace.rs using imported_pair_library_certificate(false); verify_certificate and verify_claim(owner,0) must both return Err citing K91/K92 or K4, rather than Ok(Unverified/Unestablished). Test both orientations and presence/absence of bindings.invocation, and retain the no-extra-token unavailable-library control. Also reject a repeated alias label with unequal known tuples before deferral wherever the mapping is decidable. Update docs/quality.md with this signature-known versus body-dependent distinction."
+  }
+ ],
+ "previous_status": [
+  {
+   "id": "CODEX-R2-B1",
+   "status": "resolved",
+   "note": "check_qinplace_bindings09 now resolves import pins and checks exact owner-local pair inventory before the missing-body continue. The committed imported witness rejects with and without bindings.invocation; local controls and invalid-claim checks pass. CODEX-R3-B1 is a distinct remaining malformed-context case, not a failure of the original missing-pair repair."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "In reference-interpreter/SPEC-QUESTIONS.md, retain the historical 0.8 readings but add explicit 0.9 status references for resolved items, especially parametrised qinplace (26), structured layout paths (31) and token encodings/matching (33); identify current K4/K91/K92 behavior and separately staged consumers.",
+  "In tests/step_machine.rs and tests/classical.rs add the literal intermediate call/ret and clock/tape checkpoints described in C4/C5. They should assert specification-derived states in addition to cross-engine and final-snapshot equality; no production semantic change is requested for those paths."
+ ],
+ "verdict": "revise",
+ "verdict_core": "accept",
+ "path_to_accept": "1. Validate signature-known inverse-pair token cardinality/alias arity before unavailable-body or missing-donor deferral in pairs09::pair_context and both callers. 2. Add the exact imported negative plus valid-unavailable controls through verify_certificate and verify_claim, including both orientations and bound/unbound invocation variants; require errors for the malformed cases and preserve Unverified/Unestablished for the valid control. 3. Rerun the focused qinplace/token-alias regressions and update the missing-body evidence paragraph. No spec amendment is needed. With CODEX-R3-B1 resolved and no regression, the blocking list is empty.",
+ "summary": "Round-3 review of frozen 185e9ba: CODEX-R2-B1 resolved; one newly demonstrated S0 contract issue, CODEX-R3-B1; no demonstrated regression from a formerly correct round-2 behavior and no new core blocker. Method 1: independently derived inc8(255), B=3 => (payload 0, code 0, steps 3), B=2 => (0,1,2); CLI agrees. Constructed the envelope from isa=0.9, ptr_width=32, the canonical signature and six function lines, each LF-terminated, with no layout/dependency suffix; Python SHA-256 gives ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e, matching the interpreter. Checked the other three published 0.9 hashes and the legacy identity suite. Method 2: hand-traced the root sum_db lift.call at n=2 (capture 2,0,4096; 13 callee locations; R_f=16; fp=0,sp=16,depth=1; saved successor 3), then generic inverse pc/successor cleanup and C5^-1 through C1^-1 restoring counters, record, locations and captures; inspected ret R5^-1 through R1^-1 at restored callee fp. Traced \u00a77.4 nested f/g clock segment: g return completes its segment, g uncall restores clock/tape to zero, outer reversal skips g and its marker; CLI nested reverse reports results=0, clock=0, tape length=0 and equals_entry=true. Method 3: audited SPEC-QUESTIONS entries 1\u201333 as legacy readings against cited text and 0.9 changes; documentation status clarification is suggested, no additional spec blocker inferred. Method 4: scanned the crate for the requested panic/fallback markers: 287 hits under src paths (including embedded unit tests), 3313 test-path hits and 15 documentation/tool hits; classified test assertions, guarded internal/schema/collection invariants, diagnostic amplitude approximation and explicit unsupported-version/device errors; no todo!/unimplemented! macros or additional reproducible S0 panic were found. Method 5: compared all 26 lifted row families, CC/R/Q opcode families, fault codes 0\u201310, \u00a77.4 frame categories, versioned metadata productions and CLI dispatch to their source paths; identified the signature-dependent certificate validation hole reported here. Staged target/schedule/interval obligations remain explicitly unestablished and were not treated as completed. Validation: fresh isolated cargo test build, headless/offline, -j3 and --test-threads=4, six selected suites: 104 pass, 0 fail, 1 existing ignored recursive sweep. The negative certificate probe was rerun against that freshly built rlib and both public checker APIs incorrectly returned Ok. No tracked files were modified or commits made."
+}

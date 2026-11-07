@@ -1,0 +1,2630 @@
+--- round-2/doc.md
++++ round-3/doc.md
+@@ -1,9 +1,21 @@
+-# Bennett ISA 0.9 reference interpreter: quality-floor change set (job/quality-isaref), council round 2
+-
+-Subject: as round 1, now at head `5b71208` (range `be109bd27889ea91e3c0ad78a30e5e4d71d3d0d3..5b71208`). Since round 1 (graded at e9ab12a / code 8056ecf) the editor landed d46df99 (per-entry inverse-pair domains: CODEX-R1-B1 = MUSE-R1-B1; unresolved-import obligations: SOL-R1-B01; subject-binding check before scheduled replay: SOL-R1-B02), 7fc37fd (device-token revocation when the mint frame or run ends: isa-spec main review P0 b-isa-spec-dnjq, docs/reviews/2026-11-07-isaspec-main-r1.md), d3d906d/5b71208 (evidence). The editor reports every round-1 blocker resolved; this is the acceptance vote. Fill previous_status for every round-1 blocker of every member. Reported: reference-interpreter 677 pass / 6 named ignores; conformance 129 pass.
+-
+-Your working directory is a frozen detached worktree of `bennett-isa-spec` at 5b71208. Embedded: (1) the full unified diff of the range and (2) the post-change text of every changed file. Confirm the round-1 fixes first (the diff from the round-1 document is attached by the runner), then re-read the change set for new S0 issues.
+-
+-## 1. Unified diff (git diff be109bd27889ea91e3c0ad78a30e5e4d71d3d0d3 5b71208)
++# Bennett ISA 0.9 reference interpreter: quality-floor change set (job/quality-isaref), council round 3 (FIX ROUND, last round)
++
++Subject: as rounds 1-2, now at head `185e9ba` (range `be109bd27889ea91e3c0ad78a30e5e4d71d3d0d3..185e9ba`). Round 2 (graded at
++5b71208): sol ACCEPT, muse ACCEPT, codex REVISE / core accept with one blocker CODEX-R2-B1 (an imported qinplace pair whose
++body is unavailable skipped the K92 missing-owner-pair rejection: ISA 0.9 §12.3, §9.3). Since round 2 the editor landed
++704d21d (isa-spec main review r2 document: CLEAR), be2ce19 (mandatory pair bindings checked before unavailable proof outcomes),
++09f183d (static pair context validated before linked proof replay is deferred; touches claims/pairs09.rs), b618b16 (saved
++imported regression fixture audited), 185e9ba (evidence). The editor reports CODEX-R2-B1 resolved together with a sweep of the
++same early-return ordering class (docs/quality.md); bead b-isa-spec-dqkt closed. Reported: isa09_qinplace 42 pass.
++
++Fix-round policy: the members re-grading here are those whose round-2 verdict was not accept (codex) plus sol because the fix
++reaches beyond qinplace09.rs (pairs09.rs). Fill previous_status for CODEX-R2-B1. Grade the fix diff 704d21d..185e9ba closely
++(`git diff 704d21d 185e9ba` in the working directory), check the early-return sweep for the same class elsewhere, and confirm
++no earlier-round fix regressed. Round 3 is the LAST council round: a blocker must be a real S0 with a reproducible witness.
++
++Your working directory is a frozen detached worktree of `bennett-isa-spec` at 185e9ba (reference-interpreter/target/debug/
++bennett-isa-ref prebuilt). Embedded: (1) the full unified diff of the range and (2) the post-change text of every changed file.
++
++## 1. Unified diff (git diff be109bd27889ea91e3c0ad78a30e5e4d71d3d0d3 185e9ba)
+ 
+ ````diff
+@@ -23,8 +35,8 @@
+ diff --git a/docs/quality.md b/docs/quality.md
+ new file mode 100644
+-index 0000000..287efa9
++index 0000000..c608ff2
+ --- /dev/null
+ +++ b/docs/quality.md
+-@@ -0,0 +1,330 @@
++@@ -0,0 +1,415 @@
+ +# Reference interpreter quality floor
+ +
+@@ -357,4 +369,89 @@
+ +180-second runtime target and the broader quality programme remain open; this
+ +validation covers the scoped semantic fixes.
+++
+++## Missing-body rejection ordering
+++
+++K92's owner inventory is checked before any unavailable-body outcome. Local
+++closure identities come from `identity.closure_hashes`; imported identities come
+++from their §9.3 pins. An exact pair in either orientation is required even without
+++`bindings.invocation`. Missing entries and references to another claim rule
+++reject; unavailable pair bodies defer proof replay and retain `Unestablished`
+++applicability. The imported witness is preserved verbatim in
+++`reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa`.
+++Entry and argument-token budgets and alias partition structure also validate
+++before unavailable bodies or library donors can defer theorem replay. Formal
+++token-argument names and positional tuple comparisons still require the body.
+++
+++The class sweep examined every added `continue`, `return` and `break` in
+++`d46df99` and `7fc37fd`, including relocated exits and changed guard conditions:
+++
+++| Location / exit | Mandatory rejection ordering and regression |
+++| --- | --- |
+++| `certificate.rs::validate_claim`, subject-conflict error | Already rejects before replay; `scheduled_and_reference_relations_reject_conflicting_subject_closures` retains the scheduled/reference table/program matrix. |
+++| `pairs09.rs::inverse_pair_theorem09`, missing donor `Ok(None)` | Another ordering defect: a parameter-uniform claim could hide malformed local owner `arg_tokens` or `token_aliases`. Local pair context now validates first. `unavailable_library_still_rejects_malformed_owner_pair_context` and `unavailable_library_still_rejects_malformed_owner_alias_context` check both public checker APIs. Pinned pair bodies may remain unavailable; undeclared pair closures reject. |
+++| Same function, first covering donor `break` and no-covering-donor error | The break selects an alternative theorem binding; the error is a terminal rejection. Existing `library_proof_cannot_transfer_to_a_different_pair`, `library_reuse_preserves_the_proved_minimum_and_argument_domain`, and shared-claim entry-order/orientation matrices retain pair/context rejection and valid donor controls. |
+++| `qinplace09.rs::check_qinplace_bindings09`, no-work guard and missing-pair-body `continue` | No-work requires neither imports nor local sites. The defective missing-body skip now follows exact pair presence, valid claim index and theorem-rule checks. New `imported_pair_requires_owner_inventory_before_missing_body_outcome`, `imported_pair_requires_static_owner_inventory_without_invocation`, `imported_pair_rejects_invalid_referenced_claim_before_missing_body_outcome`, and `local_pair_requires_owner_inventory_with_and_without_invocation` cover the rejections. `imported_pair_inventory_resolves_pins_in_either_orientation_without_proof_replay` retains valid inventory without inventing a proof. |
+++| Same missing-pair-body and missing-donor exits, independent entry context | `imported_pair_rejects_invalid_entry_budget_before_missing_body_outcome` checks both the entry and an argument-token budget; `imported_pair_rejects_invalid_alias_structure_before_missing_body_outcome` checks alias arity and label gaps. Both checker APIs reject before returning unavailable-body/donor outcomes. |
+++| `qinplace09.rs::qinplace_coverage09`, no-work guard / missing callee body `continue` | Every supplied owner's static inventory is checked before invocation traversal. `unresolved_action_callee_cannot_hide_another_supplied_owners_missing_inventory` adds the ordering control. Both existing `pinned_import_*_local_qinplace_keeps_unresolved_root_obligation` tests retain absent-body outcomes without panic and linked positive controls. |
+++| Same function, oracle missing-import `continue` | `unresolved_oracle_body_cannot_hide_supplied_owner_inventory` requires the visible owner's missing-pair rejection first; removing that record leaves the root `Unestablished`, naming the unavailable import. |
+++| Same function, reached qinplace missing-pair-body `continue` | The new imported-pair rejection and theorem-rule tests bind a concrete root invocation; static obligations reject before this branch. Existing unresolved-root tests and the valid imported-pair inventory control retain unavailable-body outcomes. Execution still rejects unestablished applicability before effects. |
+++| `tokens.rs::BudgetToken::mint_is_live`, expired owner `Ok(false)`; `resolve_invocation_tokens`, revoked-token error | The false result feeds an immediate K3 rejection, before token partition handling or effects. Existing `device_tokens_expire_when_their_owning_run_is_dropped`, `reversed_mint_tokens_reject_both_public_oracle_entry_paths`, and observer-rollback tests exercise both public entry paths and live-token controls. |
+++
+++`claims.rs` and `classical.rs` add no early exits in those commits. Existing
+++zero-budget, zero-trip, predicate and argument-domain tests remain in the focused
+++suite; their pre-existing traversal skips were not removed or weakened.
+++
+++The final regression file was copied into a private archive of exact `5b71208`
+++with production sources unchanged. This command exited **101**, with **35 passed
+++and seven intended failures** (imported bound/static inventory, invalid referenced
+++claim, imported invalid budgets/alias structure, malformed local token arguments
+++and aliases hidden by a missing donor):
+++
+++```sh
+++timeout 600 cargo test --offline -j3 --manifest-path .tmp/quality-isaref/tmp/c2-baseline-5b71208/reference-interpreter/Cargo.toml --test isa09_qinplace -- --test-threads=4
+++```
+++
+++The baseline result is retained in private `c2-baseline-red.log`, `.status` and
+++`.time` artifacts. Fixture-construction errors encountered before that final run
+++were corrected and are not counted as production regressions.
+++
+++The corrected implementation passes **77 focused tests**, exit 0, **21.13 s
+++wall**, **203964 KiB maximum RSS** (`c2-focused.log`, `.status`, `.time`):
+++
+++```sh
+++timeout 900 cargo test --offline -j3 --manifest-path reference-interpreter/Cargo.toml --test isa09_qinplace --test isa09_claim_replay --test isa09_certificate --test isa09_budget_mint --test r1_fixtures -- --test-threads=4
+++```
+++
+++Both crates pass `timeout 120 cargo fmt --manifest-path <crate>/Cargo.toml --
+++--check`, and `git diff --check` passes. These runs use the same headless private
+++TMPDIR/target, 8 GiB address-space cap and four test threads as above.
+++Both crates also pass `timeout 600 cargo clippy --offline -j3 --manifest-path
+++<crate>/Cargo.toml --lib --bins -- -D warnings`.
+++
+++The first full reference run exposed the new fixture's required audit integration:
+++its `.comments` companion and literal interface pin were missing. Both were added
+++without weakening the audit; all seven `r1_fixtures` tests pass in the focused
+++command above. The failed run is retained as `c2-fixture-audit-red.*`; it is not
+++counted as a completed full validation.
+++
+++Final full validation completed at **2026-11-07 09:14:53 UTC**, run head `b618b16`,
+++with production sources unchanged since `09f183d`. Both commands exited **0**:
+++
+++```sh
+++timeout 2400 cargo test --offline -j3 --manifest-path reference-interpreter/Cargo.toml -- --test-threads=4
+++BENNETT_CONFORMANCE_BIN="$CARGO_TARGET_DIR/debug/bennett-isa-ref" timeout 2400 cargo test --offline -j3 --manifest-path conformance/Cargo.toml -- --test-threads=4
+++```
+++
+++| Crate | Passed | Existing ignores | Wall time | Maximum RSS (KiB) |
+++| --- | ---: | ---: | --- | ---: |
+++| reference | 688 | 6 | 4:38.86 | 1591396 |
+++| conformance | 129 | 0 | 8:01.38 | 723376 |
+++
+++Logs, statuses and timings are private `c2-full-reference.*` and
+++`c2-full-conformance.*` artifacts; `c2-conformance-binary.sha256` records the
+++rebuilt private interpreter selected by conformance. These final runs include
+++the static-context extension and completed fixture audit. No full repository
+++gate, gate tool or sibling gate ran. The broader runtime/quality programme
+++remains outside this semantic repair.
+ diff --git a/docs/reviews/2026-11-06-quality-isaref-r1.md b/docs/reviews/2026-11-06-quality-isaref-r1.md
+ new file mode 100644
+@@ -582,4 +679,89 @@
+ +`docs/reviews/2026-11-06-quality-isaref-r1.md`; this pass does not re-grade their
+ +job-branch repairs or claim council clearance.
+++
+++Provenance: implementer **gpt-6.1-sol**; reviewer **gpt-6.1-sol, fresh session, D9**.
++diff --git a/docs/reviews/2026-11-07-isaspec-main-r2.md b/docs/reviews/2026-11-07-isaspec-main-r2.md
++new file mode 100644
++index 0000000..93e85bf
++--- /dev/null
+++++ b/docs/reviews/2026-11-07-isaspec-main-r2.md
++@@ -0,0 +1,79 @@
+++# ISA 0.9 main implementation review, round 2
+++
+++**Verdict: CLEAR — no open P0/P1 in this scope.**
+++
+++Reviewed head: `5b7120852f17e56063462d50f01fcf1da708ed1f` on
+++`job/quality-isaref`. Scope overrides the generic job range: round-1 findings
+++at `be109bd27889ea91e3c0ad78a30e5e4d71d3d0d3`, token fix
+++`7fc37fd8321138d96661371646c9ea72be237d3a` and its oracle entry paths/tests,
+++plus verification of the existing qinplace repair `0d95706` at head.
+++This does not re-grade the full quality branch or the concurrent council.
+++
+++- **P0-1, `b-isa-spec-dnjq`: verified fixed.**
+++  `reference-interpreter/src/tokens.rs:367-372` now checks namespace and
+++  live mint identity for every concrete invocation token. The weak run owner
+++  expires at run drop; `classical.rs:1214,1428,1445` publishes reversal,
+++  committed state and rollback. The unchanged round-1 probe, compiled against
+++  the head library, now exits 101 at its former successful-call unwrap with
+++  `§5.4 K3: E_ARG: revoked or expired device token`.
+++  The head regression separately proves live success and rejection through
+++  both `run_oracle_with_token` and `OracleMachine::new_with_token`.
+++- **P1-2, `b-isa-spec-bf57`: verified fixed.**
+++  `reference-interpreter/src/source_constructor/action/qinplace.rs:24-31`
+++  binds a collision-free lexical alias to the private constructor identity.
+++  `source_qinplace_adjoints_preserve_instruction_allocation_and_release_order`
+++  passes, asserting allocation/release widths and hand-derived forward/adjoint
+++  modulo-4 results over every x/y input.
+++
+++Ran headless with private `.tmp/rev-isaspec-main-r2/{tmp,target}`, core dumps
+++disabled and Cargo address space capped at 8 GiB:
+++
+++```sh
+++timeout 600 cargo test --offline -j3 \
+++  --manifest-path reference-interpreter/Cargo.toml \
+++  --test isa09_budget_mint --test isa09_qinplace -- --test-threads=4
+++```
+++
+++**13 + 31 passed, zero failed/ignored.** Both probes were compiled with
+++`timeout 120 rustc --edition=2021`, dependency search and `--extern` pointing
+++at the freshly built head rlib; compile-time Cargo manifest/binary variables
+++were supplied. An initial standalone compile lacked those variables and was
+++retried. Retained probes under `.tmp/rev-isaspec-main-r2/tmp/`:
+++
+++```sh
+++timeout 60 .tmp/rev-isaspec-main-r2/tmp/r1-token-probe-at-head
+++timeout 60 .tmp/rev-isaspec-main-r2/tmp/lifecycle-probe
+++```
+++
+++First: expected rejection/exit 101 as above. Second: exit 0, independently
+++asserting live success, both original API rejections, vector API rejection,
+++revoked token arguments with a live host primary, re-mint freshness, expiry,
+++host-token survival and observer-rejected uncall restoring token validity.
+++Its initial argument call omitted the required alias binding; supplying the
+++explicit host primary corrected the probe. No production/test source changed.
+++
+++Red-first assessment: read `git show main:reference-interpreter/src/tokens.rs`
+++and the main-side qinplace constructor. Main's resolver lacks mint validity,
+++so the new reversed/expired/observer-rollback negative assertions fail there;
+++its private `$qinplace/x/...` still reaches the NAME-only operand parser.
+++Expectations use explicit identity arithmetic and before/after state; no
+++weakened, skipped or output-derived expectations in the fix tests.
+++Scoped `git diff --check be109bd 5b71208`: clean.
+++No full repo gate, gate tool or sibling gate ran.
+++
+++P2+ nits, **one bead `b-isa-spec-s6lr`**: pre-existing 446-line
+++`classical.rs:1468` dispatcher touched by the mint fix; single-use
+++`tokens.rs:101` helper under COMMON's delete-don't-wrap rule. Earlier
+++`b-isa-spec-81ta` remains outside this fix review. All COMMON anti-slop rules
+++checked: enum represents origins; lock failures propagate; no new silent
+++default, duplicated predicate, unexplained policy number, process identifier,
+++tracked litter or confirmed semantic bug hidden by structure found.
+++
+++Coverage: read closely `tokens.rs`, oracle literal/vector entry paths,
+++`machine.rs` constructors, classical mint/transaction/uncall/reversal paths
+++and complete `step_prepared`, new mint tests and qinplace alias/regression;
+++skimmed inherited alias binding and remaining focused tests. Other job changes
+++were excluded by the brief's scope. Existing finding beads have independent
+++verification comments; the council checkout was untouched.
+ +
+ +Provenance: implementer **gpt-6.1-sol**; reviewer **gpt-6.1-sol, fresh session, D9**.
+@@ -951,8 +1133,100 @@
+      /// settle is admitted iff each of its certificate `borrow_frames` claims
+ diff --git a/reference-interpreter/src/claims/pairs09.rs b/reference-interpreter/src/claims/pairs09.rs
+-index 7569ca4..c9d956c 100644
++index 7569ca4..f280d2a 100644
+ --- a/reference-interpreter/src/claims/pairs09.rs
+ +++ b/reference-interpreter/src/claims/pairs09.rs
+-@@ -188,7 +188,93 @@ fn full_quantum_domain(object: &Object, g: &Function, domain: &Json) -> Result<(
++@@ -8,6 +8,24 @@ pub(super) struct Pair<'a> {
++     pub(super) tokens: BTreeMap<String, Budget>,
++     pub(super) aliases: Vec<u64>,
++ }
+++pub(super) enum PairClaim {
+++    Exhaustive,
+++    Library,
+++}
+++pub(super) fn pair_claim(claim: &Json) -> Result<PairClaim> {
+++    match claim.get("kind")?.string()? {
+++        "exhaustive" if claim.get("expected")? == &Json::String("inverse_pair".into()) => {
+++            Ok(PairClaim::Exhaustive)
+++        }
+++        "structural" if claim.get("rule")?.string()? == "inverse_pair_library" => {
+++            Ok(PairClaim::Library)
+++        }
+++        _ => err(
+++            "§12.1 K4",
+++            "entry claim is not an exhaustive or linked-library inverse-pair theorem",
+++        ),
+++    }
+++}
++ fn entry_budget(value: &Json) -> Result<Budget> {
++     let v = value.array()?;
++     if v.len() != 4 {
++@@ -21,6 +39,35 @@ fn entry_budget(value: &Json) -> Result<Budget> {
++         depth: v[3].uint()?,
++     })
++ }
+++pub(super) struct PairContext {
+++    budget: Budget,
+++    tokens: BTreeMap<String, Budget>,
+++}
+++pub(super) fn pair_context(object: &Object, entry: &Json) -> Result<PairContext> {
+++    let budget = entry_budget(entry.get("budget")?)?;
+++    object.validate_budget(budget)?;
+++    let tokens = entry
+++        .object()?
+++        .get("arg_tokens")
+++        .map(|v| {
+++            v.object()?
+++                .iter()
+++                .map(|(n, b)| Ok((n.clone(), entry_budget(b)?)))
+++                .collect::<Result<BTreeMap<_, _>>>()
+++        })
+++        .transpose()?
+++        .unwrap_or_default();
+++    for b in tokens.values() {
+++        object.validate_budget(*b)?;
+++    }
+++    // Formal argument order needs the body; partition shape does not.
+++    crate::tokens::alias_binding(
+++        entry.object()?.get("token_aliases"),
+++        &vec![None; tokens.len() + 1],
+++        tokens.is_empty(),
+++    )?;
+++    Ok(PairContext { budget, tokens })
+++}
++ pub(super) fn pair<'a>(object: &'a Object, entry: &Json) -> Result<Pair<'a>> {
++     let g = object.region_function(entry.get("g")?.string()?)?;
++     let gi = object.region_function(entry.get("ginv")?.string()?)?;
++@@ -45,19 +92,7 @@ pub(super) fn pair<'a>(object: &'a Object, entry: &Json) -> Result<Pair<'a>> {
++             "inverse-pair oracle signatures are incompatible",
++         );
++     }
++-    let budget = entry_budget(entry.get("budget")?)?;
++-    object.validate_budget(budget)?;
++-    let tokens = entry
++-        .object()?
++-        .get("arg_tokens")
++-        .map(|v| {
++-            v.object()?
++-                .iter()
++-                .map(|(n, b)| Ok((n.clone(), entry_budget(b)?)))
++-                .collect::<Result<BTreeMap<_, _>>>()
++-        })
++-        .transpose()?
++-        .unwrap_or_default();
+++    let PairContext { budget, tokens } = pair_context(object, entry)?;
++     let expected = g.params[4]
++         .iter()
++         .filter(|p| p.ty == Type::Token)
++@@ -69,9 +104,6 @@ pub(super) fn pair<'a>(object: &'a Object, entry: &Json) -> Result<Pair<'a>> {
++             "arg_tokens must bind exactly the token-typed oracle arguments",
++         );
++     }
++-    for b in tokens.values() {
++-        object.validate_budget(*b)?;
++-    }
++     let mut tuples = vec![Some(budget)];
++     tuples.extend(
++         g.params[4]
++@@ -188,7 +220,120 @@ fn full_quantum_domain(object: &Object, g: &Function, domain: &Json) -> Result<(
+      Ok(())
+  }
+@@ -986,20 +1260,53 @@
+ +            .ok_or_else(|| Error::new("§12.1 K4: library claim index out of range".into()))?;
+ +        let owner = self.region_function(closure)?;
+-+        let result = match claim.get("kind")?.string()? {
+-+            "exhaustive" if claim.get("expected")? == &Json::String("inverse_pair".into()) => {
+++        let result = match pair_claim(claim)? {
+++            PairClaim::Exhaustive => {
+ +                self.validate_inverse_pair_claim09(owner, index, claim)?;
+ +                Some((claim, pair(self, entry)?.g))
+ +            }
+-+            "structural" if claim.get("rule")?.string()? == "inverse_pair_library" => {
+++            PairClaim::Library => {
+ +                let witness = claim.get("witness")?;
+ +                let library = witness.get("library_closure_hash")?.string()?;
+ +                let donor_index = usize::try_from(witness.get("claim_index")?.uint()?)
+ +                    .map_err(|_| crate::resource_error("§12.1 K4", "claim index exceeds host"))?;
+-+                if !regions.contains_key(library) {
+-+                    active.remove(&key);
+-+                    return Ok(None);
+++                pair_context(self, entry)?;
+++                let identity = self.identity()?;
+++                let mut pins = BTreeSet::new();
+++                if let Some(imports) = self.section("imports") {
+++                    for import in imports.object()?.values() {
+++                        if let Some(pin) = import.object()?.get("pinned_closure_hash") {
+++                            pins.insert(pin.string()?);
+++                        }
+++                    }
+ +                }
+++                let mut bodies_available = true;
+++                for hash in [entry.get("g")?.string()?, entry.get("ginv")?.string()?] {
+++                    if !identity
+++                        .closure_hashes
+++                        .values()
+++                        .any(|h| h.as_deref() == Some(hash))
+++                    {
+++                        if !pins.contains(hash) {
+++                            return err(
+++                                "§12.1 K4",
+++                                "inverse-pair closure is neither local nor imported by pin",
+++                            );
+++                        }
+++                        bodies_available = false;
+++                    }
+++                }
+++                let current = if bodies_available {
+++                    Some(pair(self, entry)?)
+++                } else {
+++                    None
+++                };
+++                let current = match (regions.contains_key(library), current) {
+++                    (true, Some(current)) => current,
+++                    _ => {
+++                        active.remove(&key);
+++                        return Ok(None);
+++                    }
+++                };
+ +                let donor = self.region_function(library)?;
+-+                let current = pair(self, entry)?;
+ +                let mut matched = None;
+ +                for donor_entry in self.pair_claim_entries(donor, donor_index)? {
+@@ -1035,10 +1342,4 @@
+ +                self.inverse_pair_theorem09(library, donor_index, donor_entry, active)?
+ +            }
+-+            _ => {
+-+                return err(
+-+                    "§12.1 K4",
+-+                    "entry claim is not an exhaustive or linked-library inverse-pair theorem",
+-+                )
+-+            }
+ +        };
+ +        active.remove(&key);
+@@ -1049,5 +1350,5 @@
+              .clone()
+              .ok_or_else(|| Error::new("§12.3 K4: unlinked pair owner".into()))?;
+-@@ -273,7 +359,10 @@ impl Object {
++@@ -273,7 +418,10 @@ impl Object {
+              }
+              for row in enumerate(&domain)? {
+@@ -1062,5 +1363,5 @@
+                  for param in &p.g.params[3] {
+ diff --git a/reference-interpreter/src/claims/qinplace09.rs b/reference-interpreter/src/claims/qinplace09.rs
+-index 54f3521..850a693 100644
++index 54f3521..d5e65e4 100644
+ --- a/reference-interpreter/src/claims/qinplace09.rs
+ +++ b/reference-interpreter/src/claims/qinplace09.rs
+@@ -1101,5 +1402,5 @@
+          budget: primary.as_ref().map(BudgetToken::tuple),
+          primary,
+-@@ -54,12 +65,171 @@ fn push(
++@@ -54,12 +65,180 @@ fn push(
+      Ok(())
+  }
+@@ -1132,20 +1433,20 @@
+ +            let f = self.region_function(closure)?;
+ +            for site in qinplace_sites(f) {
+-+                if let Some(name) = site.operands[..2]
+++                let missing_body = site.operands[..2]
+ +                    .iter()
+-+                    .find(|name| !self.functions.contains_key(name.trim_start_matches('@')))
+-+                {
+-+                    outcomes.insert(
+-+                        closure.clone(),
+-+                        QinplaceApplicability::Unestablished(format!(
+-+                            "missing linked body for {name}"
+-+                        )),
+-+                    );
+-+                    continue;
+-+                }
+++                    .find(|name| !self.functions.contains_key(name.trim_start_matches('@')));
+ +                let hash = |name: &str| -> Result<&str> {
+-+                    identity.closure_hashes[name.trim_start_matches('@')]
+-+                        .as_deref()
+-+                        .ok_or_else(|| Error::new("§12.3 K92: unresolved qinplace closure".into()))
+++                    let name = name.trim_start_matches('@');
+++                    if let Some(hash) = identity.closure_hashes.get(name) {
+++                        return hash.as_deref().ok_or_else(|| {
+++                            Error::new("§12.3 K92: unresolved qinplace closure".into())
+++                        });
+++                    }
+++                    self.section("imports")
+++                        .map(|imports| imports.get(name)?.get("pinned_closure_hash")?.string())
+++                        .transpose()?
+++                        .ok_or_else(|| {
+++                            Error::new(format!("§12.3 K92: unresolved qinplace closure @{name}"))
+++                        })
+ +                };
+ +                let g = hash(&site.operands[0])?;
+@@ -1162,4 +1463,12 @@
+ +                        crate::resource_error("§12.3 K92", "claim index exceeds host")
+ +                    })?;
+++                    let claim = record.get("claims")?.array()?.get(index).ok_or_else(|| {
+++                        Error::new("§12.3 K92: pair claim index out of range".into())
+++                    })?;
+++                    pairs09::pair_claim(claim)?;
+++                    pairs09::pair_context(self, entry)?;
+++                    if missing_body.is_some() {
+++                        continue;
+++                    }
+ +                    self.inverse_pair_theorem09(closure, index, entry, &mut BTreeSet::new())?;
+ +                    self.verify_claim_guarded(closure, index, &mut BTreeSet::new())?;
+@@ -1173,7 +1482,8 @@
+ +                outcomes.insert(
+ +                    closure.clone(),
+-+                    QinplaceApplicability::Unestablished(
+-+                        "no resolved invocation establishes qinplace applicability".into(),
+-+                    ),
+++                    QinplaceApplicability::Unestablished(match missing_body {
+++                        Some(name) => format!("missing linked body for {name}"),
+++                        None => "no resolved invocation establishes qinplace applicability".into(),
+++                    }),
+ +                );
+ +            }
+@@ -1274,5 +1584,5 @@
+          let primary = token(args, &a[2])?;
+          let actuals = if a.len() == 7 {
+-@@ -95,6 +265,7 @@ impl Object {
++@@ -95,6 +274,7 @@ impl Object {
+          let gi = identity.closure_hashes[a[1].trim_start_matches('@')]
+              .as_deref()
+@@ -1282,5 +1592,5 @@
+              let eg = entry.get("g")?.string()?;
+              let ei = entry.get("ginv")?.string()?;
+-@@ -123,17 +294,13 @@ impl Object {
++@@ -123,17 +303,13 @@ impl Object {
+              }
+              let index = usize::try_from(entry.get("claim")?.uint()?)
+@@ -1307,5 +1617,5 @@
+              for (slot, (param, value)) in p.g.params[4].iter().zip(&actuals).enumerate() {
+                  if param.ty == Type::Token {
+-@@ -151,11 +318,17 @@ impl Object {
++@@ -151,11 +327,17 @@ impl Object {
+              if !covers {
+                  continue;
+@@ -1328,5 +1638,5 @@
+      pub(crate) fn precheck_qinplace09(
+          &self,
+-@@ -164,14 +337,29 @@ impl Object {
++@@ -164,14 +346,29 @@ impl Object {
+          budget: Option<Budget>,
+          primary: Option<&BudgetToken>,
+@@ -1365,5 +1675,5 @@
+              name: f.name.clone(),
+              args: values(f, args)?,
+-@@ -179,8 +367,18 @@ impl Object {
++@@ -179,8 +376,18 @@ impl Object {
+              primary: primary.cloned(),
+          }];
+@@ -1385,5 +1695,5 @@
+                  .args
+                  .iter()
+-@@ -203,6 +401,14 @@ impl Object {
++@@ -203,6 +410,14 @@ impl Object {
+              if !visited.insert(key) {
+                  continue;
+@@ -1400,5 +1710,5 @@
+                  .iter()
+                  .zip(&invocation.args)
+-@@ -212,6 +418,21 @@ impl Object {
++@@ -212,6 +427,21 @@ impl Object {
+                  if invocation.budget.is_none_or(|b| b.steps == 0) {
+                      continue;
+@@ -1422,5 +1732,5 @@
+                  for (activation, i) in &program.rows {
+                      if !matches!(
+-@@ -223,10 +444,9 @@ impl Object {
++@@ -223,10 +453,9 @@ impl Object {
+                      let fixed = program.arguments(activation, &args)?;
+                      let a = &i.operands;
+@@ -1434,5 +1744,5 @@
+                          &fixed,
+                          if oracle {
+-@@ -255,20 +475,33 @@ impl Object {
++@@ -255,20 +484,33 @@ impl Object {
+                          }
+                          let a = &i.operands;
+@@ -1476,5 +1786,5 @@
+                          } else if matches!(
+                              i.op.as_str(),
+-@@ -279,7 +512,7 @@ impl Object {
++@@ -279,7 +521,7 @@ impl Object {
+                              let oracle = call.instruction.op == "oracle_call";
+                              push(
+@@ -1485,5 +1795,5 @@
+                                  &args,
+                                  if oracle {
+-@@ -293,6 +526,6 @@ impl Object {
++@@ -293,6 +535,6 @@ impl Object {
+                  }
+              }
+@@ -1894,4 +2204,32 @@
+          let labels = if let Some(labels) = aliases {
+              labels.to_vec()
++diff --git a/reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa b/reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa
++new file mode 100644
++index 0000000..b40b92c
++--- /dev/null
+++++ b/reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa
++@@ -0,0 +1,15 @@
+++bennett-object isa=0.9 object=0.9 launch=0.9 sched=0.9 cert=0.9 coverage=0.9 target=0.9 ptr_width=32
+++
+++section symbols
+++{"0":{"interface_hash":"4dc068f587f3c82dc1bddc8ae32860be149ddffe595c038d6cef77e047fad31a","kind":"perm_action","name":"addya","signature":{"abi":"0.9","args":["token","i2"],"bounds":[],"in":[2],"kind":"perm_action","mem":[],"mut":[2],"tier":"q"}}}
+++
+++section imports
+++{"g":{"pinned_closure_hash":"0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e","signature":{"abi":"0.9","args":["i2"],"fault":4,"in":[2,2],"kind":"oracle","mem":[],"tgt":2,"tier":"q"}},"ginv":{"pinned_closure_hash":"786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9","signature":{"abi":"0.9","args":["i2"],"fault":4,"in":[2,2],"kind":"oracle","mem":[],"tgt":2,"tier":"q"}}}
+++
+++section functions
+++perm_action @addya (x:wire[2]) (y:wire[2] in) () (tk:token, a:i2) ()
+++^entry():
+++qinplace @g @ginv tk x (y) () (a)
+++
+++section certificate
+++{"bindings":{"closure_hash":"5999b6d3d2362f8c1971ef6f37b404766aa5c18f6ba1880d767bfde351e47392","dialect_mapping_version":"k84-vectors.1","interface_hash":"4dc068f587f3c82dc1bddc8ae32860be149ddffe595c038d6cef77e047fad31a","invocation":{"args":[["3","0","0","0"],"1"],"budget":["0","0","0","0"],"token_aliases":[0]},"object_hash":"a6214cd11a94baed6b7fff9c06079c26e58141040922594d971f71fe798c6d03","reference_program_hash":"5999b6d3d2362f8c1971ef6f37b404766aa5c18f6ba1880d767bfde351e47392","target_hash":"0000000000000000000000000000000000000000000000000000000000000000"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"k84-vectors"},"name":"conformance","version":"1"},"regions":{"5999b6d3d2362f8c1971ef6f37b404766aa5c18f6ba1880d767bfde351e47392":{"bounds":[],"claims":[],"cleanup":{},"definedness_assumptions":[],"error":{"forward:0":{"inclusive":{"operator_norm":0},"local":{"operator_norm":0}}},"frame":{"ancillae":[],"borrow":[],"history":[],"scratch":[],"slots":[{"class":"any","id":"mut:0","role":"mut","width":2},{"class":"any","id":"in:0","role":"in","width":2}]},"gates_used":{},"kind":"perm_action","resources":{},"signature":{"abi":"0.9","args":["token","i2"],"bounds":[],"in":[2],"kind":"perm_action","mem":[],"mut":[2],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.9","coverage":"0.9","isa":"0.9","launch":"0.9","object":"0.9","sched":"0.9","target":"0.9"}}
++diff --git a/reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.comments b/reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.comments
++new file mode 100644
++index 0000000..d9c3acf
++--- /dev/null
+++++ b/reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.comments
++@@ -0,0 +1 @@
+++Hand: @addya has one qinplace @g @ginv source site. Both oracle identities are fixed by their published Example 7 closure pins; bodies are not required to determine this pair. The supplied addya record has claims=[] and inverse_pairs=[], so K92 requires rejection for the missing owner-local entry, with or without bindings.invocation. The concrete invocation binds tk=[3,0,0,0] and a=1. Missing linked bodies cannot replace this static rejection with Unestablished. The literal addya interface hash is preserved from the supplied witness; imports affect its closure identity separately under §9.3.
+ diff --git a/reference-interpreter/tests/isa09_budget_mint.rs b/reference-interpreter/tests/isa09_budget_mint.rs
+ index 3860fa7..e312978 100644
+@@ -2259,5 +2597,5 @@
+  }
+ diff --git a/reference-interpreter/tests/isa09_qinplace.rs b/reference-interpreter/tests/isa09_qinplace.rs
+-index 5daba4f..030b690 100644
++index 5daba4f..042d843 100644
+ --- a/reference-interpreter/tests/isa09_qinplace.rs
+ +++ b/reference-interpreter/tests/isa09_qinplace.rs
+@@ -2318,5 +2656,5 @@
+  
+  #[test]
+-@@ -275,27 +317,1040 @@ fn uncovered_pair_rejects_before_the_earliest_effect_of_the_region() {
++@@ -275,27 +317,1402 @@ fn uncovered_pair_rejects_before_the_earliest_effect_of_the_region() {
+      }
+  }
+@@ -2398,6 +2736,6 @@
+ +            }
+ +        }
+-+    }
+-+}
++     }
++ }
+ +
+ +fn change_certificate(text: &str, change: impl FnOnce(&mut bennett_isa_ref::json::Json)) -> String {
+@@ -2461,4 +2799,366 @@
+ +        .unwrap_err();
+ +    assert!(error.to_string().contains("K92"), "{error}");
+++}
+++
+++#[test]
+++fn imported_pair_requires_owner_inventory_before_missing_body_outcome() {
+++    assert_imported_pair_requires_inventory(true);
+++}
+++#[test]
+++fn imported_pair_requires_static_owner_inventory_without_invocation() {
+++    assert_imported_pair_requires_inventory(false);
+++}
+++fn assert_imported_pair_requires_inventory(invocation: bool) {
+++    let witness = include_str!("fixtures/imported-qinplace-missing-inventory.bisa");
+++    let text = change_certificate(witness, |c| {
+++        if !invocation {
+++            fields(fields(c).get_mut("bindings").unwrap()).remove("invocation");
+++        }
+++    });
+++    let object = Object::parse(&text).unwrap();
+++    object.check_hashes().unwrap();
+++    let imports = object.section("imports").unwrap();
+++    assert_eq!(
+++        imports
+++            .get("g")
+++            .unwrap()
+++            .get("pinned_closure_hash")
+++            .unwrap()
+++            .string()
+++            .unwrap(),
+++        "0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e"
+++    );
+++    assert_eq!(
+++        imports
+++            .get("ginv")
+++            .unwrap()
+++            .get("pinned_closure_hash")
+++            .unwrap()
+++            .string()
+++            .unwrap(),
+++        "786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9"
+++    );
+++    let error = object
+++        .verify_certificate()
+++        .expect_err("missing imported pair inventory must reject");
+++    assert!(
+++        error
+++            .to_string()
+++            .contains("§12.3 K92: missing owner-local inverse-pair entry in @addya"),
+++        "invocation={invocation}: {error}"
+++    );
+++}
+++
+++#[test]
+++fn local_pair_requires_owner_inventory_with_and_without_invocation() {
+++    for invocation in [true, false] {
+++        let text = change_certificate(&inverse_certificate(), |c| {
+++            if invocation {
+++                fields(fields(c).get_mut("bindings").unwrap())
+++                    .insert("invocation".into(), root_invocation(3, 1));
+++            }
+++            let record = fields(fields(c).get_mut("regions").unwrap())
+++                .values_mut()
+++                .next()
+++                .unwrap();
+++            fields(record).insert("claims".into(), support::json("[]"));
+++            fields(fields(record).get_mut("verification").unwrap())
+++                .insert("inverse_pairs".into(), support::json("[]"));
+++        });
+++        let object = Object::parse(&text).unwrap();
+++        object.check_hashes().unwrap();
+++        let error = object
+++            .verify_certificate()
+++            .expect_err("missing local pair inventory must reject");
+++        assert!(
+++            error
+++                .to_string()
+++                .contains("§12.3 K92: missing owner-local inverse-pair entry in @addya"),
+++            "invocation={invocation}: {error}"
+++        );
+++    }
+++}
+++
+++#[test]
+++fn imported_pair_rejects_invalid_referenced_claim_before_missing_body_outcome() {
+++    let text = change_certificate(
+++        include_str!("fixtures/imported-qinplace-missing-inventory.bisa"),
+++        |c| {
+++            let record = fields(fields(c).get_mut("regions").unwrap())
+++                .values_mut()
+++                .next()
+++                .unwrap();
+++            fields(record).insert("claims".into(), support::json(r#"[{"kind":"structural","rule":"adjoint_table","subclaims":[],"witness":{},"invocation":{"args":"all","budget":"all","token_aliases":"all"}}]"#));
+++            fields(fields(record).get_mut("verification").unwrap()).insert("inverse_pairs".into(), support::json(r#"[{"g":"0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e","ginv":"786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9","claim":0,"budget":[3,0,0,0]}]"#));
+++        },
+++    );
+++    let object = Object::parse(&text).unwrap();
+++    object.check_hashes().unwrap();
+++    let error = object
+++        .verify_certificate()
+++        .expect_err("invalid referenced claim must reject even without pair bodies");
+++    assert!(
+++        error
+++            .to_string()
+++            .contains("entry claim is not an exhaustive or linked-library inverse-pair theorem"),
+++        "{error}"
+++    );
+++}
+++
+++#[test]
+++fn imported_pair_inventory_resolves_pins_in_either_orientation_without_proof_replay() {
+++    use bennett_isa_ref::{ClaimVerdict, QinplaceApplicability};
+++    for reverse in [false, true] {
+++        let text = imported_pair_library_certificate(reverse);
+++        let object = Object::parse(&text).unwrap();
+++        object.check_hashes().unwrap();
+++        let report = object.verify_certificate().unwrap();
+++        assert!(
+++            matches!(report.claims[0].verdict, ClaimVerdict::Unverified(_)),
+++            "{report:?}"
+++        );
+++        assert!(
+++            matches!(
+++                report.claims[0].qinplace_applicability,
+++                Some(QinplaceApplicability::Unestablished(_))
+++            ),
+++            "{report:?}"
+++        );
+++    }
+++}
+++fn imported_pair_library_certificate(reverse: bool) -> String {
+++    let witness = include_str!("fixtures/imported-qinplace-missing-inventory.bisa");
+++    let imported = Object::parse(witness).unwrap();
+++    let imports = imported.section("imports").unwrap();
+++    let g = imports
+++        .get("g")
+++        .unwrap()
+++        .get("pinned_closure_hash")
+++        .unwrap()
+++        .string()
+++        .unwrap();
+++    let gi = imports
+++        .get("ginv")
+++        .unwrap()
+++        .get("pinned_closure_hash")
+++        .unwrap()
+++        .string()
+++        .unwrap();
+++    change_certificate(witness, |c| {
+++        fields(fields(c).get_mut("bindings").unwrap()).remove("invocation");
+++        let record = fields(fields(c).get_mut("regions").unwrap())
+++            .values_mut()
+++            .next()
+++            .unwrap();
+++        fields(record).insert("claims".into(), support::json(&format!(r#"[{{"kind":"structural","rule":"inverse_pair_library","subclaims":[],"witness":{{"library_closure_hash":"{g}","claim_index":0}},"invocation":{{"args":"all","budget":"all","token_aliases":"all"}}}}]"#)));
+++        let (eg, ei) = if reverse { (gi, g) } else { (g, gi) };
+++        fields(fields(record).get_mut("verification").unwrap()).insert(
+++            "inverse_pairs".into(),
+++            support::json(&format!(
+++                r#"[{{"g":"{eg}","ginv":"{ei}","claim":0,"budget":[3,0,0,0]}}]"#
+++            )),
+++        );
+++    })
+++}
+++
+++#[test]
+++fn imported_pair_rejects_invalid_entry_budget_before_missing_body_outcome() {
+++    assert_imported_pair_rejects_entry_context("budget", "[3,1,0,0]", "memoryless budgets");
+++    assert_imported_pair_rejects_entry_context(
+++        "arg_tokens",
+++        r#"{"absent":[3,1,0,0]}"#,
+++        "memoryless budgets",
+++    );
+++}
+++#[test]
+++fn imported_pair_rejects_invalid_alias_structure_before_missing_body_outcome() {
+++    assert_imported_pair_rejects_entry_context("token_aliases", "[]", "token_aliases arity");
+++    assert_imported_pair_rejects_entry_context("token_aliases", "[1]", "labels must start at zero");
+++}
+++fn assert_imported_pair_rejects_entry_context(field: &str, value: &str, diagnostic: &str) {
+++    let text = change_certificate(&imported_pair_library_certificate(false), |c| {
+++        let record = fields(fields(c).get_mut("regions").unwrap())
+++            .values_mut()
+++            .next()
+++            .unwrap();
+++        let entries = fields(fields(record).get_mut("verification").unwrap())
+++            .get_mut("inverse_pairs")
+++            .unwrap();
+++        let bennett_isa_ref::json::Json::Array(entries) = entries else {
+++            panic!("entries")
+++        };
+++        fields(&mut entries[0]).insert(field.into(), support::json(value));
+++        if field == "arg_tokens" {
+++            fields(&mut entries[0]).insert("token_aliases".into(), support::json("[0,1]"));
+++        }
+++    });
+++    let object = Object::parse(&text).unwrap();
+++    object.check_hashes().unwrap();
+++    let owner = object.identity().unwrap().closure_hashes["addya"]
+++        .clone()
+++        .unwrap();
+++    let error = object
+++        .verify_certificate()
+++        .expect_err("static entry context must reject without pair bodies");
+++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
+++    let error = object
+++        .verify_claim(&owner, 0)
+++        .expect_err("standalone claim must reject malformed entry context");
+++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
+++}
+++
+++#[test]
+++fn unresolved_action_callee_cannot_hide_another_supplied_owners_missing_inventory() {
+++    let (object, _) = pinned_import_qinplace_certificate(true);
+++    let object = Object::parse(
+++        &(object
+++            .text
+++            .split_once("section certificate\n")
+++            .unwrap()
+++            .0
+++            .trim_end()
+++            .to_string()
+++            + "\n"),
+++    )
+++    .unwrap();
+++    let inner = object.identity().unwrap().closure_hashes["inner"]
+++        .clone()
+++        .unwrap();
+++    let text = change_certificate(&inverse_certificate_for(&object), |c| {
+++        fields(fields(c).get_mut("bindings").unwrap())
+++            .insert("invocation".into(), root_invocation(3, 1));
+++        let regions = fields(fields(c).get_mut("regions").unwrap());
+++        let mut record = regions.values().next().unwrap().clone();
+++        fields(&mut record).insert("claims".into(), support::json("[]"));
+++        fields(fields(&mut record).get_mut("verification").unwrap())
+++            .insert("inverse_pairs".into(), support::json("[]"));
+++        regions.clear();
+++        regions.insert(inner, record);
+++    });
+++    let object = Object::parse(&text).unwrap();
+++    object.check_hashes().unwrap();
+++    let error = object.verify_certificate().unwrap_err();
+++    assert!(
+++        error
+++            .to_string()
+++            .contains("§12.3 K92: missing owner-local inverse-pair entry in @inner"),
+++        "{error}"
+++    );
+++}
+++
+++#[test]
+++fn unresolved_oracle_body_cannot_hide_supplied_owner_inventory() {
+++    use bennett_isa_ref::{json::Json, QinplaceApplicability};
+++    let original = Object::parse(&(published_source().to_string() + "\n")).unwrap();
+++    let g = original.identity().unwrap().closure_hashes["g"]
+++        .clone()
+++        .unwrap();
+++    let imports = format!(
+++        r#"{{"missing":{{"pinned_closure_hash":"{g}","signature":{}}}}}"#,
+++        original.functions["g"]
+++            .signature_for(original.isa_version)
+++            .canonical()
+++    );
+++    let source = support::rehash(&original.text.replace(
+++        "\nsection functions\n",
+++        &format!("\nsection imports\n{imports}\n\nsection functions\n"),
+++    ));
+++    let identity = source.identity().unwrap();
+++    let text = change_certificate(&inverse_certificate_for(&source), |c| {
+++        let bindings = fields(fields(c).get_mut("bindings").unwrap());
+++        for key in ["closure_hash", "reference_program_hash"] {
+++            bindings.insert(key.into(), Json::String(g.clone()));
+++        }
+++        bindings.insert(
+++            "interface_hash".into(),
+++            Json::String(identity.interface_hashes["g"].clone()),
+++        );
+++        bindings.insert(
+++            "invocation".into(),
+++            support::json(r#"{"args":["1"],"budget":["3","0","0","0"],"token_aliases":[0]}"#),
+++        );
+++        let record = fields(fields(c).get_mut("regions").unwrap())
+++            .values_mut()
+++            .next()
+++            .unwrap();
+++        fields(record).insert("claims".into(), support::json("[]"));
+++        fields(fields(record).get_mut("verification").unwrap())
+++            .insert("inverse_pairs".into(), support::json("[]"));
+++    });
+++    let object = Object::parse(&text).unwrap();
+++    object.check_hashes().unwrap();
+++    let error = object.verify_certificate().unwrap_err();
+++    assert!(
+++        error
+++            .to_string()
+++            .contains("§12.3 K92: missing owner-local inverse-pair entry in @addya"),
+++        "{error}"
+++    );
+++    let text = change_certificate(&text, |c| {
+++        fields(fields(c).get_mut("regions").unwrap()).clear();
+++    });
+++    let report = Object::parse(&text).unwrap().verify_certificate().unwrap();
+++    assert!(
+++        matches!(report.qinplace_applicability.get(&g), Some(QinplaceApplicability::Unestablished(reason)) if reason.contains("missing linked body for @missing")),
+++        "{report:?}"
+++    );
+++}
+++
+++#[test]
+++fn unavailable_library_still_rejects_malformed_owner_pair_context() {
+++    assert_unavailable_library_rejects_owner_context(
+++        "arg_tokens",
+++        r#"{"absent":[3,0,0,0]}"#,
+++        "arg_tokens must bind exactly",
+++    );
+++}
+++#[test]
+++fn unavailable_library_still_rejects_malformed_owner_alias_context() {
+++    assert_unavailable_library_rejects_owner_context("token_aliases", "[]", "token_aliases");
+++}
+++fn assert_unavailable_library_rejects_owner_context(field: &str, value: &str, diagnostic: &str) {
+++    let text = linked_inverse_certificate(false);
+++    let object = Object::parse(&text).unwrap();
+++    let identity = object.identity().unwrap();
+++    let owner = identity.closure_hashes["addya"].as_ref().unwrap();
+++    let library = identity.closure_hashes["g"].as_ref().unwrap();
+++    let text = change_certificate(&text, |c| {
+++        let regions = fields(fields(c).get_mut("regions").unwrap());
+++        regions.remove(library);
+++        let claims = fields(regions.get_mut(owner).unwrap())
+++            .get_mut("claims")
+++            .unwrap();
+++        let bennett_isa_ref::json::Json::Array(claims) = claims else {
+++            panic!("claims")
+++        };
+++        fields(&mut claims[0]).insert(
+++            "invocation".into(),
+++            support::json(r#"{"args":"all","budget":"all","token_aliases":"all"}"#),
+++        );
+++        let entries = fields(
+++            fields(regions.get_mut(owner).unwrap())
+++                .get_mut("verification")
+++                .unwrap(),
+++        )
+++        .get_mut("inverse_pairs")
+++        .unwrap();
+++        let bennett_isa_ref::json::Json::Array(entries) = entries else {
+++            panic!("entries")
+++        };
+++        fields(&mut entries[0]).insert(field.into(), support::json(value));
+++        if field == "arg_tokens" {
+++            fields(&mut entries[0]).insert("token_aliases".into(), support::json("[0,1]"));
+++        }
+++    });
+++    let object = Object::parse(&text).unwrap();
+++    object.check_hashes().unwrap();
+++    let error = object
+++        .verify_certificate()
+++        .expect_err("missing library must not hide malformed owner context");
+++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
+++    let error = object
+++        .verify_claim(owner, 0)
+++        .expect_err("standalone claim must reject malformed owner context");
+++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
+ +}
+ +#[test]
+@@ -2533,6 +3233,6 @@
+ +            }
+ +        }
+-     }
+- }
+++    }
+++}
+ +
+ +fn loop_certificate(iterations: usize) -> String {
+@@ -3533,4 +4233,20 @@
+          );
+          support::borrow_identity(&o);
++diff --git a/reference-interpreter/tests/r1_fixtures.rs b/reference-interpreter/tests/r1_fixtures.rs
++index af61e65..0a37d74 100644
++--- a/reference-interpreter/tests/r1_fixtures.rs
+++++ b/reference-interpreter/tests/r1_fixtures.rs
++@@ -653,6 +653,11 @@ fn fixture_identities_are_pinned_as_literals() {
++             "a",
++             "bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89",
++         ),
+++        (
+++            "imported-qinplace-missing-inventory",
+++            "addya",
+++            "4dc068f587f3c82dc1bddc8ae32860be149ddffe595c038d6cef77e047fad31a",
+++        ),
++     ];
++     let mut checked = 0;
++     for (fixture, symbol, hash) in pinned {
+ diff --git a/reference-interpreter/tests/r21_resources.rs b/reference-interpreter/tests/r21_resources.rs
+ index 792506a..99adc94 100644
+@@ -3608,14 +4324,15 @@
+ ````
+ 
+-## 2. Changed files at 5b71208
+-
+-# Changed files of job/quality-isaref at 5b71208
+-
+-Snapshot of `isaref-stage2/` at commit `5b7120852f17e56063462d50f01fcf1da708ed1f`. 28 files; each embedded verbatim below. Line counts and sha256 per file:
++## 2. Changed files at 185e9ba
++
++# Changed files of job/quality-isaref at 185e9ba
++
++Snapshot of `stage.mJ2U/` at commit `185e9baabd54dae8c56c7c776fd404d98a2c9679`. 32 files; each embedded verbatim below. Line counts and sha256 per file:
+ 
+ - `conformance/Cargo.toml` 12 lines, sha256 a517143e9e06
+-- `docs/quality.md` 330 lines, sha256 8610dc50005c
++- `docs/quality.md` 415 lines, sha256 bce87fac407b
+ - `docs/reviews/2026-11-06-quality-isaref-r1.md` 113 lines, sha256 993f00f198b8
+ - `docs/reviews/2026-11-07-isaspec-main-r1.md` 102 lines, sha256 3f5e5cb3c4a8
++- `docs/reviews/2026-11-07-isaspec-main-r2.md` 79 lines, sha256 2207416183f6
+ - `docs/reviews/2026-11-07-quality-isaref-r2.md` 88 lines, sha256 448f24346dc2
+ - `docs/reviews/2026-11-07-quality-isaref-r3.md` 83 lines, sha256 02841f81101e
+@@ -3623,6 +4340,6 @@
+ - `reference-interpreter/Cargo.toml` 13 lines, sha256 3250d894e2c7
+ - `reference-interpreter/src/certificate.rs` 948 lines, sha256 72b9ce95f8c5
+-- `reference-interpreter/src/claims/pairs09.rs` 480 lines, sha256 4663963cc62f
+-- `reference-interpreter/src/claims/qinplace09.rs` 531 lines, sha256 12ed26272857
++- `reference-interpreter/src/claims/pairs09.rs` 539 lines, sha256 2dd6d90aa3db
++- `reference-interpreter/src/claims/qinplace09.rs` 540 lines, sha256 19a07e5de6f4
+ - `reference-interpreter/src/claims/replay09.rs` 505 lines, sha256 854df1cbd55b
+ - `reference-interpreter/src/claims.rs` 1179 lines, sha256 28632f5f28dd
+@@ -3632,16 +4349,19 @@
+ - `reference-interpreter/src/source_constructor/action.rs` 715 lines, sha256 d1acd5e2d7e0
+ - `reference-interpreter/src/tokens.rs` 459 lines, sha256 dccb1a744db2
++- `reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa` 15 lines, sha256 dc1e77b95cff
++- `reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.comments` 1 lines, sha256 98e0ef69dcd4
+ - `reference-interpreter/tests/isa09_budget_mint.rs` 469 lines, sha256 a8a3cf800098
+ - `reference-interpreter/tests/isa09_certificate.rs` 255 lines, sha256 5d66e1d6a892
+ - `reference-interpreter/tests/isa09_claim_replay.rs` 479 lines, sha256 7bd221412b57
+ - `reference-interpreter/tests/isa09_forwarding.rs` 456 lines, sha256 3601716ccc97
+-- `reference-interpreter/tests/isa09_qinplace.rs` 1356 lines, sha256 930204fca1c6
++- `reference-interpreter/tests/isa09_qinplace.rs` 1718 lines, sha256 fa63089f4d9b
+ - `reference-interpreter/tests/isa09_token_aliases.rs` 862 lines, sha256 43f698a67dd6
+ - `reference-interpreter/tests/r1_certificates.rs` 895 lines, sha256 2abfb2b2e783
++- `reference-interpreter/tests/r1_fixtures.rs` 738 lines, sha256 b9e6f1099b06
+ - `reference-interpreter/tests/r21_resources.rs` 410 lines, sha256 24d248dc9c0d
+ - `reference-interpreter/tests/r22_coverage.rs` 274 lines, sha256 95d7e61f38f2
+ - `reference-interpreter/tools/test-slow-source-forwarding.sh` 12 lines, sha256 49e282bf9225
+ 
+-Total embedded: 13457 lines.
++Total embedded: 14805 lines.
+ 
+ ## `conformance/Cargo.toml` (12 lines)
+@@ -3662,5 +4382,5 @@
+ ````
+ 
+-## `docs/quality.md` (330 lines)
++## `docs/quality.md` (415 lines)
+ 
+ ````markdown
+@@ -3995,4 +4715,89 @@
+ 180-second runtime target and the broader quality programme remain open; this
+ validation covers the scoped semantic fixes.
++
++## Missing-body rejection ordering
++
++K92's owner inventory is checked before any unavailable-body outcome. Local
++closure identities come from `identity.closure_hashes`; imported identities come
++from their §9.3 pins. An exact pair in either orientation is required even without
++`bindings.invocation`. Missing entries and references to another claim rule
++reject; unavailable pair bodies defer proof replay and retain `Unestablished`
++applicability. The imported witness is preserved verbatim in
++`reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa`.
++Entry and argument-token budgets and alias partition structure also validate
++before unavailable bodies or library donors can defer theorem replay. Formal
++token-argument names and positional tuple comparisons still require the body.
++
++The class sweep examined every added `continue`, `return` and `break` in
++`d46df99` and `7fc37fd`, including relocated exits and changed guard conditions:
++
++| Location / exit | Mandatory rejection ordering and regression |
++| --- | --- |
++| `certificate.rs::validate_claim`, subject-conflict error | Already rejects before replay; `scheduled_and_reference_relations_reject_conflicting_subject_closures` retains the scheduled/reference table/program matrix. |
++| `pairs09.rs::inverse_pair_theorem09`, missing donor `Ok(None)` | Another ordering defect: a parameter-uniform claim could hide malformed local owner `arg_tokens` or `token_aliases`. Local pair context now validates first. `unavailable_library_still_rejects_malformed_owner_pair_context` and `unavailable_library_still_rejects_malformed_owner_alias_context` check both public checker APIs. Pinned pair bodies may remain unavailable; undeclared pair closures reject. |
++| Same function, first covering donor `break` and no-covering-donor error | The break selects an alternative theorem binding; the error is a terminal rejection. Existing `library_proof_cannot_transfer_to_a_different_pair`, `library_reuse_preserves_the_proved_minimum_and_argument_domain`, and shared-claim entry-order/orientation matrices retain pair/context rejection and valid donor controls. |
++| `qinplace09.rs::check_qinplace_bindings09`, no-work guard and missing-pair-body `continue` | No-work requires neither imports nor local sites. The defective missing-body skip now follows exact pair presence, valid claim index and theorem-rule checks. New `imported_pair_requires_owner_inventory_before_missing_body_outcome`, `imported_pair_requires_static_owner_inventory_without_invocation`, `imported_pair_rejects_invalid_referenced_claim_before_missing_body_outcome`, and `local_pair_requires_owner_inventory_with_and_without_invocation` cover the rejections. `imported_pair_inventory_resolves_pins_in_either_orientation_without_proof_replay` retains valid inventory without inventing a proof. |
++| Same missing-pair-body and missing-donor exits, independent entry context | `imported_pair_rejects_invalid_entry_budget_before_missing_body_outcome` checks both the entry and an argument-token budget; `imported_pair_rejects_invalid_alias_structure_before_missing_body_outcome` checks alias arity and label gaps. Both checker APIs reject before returning unavailable-body/donor outcomes. |
++| `qinplace09.rs::qinplace_coverage09`, no-work guard / missing callee body `continue` | Every supplied owner's static inventory is checked before invocation traversal. `unresolved_action_callee_cannot_hide_another_supplied_owners_missing_inventory` adds the ordering control. Both existing `pinned_import_*_local_qinplace_keeps_unresolved_root_obligation` tests retain absent-body outcomes without panic and linked positive controls. |
++| Same function, oracle missing-import `continue` | `unresolved_oracle_body_cannot_hide_supplied_owner_inventory` requires the visible owner's missing-pair rejection first; removing that record leaves the root `Unestablished`, naming the unavailable import. |
++| Same function, reached qinplace missing-pair-body `continue` | The new imported-pair rejection and theorem-rule tests bind a concrete root invocation; static obligations reject before this branch. Existing unresolved-root tests and the valid imported-pair inventory control retain unavailable-body outcomes. Execution still rejects unestablished applicability before effects. |
++| `tokens.rs::BudgetToken::mint_is_live`, expired owner `Ok(false)`; `resolve_invocation_tokens`, revoked-token error | The false result feeds an immediate K3 rejection, before token partition handling or effects. Existing `device_tokens_expire_when_their_owning_run_is_dropped`, `reversed_mint_tokens_reject_both_public_oracle_entry_paths`, and observer-rollback tests exercise both public entry paths and live-token controls. |
++
++`claims.rs` and `classical.rs` add no early exits in those commits. Existing
++zero-budget, zero-trip, predicate and argument-domain tests remain in the focused
++suite; their pre-existing traversal skips were not removed or weakened.
++
++The final regression file was copied into a private archive of exact `5b71208`
++with production sources unchanged. This command exited **101**, with **35 passed
++and seven intended failures** (imported bound/static inventory, invalid referenced
++claim, imported invalid budgets/alias structure, malformed local token arguments
++and aliases hidden by a missing donor):
++
++```sh
++timeout 600 cargo test --offline -j3 --manifest-path .tmp/quality-isaref/tmp/c2-baseline-5b71208/reference-interpreter/Cargo.toml --test isa09_qinplace -- --test-threads=4
++```
++
++The baseline result is retained in private `c2-baseline-red.log`, `.status` and
++`.time` artifacts. Fixture-construction errors encountered before that final run
++were corrected and are not counted as production regressions.
++
++The corrected implementation passes **77 focused tests**, exit 0, **21.13 s
++wall**, **203964 KiB maximum RSS** (`c2-focused.log`, `.status`, `.time`):
++
++```sh
++timeout 900 cargo test --offline -j3 --manifest-path reference-interpreter/Cargo.toml --test isa09_qinplace --test isa09_claim_replay --test isa09_certificate --test isa09_budget_mint --test r1_fixtures -- --test-threads=4
++```
++
++Both crates pass `timeout 120 cargo fmt --manifest-path <crate>/Cargo.toml --
++--check`, and `git diff --check` passes. These runs use the same headless private
++TMPDIR/target, 8 GiB address-space cap and four test threads as above.
++Both crates also pass `timeout 600 cargo clippy --offline -j3 --manifest-path
++<crate>/Cargo.toml --lib --bins -- -D warnings`.
++
++The first full reference run exposed the new fixture's required audit integration:
++its `.comments` companion and literal interface pin were missing. Both were added
++without weakening the audit; all seven `r1_fixtures` tests pass in the focused
++command above. The failed run is retained as `c2-fixture-audit-red.*`; it is not
++counted as a completed full validation.
++
++Final full validation completed at **2026-11-07 09:14:53 UTC**, run head `b618b16`,
++with production sources unchanged since `09f183d`. Both commands exited **0**:
++
++```sh
++timeout 2400 cargo test --offline -j3 --manifest-path reference-interpreter/Cargo.toml -- --test-threads=4
++BENNETT_CONFORMANCE_BIN="$CARGO_TARGET_DIR/debug/bennett-isa-ref" timeout 2400 cargo test --offline -j3 --manifest-path conformance/Cargo.toml -- --test-threads=4
++```
++
++| Crate | Passed | Existing ignores | Wall time | Maximum RSS (KiB) |
++| --- | ---: | ---: | --- | ---: |
++| reference | 688 | 6 | 4:38.86 | 1591396 |
++| conformance | 129 | 0 | 8:01.38 | 723376 |
++
++Logs, statuses and timings are private `c2-full-reference.*` and
++`c2-full-conformance.*` artifacts; `c2-conformance-binary.sha256` records the
++rebuilt private interpreter selected by conformance. These final runs include
++the static-context extension and completed fixture audit. No full repository
++gate, gate tool or sibling gate ran. The broader runtime/quality programme
++remains outside this semantic repair.
+ ````
+ 
+@@ -4218,4 +5023,88 @@
+ `docs/reviews/2026-11-06-quality-isaref-r1.md`; this pass does not re-grade their
+ job-branch repairs or claim council clearance.
++
++Provenance: implementer **gpt-6.1-sol**; reviewer **gpt-6.1-sol, fresh session, D9**.
++````
++
++## `docs/reviews/2026-11-07-isaspec-main-r2.md` (79 lines)
++
++````markdown
++# ISA 0.9 main implementation review, round 2
++
++**Verdict: CLEAR — no open P0/P1 in this scope.**
++
++Reviewed head: `5b7120852f17e56063462d50f01fcf1da708ed1f` on
++`job/quality-isaref`. Scope overrides the generic job range: round-1 findings
++at `be109bd27889ea91e3c0ad78a30e5e4d71d3d0d3`, token fix
++`7fc37fd8321138d96661371646c9ea72be237d3a` and its oracle entry paths/tests,
++plus verification of the existing qinplace repair `0d95706` at head.
++This does not re-grade the full quality branch or the concurrent council.
++
++- **P0-1, `b-isa-spec-dnjq`: verified fixed.**
++  `reference-interpreter/src/tokens.rs:367-372` now checks namespace and
++  live mint identity for every concrete invocation token. The weak run owner
++  expires at run drop; `classical.rs:1214,1428,1445` publishes reversal,
++  committed state and rollback. The unchanged round-1 probe, compiled against
++  the head library, now exits 101 at its former successful-call unwrap with
++  `§5.4 K3: E_ARG: revoked or expired device token`.
++  The head regression separately proves live success and rejection through
++  both `run_oracle_with_token` and `OracleMachine::new_with_token`.
++- **P1-2, `b-isa-spec-bf57`: verified fixed.**
++  `reference-interpreter/src/source_constructor/action/qinplace.rs:24-31`
++  binds a collision-free lexical alias to the private constructor identity.
++  `source_qinplace_adjoints_preserve_instruction_allocation_and_release_order`
++  passes, asserting allocation/release widths and hand-derived forward/adjoint
++  modulo-4 results over every x/y input.
++
++Ran headless with private `.tmp/rev-isaspec-main-r2/{tmp,target}`, core dumps
++disabled and Cargo address space capped at 8 GiB:
++
++```sh
++timeout 600 cargo test --offline -j3 \
++  --manifest-path reference-interpreter/Cargo.toml \
++  --test isa09_budget_mint --test isa09_qinplace -- --test-threads=4
++```
++
++**13 + 31 passed, zero failed/ignored.** Both probes were compiled with
++`timeout 120 rustc --edition=2021`, dependency search and `--extern` pointing
++at the freshly built head rlib; compile-time Cargo manifest/binary variables
++were supplied. An initial standalone compile lacked those variables and was
++retried. Retained probes under `.tmp/rev-isaspec-main-r2/tmp/`:
++
++```sh
++timeout 60 .tmp/rev-isaspec-main-r2/tmp/r1-token-probe-at-head
++timeout 60 .tmp/rev-isaspec-main-r2/tmp/lifecycle-probe
++```
++
++First: expected rejection/exit 101 as above. Second: exit 0, independently
++asserting live success, both original API rejections, vector API rejection,
++revoked token arguments with a live host primary, re-mint freshness, expiry,
++host-token survival and observer-rejected uncall restoring token validity.
++Its initial argument call omitted the required alias binding; supplying the
++explicit host primary corrected the probe. No production/test source changed.
++
++Red-first assessment: read `git show main:reference-interpreter/src/tokens.rs`
++and the main-side qinplace constructor. Main's resolver lacks mint validity,
++so the new reversed/expired/observer-rollback negative assertions fail there;
++its private `$qinplace/x/...` still reaches the NAME-only operand parser.
++Expectations use explicit identity arithmetic and before/after state; no
++weakened, skipped or output-derived expectations in the fix tests.
++Scoped `git diff --check be109bd 5b71208`: clean.
++No full repo gate, gate tool or sibling gate ran.
++
++P2+ nits, **one bead `b-isa-spec-s6lr`**: pre-existing 446-line
++`classical.rs:1468` dispatcher touched by the mint fix; single-use
++`tokens.rs:101` helper under COMMON's delete-don't-wrap rule. Earlier
++`b-isa-spec-81ta` remains outside this fix review. All COMMON anti-slop rules
++checked: enum represents origins; lock failures propagate; no new silent
++default, duplicated predicate, unexplained policy number, process identifier,
++tracked litter or confirmed semantic bug hidden by structure found.
++
++Coverage: read closely `tokens.rs`, oracle literal/vector entry paths,
++`machine.rs` constructors, classical mint/transaction/uncall/reversal paths
++and complete `step_prepared`, new mint tests and qinplace alias/regression;
++skimmed inherited alias binding and remaining focused tests. Other job changes
++were excluded by the brief's scope. Existing finding beads have independent
++verification comments; the council checkout was untouched.
+ 
+ Provenance: implementer **gpt-6.1-sol**; reviewer **gpt-6.1-sol, fresh session, D9**.
+@@ -5423,5 +6312,5 @@
+ ````
+ 
+-## `reference-interpreter/src/claims/pairs09.rs` (480 lines)
++## `reference-interpreter/src/claims/pairs09.rs` (539 lines)
+ 
+ ````rust
+@@ -5436,4 +6325,22 @@
+     pub(super) aliases: Vec<u64>,
+ }
++pub(super) enum PairClaim {
++    Exhaustive,
++    Library,
++}
++pub(super) fn pair_claim(claim: &Json) -> Result<PairClaim> {
++    match claim.get("kind")?.string()? {
++        "exhaustive" if claim.get("expected")? == &Json::String("inverse_pair".into()) => {
++            Ok(PairClaim::Exhaustive)
++        }
++        "structural" if claim.get("rule")?.string()? == "inverse_pair_library" => {
++            Ok(PairClaim::Library)
++        }
++        _ => err(
++            "§12.1 K4",
++            "entry claim is not an exhaustive or linked-library inverse-pair theorem",
++        ),
++    }
++}
+ fn entry_budget(value: &Json) -> Result<Budget> {
+     let v = value.array()?;
+@@ -5448,4 +6355,33 @@
+         depth: v[3].uint()?,
+     })
++}
++pub(super) struct PairContext {
++    budget: Budget,
++    tokens: BTreeMap<String, Budget>,
++}
++pub(super) fn pair_context(object: &Object, entry: &Json) -> Result<PairContext> {
++    let budget = entry_budget(entry.get("budget")?)?;
++    object.validate_budget(budget)?;
++    let tokens = entry
++        .object()?
++        .get("arg_tokens")
++        .map(|v| {
++            v.object()?
++                .iter()
++                .map(|(n, b)| Ok((n.clone(), entry_budget(b)?)))
++                .collect::<Result<BTreeMap<_, _>>>()
++        })
++        .transpose()?
++        .unwrap_or_default();
++    for b in tokens.values() {
++        object.validate_budget(*b)?;
++    }
++    // Formal argument order needs the body; partition shape does not.
++    crate::tokens::alias_binding(
++        entry.object()?.get("token_aliases"),
++        &vec![None; tokens.len() + 1],
++        tokens.is_empty(),
++    )?;
++    Ok(PairContext { budget, tokens })
+ }
+ pub(super) fn pair<'a>(object: &'a Object, entry: &Json) -> Result<Pair<'a>> {
+@@ -5473,17 +6409,5 @@
+         );
+     }
+-    let budget = entry_budget(entry.get("budget")?)?;
+-    object.validate_budget(budget)?;
+-    let tokens = entry
+-        .object()?
+-        .get("arg_tokens")
+-        .map(|v| {
+-            v.object()?
+-                .iter()
+-                .map(|(n, b)| Ok((n.clone(), entry_budget(b)?)))
+-                .collect::<Result<BTreeMap<_, _>>>()
+-        })
+-        .transpose()?
+-        .unwrap_or_default();
++    let PairContext { budget, tokens } = pair_context(object, entry)?;
+     let expected = g.params[4]
+         .iter()
+@@ -5496,7 +6420,4 @@
+             "arg_tokens must bind exactly the token-typed oracle arguments",
+         );
+-    }
+-    for b in tokens.values() {
+-        object.validate_budget(*b)?;
+     }
+     let mut tuples = vec![Some(budget)];
+@@ -5643,20 +6564,53 @@
+             .ok_or_else(|| Error::new("§12.1 K4: library claim index out of range".into()))?;
+         let owner = self.region_function(closure)?;
+-        let result = match claim.get("kind")?.string()? {
+-            "exhaustive" if claim.get("expected")? == &Json::String("inverse_pair".into()) => {
++        let result = match pair_claim(claim)? {
++            PairClaim::Exhaustive => {
+                 self.validate_inverse_pair_claim09(owner, index, claim)?;
+                 Some((claim, pair(self, entry)?.g))
+             }
+-            "structural" if claim.get("rule")?.string()? == "inverse_pair_library" => {
++            PairClaim::Library => {
+                 let witness = claim.get("witness")?;
+                 let library = witness.get("library_closure_hash")?.string()?;
+                 let donor_index = usize::try_from(witness.get("claim_index")?.uint()?)
+                     .map_err(|_| crate::resource_error("§12.1 K4", "claim index exceeds host"))?;
+-                if !regions.contains_key(library) {
+-                    active.remove(&key);
+-                    return Ok(None);
++                pair_context(self, entry)?;
++                let identity = self.identity()?;
++                let mut pins = BTreeSet::new();
++                if let Some(imports) = self.section("imports") {
++                    for import in imports.object()?.values() {
++                        if let Some(pin) = import.object()?.get("pinned_closure_hash") {
++                            pins.insert(pin.string()?);
++                        }
++                    }
+                 }
++                let mut bodies_available = true;
++                for hash in [entry.get("g")?.string()?, entry.get("ginv")?.string()?] {
++                    if !identity
++                        .closure_hashes
++                        .values()
++                        .any(|h| h.as_deref() == Some(hash))
++                    {
++                        if !pins.contains(hash) {
++                            return err(
++                                "§12.1 K4",
++                                "inverse-pair closure is neither local nor imported by pin",
++                            );
++                        }
++                        bodies_available = false;
++                    }
++                }
++                let current = if bodies_available {
++                    Some(pair(self, entry)?)
++                } else {
++                    None
++                };
++                let current = match (regions.contains_key(library), current) {
++                    (true, Some(current)) => current,
++                    _ => {
++                        active.remove(&key);
++                        return Ok(None);
++                    }
++                };
+                 let donor = self.region_function(library)?;
+-                let current = pair(self, entry)?;
+                 let mut matched = None;
+                 for donor_entry in self.pair_claim_entries(donor, donor_index)? {
+@@ -5691,10 +6645,4 @@
+                 };
+                 self.inverse_pair_theorem09(library, donor_index, donor_entry, active)?
+-            }
+-            _ => {
+-                return err(
+-                    "§12.1 K4",
+-                    "entry claim is not an exhaustive or linked-library inverse-pair theorem",
+-                )
+             }
+         };
+@@ -5908,5 +6856,5 @@
+ ````
+ 
+-## `reference-interpreter/src/claims/qinplace09.rs` (531 lines)
++## `reference-interpreter/src/claims/qinplace09.rs` (540 lines)
+ 
+ ````rust
+@@ -6005,20 +6953,20 @@
+             let f = self.region_function(closure)?;
+             for site in qinplace_sites(f) {
+-                if let Some(name) = site.operands[..2]
++                let missing_body = site.operands[..2]
+                     .iter()
+-                    .find(|name| !self.functions.contains_key(name.trim_start_matches('@')))
+-                {
+-                    outcomes.insert(
+-                        closure.clone(),
+-                        QinplaceApplicability::Unestablished(format!(
+-                            "missing linked body for {name}"
+-                        )),
+-                    );
+-                    continue;
+-                }
++                    .find(|name| !self.functions.contains_key(name.trim_start_matches('@')));
+                 let hash = |name: &str| -> Result<&str> {
+-                    identity.closure_hashes[name.trim_start_matches('@')]
+-                        .as_deref()
+-                        .ok_or_else(|| Error::new("§12.3 K92: unresolved qinplace closure".into()))
++                    let name = name.trim_start_matches('@');
++                    if let Some(hash) = identity.closure_hashes.get(name) {
++                        return hash.as_deref().ok_or_else(|| {
++                            Error::new("§12.3 K92: unresolved qinplace closure".into())
++                        });
++                    }
++                    self.section("imports")
++                        .map(|imports| imports.get(name)?.get("pinned_closure_hash")?.string())
++                        .transpose()?
++                        .ok_or_else(|| {
++                            Error::new(format!("§12.3 K92: unresolved qinplace closure @{name}"))
++                        })
+                 };
+                 let g = hash(&site.operands[0])?;
+@@ -6035,4 +6983,12 @@
+                         crate::resource_error("§12.3 K92", "claim index exceeds host")
+                     })?;
++                    let claim = record.get("claims")?.array()?.get(index).ok_or_else(|| {
++                        Error::new("§12.3 K92: pair claim index out of range".into())
++                    })?;
++                    pairs09::pair_claim(claim)?;
++                    pairs09::pair_context(self, entry)?;
++                    if missing_body.is_some() {
++                        continue;
++                    }
+                     self.inverse_pair_theorem09(closure, index, entry, &mut BTreeSet::new())?;
+                     self.verify_claim_guarded(closure, index, &mut BTreeSet::new())?;
+@@ -6046,7 +7002,8 @@
+                 outcomes.insert(
+                     closure.clone(),
+-                    QinplaceApplicability::Unestablished(
+-                        "no resolved invocation establishes qinplace applicability".into(),
+-                    ),
++                    QinplaceApplicability::Unestablished(match missing_body {
++                        Some(name) => format!("missing linked body for {name}"),
++                        None => "no resolved invocation establishes qinplace applicability".into(),
++                    }),
+                 );
+             }
+@@ -11723,4 +12680,30 @@
+ ````
+ 
++## `reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.bisa` (15 lines)
++
++````
++bennett-object isa=0.9 object=0.9 launch=0.9 sched=0.9 cert=0.9 coverage=0.9 target=0.9 ptr_width=32
++
++section symbols
++{"0":{"interface_hash":"4dc068f587f3c82dc1bddc8ae32860be149ddffe595c038d6cef77e047fad31a","kind":"perm_action","name":"addya","signature":{"abi":"0.9","args":["token","i2"],"bounds":[],"in":[2],"kind":"perm_action","mem":[],"mut":[2],"tier":"q"}}}
++
++section imports
++{"g":{"pinned_closure_hash":"0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e","signature":{"abi":"0.9","args":["i2"],"fault":4,"in":[2,2],"kind":"oracle","mem":[],"tgt":2,"tier":"q"}},"ginv":{"pinned_closure_hash":"786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9","signature":{"abi":"0.9","args":["i2"],"fault":4,"in":[2,2],"kind":"oracle","mem":[],"tgt":2,"tier":"q"}}}
++
++section functions
++perm_action @addya (x:wire[2]) (y:wire[2] in) () (tk:token, a:i2) ()
++^entry():
++qinplace @g @ginv tk x (y) () (a)
++
++section certificate
++{"bindings":{"closure_hash":"5999b6d3d2362f8c1971ef6f37b404766aa5c18f6ba1880d767bfde351e47392","dialect_mapping_version":"k84-vectors.1","interface_hash":"4dc068f587f3c82dc1bddc8ae32860be149ddffe595c038d6cef77e047fad31a","invocation":{"args":[["3","0","0","0"],"1"],"budget":["0","0","0","0"],"token_aliases":[0]},"object_hash":"a6214cd11a94baed6b7fff9c06079c26e58141040922594d971f71fe798c6d03","reference_program_hash":"5999b6d3d2362f8c1971ef6f37b404766aa5c18f6ba1880d767bfde351e47392","target_hash":"0000000000000000000000000000000000000000000000000000000000000000"},"composition":{"epsilon_total":{"diamond":0},"method":"sum_over_multiplicities","multiplicities":{}},"producer":{"materialisation":{"llvm_version":"none","normaliser_version":"1","pipeline":"k84-vectors"},"name":"conformance","version":"1"},"regions":{"5999b6d3d2362f8c1971ef6f37b404766aa5c18f6ba1880d767bfde351e47392":{"bounds":[],"claims":[],"cleanup":{},"definedness_assumptions":[],"error":{"forward:0":{"inclusive":{"operator_norm":0},"local":{"operator_norm":0}}},"frame":{"ancillae":[],"borrow":[],"history":[],"scratch":[],"slots":[{"class":"any","id":"mut:0","role":"mut","width":2},{"class":"any","id":"in:0","role":"in","width":2}]},"gates_used":{},"kind":"perm_action","resources":{},"signature":{"abi":"0.9","args":["token","i2"],"bounds":[],"in":[2],"kind":"perm_action","mem":[],"mut":[2],"tier":"q"},"verification":{"borrow_frames":[],"channel":[],"fault_rate":{"domain":{"borrowed":[],"bundles":[],"regions":[]},"faults_by_code":{},"layout_dependent_excluded":0,"undefined_excluded":0},"inverse_pairs":[],"oracle":null,"unitary":[]}}},"versions":{"cert":"0.9","coverage":"0.9","isa":"0.9","launch":"0.9","object":"0.9","sched":"0.9","target":"0.9"}}
++````
++
++## `reference-interpreter/tests/fixtures/imported-qinplace-missing-inventory.comments` (1 lines)
++
++````
++Hand: @addya has one qinplace @g @ginv source site. Both oracle identities are fixed by their published Example 7 closure pins; bodies are not required to determine this pair. The supplied addya record has claims=[] and inverse_pairs=[], so K92 requires rejection for the missing owner-local entry, with or without bindings.invocation. The concrete invocation binds tk=[3,0,0,0] and a=1. Missing linked bodies cannot replace this static rejection with Unestablished. The literal addya interface hash is preserved from the supplied witness; imports affect its closure identity separately under §9.3.
++````
++
+ ## `reference-interpreter/tests/isa09_budget_mint.rs` (469 lines)
+ 
+@@ -13402,5 +14385,5 @@
+ ````
+ 
+-## `reference-interpreter/tests/isa09_qinplace.rs` (1356 lines)
++## `reference-interpreter/tests/isa09_qinplace.rs` (1718 lines)
+ 
+ ````rust
+@@ -13843,4 +14826,366 @@
+         .unwrap_err();
+     assert!(error.to_string().contains("K92"), "{error}");
++}
++
++#[test]
++fn imported_pair_requires_owner_inventory_before_missing_body_outcome() {
++    assert_imported_pair_requires_inventory(true);
++}
++#[test]
++fn imported_pair_requires_static_owner_inventory_without_invocation() {
++    assert_imported_pair_requires_inventory(false);
++}
++fn assert_imported_pair_requires_inventory(invocation: bool) {
++    let witness = include_str!("fixtures/imported-qinplace-missing-inventory.bisa");
++    let text = change_certificate(witness, |c| {
++        if !invocation {
++            fields(fields(c).get_mut("bindings").unwrap()).remove("invocation");
++        }
++    });
++    let object = Object::parse(&text).unwrap();
++    object.check_hashes().unwrap();
++    let imports = object.section("imports").unwrap();
++    assert_eq!(
++        imports
++            .get("g")
++            .unwrap()
++            .get("pinned_closure_hash")
++            .unwrap()
++            .string()
++            .unwrap(),
++        "0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e"
++    );
++    assert_eq!(
++        imports
++            .get("ginv")
++            .unwrap()
++            .get("pinned_closure_hash")
++            .unwrap()
++            .string()
++            .unwrap(),
++        "786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9"
++    );
++    let error = object
++        .verify_certificate()
++        .expect_err("missing imported pair inventory must reject");
++    assert!(
++        error
++            .to_string()
++            .contains("§12.3 K92: missing owner-local inverse-pair entry in @addya"),
++        "invocation={invocation}: {error}"
++    );
++}
++
++#[test]
++fn local_pair_requires_owner_inventory_with_and_without_invocation() {
++    for invocation in [true, false] {
++        let text = change_certificate(&inverse_certificate(), |c| {
++            if invocation {
++                fields(fields(c).get_mut("bindings").unwrap())
++                    .insert("invocation".into(), root_invocation(3, 1));
++            }
++            let record = fields(fields(c).get_mut("regions").unwrap())
++                .values_mut()
++                .next()
++                .unwrap();
++            fields(record).insert("claims".into(), support::json("[]"));
++            fields(fields(record).get_mut("verification").unwrap())
++                .insert("inverse_pairs".into(), support::json("[]"));
++        });
++        let object = Object::parse(&text).unwrap();
++        object.check_hashes().unwrap();
++        let error = object
++            .verify_certificate()
++            .expect_err("missing local pair inventory must reject");
++        assert!(
++            error
++                .to_string()
++                .contains("§12.3 K92: missing owner-local inverse-pair entry in @addya"),
++            "invocation={invocation}: {error}"
++        );
++    }
++}
++
++#[test]
++fn imported_pair_rejects_invalid_referenced_claim_before_missing_body_outcome() {
++    let text = change_certificate(
++        include_str!("fixtures/imported-qinplace-missing-inventory.bisa"),
++        |c| {
++            let record = fields(fields(c).get_mut("regions").unwrap())
++                .values_mut()
++                .next()
++                .unwrap();
++            fields(record).insert("claims".into(), support::json(r#"[{"kind":"structural","rule":"adjoint_table","subclaims":[],"witness":{},"invocation":{"args":"all","budget":"all","token_aliases":"all"}}]"#));
++            fields(fields(record).get_mut("verification").unwrap()).insert("inverse_pairs".into(), support::json(r#"[{"g":"0d65d926275688cfebf2831c1de960b03a6b8ea6400866e6d9fef8f393ca2c2e","ginv":"786f1970ca3d78ef3d5de795411ee276286711c89b756872757c24f9bd569cc9","claim":0,"budget":[3,0,0,0]}]"#));
++        },
++    );
++    let object = Object::parse(&text).unwrap();
++    object.check_hashes().unwrap();
++    let error = object
++        .verify_certificate()
++        .expect_err("invalid referenced claim must reject even without pair bodies");
++    assert!(
++        error
++            .to_string()
++            .contains("entry claim is not an exhaustive or linked-library inverse-pair theorem"),
++        "{error}"
++    );
++}
++
++#[test]
++fn imported_pair_inventory_resolves_pins_in_either_orientation_without_proof_replay() {
++    use bennett_isa_ref::{ClaimVerdict, QinplaceApplicability};
++    for reverse in [false, true] {
++        let text = imported_pair_library_certificate(reverse);
++        let object = Object::parse(&text).unwrap();
++        object.check_hashes().unwrap();
++        let report = object.verify_certificate().unwrap();
++        assert!(
++            matches!(report.claims[0].verdict, ClaimVerdict::Unverified(_)),
++            "{report:?}"
++        );
++        assert!(
++            matches!(
++                report.claims[0].qinplace_applicability,
++                Some(QinplaceApplicability::Unestablished(_))
++            ),
++            "{report:?}"
++        );
++    }
++}
++fn imported_pair_library_certificate(reverse: bool) -> String {
++    let witness = include_str!("fixtures/imported-qinplace-missing-inventory.bisa");
++    let imported = Object::parse(witness).unwrap();
++    let imports = imported.section("imports").unwrap();
++    let g = imports
++        .get("g")
++        .unwrap()
++        .get("pinned_closure_hash")
++        .unwrap()
++        .string()
++        .unwrap();
++    let gi = imports
++        .get("ginv")
++        .unwrap()
++        .get("pinned_closure_hash")
++        .unwrap()
++        .string()
++        .unwrap();
++    change_certificate(witness, |c| {
++        fields(fields(c).get_mut("bindings").unwrap()).remove("invocation");
++        let record = fields(fields(c).get_mut("regions").unwrap())
++            .values_mut()
++            .next()
++            .unwrap();
++        fields(record).insert("claims".into(), support::json(&format!(r#"[{{"kind":"structural","rule":"inverse_pair_library","subclaims":[],"witness":{{"library_closure_hash":"{g}","claim_index":0}},"invocation":{{"args":"all","budget":"all","token_aliases":"all"}}}}]"#)));
++        let (eg, ei) = if reverse { (gi, g) } else { (g, gi) };
++        fields(fields(record).get_mut("verification").unwrap()).insert(
++            "inverse_pairs".into(),
++            support::json(&format!(
++                r#"[{{"g":"{eg}","ginv":"{ei}","claim":0,"budget":[3,0,0,0]}}]"#
++            )),
++        );
++    })
++}
++
++#[test]
++fn imported_pair_rejects_invalid_entry_budget_before_missing_body_outcome() {
++    assert_imported_pair_rejects_entry_context("budget", "[3,1,0,0]", "memoryless budgets");
++    assert_imported_pair_rejects_entry_context(
++        "arg_tokens",
++        r#"{"absent":[3,1,0,0]}"#,
++        "memoryless budgets",
++    );
++}
++#[test]
++fn imported_pair_rejects_invalid_alias_structure_before_missing_body_outcome() {
++    assert_imported_pair_rejects_entry_context("token_aliases", "[]", "token_aliases arity");
++    assert_imported_pair_rejects_entry_context("token_aliases", "[1]", "labels must start at zero");
++}
++fn assert_imported_pair_rejects_entry_context(field: &str, value: &str, diagnostic: &str) {
++    let text = change_certificate(&imported_pair_library_certificate(false), |c| {
++        let record = fields(fields(c).get_mut("regions").unwrap())
++            .values_mut()
++            .next()
++            .unwrap();
++        let entries = fields(fields(record).get_mut("verification").unwrap())
++            .get_mut("inverse_pairs")
++            .unwrap();
++        let bennett_isa_ref::json::Json::Array(entries) = entries else {
++            panic!("entries")
++        };
++        fields(&mut entries[0]).insert(field.into(), support::json(value));
++        if field == "arg_tokens" {
++            fields(&mut entries[0]).insert("token_aliases".into(), support::json("[0,1]"));
++        }
++    });
++    let object = Object::parse(&text).unwrap();
++    object.check_hashes().unwrap();
++    let owner = object.identity().unwrap().closure_hashes["addya"]
++        .clone()
++        .unwrap();
++    let error = object
++        .verify_certificate()
++        .expect_err("static entry context must reject without pair bodies");
++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
++    let error = object
++        .verify_claim(&owner, 0)
++        .expect_err("standalone claim must reject malformed entry context");
++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
++}
++
++#[test]
++fn unresolved_action_callee_cannot_hide_another_supplied_owners_missing_inventory() {
++    let (object, _) = pinned_import_qinplace_certificate(true);
++    let object = Object::parse(
++        &(object
++            .text
++            .split_once("section certificate\n")
++            .unwrap()
++            .0
++            .trim_end()
++            .to_string()
++            + "\n"),
++    )
++    .unwrap();
++    let inner = object.identity().unwrap().closure_hashes["inner"]
++        .clone()
++        .unwrap();
++    let text = change_certificate(&inverse_certificate_for(&object), |c| {
++        fields(fields(c).get_mut("bindings").unwrap())
++            .insert("invocation".into(), root_invocation(3, 1));
++        let regions = fields(fields(c).get_mut("regions").unwrap());
++        let mut record = regions.values().next().unwrap().clone();
++        fields(&mut record).insert("claims".into(), support::json("[]"));
++        fields(fields(&mut record).get_mut("verification").unwrap())
++            .insert("inverse_pairs".into(), support::json("[]"));
++        regions.clear();
++        regions.insert(inner, record);
++    });
++    let object = Object::parse(&text).unwrap();
++    object.check_hashes().unwrap();
++    let error = object.verify_certificate().unwrap_err();
++    assert!(
++        error
++            .to_string()
++            .contains("§12.3 K92: missing owner-local inverse-pair entry in @inner"),
++        "{error}"
++    );
++}
++
++#[test]
++fn unresolved_oracle_body_cannot_hide_supplied_owner_inventory() {
++    use bennett_isa_ref::{json::Json, QinplaceApplicability};
++    let original = Object::parse(&(published_source().to_string() + "\n")).unwrap();
++    let g = original.identity().unwrap().closure_hashes["g"]
++        .clone()
++        .unwrap();
++    let imports = format!(
++        r#"{{"missing":{{"pinned_closure_hash":"{g}","signature":{}}}}}"#,
++        original.functions["g"]
++            .signature_for(original.isa_version)
++            .canonical()
++    );
++    let source = support::rehash(&original.text.replace(
++        "\nsection functions\n",
++        &format!("\nsection imports\n{imports}\n\nsection functions\n"),
++    ));
++    let identity = source.identity().unwrap();
++    let text = change_certificate(&inverse_certificate_for(&source), |c| {
++        let bindings = fields(fields(c).get_mut("bindings").unwrap());
++        for key in ["closure_hash", "reference_program_hash"] {
++            bindings.insert(key.into(), Json::String(g.clone()));
++        }
++        bindings.insert(
++            "interface_hash".into(),
++            Json::String(identity.interface_hashes["g"].clone()),
++        );
++        bindings.insert(
++            "invocation".into(),
++            support::json(r#"{"args":["1"],"budget":["3","0","0","0"],"token_aliases":[0]}"#),
++        );
++        let record = fields(fields(c).get_mut("regions").unwrap())
++            .values_mut()
++            .next()
++            .unwrap();
++        fields(record).insert("claims".into(), support::json("[]"));
++        fields(fields(record).get_mut("verification").unwrap())
++            .insert("inverse_pairs".into(), support::json("[]"));
++    });
++    let object = Object::parse(&text).unwrap();
++    object.check_hashes().unwrap();
++    let error = object.verify_certificate().unwrap_err();
++    assert!(
++        error
++            .to_string()
++            .contains("§12.3 K92: missing owner-local inverse-pair entry in @addya"),
++        "{error}"
++    );
++    let text = change_certificate(&text, |c| {
++        fields(fields(c).get_mut("regions").unwrap()).clear();
++    });
++    let report = Object::parse(&text).unwrap().verify_certificate().unwrap();
++    assert!(
++        matches!(report.qinplace_applicability.get(&g), Some(QinplaceApplicability::Unestablished(reason)) if reason.contains("missing linked body for @missing")),
++        "{report:?}"
++    );
++}
++
++#[test]
++fn unavailable_library_still_rejects_malformed_owner_pair_context() {
++    assert_unavailable_library_rejects_owner_context(
++        "arg_tokens",
++        r#"{"absent":[3,0,0,0]}"#,
++        "arg_tokens must bind exactly",
++    );
++}
++#[test]
++fn unavailable_library_still_rejects_malformed_owner_alias_context() {
++    assert_unavailable_library_rejects_owner_context("token_aliases", "[]", "token_aliases");
++}
++fn assert_unavailable_library_rejects_owner_context(field: &str, value: &str, diagnostic: &str) {
++    let text = linked_inverse_certificate(false);
++    let object = Object::parse(&text).unwrap();
++    let identity = object.identity().unwrap();
++    let owner = identity.closure_hashes["addya"].as_ref().unwrap();
++    let library = identity.closure_hashes["g"].as_ref().unwrap();
++    let text = change_certificate(&text, |c| {
++        let regions = fields(fields(c).get_mut("regions").unwrap());
++        regions.remove(library);
++        let claims = fields(regions.get_mut(owner).unwrap())
++            .get_mut("claims")
++            .unwrap();
++        let bennett_isa_ref::json::Json::Array(claims) = claims else {
++            panic!("claims")
++        };
++        fields(&mut claims[0]).insert(
++            "invocation".into(),
++            support::json(r#"{"args":"all","budget":"all","token_aliases":"all"}"#),
++        );
++        let entries = fields(
++            fields(regions.get_mut(owner).unwrap())
++                .get_mut("verification")
++                .unwrap(),
++        )
++        .get_mut("inverse_pairs")
++        .unwrap();
++        let bennett_isa_ref::json::Json::Array(entries) = entries else {
++            panic!("entries")
++        };
++        fields(&mut entries[0]).insert(field.into(), support::json(value));
++        if field == "arg_tokens" {
++            fields(&mut entries[0]).insert("token_aliases".into(), support::json("[0,1]"));
++        }
++    });
++    let object = Object::parse(&text).unwrap();
++    object.check_hashes().unwrap();
++    let error = object
++        .verify_certificate()
++        .expect_err("missing library must not hide malformed owner context");
++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
++    let error = object
++        .verify_claim(owner, 0)
++        .expect_err("standalone claim must reject malformed owner context");
++    assert!(error.to_string().contains(diagnostic), "{field}: {error}");
+ }
+ #[test]
+@@ -16530,4 +17875,747 @@
+ ````
+ 
++## `reference-interpreter/tests/r1_fixtures.rs` (738 lines)
++
++````rust
++//! Council round 1: codex B18 (a fixture audit that audits every fixture), and
++//! fable's suggestion that the §16.3 fixtures equal the spec text byte for byte.
++mod support;
++use bennett_isa_ref::Object;
++use std::path::PathBuf;
++
++#[test]
++fn r11_qinplace_comment_matches_budget_contract() {
++    let expected = "Hand: for B >= 1, @o is the one-step identity permutation, both qinplace rows are I, H^2=I, and CX(0,b)=I_bR. B=0 rejects under §4.5 because the oracle faults; it is not an identity run.\n";
++    assert_eq!(include_str!("fixtures/r9-sol-qinplace.comments"), expected);
++    let o = Object::parse(support::r9_fixture("sol-qinplace")).unwrap();
++    o.check_hashes().unwrap();
++    support::r9_identity(
++        &o,
++        &[bennett_isa_ref::Argument::Token(
++            bennett_isa_ref::Budget::steps(1),
++        )],
++    );
++    let path =
++        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/r9-sol-qinplace.bisa");
++    for t in ["0", "1"] {
++        for budget in ["token:0,0,0,0", "token:1,0,0,0"] {
++            let out = std::process::Command::new(env!("CARGO_BIN_EXE_bennett-isa-ref"))
++                .args([
++                    "run-action",
++                    path.to_str().unwrap(),
++                    "a",
++                    "--mut",
++                    t,
++                    "--arg",
++                    budget,
++                ])
++                .output()
++                .unwrap();
++            if budget == "token:0,0,0,0" {
++                assert_eq!(out.status.code(), Some(1));
++                assert!(out.stdout.is_empty());
++                assert!(String::from_utf8_lossy(&out.stderr).contains("§4.5"));
++            } else {
++                assert!(out.status.success(), "{out:?}");
++                let v = support::json(std::str::from_utf8(&out.stdout).unwrap());
++                assert_eq!(
++                    v.get("state").unwrap().canonical(),
++                    format!(r#"{{"{t}":[1,0]}}"#)
++                );
++                assert_eq!(v.get("wires").unwrap().uint().unwrap(), 1);
++            }
++        }
++    }
++}
++
++fn fixtures() -> Vec<PathBuf> {
++    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
++    let mut out: Vec<_> = std::fs::read_dir(dir)
++        .unwrap()
++        .map(|e| e.unwrap().path())
++        .filter(|p| p.extension().is_some_and(|x| x == "bisa"))
++        .collect();
++    out.sort();
++    out
++}
++
++#[test]
++fn b18_every_bisa_file_is_audited_and_has_a_comments_file() {
++    let all = fixtures();
++    // Inventory: the audit covers whatever is committed, never a hand list.
++    assert!(all.len() >= 12, "fixture inventory shrank: {all:?}");
++    for path in &all {
++        let text = std::fs::read_to_string(path).unwrap();
++        Object::parse(&text)
++            .unwrap_or_else(|e| panic!("{}: {e}", path.display()))
++            .check_hashes()
++            .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
++        assert!(
++            path.with_extension("comments").exists(),
++            "{} lacks its hand-derived .comments file",
++            path.display()
++        );
++    }
++}
++
++#[test]
++fn b18_a_corrupted_stored_hash_is_detected_by_the_same_audit() {
++    let path = fixtures()
++        .into_iter()
++        .find(|p| p.ends_with("tiny_memory.bisa"))
++        .unwrap();
++    let text = std::fs::read_to_string(path).unwrap();
++    let start = text.find("\"interface_hash\":\"").unwrap() + 18;
++    let mut corrupted = text.clone();
++    let flipped = if &text[start..start + 1] == "0" {
++        "1"
++    } else {
++        "0"
++    };
++    corrupted.replace_range(start..start + 1, flipped);
++    let o = Object::parse(&corrupted).unwrap();
++    assert!(o.check_hashes().unwrap_err().to_string().contains("§9.2"));
++}
++
++/// The n-th fenced block after `marker` in the specification.
++fn spec_block(marker: &str, n: usize) -> String {
++    let spec = std::fs::read_to_string(
++        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../spec/Bennett-ISA-Spec.md"),
++    )
++    .unwrap();
++    let mut rest = &spec[spec.find(marker).unwrap()..];
++    let mut block = String::new();
++    for _ in 0..=n {
++        let open = rest.find("```\n").unwrap() + 4;
++        let close = rest[open..].find("```").unwrap() + open;
++        block = rest[open..close].to_string();
++        rest = &rest[close + 3..];
++    }
++    block
++}
++
++#[test]
++fn published_example_objects_are_the_fixtures_byte_for_byte() {
++    assert_eq!(
++        spec_block("**Example 1** (`inc8`)", 0),
++        include_str!("fixtures/inc8.bisa")
++    );
++    assert_eq!(
++        spec_block("**Example 2** (`sum_db`)", 0),
++        include_str!("fixtures/sum_db.bisa")
++    );
++}
++
++#[test]
++fn fixture_identities_are_pinned_as_literals() {
++    // muse suggestion: the stored hashes are re-derived by the crate itself
++    // (support::rehash); pinning them here makes any future envelope change a
++    // visible test failure rather than a silent re-derivation.
++    let pinned: &[(&str, &str, &str)] = &[
++        (
++            "actions",
++            "bell",
++            "3b0881575762fa4e1fd5b2a160cd6abfcbfe60f011df3b1968df7e44de11e1d3",
++        ),
++        (
++            "actions",
++            "flip",
++            "7b3212f6647103050fa24c34e767afd19fbe3009134d6f5c7280a400ff9ef398",
++        ),
++        (
++            "actions",
++            "image",
++            "90dbeda2a04d9f5ac10570fa079aaf22540fb1bf8da780415dcd238334996aa4",
++        ),
++        (
++            "actions",
++            "lifted",
++            "2acd73fbb764d1a278bcba54e7a13c99ddd1d159e8f63ea59f3af7338e313f67",
++        ),
++        (
++            "actions",
++            "loop",
++            "56ab73b8a0938e882c2a3293d4fb401a07bbbb931485b88948973ba1c3dc1597",
++        ),
++        (
++            "actions",
++            "memory",
++            "62c70737b8fcae09329da78eed2ed48aad61dfe0137e2d8d02c1e1ffb9dc5f76",
++        ),
++        (
++            "arithmetic",
++            "add",
++            "7c80a06412db38f658cf0441a0f64529cbfb8b903814f239cad3ba770f99308a",
++        ),
++        (
++            "arithmetic",
++            "and",
++            "bf8e3bb2f7c71c884f5632c3ae27be18ba6854bac45ec83d3d7b5ab42d9160ac",
++        ),
++        (
++            "arithmetic",
++            "ashr",
++            "2dc127ee704b144c5ff8110fbce24ebfc8ae148670deb64dbb7c458de84ff5ca",
++        ),
++        (
++            "arithmetic",
++            "badjump",
++            "0b0f368147c4bf9c5fcffc84abb37ee1775504d13204ed6fcd6b19b735c00abf",
++        ),
++        (
++            "arithmetic",
++            "casts",
++            "df2e1f2c1b24610d7e868f6f8a4cb1865e7c05f9637ae1e0438f93636eed4f11",
++        ),
++        (
++            "arithmetic",
++            "eq",
++            "2f2605b2208e04ed6f91cf3f8375b9c70839038c0c8209cac79bee33280d152c",
++        ),
++        (
++            "arithmetic",
++            "fault0",
++            "1f5780fc3ed3345fb966ec20479590f11403222b2889dc8a76ad6e2cb9026f25",
++        ),
++        (
++            "arithmetic",
++            "fault1",
++            "569088300ff8a05a82e69a1fa7af2569c976892b46f33cf4256debbe49f28c88",
++        ),
++        (
++            "arithmetic",
++            "fault10",
++            "9331bcea7de7b1492be6918c6e29e5635a5f9faf6d54cce3a498cae23b7e83e3",
++        ),
++        (
++            "arithmetic",
++            "fault2",
++            "8012e4889e407a4fd174d943b4ca9cd3281a008c50ceaccb24a8566529fd2a18",
++        ),
++        (
++            "arithmetic",
++            "fault3",
++            "64962111607ff89d5875a2044ee582d558ff1e51570a1703d8541eb15b0aef67",
++        ),
++        (
++            "arithmetic",
++            "fault4",
++            "1025848f6bd2dcf9697b2bf1933aa9b4ce8293ec7c252538c92d5d04a295d2e8",
++        ),
++        (
++            "arithmetic",
++            "fault5",
++            "7e21c6f8f21d6746da6357344ca5aaf21e84d50f6352970744eb052a21158c16",
++        ),
++        (
++            "arithmetic",
++            "fault6",
++            "e3174365e07ee50aea728a15c1529eb69d3dd71ee0189e86135ce59336b99654",
++        ),
++        (
++            "arithmetic",
++            "fault7",
++            "feee076120be5fb4b5c60870794a5951fc02bd764996b00b5a98fcf4df7c21b7",
++        ),
++        (
++            "arithmetic",
++            "fault8",
++            "3f9151ece9237c1ffc912095056f4e03331d1b4e05d77b0f64985f95d07248ee",
++        ),
++        (
++            "arithmetic",
++            "fault9",
++            "a953e00368a00f72dd71de2f704258d4c4ede6e46a11c43400f117277befbd3d",
++        ),
++        (
++            "arithmetic",
++            "jump",
++            "0dc6f86ee00be08f2a9a93b13c3bb15f10fd6c5fb7724afc50d818525b2ca908",
++        ),
++        (
++            "arithmetic",
++            "lshr",
++            "c5e57c21e06831cfcfb142078cb72ef2366f1c5bc591808001eb7ea3601594c4",
++        ),
++        (
++            "arithmetic",
++            "mul",
++            "3201940a9efdc65fe248f48883412904740b49486dba3bce20b2c75230ce80f7",
++        ),
++        (
++            "arithmetic",
++            "ne",
++            "8ec6f6ce7f64dc1bfb699e6166c919b59de152d8b7227783c89eb1f87b87886c",
++        ),
++        (
++            "arithmetic",
++            "or",
++            "fbfd5ca4f0d388fd3e9c51f7be47eac64bbd208760ee23b77778c2d793c28391",
++        ),
++        (
++            "arithmetic",
++            "parmov",
++            "dfa3e93a694fd26506ab85fdb5c91cc2f7240e5c67ac2f96489aff4415ae43cd",
++        ),
++        (
++            "arithmetic",
++            "sdiv",
++            "115fb415f346d9066d5edd800ec3710fea7d6e5da3baf10491341d097f900fae",
++        ),
++        (
++            "arithmetic",
++            "select",
++            "8666f45532a3e411d9b74245fbac9d868d9bb74b58c35cf48dc507f38c0fb8df",
++        ),
++        (
++            "arithmetic",
++            "shl",
++            "f58b391c05e70784bbb6da613f5a690282026fca38f7a3409bb07e1bb527bc5a",
++        ),
++        (
++            "arithmetic",
++            "sle",
++            "fad9f7b527b8a6142f938078be56cedf05333583633636031027cd0286352e42",
++        ),
++        (
++            "arithmetic",
++            "slt",
++            "c77dfe5f449851d9c44b4f06070166c6f1161f5ff42e6ebe9824776dca18ee31",
++        ),
++        (
++            "arithmetic",
++            "srem",
++            "02a4afa08d8a425d1d7a3737c8da3a2c27b5d9fcaf528ba17f46e4bcaa4b87e2",
++        ),
++        (
++            "arithmetic",
++            "sub",
++            "080d1d22642a043ef267f4f6814af1591511d8f746ecb494b087878ce8397e7c",
++        ),
++        (
++            "arithmetic",
++            "udiv",
++            "394b35c6548da71eb06f4ebbdf620c7fe900eff4359464c51216f3dc07a9cc62",
++        ),
++        (
++            "arithmetic",
++            "ule",
++            "89739797986f1edc445035af8de35eedfe4495fe9d1e7e91ae626ae9004c2f11",
++        ),
++        (
++            "arithmetic",
++            "ult",
++            "84f277fc86190b7d3986429b5f8958057c574dccbb5a652ca9a6de7e827702b4",
++        ),
++        (
++            "arithmetic",
++            "urem",
++            "47ca0d92dc35e402faca3b1bce44bc6b9d2f047bdf5921cd40093eeca9aa3f45",
++        ),
++        (
++            "arithmetic",
++            "xor",
++            "c2d37f0c1c6740bb8ca00e7a0cd766101a34953e97353e9bc883b27a654e8adf",
++        ),
++        (
++            "classical",
++            "divzero",
++            "30fd03864fe91c61b0c8aa2ce72a158e1647c02a9dc655fa1018c5196b4efbfd",
++        ),
++        (
++            "classical",
++            "effects",
++            "f1344e767c6ce40993c3c6164eba4d58ac6bb8bbbfdba33de7400aa795d4c0b9",
++        ),
++        (
++            "classical",
++            "entropy_short",
++            "260aa61d5d96b991e946e2fd4986fe9e319e2c43ef374e8f90d85c112b3d5b88",
++        ),
++        (
++            "classical",
++            "f",
++            "564cbe6a49414643ca03211d12c78f3cf431ba3d2ecf0c8b06ea1aafc0392389",
++        ),
++        (
++            "classical",
++            "g",
++            "e8a3dc5429049b16559aa6a4262779e3dcd37a758967def4e08c371a5b765fff",
++        ),
++        (
++            "classical",
++            "host",
++            "6ef7b54c8ab5641636211b2d43f0df86cfbc129916db3b25b805e7ad33b97774",
++        ),
++        (
++            "classical",
++            "host_invalid",
++            "cd54f756eb0a65f3c2881453c9c7e03d44e1ae9c651ca01efdeede661b3fb573",
++        ),
++        (
++            "classical",
++            "impure",
++            "c8b90ca42cbf14f0ac90c4395b94100ddbe1319688931014e900acb2a4694840",
++        ),
++        (
++            "classical",
++            "memfault",
++            "818b6f38c57d9afe5fbad77a00457a7f9f3484af7f3d25e3b6238b6ea301ba7e",
++        ),
++        (
++            "classical",
++            "nested",
++            "e0db43691a75656b7a37a8156ca44cfa17523a63c0e2a36e20433869c7b1112b",
++        ),
++        (
++            "classical",
++            "sum",
++            "0fe8c7991be189017d08024a7b880f04646a46bd0831a4de093cd99a063918ab",
++        ),
++        (
++            "classical",
++            "unknown_effect",
++            "9ccebed66dd2a159125d50818ef06c82b8512612940a695605826fd3452d3524",
++        ),
++        (
++            "control_flow",
++            "borrowed",
++            "4e3eba45f290de3007ae1ee11cd6ceb1e90cd9d64391e163255edd90eee78ef8",
++        ),
++        (
++            "control_flow",
++            "bytes",
++            "f7f06a09d59c31dcbff6f80485ab1c7fc3974bbdfb9e1e6b813bede211a94a6f",
++        ),
++        (
++            "control_flow",
++            "conditional",
++            "9a71ebdeed0fcf79499b855cf2d7dfc747680ba58c06ebe130eb9576562205c9",
++        ),
++        (
++            "control_flow",
++            "controlled_phase",
++            "9d9c349c97df952f56700426fc92bc1c1f7937d144f868f2f2287d7ec243f3cb",
++        ),
++        (
++            "control_flow",
++            "exchange",
++            "bf13912ffa2d6932f730622105f5a243eec9a3c01554a034e0e97d0ca7a195f2",
++        ),
++        (
++            "control_flow",
++            "image",
++            "fd66ff5ee2580e4f999e4e85e74e2e24de2b54ffa1c70c4a6b90dc63e56a8e90",
++        ),
++        (
++            "control_flow",
++            "minus_i",
++            "caec1fe67f4d082c9e4c9286aa43c12ffb3ba5baa75db05769bb451b8fbae443",
++        ),
++        (
++            "control_flow",
++            "phase",
++            "eb4b8c89a878e6fb8c514214417d0827f809fe0fd6b155e2f395ec19f5f31271",
++        ),
++        (
++            "control_flow",
++            "while3",
++            "70c70c733a7c87eeedb2b9d3a77fea16cb1240041dddcfb865e8149b50769883",
++        ),
++        (
++            "heap",
++            "afterfree",
++            "b4e19ac0b85b4c81d01de0e0e8f15b5a631fdaec8dca6680c17175e81ea945d7",
++        ),
++        (
++            "heap",
++            "badstore",
++            "b4147fd646bdfdc270596c04cb445561fe401774e1fdd178fcde3e77a5699725",
++        ),
++        (
++            "heap",
++            "doublefree",
++            "86f87b18056089dd5ab1648a9843bb8f69d3cb6ac70755866be63ef068c425d4",
++        ),
++        (
++            "heap",
++            "faultif",
++            "3ef6c026118750eebb4c309eadf18c20eab4daab5aa5ef05b25dd7861238cd50",
++        ),
++        (
++            "heap",
++            "g",
++            "f5c5556f79f032f7a0607387d69cab7bbb21988ca15461645340abb11e562813",
++        ),
++        (
++            "heap",
++            "heap",
++            "30660357457354b768b86e153f366ead95aeac5d125e860d8e6cb8743f8d35a8",
++        ),
++        (
++            "heap",
++            "outoftable",
++            "a06203de444a4a9a9a34a6781efee8e6290b27d79ed102165e5e2edd571fd56f",
++        ),
++        (
++            "heap",
++            "pinned",
++            "7fbc54ee4a45cf4ebaeb84b5d9344b3fa04906b125784404342055b075509197",
++        ),
++        (
++            "heap",
++            "zeroalloc",
++            "415e0ce86806f048d197ed864b321091a00cc27575e56b7661a85958ad17b20d",
++        ),
++        (
++            "inc8",
++            "inc8",
++            "8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93",
++        ),
++        (
++            "mutual",
++            "f",
++            "e4028cf7347c2779e19c8193ef1039837944acebd4784e9c3a42fbe236e737ec",
++        ),
++        (
++            "mutual",
++            "g",
++            "7dc9c25aff5230a46ae697edf187d34ba72a03f7a3c1a520c6fc6bf5462c6374",
++        ),
++        (
++            "mutual",
++            "main",
++            "598fdf171d0a201d52e8fbe2339c70d1a26b36a72dcd60503c87c51dff88039b",
++        ),
++        (
++            "nested",
++            "cancel",
++            "c98f82615ce05c7f82ee89d9106ae0655f3396332ad2a6616f63266c03043c34",
++        ),
++        (
++            "nested",
++            "ignore",
++            "9687f21af62158ff87ab8a974e056774ee75b531e158cc4538a11d4631f89012",
++        ),
++        (
++            "nested",
++            "inc8",
++            "8ce5e64f15830d8e596ba9b4861def6565dd567b5804300f427d8b9566d5be93",
++        ),
++        (
++            "nested",
++            "nested",
++            "562ad89a1befd9629409f21362684d92dc9d57b93968b1d6d5a868e6e2bc6afd",
++        ),
++        (
++            "registers",
++            "allocation",
++            "20449c3d1c45ec590a7f7b356ed59719e2daaec9bbaa18f8da2eaa43dfab0008",
++        ),
++        (
++            "registers",
++            "bad_uncall",
++            "1a392c2bfb917334f6ed3266c24b5d1a638d08371985d3d4c4def835cad24d74",
++        ),
++        (
++            "registers",
++            "bell",
++            "0f633b7a5f72475dc249883c0b8c6a3c91bfe62d40de642013afb5bd2015f149",
++        ),
++        (
++            "registers",
++            "measurement",
++            "dfc970cdea49da3834707362043d64ff084bcb641da635034e4cce0271b2943f",
++        ),
++        (
++            "registers",
++            "measuring",
++            "f587dd8342b03b99c80772b046c324dfe63872a8c58604264d73605dbecf505b",
++        ),
++        (
++            "registers",
++            "toggle",
++            "de3621c3dee0d970a86479e38ff4088730604a5b4d16429b71af2ec85ab0f42f",
++        ),
++        (
++            "registers",
++            "unclean",
++            "fe0d76be58a95d67e2619cd08f33cd9e25ba530a09d6fa848d6bf955e162f56b",
++        ),
++        (
++            "registers",
++            "views",
++            "6ea78656c92cd787bea86133572e2c9766d3f70208676cad0c043731c0fd6102",
++        ),
++        (
++            "sum_db",
++            "sum",
++            "74f110bbafde68a4785025e7e571ef871ddd83a09465ab9c1604f653a0cfcd92",
++        ),
++        (
++            "sum_db",
++            "sum_db",
++            "68225d213c44812fe844cd295d8821127c3cf31682be4eb19303cb53f9b147f7",
++        ),
++        (
++            "sum_db",
++            "zero",
++            "7002ed5ea010907a0ae99065663f22fb7d18ca1d6cb171fed57e2594bd9367e6",
++        ),
++        (
++            "tiny_memory",
++            "tiny",
++            "be21636357102b2a324f99db1bd058ad82f1c2eb3337d99f22a2533a32436142",
++        ),
++        (
++            "wide",
++            "add257",
++            "19caea9bf13ee820b20984eb202af22e98854338922cb4ee16067f8a1ea6e3d9",
++        ),
++        (
++            "wide",
++            "call257",
++            "894aacbd0118f47d7f7ed3775d41d9195ac9b1ea06145285a60b8de41df39f89",
++        ),
++        (
++            "wide",
++            "div257",
++            "612b674cafa8e7a4035dbb8fcd7fa9ff214438e85280d8fdfdb7de8bb6e98f00",
++        ),
++        (
++            "wide",
++            "fault257",
++            "a6ea0a70d8b01bb10a013ea440b7cd323dab09f30b1c63fcee4419c96230c8fe",
++        ),
++        (
++            "wide",
++            "fault_small257",
++            "ec67bbabf748db355d4bd498848fc8743a7b01516c6fa0acbf3c69a24e3827f1",
++        ),
++        (
++            "wide",
++            "id257",
++            "0755279a5f665b6bb03930ed4b5a7fb376aafa5bc3cebb737a1b20d3d8139332",
++        ),
++        (
++            "r9-sol-oracle",
++            "o",
++            "a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27",
++        ),
++        (
++            "r9-sol-oracle",
++            "a",
++            "4cabd490b0d1a8dfe31489ec234e91867e66b54c6c4d030eb4e8d1cf6f84bb38",
++        ),
++        (
++            "r9-sol-qinplace",
++            "o",
++            "a8f4a15663aead9ecb6618fe3847deba546cf3172f645ffc7e763f551e529e27",
++        ),
++        (
++            "r9-sol-qinplace",
++            "a",
++            "bc6e5d89276a62eec7074a716d8dbce40e94a2c80c287ad8fc5b5e5c6c756fbf",
++        ),
++        (
++            "r9-codex-oracle",
++            "o",
++            "cab76c914fa09a3fc8237381c6de91e83eeaefbd65cb7f52571ed4020abe8926",
++        ),
++        (
++            "r9-codex-oracle",
++            "a",
++            "be1f0e087e06fecd99df7c3cbb5c3c8c186fde8f814be1f826487e858fa66296",
++        ),
++        (
++            "r9-loop",
++            "a",
++            "bb983f1dc5a8eea46912ea64d1226a9345a05d6cba6cc8452efc9f39b4a17a89",
++        ),
++        (
++            "imported-qinplace-missing-inventory",
++            "addya",
++            "4dc068f587f3c82dc1bddc8ae32860be149ddffe595c038d6cef77e047fad31a",
++        ),
++    ];
++    let mut checked = 0;
++    for (fixture, symbol, hash) in pinned {
++        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
++            .join(format!("tests/fixtures/{fixture}.bisa"));
++        let o = Object::parse(&std::fs::read_to_string(path).unwrap()).unwrap();
++        assert_eq!(
++            o.identity().unwrap().interface_hashes[*symbol],
++            *hash,
++            "{fixture}/{symbol}"
++        );
++        checked += 1;
++    }
++    let total: usize = fixtures()
++        .iter()
++        .map(|p| {
++            Object::parse(&std::fs::read_to_string(p).unwrap())
++                .unwrap()
++                .symbols()
++                .unwrap()
++                .len()
++        })
++        .sum();
++    assert_eq!(checked, total, "every fixture symbol is pinned");
++}
++
++#[test]
++fn r10_independent_effective_control_and_grammar_pins() {
++    for tag in ["controls", "duplicate", "cc", "r", "omitted-bounds"] {
++        support::r10_pin(tag);
++    }
++    // Rejected objects still retain their literal byte digests. They must not
++    // be silently rewritten into legal objects before hashing.
++    for tag in [
++        "bare-cc",
++        "bare-r",
++        "empty-bounds",
++        "fn-oracle",
++        "inc-empty-bounds",
++        "empty-lhs",
++    ] {
++        let c = support::r10_case(tag);
++        assert_eq!(
++            bennett_isa_ref::sha256_hex(support::r10_text(tag).as_bytes()),
++            c.get("object_hash").unwrap().string().unwrap()
++        );
++    }
++}
++
++#[test]
++fn r11_control_flow_pins_match_literal_envelopes() {
++    let pins = support::json(include_str!("support/r11_control_flow_pins.json"));
++    let o = Object::parse(include_str!("fixtures/control_flow.bisa")).unwrap();
++    let id = o.identity().unwrap();
++    assert_eq!(
++        id.object_hash,
++        pins.get("object_hash").unwrap().string().unwrap()
++    );
++    for (name, env) in pins.get("envelopes").unwrap().object().unwrap() {
++        let env = env.string().unwrap();
++        assert_eq!(id.envelopes[name], env);
++        let h = bennett_isa_ref::sha256_hex(env.as_bytes());
++        assert_eq!(
++            h,
++            pins.get("hashes")
++                .unwrap()
++                .get(name)
++                .unwrap()
++                .string()
++                .unwrap()
++        );
++        assert_eq!(id.interface_hashes[name], h);
++        assert_eq!(id.closure_hashes[name].as_deref(), Some(h.as_str()));
++    }
++    for tag in ["rounded-probe", "exact-probe"] {
++        support::r11_pin(tag);
++    }
++}
++````
++
+ ## `reference-interpreter/tests/r21_resources.rs` (410 lines)
+ 
