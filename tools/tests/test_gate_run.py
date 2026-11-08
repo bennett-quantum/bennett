@@ -1,5 +1,6 @@
 """Gate receipts from tiny local repositories; no ecosystem gate is run."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,8 @@ import sys
 import tempfile
 import time
 import unittest
+
+from fixtures import RunnerFixture
 
 
 TOOL = Path(__file__).resolve().parents[1] / "gate_run.py"
@@ -27,6 +30,171 @@ def load_tool():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+class ContentReceiptTests(RunnerFixture):
+    def setUp(self):
+        super().setUp()
+        self.env["BENNETT_GATE_WORKSPACE"] = str(self.root)
+        (self.repo / ".gitignore").write_text(".tmp/\n")
+        (self.repo / ".tmp").mkdir()
+        self.marker = self.repo / ".tmp/executed"
+
+    def config(self, fail_once=False):
+        command = ("from pathlib import Path; "
+                   f"p = Path({str(self.marker)!r}); "
+                   "p.open('a').write('run\\n'); "
+                   f"raise SystemExit({fail_once!r} and len(p.read_text().splitlines()) == 1)")
+        (self.repo / "gate.toml").write_text(
+            'schema = 1\nrepo = "repo"\ntool_sha = "' + "1" * 40 + '"\n'
+            '\n[[check]]\nname = "marker"\n' +
+            f'argv = {json.dumps([sys.executable, "-c", command])}\n')
+        self.git("add", ".")
+        self.git("commit", "-qm", "gate fixture")
+        return self.git("rev-parse", "HEAD").strip()
+
+    def run_gate(self, sha, *options, repo=None, isolated=False):
+        return subprocess.run(
+            [sys.executable, "-I", str(TOOL), "run", "--repo", str(repo or self.repo),
+             "--sha", sha, *([] if isolated else ["--no-isolate"]), *options],
+            env=self.env, capture_output=True, text=True, timeout=CLI_HANG_GUARD_SECONDS)
+
+    def receipt_path(self, sha, isolated=False):
+        tree = self.git("rev-parse", f"{sha}^{{tree}}").strip()
+        key = hashlib.sha256(json.dumps([tree, "1" * 40, isolated], sort_keys=True).encode()).hexdigest()
+        return self.repo / ".tmp/gate/receipts" / f"{key}.json"
+
+    def test_identical_tree_is_covered_across_worktrees_before_preparation(self):
+        sha = self.config()
+        job = self.root / "repo-job"
+        self.git("worktree", "add", "--detach", str(job), sha)
+        first = self.run_gate(sha, repo=job)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(self.marker.read_text(), "run\n")
+        self.git("commit", "--allow-empty", "-qm", "same tree, new commit")
+        other = self.git("rev-parse", "HEAD").strip()
+        self.assertNotEqual(sha, other)
+        linked = self.root / "health/cache/repo"
+        self.git("worktree", "add", "--detach", str(linked), other)
+        # A receipt hit must not call prepare, even for a different checkout/SHA.
+        bootstrap = '''import runpy, sys
+path = sys.argv.pop(1)
+tool = runpy.run_path(path)
+def unexpected(*args, **kwargs):
+    raise AssertionError("receipt hit prepared a worktree")
+tool["gate_one"].__globals__["prepare"] = unexpected
+raise SystemExit(tool["main"]())
+'''
+        covered = subprocess.run(
+            [sys.executable, "-I", "-c", bootstrap, str(TOOL), "run", "--repo", str(linked),
+             "--sha", other, "--no-isolate"], env=self.env, capture_output=True, text=True,
+            timeout=CLI_HANG_GUARD_SECONDS)
+        self.assertEqual(covered.returncode, 0, covered.stderr)
+        receipt_path = self.receipt_path(sha)
+        receipt = json.loads(receipt_path.read_text())
+        self.assertEqual(covered.stderr, f"gate: PASS {other} covered by receipt {receipt_path}: "
+                         f"tree {receipt['tree'][:12]} gated as {sha[:12]} at {receipt['finished_utc']}\n")
+        self.assertEqual(self.marker.read_text(), "run\n")
+        record = json.loads((linked / ".tmp/gate/records" / f"{other}.json").read_text())
+        self.assertEqual((record["sha"], record["result"]), (other, "pass"))
+        self.assertEqual(record["covered_by"], {"sha": sha, "receipt": str(receipt_path)})
+        self.assertNotIn("checks", record)
+        self.assertEqual(receipt["sha"], sha)
+        self.assertEqual(receipt["key"], receipt_path.stem)
+        self.assertIn("covered by receipt", self.run_gate(other).stderr)
+        self.assertEqual(self.marker.read_text(), "run\n")
+
+    def test_failed_run_writes_no_receipt_and_next_run_executes(self):
+        sha = self.config(fail_once=True)
+        failed = self.run_gate(sha)
+        self.assertEqual(failed.returncode, 1, failed.stderr)
+        self.assertFalse(self.receipt_path(sha).exists())
+        passed = self.run_gate(sha)
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+        self.assertEqual(json.loads(self.receipt_path(sha).read_text())["result"], "pass")
+
+    def test_tree_change_runs_checks_and_writes_distinct_receipt(self):
+        sha = self.config()
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        (self.repo / "source").write_text("changed\n")
+        self.git("add", "source")
+        self.git("commit", "-qm", "changed tree")
+        other = self.git("rev-parse", "HEAD").strip()
+        result = self.run_gate(other)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("covered by receipt", result.stderr)
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+        self.assertNotEqual(self.receipt_path(sha), self.receipt_path(other))
+        for commit in (sha, other):
+            self.assertEqual(json.loads(self.receipt_path(commit).read_text())["sha"], commit)
+
+    def test_fresh_executes_and_replaces_receipt(self):
+        sha = self.config()
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        self.git("commit", "--allow-empty", "-qm", "fresh commit")
+        other = self.git("rev-parse", "HEAD").strip()
+        fresh = self.run_gate(other, "--fresh")
+        self.assertEqual(fresh.returncode, 0, fresh.stderr)
+        self.assertNotIn("covered by receipt", fresh.stderr)
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+        receipt = json.loads(self.receipt_path(other).read_text())
+        record = json.loads((self.repo / ".tmp/gate/records" / f"{other}.json").read_text())
+        self.assertTrue(record["fresh"])
+        self.assertEqual(receipt, dict(record, tree=self.git("rev-parse", f"{other}^{{tree}}").strip(),
+                                       key=self.receipt_path(other).stem))
+        self.assertIn("covered by receipt", self.run_gate(sha).stderr)
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+
+    def test_isolation_modes_do_not_cover_each_other_in_either_direction(self):
+        sha = self.config()
+        for isolated in (False, True):
+            with self.subTest(first_isolated=isolated):
+                if self.marker.exists():
+                    self.marker.unlink()
+                if isolated:
+                    (self.repo / "source").write_text("another tree\n")
+                    self.git("add", "source")
+                    self.git("commit", "-qm", "second isolation order")
+                    sha = self.git("rev-parse", "HEAD").strip()
+                for mode in (isolated, not isolated):
+                    result = self.run_gate(sha, isolated=mode)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertNotIn("covered by receipt", result.stderr)
+                self.assertEqual(self.marker.read_text(), "run\nrun\n")
+                self.assertIn("covered by receipt", self.run_gate(sha, isolated=isolated).stderr)
+                self.assertEqual(self.marker.read_text(), "run\nrun\n")
+                for mode in (False, True):
+                    self.assertEqual(json.loads(self.receipt_path(sha, mode).read_text())["isolated"], mode)
+
+    def test_invalid_receipts_are_reported_and_ignored(self):
+        sha = self.config()
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        path = self.receipt_path(sha)
+        good = json.loads(path.read_text())
+        invalid = ("{", "[]", json.dumps(dict(good, key="wrong")), json.dumps(dict(good, sha=int("1" * 40))),
+                   json.dumps(dict(good, result="fail")), json.dumps({"key": path.stem, "result": "pass"}))
+        for index, content in enumerate(invalid, start=2):
+            with self.subTest(content=content):
+                path.write_text(content)
+                result = self.run_gate(sha)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(f"receipt {path}", result.stderr)
+                self.assertNotIn("covered by receipt", result.stderr)
+                self.assertEqual(self.marker.read_text(), "run\n" * index)
+                self.assertEqual(json.loads(path.read_text())["key"], path.stem)
+
+    def test_unreadable_receipt_is_reported_and_replaced_after_checks(self):
+        sha = self.config()
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        path = self.receipt_path(sha)
+        path.chmod(0)
+        result = self.run_gate(sha)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"receipt {path} unreadable:", result.stderr)
+        self.assertNotIn("covered by receipt", result.stderr)
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+        self.assertEqual(json.loads(path.read_text())["result"], "pass")
 
 
 class ReceiptTests(unittest.TestCase):
@@ -64,11 +232,11 @@ class ReceiptTests(unittest.TestCase):
         (self.repo / "gate.toml").write_text(text)
         return self.commit(self.repo)
 
-    def run_gate(self, sha, bootstrap=None, extra_env=None):
+    def run_gate(self, sha, bootstrap=None, extra_env=None, fresh=False):
         invocation = ([sys.executable, "-I", "-c", bootstrap, str(TOOL)] if bootstrap
                       else [sys.executable, "-I", str(TOOL)])
         return subprocess.run([*invocation, "run", "--repo", str(self.repo), "--sha", sha,
-                               "--no-isolate"], env=dict(self.env, **(extra_env or {})),
+                               "--no-isolate", *(["--fresh"] if fresh else [])], env=dict(self.env, **(extra_env or {})),
                               capture_output=True, text=True, timeout=CLI_HANG_GUARD_SECONDS)
 
     def receipt(self, sha):
@@ -101,7 +269,7 @@ spec.loader.exec_module(tool)
 def unavailable(*args, **kwargs):
     raise OSError("fixture probe denied")
 ''' + patch + '\nraise SystemExit(tool.main())\n'
-        result = self.run_gate(sha, bootstrap)
+        result = self.run_gate(sha, bootstrap, fresh=True)
         self.assertEqual(result.returncode, baseline.returncode, result.stderr)
         self.assertIn("unavailable", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
@@ -323,7 +491,7 @@ raise SystemExit(tool.main())
         self.assertEqual(receipt["siblings"]["sibling"]["cache_state"], "built")
         self.assertNotIn("CARGO_BUILD_JOBS", receipt["checks"][0]["width_env"])
         self.assertEqual(receipt["checks"][1]["width_env"]["CARGO_BUILD_JOBS"], "7")
-        result = self.run_gate(sha)
+        result = self.run_gate(sha, fresh=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.receipt(sha)["siblings"]["sibling"]["cache_state"], "hit")
 
