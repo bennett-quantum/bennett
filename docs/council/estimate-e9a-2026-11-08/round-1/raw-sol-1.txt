@@ -1,0 +1,124 @@
+exit 0 in 26s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "Definition §§1–2 distinguish allocation/borrow entry, captured inputs, produced versions and joint occurrences. The five quoted blocks match the pinned fd626d37aba1f719c3b7b2059be46cbfaf462886 spec verbatim; its SHA-256 matches gate.toml.",
+      "change": "No machine-model change needed within this note’s scope."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "§§1.3–1.5 and §2 reproduce the K80 fresh-compute/XOR/uncompute/release order and preserve unowned source rows. All twelve literal fixtures contain the stated instructions.",
+      "change": "No instruction-set change needed within this note’s scope."
+    },
+    {
+      "id": "C3",
+      "score": 3,
+      "evidence": "§3 obligations 1–2 and §3.1 correctly preserve occurrence matching, captured versions, effective controls, cell-version advances and the every-intervening-operation basis condition. However §3 obligation 3 requires equality of each retained operation’s effect, excluding a legal pair of cancelling scratch reads; see SOL-1.",
+      "change": "State obligation 3 using the composed, phase-sensitive joint semantics of the entire replacement and retained sequence, while keeping obligations 1–2 mandatory."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "§§4.1, 4.3 and 4.4 resource totals independently hand-check against the pinned ideal target: pjj has 8 gates/time, peak 5, area 3*4+5*5=37; tdf has 9, 4, area 4*3+5*4=32; w2b has 10, 5, area 5*4+5*5=45.",
+      "change": "No resource-contract change needed for these witnesses."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "§§1.4–2 preserve source partitioning before K65 selection, intrinsic boundaries, first-release ownership, K64 exclusions and fresh replay identities. This local cleanup definition introduces no object, launch, host-memory or certificate-inventory assumption that prevents native host code plus marked device modules.",
+      "change": "No additional cross-repository contract change needed for this local definition."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "Headless cargo test --offline --locked --test recompute_witness -- --test-threads=1 passed: 6 passed, 4 explicitly ignored. The literal oracle uses no estimator imports or admissibility predicate, exhausts all 40 interface bases in both directions for source and candidate, and checks every release. The bridge compares actual reverse operands with executed sources. The general per-operation restriction is not covered by those six fixtures.",
+      "change": "Add the cancelled-scratch-read witness from SOL-1 as independent literal execution evidence for the corrected general obligation."
+    },
+    {
+      "id": "C7",
+      "score": 3,
+      "evidence": "§§3.1–4 correctly repair pjj, yak, tdf and w2b without treating an unavailable recompute mechanism as an invalid source program. The mixed fat object remains reachable. Nevertheless the per-operation condition in §3(3) adds a restriction beyond the pinned ISA’s joint semantic obligation.",
+      "change": "Remove the extra per-operation equivalence requirement so an otherwise legal, semantically identical K80 replacement remains admissible."
+    },
+    {
+      "id": "C8",
+      "score": 3,
+      "evidence": "The six verdicts, owned source points, future-test status and execution limits are clear. The phrase each retained operation in §3(3) permits a stricter implementation than a composed full-domain comparison, although §5’s oracle compares completed executions.",
+      "change": "Define the comparison boundary explicitly as the composed full-domain joint effect, including phase and references, rather than the state immediately after each retained row."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "SOL-1",
+      "section": "§3 obligation 3, especially lines 173–180 of docs/design/2026-11-08-recompute-cleanup-admissibility.md",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "K81 forms occurrence/version pairs before selection, and K80 retains all unowned operations while replacing the owned inverse chain at its release carrier. With §6’s matching/window conditions satisfied, semantic preservation concerns the action’s composed unitary on the full declared domain; equality of the intermediate effect of every retained row is not an additional requirement.",
+          "by": "clause:ISA-5.3-P1; clause:ISA-6.2; clause:ISA-6.4; clause:K80; clause:K81"
+        },
+        {
+          "n": "<1>2",
+          "claim": "The definition nevertheless makes each retained operation having the same full-domain effect on the remaining joint state a necessary condition. Applied to the changed intermediate effect of a retained scratch read, this is strictly stronger than preserving the composed joint semantics.",
+          "by": "witness:docs/design/2026-11-08-recompute-cleanup-admissibility.md:173"
+        },
+        {
+          "n": "<1>3",
+          "claim": "Use perm_action @root (y:wire) (x:wire in, z:wire in) () () (), with separate rows: d = qalloc any 1; cx x d; cx z d; cx z d; cx d y; cx d y; cx x d; qfree d. The release owns entry:3, entry:6 and entry:7. The adjacent cx d y pair remains at entry:4/5; it does not change d, so terminal restoration and all captured replay inputs remain valid. The K80 candidate retains both readers, removes the two owned inverse CXs, and appends u = qalloc any 1; cx x u; cx z u; cx u d; cx z u; cx x u; qfree u; qfree d.",
+          "by": "clause:K81; clause:ISA-5.3; clause:ISA-6.2; witness:/home/tobias/Projects/bennett-workspace/bennett-job-e9a-council/.tmp/e9a-council/sol/cancelled-scratch-read.py"
+        },
+        {
+          "n": "<1>4",
+          "claim": "Independent literal execution gives the identity on all 8 interface bases for both source and candidate, in both traversal directions, with every release zero. On x=0,z=1,y=0 the retained readers produce intermediate y values [0,0] in the source and [1,0] in the candidate: their individual effects differ but cancel exactly. All gates are phase-free CXs, so full-basis agreement with clean scratch establishes the joint equality, including external references.",
+          "by": "witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER python3 -I -B /home/tobias/Projects/bennett-workspace/bennett-job-e9a-council/.tmp/e9a-council/sol/cancelled-scratch-read.py"
+        },
+        {
+          "n": "<1>5",
+          "claim": "The literal per-operation condition refuses this legal replacement despite satisfying the source partition, replay window and exact composed semantics. This is an added admissibility restriction, not an upstream spec gap. The six existing verdicts do not expose it because their unsafe scratch-read case has only one uncancelled reader.",
+          "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+        }
+      ],
+      "problem": "",
+      "fix": "Replace each-retained-operation effect equality in §3(3) with equality of the composed joint effect of the original trace and the literal K80 replacement over the full declared domain, including phase and external references, with required clean/restored releases. Keep every retained row once and keep obligations 1–2 independently mandatory; global equality must not replace occurrence/version matching or the §6.2 every-intervening-operation condition. Add a positive literal fixture with two cancelling cx d y readers to distinguish the composed criterion from a per-row obstruction rule."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "bennett-estimate-pjj",
+      "status": "resolved",
+      "note": "Resolved by the definition and independent execution evidence: both disjoint placements admit recompute, preserve y XOR 1 on all 8 bases in each direction and release scratch clean. The production implementation remains explicitly outside this council round."
+    },
+    {
+      "id": "bennett-estimate-yak",
+      "status": "resolved",
+      "note": "Resolved for both original witnesses: the single scratch read changes 4/8 interface outputs in each direction; the unrestored input leaves d=1 on 4/4 bases in each direction. Both sources remain valid with their written reverse cleanup."
+    },
+    {
+      "id": "bennett-estimate-tdf",
+      "status": "resolved",
+      "note": "The adjacent X/undo pair satisfies the matched-pair and intervening basis-preservation requirements; source and recompute agree on all 4 bases in each direction, with clean releases."
+    },
+    {
+      "id": "bennett-estimate-w2b",
+      "status": "resolved",
+      "note": "The definition correctly admits reading temporarily flipped x into y while preserving S and g. Execution verifies y XOR NOT x on all 8 bases in both directions; there is no region-entry-read oracle restriction."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "When revising obligation 3, explicitly say that full-domain semantic equality includes relative and global phase under control; the current X/CX truth tables establish this only because all emitted gates have basis phase +1."
+  ],
+  "verdict": "revise",
+  "path_to_accept": "Resolve SOL-1 by defining preservation through the composed, phase-sensitive joint semantics while retaining the independent occurrence/version/window obligations. Add the cancelled-reader positive witness. Preserve all six current verdicts and the clear distinction between definition evidence and the four future implementation tests; no production implementation is required to accept this note.",
+  "summary": "All five quotations are verbatim from the correctly hashed pinned spec; all six historical witness verdicts and hand-derived resource totals check out. The focused headless suite passed with 6 live tests and 4 explicit future-test ignores, and the repository remains clean. Revise the general rule because §3(3) requires equality after each retained operation, excluding a semantically identical legal replacement with two cancelling scratch reads. The independent scratch witness proves 8/8 complete-interface agreement and clean releases in both directions despite differing intermediate y values.",
+  "verdict_core": "revise"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett-job-e9a-council/.tmp/e9a-council/sol.json
