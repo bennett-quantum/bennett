@@ -11,6 +11,7 @@ import fcntl
 import hashlib
 import json
 import os
+import platform
 import re
 import select
 import shutil
@@ -29,6 +30,12 @@ EXIT_FAIL, EXIT_SETUP = 1, 3
 PROBE_VAR = "BENNETT_GATE_HOOK_PROBE"
 PROBE_LINE = "bennett-gate-hook-chained"
 HEADLESS = ("DISPLAY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "BROWSER")
+WIDTH_ENV = (
+    "CARGO_BUILD_JOBS", "CARGO_MAKEFLAGS", "MAKEFLAGS", "MFLAGS", "RUST_TEST_THREADS",
+    "RAYON_NUM_THREADS", "CMAKE_BUILD_PARALLEL_LEVEL", "CTEST_PARALLEL_LEVEL", "NINJAFLAGS",
+    "OMP_NUM_THREADS", "OMP_THREAD_LIMIT", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS", "GOMAXPROCS",
+)
 TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude"}
 CMD_KEYS = {"name", "argv", "env", "cwd"}
 SIB_KEYS = {"sha", "repo", "files", "build", "note"}
@@ -202,13 +209,28 @@ def isolation_prefix(workspace, own_roots):
     return Isolation(workspace, own_roots)
 
 
-def run_cmd(argv, cwd, env, prefix, timeout):
+class ResourceProcess(subprocess.Popen):
+    """Keep Popen's POSIX wait/timeout semantics, collecting usage at its waitpid hook.
+
+    Linux wait4 includes descendants reaped by the child. ru_maxrss is the largest
+    individual process peak in that tree (KiB), not a sum of concurrent RSS.
+    """
+
+    def _try_wait(self, wait_flags):
+        pid, status, usage = os.wait4(self.pid, wait_flags)
+        if pid:
+            self.usage = usage
+        return pid, status
+
+
+def run_cmd(argv, cwd, env, prefix, timeout, metrics=None):
     """Run in its own session; on timeout or interruption kill the whole group. Returns the exit status."""
     full = argv
     if prefix:
         full = [*prefix.argv(), "--chdir", str(cwd), "--", *argv]
     try:
-        proc = subprocess.Popen(full, cwd=cwd, env=env, stdin=subprocess.DEVNULL, start_new_session=True)
+        process_class = ResourceProcess if metrics is not None else subprocess.Popen
+        proc = process_class(full, cwd=cwd, env=env, stdin=subprocess.DEVNULL, start_new_session=True)
     except OSError as e:
         say(f"cannot run {argv}: {e}")
         return 127
@@ -218,12 +240,16 @@ def run_cmd(argv, cwd, env, prefix, timeout):
         say(f"TIMEOUT after {timeout} s: {argv}")
         return 124
     finally:
-        if proc.poll() is None:
+        # Do not poll: Popen.poll() reaps via waitpid without preserving wait4 usage.
+        if proc.returncode is None:
             try:
                 os.killpg(proc.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
             proc.wait()
+        if metrics is not None:
+            metrics.update(cpu_seconds=proc.usage.ru_utime + proc.usage.ru_stime,
+                           peak_rss_kib=proc.usage.ru_maxrss)
 
 
 class Lock:
@@ -232,12 +258,19 @@ class Lock:
 
     def __enter__(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.f = open(self.path, "a")
+        self.f = open(self.path, "a+")
         flags = fcntl.LOCK_EX | (0 if self.blocking else fcntl.LOCK_NB)
         try:
             fcntl.flock(self.f, flags)
         except BlockingIOError as e:
-            raise GateError(f"another gate holds {self.path}") from e
+            self.f.seek(0)
+            holder = self.f.read().strip()
+            self.f.close()
+            raise GateError(f"another gate holds {self.path} ({holder})") from e
+        self.f.seek(0)
+        self.f.truncate()
+        self.f.write(f"pid={os.getpid()} started_utc={time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\n")
+        self.f.flush()
         return self
 
     def __exit__(self, *exc):
@@ -283,6 +316,7 @@ class Siblings:
         if git(owner, "cat-file", "-e", f"{sha}^{{commit}}", check=False).returncode != 0:
             raise GateError(f"sibling {name}: pinned commit {sha} not in {owner}")
         with Lock(self.locks / f"{name}@{sha[:12]}"):
+            cache_state = "hit"
             if wt.exists():
                 head = git(wt, "rev-parse", "HEAD", check=False).stdout.strip()
                 dirty = git(wt, "status", "--porcelain", "-uno", check=False).stdout.strip()
@@ -293,6 +327,7 @@ class Siblings:
                 wt.parent.mkdir(parents=True, exist_ok=True)
                 git(owner, "worktree", "prune", check=False)
                 git(owner, "worktree", "add", "--detach", str(wt), sha)
+                cache_state = "materialised"
                 say(f"sibling {name}: materialised {sha[:12]} at {wt}")
         for rel, want in pin.get("files", {}).items():
             f = wt / rel
@@ -304,7 +339,8 @@ class Siblings:
         pushed = git(owner, "merge-base", "--is-ancestor", sha, "origin/main", check=False).returncode == 0
         if not pushed:
             say(f"note: sibling {name} pin {sha[:12]} not reachable from origin/main (not yet pushed)")
-        self.notes[name] = {"sha": sha, "repo": pin.get("repo", name), "pushed": pushed, "files": dict(pin.get("files", {}))}
+        self.notes[name] = {"sha": sha, "repo": pin.get("repo", name), "pushed": pushed,
+                            "files": dict(pin.get("files", {})), "cache_state": cache_state}
         self.paths[name] = wt
 
     def build(self, name, prefix):
@@ -329,6 +365,7 @@ class Siblings:
                 if missing:
                     raise GateError(f"sibling {name}: build {b['name']} did not produce {missing}")
                 stamp.write_text(key + "\n")
+                self.notes[name]["cache_state"] = "built"
 
 
 def run_commands(cmds, wt, env, ctx, prefix, timeout, label):
@@ -340,9 +377,13 @@ def run_commands(cmds, wt, env, ctx, prefix, timeout, label):
         cmd_env.update({k: expand(v, ctx) for k, v in c.get("env", {}).items()})
         cwd = wt / c.get("cwd", ".")
         print(f"gate: {label} {c['name']}: {' '.join(argv)}", file=sys.stderr, flush=True)
+        metrics = {"cpu_seconds": 0.0, "peak_rss_kib": 0}
         started = time.monotonic()
-        code = run_cmd(argv, cwd, cmd_env, prefix, timeout)
-        results.append({"name": c["name"], "exit": code, "seconds": round(time.monotonic() - started, 1)})
+        code = run_cmd(argv, cwd, cmd_env, prefix, timeout, metrics=metrics)
+        wall_seconds = time.monotonic() - started
+        results.append({"name": c["name"], "exit": code, "seconds": round(wall_seconds, 1),
+                        "wall_seconds": wall_seconds, **metrics,
+                        "width_env": {k: cmd_env[k] for k in WIDTH_ENV if k in cmd_env}})
         if label == "check" and code != 0:
             say(f"FAIL check {c['name']} exited {code}")
             break
@@ -421,9 +462,26 @@ def cleanup(root, layout, wt, keep):
     shutil.rmtree(layout, ignore_errors=True)
 
 
+def machine_profile():
+    """Start-of-run Linux profile; the hardware label never contains a hostname."""
+    memory = {}
+    for line in Path("/proc/meminfo").read_text().splitlines():
+        key, value = line.split(":", 1)
+        if key in ("MemTotal", "MemAvailable"):
+            memory[key] = int(value.split()[0])
+    nproc = len(os.sched_getaffinity(0))
+    hardware = json.dumps([platform.machine(), nproc, memory["MemTotal"]])
+    return {"nproc": nproc, "mem_total_kib": memory["MemTotal"],
+            "mem_available_kib": memory["MemAvailable"], "load1": os.getloadavg()[0],
+            "label": "machine-" + hashlib.sha256(hardware.encode()).hexdigest()[:12]}
+
+
 def gate_one(root, workspace, sha, args):
     with Lock(root / ".tmp/gate/locks" / f"run-{sha}", blocking=False):
+        machine = machine_profile()
+        started = time.monotonic()
         cfg, sibs, prefix, layout, wt, ctx, env = prepare(root, workspace, sha, args)
+        setup_seconds = time.monotonic() - started
         timeout = cfg.get("timeout_s")
         say(f"gating {sha} of {cfg['repo']} in {wt}")
         for name, note in sibs.notes.items():
@@ -441,6 +499,8 @@ def gate_one(root, workspace, sha, args):
         (records / f"{sha}.json").write_text(json.dumps({
             "sha": sha, "repo": cfg["repo"], "tool_sha": cfg["tool_sha"], "tool_sha_ran": cfg["tool_sha_ran"],
             "isolated": bool(prefix),
+            "setup_seconds": setup_seconds, "machine": machine,
+            "width_env": {k: env[k] for k in WIDTH_ENV if k in env},
             "siblings": sibs.notes, "checks": checks, "reports": reports, "result": "pass" if passed else "fail",
             "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }, indent=1) + "\n")
