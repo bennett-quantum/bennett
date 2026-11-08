@@ -4,24 +4,29 @@
 start of the next session, then law 2 in each CLAUDE.md points here. Deliberately short: the maintainer wants no
 administrivia, process theatre or review paranoia. If a rule here needs a form, a tracker or a ceremony, delete it.
 
+**Amendment, maintainer 2026-11-08:** Rules 2 and 4 record the practised evidence-first review and the precedence
+of the no-narrowing rule.
+
 ## Review
 
 1. **Code gets reviewed before it is pushed to `main`.** One implementer per change as before; review is batched over
    what the stream has landed since its last review. The orchestrator launches the review when a stream's batch is
    done, not per commit and not on a timer.
-2. **Opposite model reviews.** Codex work is reviewed by Claude; Claude work by gpt-6.1-sol xhigh, the best reviewer.
-   Sonnet is good at bug hunting and may run alongside. The reviewer gets the diff and the repo's laws, not the
-   implementer's conclusions, and re-runs what is cheap.
+2. **Evidence-first review.** One fresh gpt-6.1-sol xhigh review starts from the implementer's evidence
+   (PROGRESS.md, gate log and red-first test) and re-runs its claims, reading the diff where the evidence is thin.
+   Claude or Muse may serve as an occasional second eye.
 3. **Two rounds, then merge or revert** (amended 2026-11-07, was three). Round 1 reviews, round 2 checks the fixes.
    After round 2 the batch merges with every remaining finding filed as a P2 bead, unless a blocking finding (rule 4)
    is still open; then the offending commit is reverted and re-landed later, not iterated a third time.
 4. **Only P0 and P1 block, and only on the ladder route** (amended 2026-11-07). A finding is P0/P1 only if it
    (a) produces a wrong result or a silent fallback on a product path that a north-star §8 rung exercises, (b) makes
    an oracle unsound (reference interpreter, checker verdicts, certificates), or (c) breaks a build, link, gate or
-   push hook. The reviewer names the rung affected; a finding that names no rung is P2. Linters, test-harness
-   hygiene, edge cases outside the ladder route (overflow at usize::MAX, relative paths through PATH, hash drift
-   with unchanged observables) and narrowings of paths no rung uses are P2 by definition: one bead, never a repair
-   round. Everything else is a nit.
+   push hook. The reviewer names the rung affected; a finding that names no rung is P2 unless the no-narrowing
+   rule below applies. Linters, test-harness hygiene, edge cases outside the ladder route (overflow at usize::MAX,
+   relative paths through PATH, hash drift with unchanged observables), pre-existing gaps and narrowings of
+   unpromised paths no rung uses are P2 by definition: one bead, never a repair round. A new rejection or omission
+   of a north-star-promised capability is a blocker under CLAUDE.md non-negotiable 10, never P2, even if no current
+   rung uses it. Everything else is a nit.
 5. **Stakes pick the seat** (amended 2026-11-07). Routine code: one sol review. Councils (sol + astra + Muse) only
    where the oracle lives: the reference interpreter, checker verdict logic, certificates, and published contracts.
    Plugin lowering, soft-float, scheduler core and gates get one sol review; a council may still be convened there
