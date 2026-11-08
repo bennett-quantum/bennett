@@ -1,0 +1,122 @@
+exit 0 in 34s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 5,
+      "evidence": "Note §2 pins G, exact computing sequence C, S incl. effective controls, allocation/borrow entry vs produced vs pre-computation versions, and joint multi-output indivisibility before any realisation choice; the new line at §2 states a CX control is a read whose basis value and wire version are unchanged, citing §6.1's permutation-gate row (pinned spec line 1581: target updated, controls enter dependencies). I re-verified the pinned authority independently: git show of bennett-isa-spec fd626d37aba1f719c3b7b2059be46cbfaf462886:spec/Bennett-ISA-Spec-0.9.md hashes to bbd887c7841f4eed40f7b3518270a8f2cf781204c14ac4cc3eabca5c5b4b8c3b, matching both the note §1 and this repo's gate.toml lines 20-23.",
+      "change": "No machine-model change needed within this note's terminal scope."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "All five §1 block quotations re-verified mechanically this round as whitespace-normalised exact substrings of the pinned spec (5/5 verbatim, scratch verify.py), and §1.3 now marks its §6.4 excerpt as partial. Literal traces are exact: all 14 .bisa/.recompute.bisa fixtures parse to the §4 table row-for-row under my independent executor, the new cancelling-scratch-reads pair included (source 8 rows entry:0..7, candidate the literal K80 u-trace in §6.4 order). Owned points entry:3,6,7 and retained readers entry:4,5 for the new witness check against the fixture text.",
+      "change": "No instruction-set or quotation change needed."
+    },
+    {
+      "id": "C3",
+      "score": 5,
+      "evidence": "Obligation 3 is now composed: 'the composition of the retained operations in candidate order together with the literal K80 replacement must have the same full-domain effect on the joint state as the original trace, including relative and global phase under control and arbitrary external references', with cancellations counting and identical intermediate read values explicitly not required; obligations 1-2 are byte-identical to round 1 (git diff ea01cf1..0038d37 removed-lines check) and §3 still states a future algorithm must retain them even when truth tables agree, so composed equality cannot excuse a §6.2 window or occurrence failure. This matches pinned §6.1's composed-M criterion (M = I_G x V test, 'including arbitrary external entanglement and the exact global phase', spec lines 1596-1608) and §5.3's action unitary with identity on external references; it is neither narrower (cancelling reads admit) nor looser (single yak read still refused, §4.2 now says why: it does not cancel in the composition). §3.1 names B2 as a spec gap with the reading used, and reads are now expressly subject to obligation 2's window-closing events incl. clause 3.",
+      "change": "No semantic change needed; the one derivation nuance worth a future wording pass is in suggestions (pinned §6.1's test is stated for 'other' cleanup)."
+    },
+    {
+      "id": "C4",
+      "score": 5,
+      "evidence": "§4 now names the gate-pinned ideal-all-to-all assumptions (unit gate time and data occupancy rate, zero allocation/release time) and prints the occupancy sums: pjj 3*4+5*5=37, tdf 4*3+5*4=32, w2b 5*4+5*5=45, all unchanged totals from round 1. The new witness's 9 gates/time, peak 5, qubit-time 41 (4*4+5*5) hand-checks against the literal candidate trace (2 computing CXs + 2 retained reads at 4 live wires; 5 replay/XOR/uncompute CXs at 5 live wires) and is derived in tests/fixtures/recompute_witness/cancelling-scratch-reads.md independently of any estimator output; the ignored future test pins (9,5,41,[3,6,7]).",
+      "change": "No resource-contract change needed for these witnesses."
+    },
+    {
+      "id": "C5",
+      "score": 5,
+      "evidence": "§§1.4-2 preserve K81 partitioning before K65 selection, unique first-release ownership, intrinsic boundaries, K64/callee exclusions and K80 carrier coordinates, unchanged this round. §2 now states the note covers terminal release-ended carriers only, with non-terminal adjoint-call/oracle-call carriers and K81's independent-call-pair pre-call-history replay/target restoration requiring separate treatment, so the rule is not generalised by silence. Standing fat-object check: the note decides no object format, certificate layout, launch API, budget, handle representation or host-memory question and assumes no device-object-equals-whole-binary anywhere, so the mixed fat object (native host binary + marked ISA modules) remains reachable exactly as in round 1.",
+      "change": "No cross-repository contract change needed for this local definition."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "The conformance relation text and oracle now agree: both are composed/overall. I re-ran the suite headless (TMPDIR/CARGO_TARGET_DIR under .tmp/e9a-council/r2-muse/): 7 passed, 5 ignored; the 5 ignored future tests fail on today's pending path (0 passed, 5 failed) exactly as §5 claims, and the new ignored test requires actual recompute admission plus (9,5,41) resources, not a generic pending error. My independent Python executor over the literal fixtures reproduces every count in both directions: admits 0 interface diffs / 0 dirty releases (incl. cancelling-scratch-reads 8/8 identity, intermediate y [0,0] source vs [1,0] candidate at x=0,z=1,y=0), scratch-read 4/8 diffs per direction, unrestored-input dirty on 4/4 per direction; all sources clean. assert_witness uses one oracle for all seven (both traversal directions, hand-coded Effect maps, per-direction dirty counts), and expected values come from hand derivation (fixture .md) and execution, never from estimator code. Held at 4 only because phase-bearing behaviour is established by the phase-free (+1 basis phase) argument rather than by any executed diagonal-gate witness, a limit §5 states honestly.",
+      "change": "When the witness interpreter grows diagonal gates, add one phase-bearing retained-operation witness (e.g. a T on g between inverses, refused; a cancelling T/Tdg pair, admitted) so obligation 3's phase clause is pinned by execution as the permutation clause now is."
+    },
+    {
+      "id": "C7",
+      "score": 5,
+      "evidence": "No north-star narrowing remains: the six historical verdicts are unchanged (table rows and §§4.1-4.4 verdicts untouched in the diff; re-executed with identical counts), both yak sources remain valid programs whose recompute alone is refused, unavailable mechanics are reported as pending (§3.2, unchanged), and the previously excluded composed-equal class (cancelling scratch reads) is now admitted, removing the round-1 S0. No capability is rejected, faulted or deferred-with-reject-default; recompute stays a promised capability with only its mechanics pending. Mixed fat object untouched (see C5).",
+      "change": "None; keep the pending-vs-source-violation distinction as written."
+    },
+    {
+      "id": "C8",
+      "score": 5,
+      "evidence": "An implementer can now start from a single unambiguous admission rule: obligation 3 names the comparison boundary (composed retained sequence + literal K80 replacement vs original trace, full domain, phase and external references, clean/restored releases), per-row commutation/effect checks and §6.1's dependency-set test are demoted to sufficient proof methods 'where applicable' with the general checker required to establish the composed equality (matching pinned §6.1 lines 1612-1616: dependency-set test establishes factorisation, its failure does not prove dependence), and the seventh executed witness separates the composed rule from every per-operation obstruction shape that sank rounds r1/r3/r4 and round-1's text. §5's rstrip() description now matches the bridge code, the §6.4 excerpt is marked partial, and §3.1 states the F/F-dagger endpoints are excluded from 'intervening' operations. Every round-1 S1/nit from all three seats is recorded in the editor's response as accepted (none declined) and each accepted edit is present in the diff.",
+      "change": "No clarity change required to implement against this definition; minor wording polish is listed under suggestions."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "B2",
+      "section": "ISA §6.2 window clause 1 vs clause 4 (note §1.2, §3.1)",
+      "scope": "core",
+      "kind": "spec-gap",
+      "steps": [
+        {
+          "n": "<1>1",
+          "claim": "ASSUMED: §6.2 as quoted lists window-closing events disjunctively: 'a non-diagonal gate on a wire in S or in g' (clause 1) and separately 'a permutation change to a wire in S not undone before g's cleanup' (clause 4). Read literally, clause 1 already includes the permutation X on a wire of S, so the tdf/w2b flip would close the window at the first X and the 'undone' definition could never apply; §6.2 itself never states the intended non-permutation reading, which is recoverable only from §6.1's separate permutation-gate and non-diagonal-gate provenance rows.",
+          "by": "ASSUMED: the pinned §6.2 text is silent on the overlap; clause:ISA-6.2; clause:ISA-6.1-P1"
+        },
+        {
+          "n": "<1>2",
+          "claim": "The note now names this as a spec gap in §3.1 ('Spec gap (council B2): §6.2 clause 1's \"non-diagonal\" overlaps clause 4's permutation changes; pending spec-owner clarification, this note reads clause 1 as non-diagonal, non-permutation, following §6.1's separate permutation-gate and non-diagonal-gate provenance rows, and applies clause 4 to permutation changes of S'), so the reading is no longer adopted silently; the quotations and upstream contract are unchanged.",
+          "by": "witness:bennett-estimate-job-est-e9a-def/docs/design/2026-11-08-recompute-cleanup-admissibility.md §3.1 first paragraph"
+        },
+        {
+          "n": "<1>3",
+          "claim": "Until the spec owner amends §6.2, a reader of §6.2 alone can still derive the opposite verdict for the admitted restored-input (tdf) and restored-input-read (w2b) fixtures, whose X on x in S is a non-diagonal gate under the literal clause-1 reading; the note's stated reading gives Admit, matching execution (4/4 and 8/8 clean in both directions).",
+          "by": "witness:tests/fixtures/recompute_witness/restored-input.bisa; witness:tests/fixtures/recompute_witness/restored-input-read.bisa; step:<1>1; step:<1>2"
+        },
+        {
+          "n": "<1>4",
+          "claim": "This remains a spec-wording gap for the spec owner (filed as bennett-isa-spec-nuk), not an editor blocker: the note-side obligation to name the gap and the reading used is discharged, so per the rubric this item does not count against accept.",
+          "by": "step:<1>1; step:<1>2; step:<1>3"
+        }
+      ],
+      "problem": "",
+      "fix": "Spec owner (bennett-isa-spec-nuk): in §6.2 clause 1 write 'a non-diagonal, non-permutation gate on a wire in S or in g (permutation changes to S are clause 4)', aligned with §6.1's separate provenance rows, with adjacent X/undo and CX-read-between-X/undo conformance witnesses. No further note change required; optionally cite the bead id in §3.1's gap line."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-1",
+      "status": "resolved",
+      "note": "Obligation 3 (§3) now requires equality of the composed joint effect of retained operations in candidate order plus the literal K80 replacement against the original trace over the full declared domain, including relative/global phase under control, external references and clean/restored releases; obligations 1-2 are byte-identical to round 1 and independently mandatory. Sol's exact cancelling-read program is added as an ADMIT fixture pair; my independent executor and the repo suite both confirm identity on 8/8 bases in both directions with all releases clean, intermediate y [0,0] vs [1,0] at x=0,z=1,y=0."
+    },
+    {
+      "id": "CODEX-S0-1",
+      "status": "resolved",
+      "note": "Same central edit removes the per-operation intermediate-effect requirement; per-row commutation/effect checks are now sufficient proof methods only. The single yak scratch read remains refused with the composed reason stated in §4.2 (it does not cancel elsewhere; re-executed 4/8 diffs per direction), and the §5 truth-table claim now describes the composed obligation over 48 bases / 192 executions. No occurrence rematching or protected write is excused: ownership entry:3,6,7 and retained readers entry:4,5 once in source order are pinned in §4.5 and the ignored future test."
+    },
+    {
+      "id": "B1",
+      "status": "resolved",
+      "note": "My round-1 blocker is fixed as proposed: obligation 3 is restated in composed form citing §6.1's composed-M dependence and the realised-unitary vs §5.3 reference-unitary requirement at its introduction, the per-operation reading is deleted, the text and the executed oracle now define the same rule, and the double-read program of step B1-3 is the seventh executed witness with verdict Admit on the same independent oracle in both directions with clean releases (suite: 7 passed, 5 ignored, run by me headless)."
+    },
+    {
+      "id": "B2",
+      "status": "partially",
+      "note": "Note-side resolved: §3.1 names B2 as a spec gap and states the reading used (clause 1 = non-diagonal, non-permutation per §6.1's separate provenance rows; clause 4 governs permutation changes of S). Spec-side remains with the ISA owner as bennett-isa-spec-nuk; as a spec-gap it is not an editor blocker and does not count against accept. Re-listed once in blocking with kind spec-gap so the upstream item stays visible."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1 (derivation wording): pinned §6.1 scopes its composed-M dependence test '(for other cleanup)' while obligation 3 governs perm recompute; the obligation's statement is precise and the realised-vs-reference-unitary citation carries the perm derivation, but one clause saying §6.1 is used as the composed-dependence analogue (with exactness for perm following from epsilon=0) would keep the derivation from reading as a direct quotation of authority it does not quite have.",
+    "S1 (applicability): 'sufficient proof methods where applicable' could name the dependency-set test's applicability condition from pinned §6.1 (no live value, interface wire, region cell or uncancelled diagonal phase with a transitive read path from g in the intervening sequence), so a future implementer does not have to re-derive when the sufficient check is sound for obligation 3.",
+    "Nit: cite the filed bead bennett-isa-spec-nuk in §3.1's spec-gap line, so the pending spec-owner clarification is traceable from the note alone.",
+    "Nit: §4.5's 'neither read changes S={x,z} or g=d' relies on the CX-control-is-a-read statement in §2; a cross-reference there would make the obligations 1-2 claim for readers at entry:4,5 self-contained."
+  ],
+  "verdict": "accept",
+  "path_to_accept": "No editor change is required: this seat accepts the DEFINITION as written. The three round-1 core blockers (SOL-1, CODEX-S0-1, B1) are resolved by the composed obligation 3 and the seventh executed witness; the sole remaining item, B2, is a spec-gap owned upstream (bennett-isa-spec-nuk) and does not count against accept. This verdict authorises no implementation; the estimator recompute path remains pending mechanics behind the five ignored future tests.",
+  "summary": "Accept. Round-1 blockers: SOL-1 resolved, CODEX-S0-1 resolved, Muse B1 resolved - all three were the same per-operation obligation 3, now restated as composed full-domain semantic preservation (retained sequence in candidate order + literal K80 replacement vs original trace, including relative and global phase under control and arbitrary external references, with clean/restored releases), while obligations 1-2 remain byte-identical and independently mandatory, so the rule is neither narrower nor looser than K81/K80 + §6 allow. B2 is note-side resolved (§3.1 names the §6.2 clause-1/clause-4 overlap as a spec gap with the reading used) and spec-side pending as bennett-isa-spec-nuk; it is listed once as kind spec-gap and does not count against accept. Verification performed by me, read-only and headless: pinned spec at fd626d37 re-hashes to bbd887c7...c3b matching note and gate.toml; all five quotations verbatim against that pinned text; suite run with TMPDIR/CARGO_TARGET_DIR under .tmp/e9a-council/r2-muse/ gives 7 passed / 5 ignored (ignored set fails 0/5 on the pending path as claimed); an independent Python executor over all 14 literal fixtures reproduces every verdict in both directions on the same oracle terms - six historical verdicts unchanged (pjj admits clean, yak scratch-read 4/8 diffs and unrestored-input 4/4 dirty per direction, tdf/w2b admit clean) and the new cancelling-scratch-reads witness ADMIT with 8/8 identity, clean d and u releases, and the pinned intermediate difference y [0,0] (source) vs [1,0] (candidate) at x=0,z=1,y=0 that distinguishes composed from per-operation preservation. Expected values are hand-derived (fixture notes derive identity, releases, inverse traversal and 9/5/41 totals) or executed, never taken from code under test; the editor's response records every round-1 S1/nit as accepted with none declined, and each accepted edit is present in the diff. No new S0 found: composed equality cannot excuse a window, version or protected-write failure (obligations 1-2 retained, §3.1 states this), phase/external-reference exactness follows §5.3/§6.1, and the note decides nothing that touches the mixed fat object. New suggestions are S1/nits only (phase-bearing witness when the interpreter grows diagonal gates; two derivation-wording clarifications). This verdict is on the definition only and authorises no implementation.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett-job-e9a-council/.tmp/e9a-council/r2-muse.json

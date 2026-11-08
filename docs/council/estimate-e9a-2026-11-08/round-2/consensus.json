@@ -1,0 +1,70 @@
+{
+ "agree": true,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "accept",
+  "codex": "accept",
+  "muse": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept",
+  "muse": "accept"
+ },
+ "blocking": {
+  "sol": [],
+  "codex": [],
+  "muse": []
+ },
+ "spec_gaps": {
+  "sol": [],
+  "codex": [],
+  "muse": [
+   {
+    "id": "B2",
+    "section": "ISA \u00a76.2 window clause 1 vs clause 4 (note \u00a71.2, \u00a73.1)",
+    "scope": "core",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "ASSUMED: \u00a76.2 as quoted lists window-closing events disjunctively: 'a non-diagonal gate on a wire in S or in g' (clause 1) and separately 'a permutation change to a wire in S not undone before g's cleanup' (clause 4). Read literally, clause 1 already includes the permutation X on a wire of S, so the tdf/w2b flip would close the window at the first X and the 'undone' definition could never apply; \u00a76.2 itself never states the intended non-permutation reading, which is recoverable only from \u00a76.1's separate permutation-gate and non-diagonal-gate provenance rows.",
+      "by": "ASSUMED: the pinned \u00a76.2 text is silent on the overlap; clause:ISA-6.2; clause:ISA-6.1-P1"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The note now names this as a spec gap in \u00a73.1 ('Spec gap (council B2): \u00a76.2 clause 1's \"non-diagonal\" overlaps clause 4's permutation changes; pending spec-owner clarification, this note reads clause 1 as non-diagonal, non-permutation, following \u00a76.1's separate permutation-gate and non-diagonal-gate provenance rows, and applies clause 4 to permutation changes of S'), so the reading is no longer adopted silently; the quotations and upstream contract are unchanged.",
+      "by": "witness:bennett-estimate-job-est-e9a-def/docs/design/2026-11-08-recompute-cleanup-admissibility.md \u00a73.1 first paragraph"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Until the spec owner amends \u00a76.2, a reader of \u00a76.2 alone can still derive the opposite verdict for the admitted restored-input (tdf) and restored-input-read (w2b) fixtures, whose X on x in S is a non-diagonal gate under the literal clause-1 reading; the note's stated reading gives Admit, matching execution (4/4 and 8/8 clean in both directions).",
+      "by": "witness:tests/fixtures/recompute_witness/restored-input.bisa; witness:tests/fixtures/recompute_witness/restored-input-read.bisa; step:<1>1; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "This remains a spec-wording gap for the spec owner (filed as bennett-isa-spec-nuk), not an editor blocker: the note-side obligation to name the gap and the reading used is discharged, so per the rubric this item does not count against accept.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "Spec owner (bennett-isa-spec-nuk): in \u00a76.2 clause 1 write 'a non-diagonal, non-permutation gate on a wire in S or in g (permutation changes to S are clause 4)', aligned with \u00a76.1's separate provenance rows, with adjacent X/undo and CX-read-between-X/undo conformance witnesses. No further note change required; optionally cite the bead id in \u00a73.1's gap line."
+   }
+  ]
+ },
+ "means": {
+  "C1": 5.0,
+  "C2": 5.0,
+  "C3": 4.67,
+  "C4": 5.0,
+  "C5": 5.0,
+  "C6": 4.33,
+  "C7": 5.0,
+  "C8": 5.0
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}
