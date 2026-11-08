@@ -57,7 +57,14 @@ Each entry in `checks` and `reports` retains `name`, `exit` and the compatible r
   No width is inferred from command arguments or tool defaults. The observed keys are `CARGO_BUILD_JOBS`,
   `CARGO_MAKEFLAGS`, `MAKEFLAGS`, `MFLAGS`, `RUST_TEST_THREADS`, `RAYON_NUM_THREADS`, `CMAKE_BUILD_PARALLEL_LEVEL`,
   `CTEST_PARALLEL_LEVEL`, `NINJAFLAGS`, `OMP_NUM_THREADS`, `OMP_THREAD_LIMIT`, `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS`,
-  `NUMEXPR_NUM_THREADS` and `GOMAXPROCS`. A command that cannot be launched has zero CPU/RSS and retains exit 127.
+  `NUMEXPR_NUM_THREADS` and `GOMAXPROCS`. A command that cannot be launched retains exit 127 and records unavailable CPU/RSS.
+
+Receipt probes are optional evidence and cannot change which checks/reports execute, their statuses, or the gate's
+verdict/exit. A failed probe records `{"unavailable": "<exception class>: <message>"}` at the affected field and emits
+a named `receipt <field> unavailable` diagnostic. Memory, CPU count, load, machine label, timing, CPU/RSS, cache state
+and width observations are isolated; independent fields remain available. A label depending on unavailable machine
+inputs is also explicitly unavailable. If `wait4` accounting fails, ordinary process waiting still obtains the real
+command exit status; CPU/RSS are marked unavailable. Failed samples never supply a default number or empty environment.
 
 Run-level `setup_seconds` measures configuration, isolation preparation, sibling materialisation/builds and creation
 of the run worktree, ending before the first check. It excludes checks, reports and final worktree cleanup. The

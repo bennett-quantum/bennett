@@ -14,7 +14,8 @@ TOOL = Path(__file__).resolve().parents[1] / "gate_run.py"
 # Meta has no guard table yet. Follow test_clone_all.py / test_main_health.py:
 # Git 20s, CLI 30s, machine factor 1 on the shared 12-core / 30 GiB host.
 # These are hang guards, never performance assertions; a trip is UNKNOWN.
-# Whole fixture suite measured 1.78s here on 2026-11-08; both exceed 10x.
+# Initial five-fixture suite measured 1.78s here on 2026-11-08. Guards bound
+# individual Git/CLI commands, not the expanded suite's cumulative duration.
 GIT_HANG_GUARD_SECONDS = 20
 CLI_HANG_GUARD_SECONDS = 30
 # Synthetic clock advance, not a delay or a performance limit.
@@ -41,6 +42,7 @@ class ReceiptTests(unittest.TestCase):
                         GIT_COMMITTER_NAME="Fixture", GIT_COMMITTER_EMAIL="fixture@example.invalid",
                         BENNETT_GATE_WORKSPACE=str(self.workspace))
         self.repo = self.workspace / "fixture"
+        self.probe_attempt = 0
         self.repo.mkdir()
         self.git(self.repo, "init", "-qb", "main")
         (self.repo / ".gitignore").write_text(".tmp/\n")
@@ -71,6 +73,169 @@ class ReceiptTests(unittest.TestCase):
 
     def receipt(self, sha):
         return json.loads((self.repo / ".tmp/gate/records" / f"{sha}.json").read_text())
+
+    def failed_probe_gate(self, patch, extra="", check_exit=0):
+        self.probe_attempt += 1
+        marker = self.workspace / f"executed-{self.probe_attempt}"
+        def command(letter):
+            return [sys.executable, "-c", "from pathlib import Path; "
+                    f"p = Path({str(marker)!r}); "
+                    f"p.open('a').write({letter!r})"]
+        report = command("R")
+        report[-1] += "; raise SystemExit(9)"
+        checks = [command("A"), command("B")]
+        checks[-1][-1] += f"; raise SystemExit({check_exit})"
+        sha = self.config(checks, extra=extra +
+                          '\n[[report]]\nname = "evidence"\n' +
+                          f'argv = {json.dumps(report)}\n')
+        baseline = self.run_gate(sha)
+        self.assertEqual(baseline.returncode, 1 if check_exit else 0, baseline.stderr)
+        self.assertEqual(marker.read_text(), "ABR")
+        marker.unlink()
+        bootstrap = '''import importlib.util, sys
+from pathlib import Path
+path = sys.argv.pop(1)
+spec = importlib.util.spec_from_file_location("gate_fixture", path)
+tool = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(tool)
+def unavailable(*args, **kwargs):
+    raise OSError("fixture probe denied")
+''' + patch + '\nraise SystemExit(tool.main())\n'
+        result = self.run_gate(sha, bootstrap)
+        self.assertEqual(result.returncode, baseline.returncode, result.stderr)
+        self.assertIn("unavailable", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual(marker.read_text(), "ABR")
+        receipt = self.receipt(sha)
+        self.assertEqual(receipt["result"], "fail" if check_exit else "pass")
+        self.assertEqual([check["exit"] for check in receipt["checks"]], [0, check_exit])
+        self.assertEqual(receipt["reports"][0]["exit"], 9)
+        return receipt
+
+    def test_meminfo_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        for mode, expected in [("denied", "PermissionError"), ("missing", "KeyError")]:
+            with self.subTest(mode=mode):
+                patch = f'''original_read = Path.read_text
+def read(path, *args, **kwargs):
+    if str(path) == "/proc/meminfo":
+        if {mode!r} == "missing":
+            return ""
+        raise PermissionError("fixture meminfo denied")
+    return original_read(path, *args, **kwargs)
+Path.read_text = read
+'''
+                receipt = self.failed_probe_gate(patch)
+                for field in ("mem_total_kib", "mem_available_kib", "label"):
+                    self.assertIn("unavailable", receipt["machine"][field])
+                self.assertIn(expected, receipt["machine"]["mem_total_kib"]["unavailable"])
+                self.assertGreater(receipt["machine"]["nproc"], 0)
+                self.assertIsInstance(receipt["machine"]["load1"], float)
+
+    def test_loadavg_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        receipt = self.failed_probe_gate("tool.os.getloadavg = unavailable")
+        self.assertEqual(receipt["machine"]["load1"], {"unavailable": "OSError: fixture probe denied"})
+        self.assertGreater(receipt["machine"]["mem_total_kib"], 0)
+        self.assertGreater(receipt["machine"]["nproc"], 0)
+
+    def test_nproc_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        receipt = self.failed_probe_gate("tool.os.sched_getaffinity = unavailable")
+        self.assertEqual(receipt["machine"]["nproc"], {"unavailable": "OSError: fixture probe denied"})
+        self.assertIn("unavailable", receipt["machine"]["label"])
+        self.assertGreater(receipt["machine"]["mem_total_kib"], 0)
+
+    def test_machine_label_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        receipt = self.failed_probe_gate("tool.platform.machine = unavailable")
+        self.assertEqual(receipt["machine"]["label"], {"unavailable": "OSError: fixture probe denied"})
+        self.assertGreater(receipt["machine"]["nproc"], 0)
+
+    def test_wait4_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        receipt = self.failed_probe_gate("tool.os.wait4 = unavailable")
+        for command in receipt["checks"] + receipt["reports"]:
+            for field in ("cpu_seconds", "peak_rss_kib"):
+                self.assertEqual(command[field], {"unavailable": "OSError: fixture probe denied"})
+            self.assertGreater(command["wall_seconds"], 0)
+
+    def test_wait4_probe_failure_preserves_a_failed_check_status(self):
+        receipt = self.failed_probe_gate("tool.os.wait4 = unavailable", check_exit=7)
+        self.assertEqual(receipt["checks"][1]["cpu_seconds"],
+                         {"unavailable": "OSError: fixture probe denied"})
+
+    def test_cpu_and_rss_probes_fail_independently_and_keep_gate_pass(self):
+        for attribute, field, other in [("ru_utime", "cpu_seconds", "peak_rss_kib"),
+                                         ("ru_maxrss", "peak_rss_kib", "cpu_seconds")]:
+            with self.subTest(field=field):
+                patch = f'''original_wait4 = tool.os.wait4
+class Usage:
+    def __init__(self, usage):
+        self.usage = usage
+    def __getattr__(self, name):
+        if name == {attribute!r}:
+            return unavailable()
+        return getattr(self.usage, name)
+def wait4(*args):
+    pid, status, usage = original_wait4(*args)
+    return pid, status, Usage(usage)
+tool.os.wait4 = wait4
+'''
+                receipt = self.failed_probe_gate(patch)
+                for command in receipt["checks"] + receipt["reports"]:
+                    self.assertEqual(command[field], {"unavailable": "OSError: fixture probe denied"})
+                    self.assertGreater(command[other], 0)
+
+    def test_cache_state_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        sibling = self.workspace / "sibling"
+        sibling.mkdir()
+        self.git(sibling, "init", "-qb", "main")
+        (sibling / "source").write_text("fixture\n")
+        pin = self.commit(sibling)
+        patch = '''original_prepare = tool.prepare
+def prepare(*args, **kwargs):
+    result = original_prepare(*args, **kwargs)
+    del result[1].notes["sibling"]["cache_state"]
+    return result
+tool.prepare = prepare
+'''
+        receipt = self.failed_probe_gate(patch, f'[siblings.sibling]\nsha = "{pin}"\n')
+        self.assertEqual(receipt["siblings"]["sibling"]["cache_state"],
+                         {"unavailable": "KeyError: 'cache_state'"})
+        self.assertEqual(receipt["siblings"]["sibling"]["sha"], pin)
+
+    def test_width_env_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        receipt = self.failed_probe_gate('''class WidthKeys:
+    def __iter__(self):
+        return unavailable()
+tool.WIDTH_ENV = WidthKeys()
+''')
+        for command in [receipt, *receipt["checks"], *receipt["reports"]]:
+            self.assertEqual(command["width_env"], {"unavailable": "OSError: fixture probe denied"})
+
+    def test_clock_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        for mode in ("start", "end"):
+            with self.subTest(mode=mode):
+                patch = ("tool.time.monotonic = unavailable" if mode == "start" else '''clock = tool.time.monotonic
+calls = 0
+def monotonic():
+    global calls
+    calls += 1
+    return unavailable() if calls % 2 == 0 else clock()
+tool.time.monotonic = monotonic
+''')
+                receipt = self.failed_probe_gate(patch)
+                self.assertEqual(receipt["setup_seconds"], {"unavailable": "OSError: fixture probe denied"})
+                for command in receipt["checks"] + receipt["reports"]:
+                    for field in ("wall_seconds", "seconds"):
+                        self.assertEqual(command[field], {"unavailable": "OSError: fixture probe denied"})
+                    self.assertGreater(command["cpu_seconds"], 0)
+
+    def test_finished_time_probe_failure_is_explicit_and_keeps_gate_pass(self):
+        receipt = self.failed_probe_gate('''original_prepare = tool.prepare
+def prepare(*args, **kwargs):
+    result = original_prepare(*args, **kwargs)
+    tool.time.strftime = unavailable
+    return result
+tool.prepare = prepare
+''')
+        self.assertEqual(receipt["finished_utc"], {"unavailable": "OSError: fixture probe denied"})
 
     def test_metadata_and_setup_are_separate_from_check_time(self):
         sha = self.config(extra='[env]\nCARGO_BUILD_JOBS = "3"\n'
@@ -170,7 +335,11 @@ raise SystemExit(tool.main())
                 self.assertEqual(result.returncode, 1, result.stderr)
                 receipt = self.receipt(sha)
                 self.assertEqual([c["exit"] for c in receipt["checks"]], [expected])
-                self.assertGreaterEqual(receipt["checks"][0]["cpu_seconds"], 0)
+                if expected == 127:
+                    for field in ("cpu_seconds", "peak_rss_kib"):
+                        self.assertIn("FileNotFoundError:", receipt["checks"][0][field]["unavailable"])
+                else:
+                    self.assertGreaterEqual(receipt["checks"][0]["cpu_seconds"], 0)
 
     def test_expired_command_guard_keeps_exit_and_records_reaped_usage(self):
         # Zero represents an already-expired guard; the child waits for a signal,
