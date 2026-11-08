@@ -9,7 +9,7 @@ of the no-narrowing rule.
 
 ## Review
 
-1. **Code gets reviewed before it is pushed to `main`.** One implementer per change as before; review is batched over
+1. **Code gets reviewed before it is pushed to `main`.** One writer per path set (CLAUDE.md non-negotiable 2); review is batched over
    what the stream has landed since its last review. The orchestrator launches the review when a stream's batch is
    done, not per commit and not on a timer.
 2. **Evidence-first review.** One fresh gpt-6.1-sol xhigh review starts from the implementer's evidence
