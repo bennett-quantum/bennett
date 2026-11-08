@@ -37,7 +37,47 @@ is refused (exit 3). The stub's own job is that fetch and the hook probe.
    fail-loud for unpinned reads, and it cannot be bypassed by a path the static scan misses. Inherited `BENNETT_*`,
    `CARGO_TARGET_DIR`, `GIT_*` and display variables are scrubbed.
 6. Runs each `[[report]]` (milestone and blocker status); its exit is printed and never decides anything.
-7. Writes `.tmp/gate/records/<sha>.json`: pins used, `pushed` per pin, tool pinned and tool run, per-check exit and time, result.
+7. Writes `.tmp/gate/records/<sha>.json`: pins used, `pushed` per pin, tool pinned and tool run, command measurements,
+   setup time, machine profile, sibling cache state and result (receipt fields below).
+
+The existing nonblocking lock at `.tmp/gate/locks/run-<sha>` rejects another attempt on the same SHA immediately with
+setup exit 3. Its error names the holder's PID and UTC lock-acquisition time. Different SHAs retain their existing
+per-sibling cache/build locks.
+
+### Receipt measurements
+
+Each entry in `checks` and `reports` retains `name`, `exit` and the compatible rounded `seconds` field, and adds:
+
+- `wall_seconds`: unrounded monotonic elapsed seconds for that command, including launch and isolation overhead.
+- `cpu_seconds`: user + system CPU seconds from Linux `wait4`, including descendants reaped by the command's process
+  tree. Detached descendants that outlive their parents are not accounted for.
+- `peak_rss_kib`: Linux `wait4` peak resident memory in KiB, the largest individual process peak in that tree,
+  rather than the sum of simultaneous process memory. Each command is measured independently of earlier commands/builds.
+- `width_env`: the width-related variables actually present in that command's environment, after expansion and overrides.
+  No width is inferred from command arguments or tool defaults. The observed keys are `CARGO_BUILD_JOBS`,
+  `CARGO_MAKEFLAGS`, `MAKEFLAGS`, `MFLAGS`, `RUST_TEST_THREADS`, `RAYON_NUM_THREADS`, `CMAKE_BUILD_PARALLEL_LEVEL`,
+  `CTEST_PARALLEL_LEVEL`, `NINJAFLAGS`, `OMP_NUM_THREADS`, `OMP_THREAD_LIMIT`, `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS`,
+  `NUMEXPR_NUM_THREADS` and `GOMAXPROCS`. A command that cannot be launched retains exit 127 and records unavailable CPU/RSS.
+
+Receipt probes are optional evidence and cannot change which checks/reports execute, their statuses, or the gate's
+verdict/exit. A failed probe records `{"unavailable": "<exception class>: <message>"}` at the affected field and emits
+a named `receipt <field> unavailable` diagnostic. Memory, CPU count, load, machine label, timing, CPU/RSS, cache state
+and width observations are isolated; independent fields remain available. A label depending on unavailable machine
+inputs is also explicitly unavailable. If `wait4` accounting fails, ordinary process waiting still obtains the real
+command exit status; CPU/RSS are marked unavailable. Failed samples never supply a default number or empty environment.
+
+Run-level `setup_seconds` measures configuration, isolation preparation, sibling materialisation/builds and creation
+of the run worktree, ending before the first check. It excludes checks, reports and final worktree cleanup. The
+run-level `width_env` records the common check environment; command entries include their individual overrides.
+`machine` is sampled before setup: `nproc` (CPUs available through process affinity), `mem_total_kib` and
+`mem_available_kib` from `/proc/meminfo`, `load1`, and `label`. The hostname-free label is `machine-<12 hex>` from a
+SHA-256 fingerprint of architecture, available CPU count and total memory. It identifies a hardware profile;
+identical profiles share a label.
+
+Each `siblings` entry adds `cache_state`: `hit` when the pin and all declared build stamps/outputs were reused,
+`materialised` when its worktree was created or repaired without running a build, or `built` when this run executed
+at least one build step (including after materialisation). These fields are evidence only: they introduce no limits,
+thresholds or changes to gate decisions. Repositories adopt this receipt format only when they bump their `tool_sha` pin.
 
 SIGTERM, SIGHUP or SIGINT (an orchestrator kill under memory pressure) kills the running command's whole process group,
 removes the run worktree and writes no record; exit 128+signal. Kill the gate's python process, never only the bwrap
