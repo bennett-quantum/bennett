@@ -1,4 +1,7 @@
 # Bennett ecosystem manifest. pinned = commit/tag, empty until first release.
+# Optional remote = "<url>" overrides BENNETT_REMOTE_BASE/<name>.git for cloning.
+# Optional info_only = true lists a repo without cloning or updating it.
+# Absent options preserve the usual org-base clone and existing-origin update.
 
 [repos."bennett-dialect-spec"]
 path = "bennett-dialect-spec"
@@ -68,6 +71,8 @@ pinned = ""
 
 [repos."Bennett.jl"]
 path = "Bennett.jl"
+remote = "https://github.com/tobiasosborne/Bennett.jl.git"
+info_only = true
 language = "julia"
 depends_on = ["bennett-driver", "bennett-isa-spec"]
 pinned = ""
