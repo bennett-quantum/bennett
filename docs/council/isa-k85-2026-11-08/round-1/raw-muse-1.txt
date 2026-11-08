@@ -1,0 +1,134 @@
+exit 0 in 672s
+--stdout--
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 4,
+   "evidence": "K85 admission is complete and loud: claims/images09.rs:56-157 image_domains09 resolves the in-role interface slot, exact A/W, exactly-once vs domain.regions and other fixed entries, exact lowercase hex length ceil(2^A*W/8), zero unused high bits, SHA-256 of raw bytes; certificate.rs validate_claim calls validate_image_domains09 for every V09 claim carrying a domain (and fault_rate.domain), so stale/swapped/hex-text hashes reject at parse. metadata_schema tests pin fixed_regions/proof_relative_to_image to V09 closed schema and reject a producer image_prepared boolean. Hand-checked vectors wrong-a/wrong-w/uppercase/short/long/duplicate-*/also-ranged/mut-region/nonzero-padding all reject_admission.",
+   "change": "In claims/images09.rs:68 replace param.role.as_deref().unwrap_or(\"in\") with an explicit error when an interface region param carries no role, so role resolution never defaults silently; add a fixture with a role-less region spelling if the grammar admits one."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Certificate image metadata does not enter executable identity: isa09_fixed_image.rs certificate_image_metadata_never_changes_executable_identities proves image-0102 and image-0201 share object/interface/closure hashes while their certificate bytes differ, matching K85 row 'executable source/interface/closure/object identities stay unchanged'. Image sha256 is over raw bytes (images09.rs:127-130); I reproduced sha256(01 02)=a12871fe..., sha256(02 01)=25dfd29c..., sha256('0102' text)=f19ccf1e... in Python and the fixture carries the raw-byte value. Caveat: generate.py:81-95 takes interface/closure/object hashes from the reference CLI `hash` output (disclosed in its docstring), so vector identities are not independently derived, only internally consistent via check_hashes.",
+   "change": "In conformance/fixtures/accepted-k85-09/generate.py, add an independent envelope-hash recomputation (or a cross-check against the pinned review binary) for at least image-0102's closure_hash, so one published K85 identity is anchored outside the implementation under test."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "No §14.1 interpreter code changed in 62a0cf0..a0b49a0 (diff touches claims.rs, claims/images09.rs, claims/replay09.rs, metadata_schema/tests.rs). Replay fills fixed cells into complete tuples without consuming enumeration or sampler words: replay09.rs:241-245 append_cells, 476-491 per-element extension before entry09/execute_element_bound. I hand-derived the lookup action (qload db a; cx v[0] t; qunload db a v) as t ^= db[a]&1 and all 64 rows of image-0102/image-0201 match with coverage 64/4194304=1/65536 (probe: 0 mismatches). No oracle-subject fixed-image vector exists; all 30 fixtures use perm_action/action subjects though §12.2 outcomes also govern oracle claims.",
+   "change": "Add one oracle-subject fixed-image fixture (oracle with an in mem region fixed, exhaustive over its remaining in/tgt/fault bundles at a stated budget) to generate.py + k85.json, hand-deriving its table from the oracle rows, and assert ProofRelativeToImage in isa09_fixed_image.rs."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "The §3.6 step machine and its inverse are untouched by this diff (no file outside claims/certificate metadata changed); the crate lib test binary passes (34 passed in my run, which includes the step-machine unit tests in that binary). At claim level I traced the inverse paths K85 interacts with: pairs09.rs:164 full_quantum_domain rejects any nonempty fixed_regions for inverse_pair claims (K85 'cannot discharge an unrestricted inverse-pair'), and adjoint09.rs:122-131 treats ProofRelativeToImage subclaims as unavailable premises, never as established proof.",
+   "change": "No K85 change needed; to raise this score the crate (outside K85 scope) would need its §3.6 exhaustive sweeps re-run at this head and recorded, which PROGRESS claims (728 passed) but I did not re-run in full."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "CC/R tiers, tapes, history and uncall are untouched by the K85 diff. The one cross-tier obligation K85 adds is honoured: a ProofRelativeToImage verdict cannot discharge an unrestricted borrow frame (claims.rs verify_certificate requires borrow_frames verdict == Proof; test fixed_image_proof_does_not_discharge_an_unrestricted_borrow_frame) and cannot cover a qinplace inverse pair (pairs09 fixed-region rejection at admission and in the theorem check).",
+   "change": "Add a negative vector where a structural inverse_pair_library claim names a library claim whose verdict is proof_relative_to_image and assert the qinplace entry is unestablished/rejected, closing the library route explicitly in tests."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "Basis/permutation side is faithful: exact +1 phase (phase fixture S^2 on t rejects at replay), full-tuple comparison including every fixed cell (full_tuples_include_every_fixed_cell_and_preserved_bundle), dirty-borrow and external-reference restoration (controlled-dirty, external-reference, plus an entangled-reference state-vector test that releases every wire exact-zero). But the conditional numerical/channel checker of §12.1 ('apply the interval Frobenius-bound procedure to (U-V)J_I', 'reduced input dimension and complete output dimension') has no executable path: claims.rs:908-910 returns Unverified for every numerical/channel kind, and restricted-map.json is independent data no checker consumes (ref_k85 recomputes its algebra only). This is declared JOB-BLOCKED on spec defect rqn (see blocking B-K85-1, spec-gap).",
+   "change": "Once B-K85-1's spec wording lands, implement the (U-V)J_I Frobenius and restricted-Choi procedures in claims.rs verify_claim_inner for numerical/channel kinds and wire restricted-map.json in as an executable certificate vector with expected accept (Z vs I at J=|0>) and reject (phase -I vs I controlled) outcomes."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "Expected values are independently derived: generate.py computes tuples by the closed form t^(cells[a]&1) with cells unpacked little-endian (I re-derived packing 1f01 -> cells [31,8], 0xd1 high bits 6-7 nonzero, omit counts/fractions, report-order 64/2^23=1/131072, external-reference 256/1024=1/4, controlled-dirty 256/2^24, and the sampled xoshiro256** draws 0,45 from seed (2^57,0,0,0) by hand simulation - all match). ref_k85 re-derives both 64-row relations and the restricted map in a second codebase. My runs: isa09_fixed_image 7/7, ref_k85 2/2, lib 34/34, generate.py --check '60 artifacts'. Gaps: no sampled claim with fixed_regions, no oracle-subject vector, and the 28 suite-D case.json files only run CLI check (admission), with replay verdicts covered only by the Rust integration test.",
+   "change": "Add a sampled+fixed_regions fixture to generate.py (derive distinct draws and coverage by hand, expected evidence and rejection when label=proof_relative_to_image) and extend one D-k85 case.json to drive the checker API verdict, or document in conformance/README why suite D K85 cases are admission-only."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "Reporting is loud where it matters: numerical/channel and scheduled subjects return Unverified with reasons (claims.rs:908-910, replay09.rs:390-401), never a successful label; requested-label mismatches reject with '§12.2 K85' (claims.rs:53-76, centralised in verify_claim_guarded:710-724 for every V09 kind); PROGRESS.md truthfully states JOB-BLOCKED on rqn and that qrc must not close. Deduction: two readings are chosen in code with no SPEC-QUESTIONS entry (grep finds no K85/label/fixed entry in reference-interpreter/SPEC-QUESTIONS.md) - (i) label requests apply to structural claims, (ii) Unverified verdicts are exempt from label rejection. Both are defensible but unrecorded (blocking B-K85-2, spec-gap).",
+   "change": "Add a SPEC-QUESTIONS entry recording both readings with the §12.2/K75 sentences relied on, and state in claims.rs verify_certificate's doc comment that Ok(report) does not mean every claim is established (unitary/channel indices are not required to be Proof there)."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "B-K85-1",
+   "section": "§12.1 conditional numerical/channel (spec lines ~4080-4089) and §12.2/§12.3 preparation (lines ~4397-4405, 4505-4521); code: reference-interpreter/src/claims.rs verify_claim_inner (kind fallback)",
+   "scope": "core",
+   "kind": "spec-gap",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "ASSUMED: a conditional numerical/channel claim must be able to state its fixed image I (to form J_I) and a preparation witness must be encodable, but the §12.1 payload table gives numerical/channel claims only {subject,metric,precision_bits,bound[,dual]} with no domain/fixed_regions field, and the §12.3 schema block defines no preparation/native-manifest encoding; the spec is silent on the encoding while requiring the procedures",
+     "by": "ASSUMED: §12.1 claim-kind table lists no conditional domain for numerical/channel and §12.3 schema lists no preparation field, against §12.1 'For conditional numerical claims, apply ... to (U-V)J_I' and §12.2 'additionally requires checked preparation/binding'"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The implementation therefore cannot and does not check any conditional numerical/channel claim or preparation binding; every numerical/channel kind returns Unverified, and restricted-map.json is data no checker consumes",
+     "by": "witness:reference-interpreter/src/claims.rs:908-910 (kind fallback Unverified 'need the rigorous interval checker'); witness:conformance/tests/ref_k85.rs restricted_z_identity_map_has_reduced_input_and_complete_output recomputes algebra from JSON only"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Hand witness: U=Z, V=I, J_I=|0> gives (U-V)J_I=0 (restricted Frobenius squared 0, 2x2 Choi difference 0) while unrestricted squared Frobenius is 4, and U=-I vs V=I gives restricted squared norm 4 with zero uncontrolled Choi difference (both re-derived in my Python probe); no certificate spelling exists on which the checker could accept the first and reject the second as a controlled-unitary bound",
+     "by": "step:<1>1; step:<1>2"
+    },
+    {
+     "n": "<1>4",
+     "claim": "This is a spec text defect (already filed as bennett-isa-spec-rqn), not an implementation divergence: the code fails loud with Unverified on every such path and never reports a pass, and PROGRESS.md declares it JOB-BLOCKED",
+     "by": "step:<1>1; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "SPEC-QUESTIONS entry plus spec wording (fix belongs to the spec owner): (a) in §12.1 add to the numerical and channel payloads an optional '\"domain\"?: <§12.2 domain>' with the sentence 'A numerical or channel claim whose domain contains fixed_regions is conditional on those images: the checker forms J_I from the fixed in-regions and prescribed clean workspace and applies the procedures below to (U-V)J_I / the Choi matrix of (E_real-E_ref) composed with Ad_J_I, with the reduced input dimension and complete output dimension; without fixed_regions the claim is unrestricted.' (b) in §12.3 add a preparation binding to the schema, e.g. bindings gains 'image_preparations?: [{region identity,A,W,sha256,source:\"declared_bytes\"|\"host_manifest\",exit_restored:true}]' with the sentence 'A proof_relative_to_image report discharges an executable invocation only when an image_preparations entry with identical (identity,A,W,sha256) is checked for that invocation; absent such an entry the checker report records the theorem as conditional and the invocation as unestablished.' Until that wording lands the code must keep returning Unverified (claims.rs:908-910) - no code change is requested now; the test to add after the wording lands is an executable numerical certificate for the Z/I restricted map (accept, bound 0) and its phase variant -I/I (reject at bound < 2), which fail today because the claim cannot be spelled."
+  },
+  {
+   "id": "B-K85-2",
+   "section": "§12.2 requested labels ('Requested proof rejects unless the computed outcome is proof; requested proof_relative_to_image rejects unless the computed outcome is proof_relative_to_image'); code: reference-interpreter/src/claims.rs check_requested_label and verify_claim_guarded",
+   "scope": "contract",
+   "kind": "spec-gap",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "ASSUMED: the §12.2 label sentences sit inside the 'Coverage and verdicts' paragraph whose three exclusive outcomes are defined only for 'an exhaustive table/program/oracle claim' and sampled claims; the spec never defines a requested label for structural, numerical or channel claims, nor what a label does when the computed outcome is the crate's staged Unverified (the spec's only non-success outcome vocabulary is reject and K75 'unchecked (host limit)', which 'discharges no obligation ... including when a producer requested a label')",
+     "by": "ASSUMED: §12.2 outcome list (1)-(3) is scoped to exhaustive/sampled replay claims; §12.1 payload table lists no label field for any kind"
+    },
+    {
+     "n": "<1>2",
+     "claim": "The code centralises the label check for every V09 claim kind in verify_claim_guarded, rejects a structural adjoint_table Proof when label=proof_relative_to_image, and exempts every Unverified verdict from label rejection",
+     "by": "witness:reference-interpreter/src/claims.rs:53-76 check_requested_label (Unverified early return; evidence/None always pass); witness:reference-interpreter/src/claims.rs:710-724 (applied to all kinds); witness:reference-interpreter/tests/isa09_fixed_image.rs:179-190 structural_full_d_theorem_cannot_satisfy_an_image_relative_request"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Two readings are both defensible: (A) labels are a common claim field and the rejection sentences are kind-independent, with Unverified/unchecked exempt per K75 (the code's reading); (B) labels are replay-only, a label on a structural/numerical claim is either ill-formed or ignored, and a proof request on an uncheckable claim must reject rather than return Unverified. The code should keep reading (A): it never lets a producer label upgrade a result, it matches K75's 'including when a producer requested a label' for unchecked outcomes, and rejection (B) for staged kinds would turn the crate's own missing machinery into producer error",
+     "by": "step:<1>1; step:<1>2"
+    },
+    {
+     "n": "<1>4",
+     "claim": "No SPEC-QUESTIONS entry records this choice, so the reading is currently unjustified in the crate's own terms even though I find it the correct one",
+     "by": "witness:grep of reference-interpreter/SPEC-QUESTIONS.md for K85/label/fixed returns no entry; step:<1>3"
+    }
+   ],
+   "problem": "",
+   "fix": "Add a SPEC-QUESTIONS entry (no behaviour change) recording reading (A) with its reasons, and propose this spec wording for §12.2 after the label sentences: 'A label may accompany any claim kind. For kinds without a §12.2 outcome (structural, numerical, channel) the computed outcome for this rule is proof when the claim is established/proof and evidence otherwise; proof_relative_to_image is never the computed outcome of such a claim, so requesting it rejects. An unchecked (host limit) or otherwise unestablished outcome is reported as such and is neither upgraded nor rejected solely because a label was requested.' Test to add once recorded: a numerical claim with label=proof in a V09 certificate returns Unverified (not Err, not Proof) from both verify_claim and verify_certificate, and a structural translation_lemma claim with label=proof_relative_to_image rejects - the first half pins the exemption that no current test covers."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "C7: add a sampled claim with fixed_regions (generate.py + k85.json + isa09_fixed_image.rs): hand-derive the distinct draws over the varying components only, expected verdict evidence with exact distinct-draw coverage against unrestricted D, and rejection when label=proof_relative_to_image is requested - this is the one K85 outcome combination (sampled x fixed) with no vector today.",
+  "C3: add an oracle-subject exhaustive fixed-image fixture so the 'table/program/oracle' outcome list is exercised for an oracle subject (fixed in-mem region, full remaining in/tgt/fault ranges at a tight budget with one fault-path element), hand-derived from the §4.2 rows.",
+  "C1: in claims/images09.rs:68 stop defaulting a missing region role to \"in\" (param.role.as_deref().unwrap_or(\"in\")); return a §12.2 K85 error naming the param, so role resolution has no silent default even if the parser currently always sets it.",
+  "C8: in claims.rs verify_claim_guarded replace section(\"certificate\").unwrap() and claims-array indexing with ok_or_else errors citing §12; they are currently safe only because verify_claim_inner checked first, and check_requested_label's requested.unwrap() (claims.rs:69) should likewise be restructured to carry the label in the match arm.",
+  "C7/contract: the 28 conformance/cases/D/D-k85-*/case.json files assert only CLI check admission; either add a checker-verdict field the conformance runner asserts (proof/proof_relative_to_image/evidence/reject_replay per k85.json) or state in conformance/README.md that D-k85 cases are admission-only by design with verdicts pinned in reference-interpreter/tests/isa09_fixed_image.rs.",
+  "C7/contract: conformance/tests/draft_witnesses.py (a0b49a0) now asserts the reference binary exists at import and ignores a non-symlink sibling bennett-isa-spec-review checkout in favour of .tmp/gate/cache; accept a real sibling directory whose HEAD equals the gate.toml pin (keeping the HEAD/cleanliness asserts), so the witness test works in a plain sibling layout without the gate's symlink.",
+  "C2: anchor one K85 vector identity independently of the CLI under test - recompute image-0102's interface/closure hash in generate.py from the §9.2 envelope (or against the pinned review binary used by draft_witnesses.py) and assert equality with the CLI-supplied value in --check mode."
+ ],
+ "verdict": "accept",
+ "path_to_accept": "Already accept: the blocking list contains only the two spec-gap items B-K85-1/B-K85-2, which do not count against accept. To raise the lowest criteria (C6 and C8, both 3) by one point: (1) for C8, record the label readings in SPEC-QUESTIONS exactly as B-K85-2's fix states and add the numerical label=proof -> Unverified test; (2) for C6, land the §12.1/§12.3 wording in B-K85-1's fix through rqn, then implement the conditional (U-V)J_I Frobenius and restricted-Choi checkers with restricted-map.json promoted to an executable accept/reject certificate pair. No other code change is required from this seat.",
+ "summary": "Scope graded: 62a0cf0..a0b49a0 (claims.rs, claims/images09.rs, claims/replay09.rs, metadata_schema/tests.rs, isa09_fixed_image.rs, ref_k85.rs, 30 fixtures, 28 suite-D cases, generate.py, draft_witnesses.py) against spec/Bennett-ISA-Spec-0.9.md §12.1-§12.3 K85 text. Method 1 (hand reproductions, incl. orchestrator check (a) - three required, I did five, Python probe in the muse tmp dir): (i) 64-tuple image-0102/image-0201 relations from qload/cx/qunload giving t^(db[a]&1) with cells [1,2]/[2,1], coverage 64/4194304=1/65536 - 0 mismatches over all 64 rows; (ii) hash failures sha256(raw 0102)=a12871fe..., sha256(raw 0201)=25dfd29c..., sha256(hex text)=f19ccf1e... - fixture carries the raw-byte hash, swapped/stale/hex-text all necessarily reject; (iii) restricted map (Z-I)|0>=0, unrestricted Frobenius squared 4, reduced input 1 x full output 2 Choi 2x2 zero, phase (-I-I)|0> squared norm 4 with zero uncontrolled Choi difference - all match restricted-map.json; (iv) packing 1f01 -> 5-bit cells [31,8] straddling a byte, 0xd1 padding bits 6-7 nonzero; (v) sampled-full-d xoshiro256** hand simulation outputs 0,45 covering both bits yet evidence. All published expected values I sampled are hand-derivable and correct; none appear copied from the implementation (generator uses closed forms; only object identity hashes come from the CLI, disclosed). Method 2: the diff touches neither the §3.6 step machine nor §7.4; instead I traced the claim-level inverse/discharge paths K85 affects - pairs09 rejects fixed_regions for inverse_pair, adjoint09 treats ProofRelativeToImage subclaims as unavailable, verify_certificate requires Proof for borrow_frames - no route lets an image-relative verdict discharge a full-D obligation. Method 3: SPEC-QUESTIONS.md has no K85/label/fixed entry (B-K85-2). Method 4: grep over changed files - no todo!/unimplemented!/TODO; new unwrap() at claims.rs:69,715 and unreachable!() in domain09 operate on values already validated by admission/inner checks (classified safe, suggested hardening); remaining hits are in tests. Method 5: list comparison - claim kinds dispatched {exhaustive,sampled,structural,numerical,channel} = spec §12.1 table; labels {proof,proof_relative_to_image,evidence} closed in V09 schema and check_requested_label; fixed-region fields {name,A,W,image,sha256} closed; 30 manifest cases = 30 .bisa fixtures, 28 D-cases (phase and restricted-map have no admission case, by design); CLI check remains admission-only as declared, no CLI replay claimed. Orchestrator (c): numerical/channel, scheduled and oracle-schedule paths all return Unverified with reasons on both verify_claim and verify_certificate paths and are never counted as Proof anywhere; preparation cannot be faked (closed schema rejects image_prepared). Orchestrator (d): no narrowing found - the only new rejections are requested-label mismatches the spec sentences mandate and malformed-image rejections at admission; evidence requests still accompany stronger outcomes. Tests I ran (headless env, private TMPDIR/CARGO_TARGET_DIR): cargo test --test isa09_fixed_image --lib: 7/7 and 34/34 passed; conformance --test ref_k85: 2/2; generate.py --check: 60 artifacts OK. PROGRESS's claimed full-crate/full-conformance runs (728 and 132 passed) were not re-run by me and are marked unverified here, but nothing in the K85 diff touches code they would exercise beyond the suites I did run. Verdict: accept (core and whole) with two spec-gap items for the spec owner; the implemented K85 surface is faithful, and every unimplemented part is declared and fails loud as Unverified/unestablished.",
+ "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett-job-k85-council/.tmp/k85-council/muse.json

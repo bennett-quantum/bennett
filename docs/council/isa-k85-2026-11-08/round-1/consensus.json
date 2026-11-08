@@ -1,0 +1,257 @@
+{
+ "agree": false,
+ "core_agree": false,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "revise",
+  "muse": "accept"
+ },
+ "core_verdicts": {
+  "sol": "revise",
+  "codex": "revise",
+  "muse": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-K85-R1-B01",
+    "section": "S0; \u00a712.2 K69/K70/K72/K85; reference-interpreter/src/certificate.rs::domain_for/table09, claims.rs::domain and claims/replay09.rs::coverage",
+    "scope": "core",
+    "kind": "implementation",
+    "problem": "",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "A borrowed entry resolves to a checked lifetime position, not a producer-created extra input. A position beyond the checked requirement rejects, and every supplied width equals the resolved component width.",
+      "by": "clause:ISA \u00a712.2 Component resolution (K69/K70), \"A borrowed position beyond the checked borrow requirement rejects as ill-formed\"; clause:ISA \u00a712.2 Domain validity (K72), \"every supplied width MUST equal that component's width\""
+     },
+     {
+      "n": "<1>2",
+      "claim": "domain_for treats 0.9 borrowed names as labels but never checks the number or width against source lifetimes. domain and coverage then trust the supplied widths; execute_element_bound allocates every supplied borrowed entry, including unused ones.",
+      "by": "witness:reference-interpreter/src/certificate.rs::domain_for/table09; witness:reference-interpreter/src/claims.rs::domain/execute_element_bound; witness:reference-interpreter/src/claims/replay09.rs::coverage"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Starting from accepted-k85-09/image-0102.bisa (lookup has no qborrow), set claim.domain.borrowed=[{\"name\":\"ghost\",\"width\":1,\"lo\":0,\"hi\":1}] and expected={\"program\":claim.subject.closure_hash}; retain invocation args=[] and budget=[\"0\",\"0\",\"0\",\"0\"]. Object::parse and check_hashes pass. Both checker APIs return ProofRelativeToImage; the report invents elements=128 and full_domain_elements=8388608. Separately, in controlled-dirty.bisa change its actual one-bit borrowed entry to width=2, hi=3 and use the same program relation: both APIs return ProofRelativeToImage with elements=512 and full_domain_elements=33554432. Both inputs must reject as malformed domains.",
+      "by": "witness:private read-only review_probe linked to the a0b49a0 crate, with certificate-only mutations of conformance/fixtures/accepted-k85-09/{image-0102,controlled-dirty}.bisa"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The checker certifies producer-invented domain components and rewrites the unrestricted denominator, rather than resolving the subject domain required by the specification.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "fix": "Change certificate.rs::Object::validate_claim/domain_for/table09 and the domain/coverage helpers to resolve checked borrowed lifetimes from the subject and bound invocation, including transitive calls, iterations and lifetime positions. Validate each supplied position and exact width against that inventory before replay; never use domain.borrowed as the inventory itself. \u00a712.2 says \"A borrowed position beyond the checked borrow requirement rejects as ill-formed\" and \"every supplied width MUST equal that component's width\". Add two tests in tests/isa09_fixed_image.rs using precisely the certificate mutations in step 3: the extra ghost on image-0102 and width=2 for controlled-dirty's one-bit lifetime must reject with a \u00a712.2 diagnostic; the original valid vectors must retain their existing counts and verdicts. These tests currently return successful conditional proofs."
+   },
+   {
+    "id": "SOL-K85-R1-B02",
+    "section": "S0; \u00a712.1 K13 and \u00a712.2 K71/K85; reference-interpreter/src/claims.rs::execute_element_bound/domain, claims/replay09.rs::entry09/tuple09/coverage and certificate.rs::table09",
+    "scope": "core",
+    "kind": "implementation",
+    "problem": "",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "An omitted borrowed position is a legal zero slice. It still exists in the complete tuple and unrestricted D; omission prevents image-relative proof when its full range is nontrivial.",
+      "by": "clause:ISA \u00a712.2 Domain validity and omission (K71), \"Every omitted component is held at zero on every replayed element, including omitted borrowed positions after the listed entries\"; clause:ISA \u00a712.1 Table tuples, \"no cells, inputs or unchanged components may be omitted\"; clause:ISA \u00a712.2 K85, \"every remaining component occurs exactly once with its full range\""
+     },
+     {
+      "n": "<1>2",
+      "claim": "Replay allocates borrowed wires only for supplied domain entries. entry09/tuple09 and coverage likewise count only those entries, so an omitted lifetime supplies neither its required zero state nor its tuple position/denominator contribution.",
+      "by": "witness:reference-interpreter/src/claims.rs::execute_element_bound; witness:reference-interpreter/src/claims/replay09.rs::entry09/tuple09/coverage; witness:reference-interpreter/src/certificate.rs::table09"
+     },
+     {
+      "n": "<1>3",
+      "claim": "In accepted-k85-09/controlled-dirty.bisa set claim.domain.borrowed=[] and expected={\"program\":claim.subject.closure_hash}; keep inherited_controls=1, the full t/f/a ranges, fixed image 0102 and invocation ([],[0,0,0,0]). Admission and check_hashes pass, but verify_claim and verify_certificate both return Diagnostic \"\u00a75.6: designated idle set lacks requested borrowed wires\". The specified replay has b=0 on all 2*2*16*2=128 entries. It succeeds with evidence, unrestricted |D|=2^24=16777216 and coverage 1/131072, preserving b=0 in every complete tuple.",
+      "by": "witness:private review_probe with a certificate-only mutation of conformance/fixtures/accepted-k85-09/controlled-dirty.bisa; clause:ISA \u00a74.5/\u00a74.6, the lookup and cancelling CX(b,t) pair preserve this zero borrow"
+     },
+     {
+      "n": "<1>4",
+      "claim": "Rejecting this legal omission narrows K71/K85 and prevents the required evidence outcome. Merely suppressing the idle-pool error would still leave incorrect tuple and full-domain accounting.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "fix": "Using the source-derived lifetime inventory from B01, change claims.rs::execute_element_bound and claims/replay09.rs::entry09/tuple09/domain09/coverage to provide an actual zero-valued borrowed system for every omitted position, include every required borrowed position in before/after tuples, include all required widths in unrestricted D and mark omitted nontrivial ranges as incomplete coverage. Update certificate.rs::table09 so tuple borrowed widths come from checked lifetimes, not only listed domain entries. \u00a712.2 explicitly requires \"including omitted borrowed positions after the listed entries\" to be zero. Add the exact controlled-dirty program-relation test in step 3, expecting Evidence{elements:128}, full_domain_elements=\"16777216\", covered_fraction=\"1/131072\"; add a table form with borrowed:[\"0\"] in each complete tuple and require it to admit and replay. Both forms currently fail. Requesting proof or proof_relative_to_image must reject this successful strict slice, while an evidence request must succeed."
+   },
+   {
+    "id": "SOL-K85-R1-B03",
+    "section": "S0; \u00a712.2 K75, retained by K85; reference-interpreter/src/claims.rs::Object::verify_claim/verify_certificate and claims/replay09.rs::verify_replay09",
+    "scope": "contract",
+    "kind": "implementation",
+    "problem": "",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "Host exhaustion during a legal claim is an unchecked claim outcome in the same checker report, distinct from rejection and successful labels, with no count/fraction. It does not invalidate or cap the domain.",
+      "by": "clause:ISA \u00a712.2 Host limits (K75), \"MUST terminate normally and record unchecked (host limit) for that claim in the same report\" and \"supplies no evidence count or covered fraction\"; clause:ISA \u00a712.2 K85, \"K75's host-limit handling remains\""
+     },
+     {
+      "n": "<1>2",
+      "claim": "sample_elements reports allocation failure as ErrorKind::HostResource, but both public checker methods propagate it as Err. verify_certificate has no per-claim conversion and aborts before returning any report.",
+      "by": "witness:reference-interpreter/src/claims.rs::sample_elements/verify_claim/verify_certificate; witness:reference-interpreter/src/claims/replay09.rs::verify_replay09"
+     },
+     {
+      "n": "<1>3",
+      "claim": "In image-0102.bisa change claim 0 to kind=\"sampled\", expected={\"program\":its subject closure}, sampler={\"algorithm\":\"xoshiro256**\",\"seed\":[\"1\",\"0\",\"0\",\"0\"],\"count\":\"18446744073709551615\"}; leave its legal domain and invocation unchanged and append the original exhaustive claim as claim 1. Parse and check_hashes pass. Both APIs instead return Err(HostResource(\"\u00a712.1: host limit: sampled domain elements allocation of 18446744073709551615 elements failed: ... computed capacity exceeded the collection's maximum\")). No report for either claim is returned.",
+      "by": "witness:private review_probe linked to a0b49a0, certificate-only two-claim mutation of conformance/fixtures/accepted-k85-09/image-0102.bisa"
+     },
+     {
+      "n": "<1>4",
+      "claim": "The failure is safely distinguished internally from a semantic diagnostic, but the mandated report disposition is missing and the later valid claim is lost.",
+      "by": "step:<1>1; step:<1>2; step:<1>3"
+     }
+    ],
+    "fix": "At the public checker boundaries in claims.rs, catch ErrorKind::HostResource arising from claim materialisation, enumeration, replay or coverage and produce an explicit unchecked (host limit) outcome citing \u00a712.2 and the failed quantity/operation. Return that outcome from verify_claim; in verify_certificate retain a ClaimReport with coverage=None and continue independent later claims. Keep semantic errors as rejection. Do not impose a count/width cap. Add the exact two-claim test in step 3: verify_certificate must return two reports, claim 0 unchecked with no evidence count/fraction, claim 1 ProofRelativeToImage with elements=64 and coverage=1/65536. The direct claim-0 API must return an unchecked outcome rather than Err; original small claims must still verify."
+   }
+  ],
+  "codex": [
+   {
+    "id": "K85-CODEX-01",
+    "section": "S0 \u2014 \u00a7\u00a712.1 K13, 12.2 K70/K71/K72/K85; reference-interpreter/src/certificate.rs::domain_for/table09, src/claims.rs::domain/execute_element_bound, src/claims/replay09.rs::entry09/tuple09/coverage",
+    "scope": "core",
+    "kind": "implementation",
+    "problem": "",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "\u00a712.2 says a borrowed entry denotes checked borrow lifetime k, \"A borrowed position beyond the checked borrow requirement rejects as ill-formed\", \"every supplied width MUST equal that component\u2019s width\", and omitted components are zero \"including omitted borrowed positions after the listed entries\". \u00a712.1 fixes tuple borrowed widths by checked lifetimes and forbids omitting unchanged components. K85 includes all borrowed positions among the remaining components that must be full for image-relative proof.",
+      "by": "clause:\u00a712.2 Component resolution / Domain validity and omission / Coverage and verdicts; clause:\u00a712.1 Table tuples"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The implementation instead uses domain.borrowed itself as the lifetime inventory. certificate.rs:283-289/324-329 derives tuple count/widths from it; domain_for does not compare borrowed positions/widths with the source. claims.rs::domain determines completeness from interface slots and listed ranges, while execute_element_bound allocates only supplied borrowed components. replay09.rs::coverage sums only their supplied widths.",
+      "by": "witness:reference-interpreter/src/certificate.rs:283; witness:reference-interpreter/src/certificate.rs:371; witness:reference-interpreter/src/claims.rs:319; witness:reference-interpreter/src/claims.rs:608; witness:reference-interpreter/src/claims/replay09.rs:91"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Reproduced two malformed successes with unchanged invocation args=[] and budget=[\"0\",\"0\",\"0\",\"0\"]. (a) In image-0102.bisa, which has no qborrow and an empty frame.borrow, set domain.borrowed=[{\"name\":\"ghost\",\"width\":1,\"lo\":0,\"hi\":1}] and expand each original table row into b=0 then b=1, setting before/after.borrowed=[str(b)]. Parse succeeds; verify_claim and verify_certificate return ProofRelativeToImage, n=128, |D|=8388608. (b) In controlled-dirty.bisa change the sole borrowed width from 1 to 2 and hi from 1 to 3, expanding each row over b=0..3. Both APIs again return ProofRelativeToImage, n=512, |D|=33554432. Both inputs must instead reject as ill-formed.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-job-k85-council/.tmp/k85-council/codex/k85-review-probe (extra-borrowed-lifetime and wrong-borrowed-width); witness:conformance/fixtures/accepted-k85-09/image-0102.bisa; witness:conformance/fixtures/accepted-k85-09/controlled-dirty.bisa"
+     },
+     {
+      "n": "<1>4",
+      "claim": "Reproduced the converse narrowing: in controlled-dirty.bisa set domain.borrowed=[] and retain just the b=0 rows, keeping their complete before/after.borrowed=[\"0\"]. Parse rejects with \"\u00a712.1 K13: incomplete borrowed tuple\". Replacing expected with {\"program\": the existing subject closure hash} admits the object, but both checkers reject with \"\u00a75.6: designated idle set lacks requested borrowed wires\". The omitted-at-zero slice is legal and its unchanged relation should give Evidence{elements:128}, unrestricted |D|=16777216 and fraction 1/131072; it must not become image-relative proof.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-job-k85-council/.tmp/k85-council/codex/k85-review-probe (omitted-borrowed-complete-tuple and omitted-borrowed-program)"
+     },
+     {
+      "n": "<1>5",
+      "claim": "The same missing checked-lifetime inventory both accepts malformed proof domains and rejects a legal K85 evidence slice. This is S0 parser/claim fidelity, independently of the staged numerical or preparation machinery.",
+      "by": "step:<1>1; step:<1>2; step:<1>3; step:<1>4"
+     }
+    ],
+    "fix": "Add a shared resolver for the subject invocation\u2019s ordered checked borrow lifetimes (including source expansion and distinct repeated lifetimes, not just maximum simultaneous pool capacity). Use it in certificate.rs::domain_for/table09, claims.rs::domain/execute_element_bound, and replay09.rs::entry09/tuple09/coverage. Implement \u00a712.2\u2019s quoted lifetime-position/width rules by rejecting extra positions and width mismatches; implement \"Every omitted component is held at zero ... including omitted borrowed positions\" by materializing missing borrowed values as zero while retaining every lifetime in the full tuple and unrestricted denominator. Require all nonfixed lifetime components at full range for Proof/ProofRelativeToImage. Add all four transformations from steps 3-4 to tests/isa09_fixed_image.rs: extra position and width=2 must reject admission; the complete b=0 table and equivalent program relation must both succeed as Evidence{elements:128}, full_domain_elements=\"16777216\", covered_fraction=\"1/131072\", with unchanged fixed-image binding and budget [0,0,0,0]. Also require a requested proof_relative_to_image on that omitted slice to reject. These tests currently fail in the specific ways recorded above."
+   },
+   {
+    "id": "K85-CODEX-02",
+    "section": "S0 \u2014 \u00a712.2 K75 and K85 host-limit preservation; reference-interpreter/src/claims/replay09.rs::verify_replay09 and src/claims.rs::verify_claim/verify_certificate",
+    "scope": "contract",
+    "kind": "implementation",
+    "problem": "",
+    "steps": [
+     {
+      "n": "<2>1",
+      "claim": "\u00a712.2 K75 says sampler count has \"no ISA-imposed upper cap\" and an unable checker \"MUST terminate normally and record unchecked (host limit) for that claim in the same report\", citing \u00a712.2 and the exceeded quantity. It supplies no evidence count/covered fraction and discharges no obligation, even with a requested label. K85 explicitly preserves this rule.",
+      "by": "clause:\u00a712.2 Host limits (K75); clause:\u00a712.2 Coverage and verdicts (K85)"
+     },
+     {
+      "n": "<2>2",
+      "claim": "verify_replay09 propagates sample_elements/count, enumeration, allocation and coverage resource failures with ?. verify_certificate likewise propagates the replay error before constructing the claim report, and verify_claim also returns the resource error. There is no per-claim unchecked conversion on this path.",
+      "by": "witness:reference-interpreter/src/claims/replay09.rs:413; witness:reference-interpreter/src/claims.rs:694; witness:reference-interpreter/src/claims.rs:972"
+     },
+     {
+      "n": "<2>3",
+      "claim": "In the published sampled-full-d.bisa change only sampler.count from 2 to the canonical string \"18446744073709551615\". Keep seed [\"144115188075855872\",\"0\",\"0\",\"0\"], full one-bit domain, both X table rows, args=[] and budget=[\"0\",\"0\",\"0\",\"0\"]. Object::parse succeeds. On this 64-bit host both public checker APIs return Err(HostResource) with \"sampled domain elements allocation of 18446744073709551615 elements failed ... capacity exceeded\"; verify_certificate returns no report.",
+      "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-job-k85-council/.tmp/k85-council/codex/k85-review-probe (host-limit); witness:conformance/fixtures/accepted-k85-09/sampled-full-d.bisa"
+     },
+     {
+      "n": "<2>4",
+      "claim": "The diagnostic is loud and typed, but losing the required per-claim report is still an S0 contract divergence. The expected outcome is unchecked (host limit), coverage absent, with the claim\u2019s closure/index/context retained; neither rejection nor successful evidence/proof.",
+      "by": "step:<2>1; step:<2>2; step:<2>3"
+     }
+    ],
+    "fix": "Wrap the ISA 0.9 table/program/oracle replay boundary so ErrorKind::HostResource becomes a non-successful claim outcome, for example ClaimVerdict::Unverified(\"\u00a712.2 K75: unchecked (host limit): <quantity/operation>\"), with coverage=None. Ensure both verify_claim and verify_certificate use the same conversion and that certificate verification retains this claim in its report. Keep malformed input and replay mismatch errors as rejection; do not globally swallow structural K94 errors, whose explicit resource-diagnostic rule is separate. Add the step-3 fixture mutation to tests/isa09_fixed_image.rs and assert parse succeeds, both APIs return the unchecked category, the certificate report retains closure_hash/index/context, coverage is None, and no proof obligation is discharged. Repeat with label=\"proof\" and label=\"proof_relative_to_image\": both must remain unchecked, not fail label enforcement and not pass as proofs. The current test fails because both APIs return Err and no report exists."
+   }
+  ],
+  "muse": []
+ },
+ "spec_gaps": {
+  "sol": [],
+  "codex": [],
+  "muse": [
+   {
+    "id": "B-K85-1",
+    "section": "\u00a712.1 conditional numerical/channel (spec lines ~4080-4089) and \u00a712.2/\u00a712.3 preparation (lines ~4397-4405, 4505-4521); code: reference-interpreter/src/claims.rs verify_claim_inner (kind fallback)",
+    "scope": "core",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "ASSUMED: a conditional numerical/channel claim must be able to state its fixed image I (to form J_I) and a preparation witness must be encodable, but the \u00a712.1 payload table gives numerical/channel claims only {subject,metric,precision_bits,bound[,dual]} with no domain/fixed_regions field, and the \u00a712.3 schema block defines no preparation/native-manifest encoding; the spec is silent on the encoding while requiring the procedures",
+      "by": "ASSUMED: \u00a712.1 claim-kind table lists no conditional domain for numerical/channel and \u00a712.3 schema lists no preparation field, against \u00a712.1 'For conditional numerical claims, apply ... to (U-V)J_I' and \u00a712.2 'additionally requires checked preparation/binding'"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The implementation therefore cannot and does not check any conditional numerical/channel claim or preparation binding; every numerical/channel kind returns Unverified, and restricted-map.json is data no checker consumes",
+      "by": "witness:reference-interpreter/src/claims.rs:908-910 (kind fallback Unverified 'need the rigorous interval checker'); witness:conformance/tests/ref_k85.rs restricted_z_identity_map_has_reduced_input_and_complete_output recomputes algebra from JSON only"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Hand witness: U=Z, V=I, J_I=|0> gives (U-V)J_I=0 (restricted Frobenius squared 0, 2x2 Choi difference 0) while unrestricted squared Frobenius is 4, and U=-I vs V=I gives restricted squared norm 4 with zero uncontrolled Choi difference (both re-derived in my Python probe); no certificate spelling exists on which the checker could accept the first and reject the second as a controlled-unitary bound",
+      "by": "step:<1>1; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "This is a spec text defect (already filed as bennett-isa-spec-rqn), not an implementation divergence: the code fails loud with Unverified on every such path and never reports a pass, and PROGRESS.md declares it JOB-BLOCKED",
+      "by": "step:<1>1; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "SPEC-QUESTIONS entry plus spec wording (fix belongs to the spec owner): (a) in \u00a712.1 add to the numerical and channel payloads an optional '\"domain\"?: <\u00a712.2 domain>' with the sentence 'A numerical or channel claim whose domain contains fixed_regions is conditional on those images: the checker forms J_I from the fixed in-regions and prescribed clean workspace and applies the procedures below to (U-V)J_I / the Choi matrix of (E_real-E_ref) composed with Ad_J_I, with the reduced input dimension and complete output dimension; without fixed_regions the claim is unrestricted.' (b) in \u00a712.3 add a preparation binding to the schema, e.g. bindings gains 'image_preparations?: [{region identity,A,W,sha256,source:\"declared_bytes\"|\"host_manifest\",exit_restored:true}]' with the sentence 'A proof_relative_to_image report discharges an executable invocation only when an image_preparations entry with identical (identity,A,W,sha256) is checked for that invocation; absent such an entry the checker report records the theorem as conditional and the invocation as unestablished.' Until that wording lands the code must keep returning Unverified (claims.rs:908-910) - no code change is requested now; the test to add after the wording lands is an executable numerical certificate for the Z/I restricted map (accept, bound 0) and its phase variant -I/I (reject at bound < 2), which fail today because the claim cannot be spelled."
+   },
+   {
+    "id": "B-K85-2",
+    "section": "\u00a712.2 requested labels ('Requested proof rejects unless the computed outcome is proof; requested proof_relative_to_image rejects unless the computed outcome is proof_relative_to_image'); code: reference-interpreter/src/claims.rs check_requested_label and verify_claim_guarded",
+    "scope": "contract",
+    "kind": "spec-gap",
+    "steps": [
+     {
+      "n": "<1>1",
+      "claim": "ASSUMED: the \u00a712.2 label sentences sit inside the 'Coverage and verdicts' paragraph whose three exclusive outcomes are defined only for 'an exhaustive table/program/oracle claim' and sampled claims; the spec never defines a requested label for structural, numerical or channel claims, nor what a label does when the computed outcome is the crate's staged Unverified (the spec's only non-success outcome vocabulary is reject and K75 'unchecked (host limit)', which 'discharges no obligation ... including when a producer requested a label')",
+      "by": "ASSUMED: \u00a712.2 outcome list (1)-(3) is scoped to exhaustive/sampled replay claims; \u00a712.1 payload table lists no label field for any kind"
+     },
+     {
+      "n": "<1>2",
+      "claim": "The code centralises the label check for every V09 claim kind in verify_claim_guarded, rejects a structural adjoint_table Proof when label=proof_relative_to_image, and exempts every Unverified verdict from label rejection",
+      "by": "witness:reference-interpreter/src/claims.rs:53-76 check_requested_label (Unverified early return; evidence/None always pass); witness:reference-interpreter/src/claims.rs:710-724 (applied to all kinds); witness:reference-interpreter/tests/isa09_fixed_image.rs:179-190 structural_full_d_theorem_cannot_satisfy_an_image_relative_request"
+     },
+     {
+      "n": "<1>3",
+      "claim": "Two readings are both defensible: (A) labels are a common claim field and the rejection sentences are kind-independent, with Unverified/unchecked exempt per K75 (the code's reading); (B) labels are replay-only, a label on a structural/numerical claim is either ill-formed or ignored, and a proof request on an uncheckable claim must reject rather than return Unverified. The code should keep reading (A): it never lets a producer label upgrade a result, it matches K75's 'including when a producer requested a label' for unchecked outcomes, and rejection (B) for staged kinds would turn the crate's own missing machinery into producer error",
+      "by": "step:<1>1; step:<1>2"
+     },
+     {
+      "n": "<1>4",
+      "claim": "No SPEC-QUESTIONS entry records this choice, so the reading is currently unjustified in the crate's own terms even though I find it the correct one",
+      "by": "witness:grep of reference-interpreter/SPEC-QUESTIONS.md for K85/label/fixed returns no entry; step:<1>3"
+     }
+    ],
+    "problem": "",
+    "fix": "Add a SPEC-QUESTIONS entry (no behaviour change) recording reading (A) with its reasons, and propose this spec wording for \u00a712.2 after the label sentences: 'A label may accompany any claim kind. For kinds without a \u00a712.2 outcome (structural, numerical, channel) the computed outcome for this rule is proof when the claim is established/proof and evidence otherwise; proof_relative_to_image is never the computed outcome of such a claim, so requesting it rejects. An unchecked (host limit) or otherwise unestablished outcome is reported as such and is neither upgraded nor rejected solely because a label was requested.' Test to add once recorded: a numerical claim with label=proof in a V09 certificate returns Unverified (not Err, not Proof) from both verify_claim and verify_certificate, and a structural translation_lemma claim with label=proof_relative_to_image rejects - the first half pins the exemption that no current test covers."
+   }
+  ]
+ },
+ "means": {
+  "C1": 3.33,
+  "C2": 4.33,
+  "C3": 4.0,
+  "C4": 4.0,
+  "C5": 4.0,
+  "C6": 3.0,
+  "C7": 4.0,
+  "C8": 3.0
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}

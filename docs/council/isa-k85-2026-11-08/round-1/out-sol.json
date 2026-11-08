@@ -1,0 +1,154 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 3,
+   "evidence": "Object::parse, certificate.rs::domain_for/table09 and claims/images09.rs correctly reject the published duplicate, shape, role, lowercase, length, padding and raw-hash failures. However, positional borrowed entries are not resolved against checked lifetimes: a nonexistent borrowed position and a two-bit entry for a one-bit lifetime both pass admission and verification (B01). A legal omitted borrowed position subsequently rejects (B02).",
+   "change": "In certificate.rs::domain_for/table09 and claims.rs::domain, resolve an invocation-bound inventory of checked borrowed lifetimes before validating widths, positions and complete tuples. Reject the ghost and width-mismatch cases in B01 while admitting the omission-at-zero case in B02; do not derive that inventory from the producer domain."
+  },
+  {
+   "id": "C2",
+   "score": 4,
+   "evidence": "Independently reconstructed the LF-terminated isa=0.9/ptr_width/signature/function envelopes and executable object hashes for all 30 K85 fixtures using Python hashlib, without reading interpreter hash output. All matched. The 0102 and 0201 certificates have the same executable identities. Also checked the published inc8 and sum_db objects, including zero and the recursive sum SCC, through check_hashes. identity.rs and linking.rs retain the versioned envelope/SCC and binding paths; these implementation files are unchanged by this packet.",
+   "change": "Extend conformance/tests/ref_k85.rs::portable_fixed_image_reader_preserves_closed_schema_and_independent_hashes with independent construction of each fixture action envelope and certificate-stripped object text, asserting their SHA-256 values against stored identities. Keep certificate images and requested labels outside those executable bytes, as \u00a79.2 requires."
+  },
+  {
+   "id": "C3",
+   "score": 4,
+   "evidence": "Hand-derived and reproduced inc8(4)=(5,0) in exactly three rows, inc8(255)=(0,0), and step faults at B=2 and B=0. For the actual \u00a716.3 sum_db object with db[i]=7: n=0 succeeds in 10 rows; n=1 succeeds with payload 7 in 24 rows; B=23 gives code 1; stack=31 faults with code 3 at row 16; depth=0 faults at row 3; n=17 faults with code 7 at row 13. oracle.rs dispatch and machine.rs cover the \u00a74.2 row families, with fault guards before row mutation.",
+   "change": "Add an oracle fixed-image case to reference-interpreter/tests/isa09_fixed_image.rs rather than covering only action subjects: use the \u00a712.1 two-row r=lift.add x a; lift.retval r oracle, two-bit x/target, four-bit fault, argument a=2 and an unused mapped two-byte region fixed to 0102. At B=2 assert all 256 x/target/fault tuples, target XOR ((x+2) mod 4), unchanged fault and coverage 1/65536; at B=1 assert unchanged target and fault XOR 1."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "Traced \u00a73.6 exchanges and assignment uncomputation for inc8 row 1: x=4 gives r=5, pc=2 and old_pc=1; inverse restores pc=1, r=0, pc-prime=0 and the clean frame. Read forward_call/inverse_call and forward_ret/inverse_ret against the complete C1\u2013C5 and R1\u2013R5 printed lists: counters restore before stack addressing and delivery. On the published 0.9 sum_db cases, independently checked every forward step followed by its inverse, repeated the forward step, then reversed the entire padded prefix and compared complete snapshots and frame cleanliness, including success, budget, depth/stack and bounds faults.",
+   "change": "Persist the 0.9 sum_db checks in tests/step_machine.rs as a version-specific regression: n=1, db[i]=7, budget=(24,0,32,2), plus B=23 and stack=31. Require each individual call/ret step and the full padded prefix to restore the complete tuple, including image cells and every frame, using the hand-derived outcomes above."
+  },
+  {
+   "id": "C5",
+   "score": 4,
+   "evidence": "Traced a 0.9 execution of the nested-clock fixture through call f, call g, clock.read, ret g, uncall g, ret f, a pure load and uncall f. Clock/tape evolve (0,0) to (1,1) to (0,0); cancelling f skips the already reversed g segment and its uncall marker. Whole-run reversal restored the complete entry snapshot. classical.rs::undo_frame/undo_record and uncall dispatch implement the cancellation-aware traversal. The packet changes no CC/R execution code.",
+   "change": "Add a canonical 0.9 version of the nested-clock fixture and exercise it explicitly in tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once, asserting clock/tape immediately after each inner/outer uncall as well as complete entry equality after whole-run reversal."
+  },
+  {
+   "id": "C6",
+   "score": 3,
+   "evidence": "The new controlled-dirty and external-reference tests preserve arbitrary dirty values and exact phase; the Bell-reference restoration test passes, and the phase vector rejects S-squared despite matching basis outputs. Fixed-image claims cannot satisfy the unrestricted borrow_frames proof check. However, the replay binding of borrowed systems is incomplete: supplied widths/positions can be invented and omitted lifetimes are not materialised at zero (B01/B02), contrary to the full-tuple and no-narrowing rules.",
+   "change": "In claims.rs::execute_element_bound and claims/replay09.rs::entry09/tuple09/domain09, initialise and report every checked borrowed lifetime in allocation order, using zero for omitted positions and preserving actual lifetime widths/classes. Compute proof eligibility and unrestricted D from that inventory. The controlled-dirty omission must replay 128 entries as evidence with full_domain_elements=16777216 and covered_fraction=1/131072."
+  },
+  {
+   "id": "C7",
+   "score": 4,
+   "evidence": "The generator obtains source identities from the CLI but computes relation outputs, verdicts, coverage and matrices independently. A separate mathematical audit matched all 30 outcomes and 1096 complete table rows, including invalid-image and phase cases; all 28 admission cases agree with their declared CLI expectations. Focused reference tests: 22 passed; conformance ref_k85/case_data: six passed. Generator --check reproduced all 60 generated artifacts. The seven isa09_fixed_image tests make substantive assertions, including requested-label exclusivity, hash-independent executable identity and exact reference restoration. Existing tests miss B01\u2013B03.",
+   "change": "Add the three adversarial regression families described in B01\u2013B03 to reference-interpreter/tests/isa09_fixed_image.rs and portable vectors where representable: invalid borrowed identity/width, omitted borrowed zero slice, and per-claim host-limit reporting with a later successful claim. Retain the independently derived existing expectations."
+  },
+  {
+   "id": "C8",
+   "score": 3,
+   "evidence": "Requested-label checking is now centralised and correctly excludes Unverified from successful-label assertions; structural full-D proof cannot satisfy an image-relative request. Numerical/channel and schedule-bound replay routes return explicit Unverified rather than proof. The image theorem remains visibly conditional as ProofRelativeToImage; no executable preparation/native comparison is established. The remaining machinery is truthfully staged in the packet. K75 nevertheless requires a per-claim unchecked report, whereas current host failures abort both public consumers with Err(HostResource) (B03). All 33 SPEC-QUESTIONS entries were compared with the supplied text, respecting their stated 0.8 scope and the separately versioned 0.9 repairs; no new unjustified reading was identified.",
+   "change": "Implement B03 at Object::verify_claim and Object::verify_certificate: translate checker host exhaustion into an explicit unchecked (host limit) claim outcome citing \u00a712.2, with no count/fraction, and retain later claim reports. Preserve actual semantic rejection and staged Unverified outcomes as distinct cases."
+  }
+ ],
+ "blocking": [
+  {
+   "id": "SOL-K85-R1-B01",
+   "section": "S0; \u00a712.2 K69/K70/K72/K85; reference-interpreter/src/certificate.rs::domain_for/table09, claims.rs::domain and claims/replay09.rs::coverage",
+   "scope": "core",
+   "kind": "implementation",
+   "problem": "",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "A borrowed entry resolves to a checked lifetime position, not a producer-created extra input. A position beyond the checked requirement rejects, and every supplied width equals the resolved component width.",
+     "by": "clause:ISA \u00a712.2 Component resolution (K69/K70), \"A borrowed position beyond the checked borrow requirement rejects as ill-formed\"; clause:ISA \u00a712.2 Domain validity (K72), \"every supplied width MUST equal that component's width\""
+    },
+    {
+     "n": "<1>2",
+     "claim": "domain_for treats 0.9 borrowed names as labels but never checks the number or width against source lifetimes. domain and coverage then trust the supplied widths; execute_element_bound allocates every supplied borrowed entry, including unused ones.",
+     "by": "witness:reference-interpreter/src/certificate.rs::domain_for/table09; witness:reference-interpreter/src/claims.rs::domain/execute_element_bound; witness:reference-interpreter/src/claims/replay09.rs::coverage"
+    },
+    {
+     "n": "<1>3",
+     "claim": "Starting from accepted-k85-09/image-0102.bisa (lookup has no qborrow), set claim.domain.borrowed=[{\"name\":\"ghost\",\"width\":1,\"lo\":0,\"hi\":1}] and expected={\"program\":claim.subject.closure_hash}; retain invocation args=[] and budget=[\"0\",\"0\",\"0\",\"0\"]. Object::parse and check_hashes pass. Both checker APIs return ProofRelativeToImage; the report invents elements=128 and full_domain_elements=8388608. Separately, in controlled-dirty.bisa change its actual one-bit borrowed entry to width=2, hi=3 and use the same program relation: both APIs return ProofRelativeToImage with elements=512 and full_domain_elements=33554432. Both inputs must reject as malformed domains.",
+     "by": "witness:private read-only review_probe linked to the a0b49a0 crate, with certificate-only mutations of conformance/fixtures/accepted-k85-09/{image-0102,controlled-dirty}.bisa"
+    },
+    {
+     "n": "<1>4",
+     "claim": "The checker certifies producer-invented domain components and rewrites the unrestricted denominator, rather than resolving the subject domain required by the specification.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "fix": "Change certificate.rs::Object::validate_claim/domain_for/table09 and the domain/coverage helpers to resolve checked borrowed lifetimes from the subject and bound invocation, including transitive calls, iterations and lifetime positions. Validate each supplied position and exact width against that inventory before replay; never use domain.borrowed as the inventory itself. \u00a712.2 says \"A borrowed position beyond the checked borrow requirement rejects as ill-formed\" and \"every supplied width MUST equal that component's width\". Add two tests in tests/isa09_fixed_image.rs using precisely the certificate mutations in step 3: the extra ghost on image-0102 and width=2 for controlled-dirty's one-bit lifetime must reject with a \u00a712.2 diagnostic; the original valid vectors must retain their existing counts and verdicts. These tests currently return successful conditional proofs."
+  },
+  {
+   "id": "SOL-K85-R1-B02",
+   "section": "S0; \u00a712.1 K13 and \u00a712.2 K71/K85; reference-interpreter/src/claims.rs::execute_element_bound/domain, claims/replay09.rs::entry09/tuple09/coverage and certificate.rs::table09",
+   "scope": "core",
+   "kind": "implementation",
+   "problem": "",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "An omitted borrowed position is a legal zero slice. It still exists in the complete tuple and unrestricted D; omission prevents image-relative proof when its full range is nontrivial.",
+     "by": "clause:ISA \u00a712.2 Domain validity and omission (K71), \"Every omitted component is held at zero on every replayed element, including omitted borrowed positions after the listed entries\"; clause:ISA \u00a712.1 Table tuples, \"no cells, inputs or unchanged components may be omitted\"; clause:ISA \u00a712.2 K85, \"every remaining component occurs exactly once with its full range\""
+    },
+    {
+     "n": "<1>2",
+     "claim": "Replay allocates borrowed wires only for supplied domain entries. entry09/tuple09 and coverage likewise count only those entries, so an omitted lifetime supplies neither its required zero state nor its tuple position/denominator contribution.",
+     "by": "witness:reference-interpreter/src/claims.rs::execute_element_bound; witness:reference-interpreter/src/claims/replay09.rs::entry09/tuple09/coverage; witness:reference-interpreter/src/certificate.rs::table09"
+    },
+    {
+     "n": "<1>3",
+     "claim": "In accepted-k85-09/controlled-dirty.bisa set claim.domain.borrowed=[] and expected={\"program\":claim.subject.closure_hash}; keep inherited_controls=1, the full t/f/a ranges, fixed image 0102 and invocation ([],[0,0,0,0]). Admission and check_hashes pass, but verify_claim and verify_certificate both return Diagnostic \"\u00a75.6: designated idle set lacks requested borrowed wires\". The specified replay has b=0 on all 2*2*16*2=128 entries. It succeeds with evidence, unrestricted |D|=2^24=16777216 and coverage 1/131072, preserving b=0 in every complete tuple.",
+     "by": "witness:private review_probe with a certificate-only mutation of conformance/fixtures/accepted-k85-09/controlled-dirty.bisa; clause:ISA \u00a74.5/\u00a74.6, the lookup and cancelling CX(b,t) pair preserve this zero borrow"
+    },
+    {
+     "n": "<1>4",
+     "claim": "Rejecting this legal omission narrows K71/K85 and prevents the required evidence outcome. Merely suppressing the idle-pool error would still leave incorrect tuple and full-domain accounting.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "fix": "Using the source-derived lifetime inventory from B01, change claims.rs::execute_element_bound and claims/replay09.rs::entry09/tuple09/domain09/coverage to provide an actual zero-valued borrowed system for every omitted position, include every required borrowed position in before/after tuples, include all required widths in unrestricted D and mark omitted nontrivial ranges as incomplete coverage. Update certificate.rs::table09 so tuple borrowed widths come from checked lifetimes, not only listed domain entries. \u00a712.2 explicitly requires \"including omitted borrowed positions after the listed entries\" to be zero. Add the exact controlled-dirty program-relation test in step 3, expecting Evidence{elements:128}, full_domain_elements=\"16777216\", covered_fraction=\"1/131072\"; add a table form with borrowed:[\"0\"] in each complete tuple and require it to admit and replay. Both forms currently fail. Requesting proof or proof_relative_to_image must reject this successful strict slice, while an evidence request must succeed."
+  },
+  {
+   "id": "SOL-K85-R1-B03",
+   "section": "S0; \u00a712.2 K75, retained by K85; reference-interpreter/src/claims.rs::Object::verify_claim/verify_certificate and claims/replay09.rs::verify_replay09",
+   "scope": "contract",
+   "kind": "implementation",
+   "problem": "",
+   "steps": [
+    {
+     "n": "<1>1",
+     "claim": "Host exhaustion during a legal claim is an unchecked claim outcome in the same checker report, distinct from rejection and successful labels, with no count/fraction. It does not invalidate or cap the domain.",
+     "by": "clause:ISA \u00a712.2 Host limits (K75), \"MUST terminate normally and record unchecked (host limit) for that claim in the same report\" and \"supplies no evidence count or covered fraction\"; clause:ISA \u00a712.2 K85, \"K75's host-limit handling remains\""
+    },
+    {
+     "n": "<1>2",
+     "claim": "sample_elements reports allocation failure as ErrorKind::HostResource, but both public checker methods propagate it as Err. verify_certificate has no per-claim conversion and aborts before returning any report.",
+     "by": "witness:reference-interpreter/src/claims.rs::sample_elements/verify_claim/verify_certificate; witness:reference-interpreter/src/claims/replay09.rs::verify_replay09"
+    },
+    {
+     "n": "<1>3",
+     "claim": "In image-0102.bisa change claim 0 to kind=\"sampled\", expected={\"program\":its subject closure}, sampler={\"algorithm\":\"xoshiro256**\",\"seed\":[\"1\",\"0\",\"0\",\"0\"],\"count\":\"18446744073709551615\"}; leave its legal domain and invocation unchanged and append the original exhaustive claim as claim 1. Parse and check_hashes pass. Both APIs instead return Err(HostResource(\"\u00a712.1: host limit: sampled domain elements allocation of 18446744073709551615 elements failed: ... computed capacity exceeded the collection's maximum\")). No report for either claim is returned.",
+     "by": "witness:private review_probe linked to a0b49a0, certificate-only two-claim mutation of conformance/fixtures/accepted-k85-09/image-0102.bisa"
+    },
+    {
+     "n": "<1>4",
+     "claim": "The failure is safely distinguished internally from a semantic diagnostic, but the mandated report disposition is missing and the later valid claim is lost.",
+     "by": "step:<1>1; step:<1>2; step:<1>3"
+    }
+   ],
+   "fix": "At the public checker boundaries in claims.rs, catch ErrorKind::HostResource arising from claim materialisation, enumeration, replay or coverage and produce an explicit unchecked (host limit) outcome citing \u00a712.2 and the failed quantity/operation. Return that outcome from verify_claim; in verify_certificate retain a ClaimReport with coverage=None and continue independent later claims. Keep semantic errors as rejection. Do not impose a count/width cap. Add the exact two-claim test in step 3: verify_certificate must return two reports, claim 0 unchecked with no evidence count/fraction, claim 1 ProofRelativeToImage with elements=64 and coverage=1/65536. The direct claim-0 API must return an unchecked outcome rather than Err; original small claims must still verify."
+  }
+ ],
+ "previous_status": [],
+ "regressions": [],
+ "suggestions": [
+  "S1: Add a sampled fixed-image fixture to conformance/fixtures/accepted-k85-09/generate.py and tests/isa09_fixed_image.rs::published_fixed_image_vectors_replay_with_exact_coverage_and_bindings. For image 0102, t/f/a order, seed [\"144115188075855872\",\"0\",\"0\",\"0\"] and count=2, independent xoshiro words are 0,45,45,45,1583296743997440,3019898925, selecting sorted tuples (t,f,a)=(0,13,1),(1,0,1). Both have unchanged target because db[1]=2. Require evidence, elements=2, full D=4194304 and coverage=1/2097152; fixed cells consume no generator words (\u00a712.2 K85). A requested image-relative proof must reject. Existing sampling coverage uses no fixed image.",
+  "S1: In claims.rs::CertificateReport/ClaimReport and the fixed-image README, expose a separate image-invocation applicability outcome/reason alongside ProofRelativeToImage, analogous to qinplace_applicability. Until bennett-isa-spec-rqn supplies executable preparation/native bindings, report that applicability as unestablished because checked preparation/factorisation/exit restoration and native comparison are unavailable (\u00a712.2: \"Without that preparation evidence the theorem remains conditional and does not discharge the invocation\"). Keep standalone image-relative theorem success intact. Add a report assertion for image-0102 that distinguishes its conditional theorem from executable applicability; this makes the already disclosed staging directly machine-readable."
+ ],
+ "verdict_core": "revise",
+ "verdict": "revise",
+ "path_to_accept": "1. Resolve borrowed lifetimes independently of claim metadata and reject nonexistent positions or wrong widths (B01). 2. Use that same inventory for omitted-zero initialisation, complete tuple shape, proof classification and unrestricted coverage, making the 128-entry controlled-dirty slice succeed as evidence (B02). 3. Return per-claim unchecked host-limit outcomes and retain later reports (B03). Run the stated failing regressions plus the existing 22 reference and six conformance focused tests and the independently checked K85 vector/generator suite. No correction to the published K85 expected values is needed. The disclosed conditional numerical/channel, preparation and native-binding implementation remains staged under rqn; it must retain unchecked/conditional status and cannot be advertised as executable acceptance.",
+ "summary": "Reviewed the supplied prompt, schema and candidate diff at a0b49a0646c56955b0e89e126b865965c5a82599, read-only. All three blockers are S0; severity is recorded in section because the adjacent closed schema has no severity property. Round 1 has no previous blocking IDs. No regression introduced by 62a0cf0..a0b49a0 was demonstrated; B01\u2013B03 expose inherited behavior in the implementation currently under review. Required method 1: hand-derived inc8 x=4/B=3 -> (5,0), three rows, x=255 -> (0,0), B=2 -> (0,1); independently derived sum_db n=1/db=7 -> (7,0) at 24 rows, stack=31 -> code 3 at row 16, depth=0 -> code 3 at row 3 and n=17 -> code 7 at row 13. All reproduced. Constructed the exact published inc8 envelope (isa=0.9 LF, ptr_width=32 LF, JCS signature LF, six canonical function lines each ending LF) and independently rebuilt every K85 action envelope/object hash. Required method 2: traced full \u00a73.6 assignment inverse and printed C5^-1..C1^-1/R5^-1..R1^-1 activation order; every step and complete prefix of the 0.9 sum_db boundary cases restored complete snapshots and clean frames. Traced the nested 0.9 g clock-read call/ret/uncall and enclosing f cancellation, observing clock/tape 0/0 -> 1/1 -> 0/0 and exact whole-run restoration. Required method 3: audited all 33 SPEC-QUESTIONS entries against the supplied text; historical 0.8 readings/proposals were kept separate from 0.9 versioned rules and disclosed staging. Required method 4: grep audit found 344 source hits, 3435 test-file hits, 14 documentation hits and one untrusted Python-seed hit for the requested pattern family; classified test assertions/failure injection, guarded container/schema/control invariants, fallible parser methods named expect, diagnostic numerical approximation and explicit version/device rejection. No todo!/unimplemented! macro or newly demonstrated reachable panic was found. Required method 5: compared \u00a74.1\u20134.8 families and \u00a75.4 codes 0\u201310 with parser/validation, sequential oracle, reversible-machine, classical/register and action dispatch; checked \u00a77.4 undo kinds, metadata productions and the eight CLI commands. This does not claim complete 0.9 migration or a full-gate rerun: the repository and packet disclose staged schedule/interval/native work. Schema comparison also exposed the borrowed lifetime-resolution holes reported here. K85 independent reproductions: 0102 decodes cells (1,2), 0201 decodes (2,1); qload/CX/qunload yields t XOR (db[a]&1), preserves f/a/db and gives 2*16*2=64 rows against |D|=2^(1+4+1+16)=4194304, hence 1/65536. Raw 0102 hashes to a12871fee210fb8619291eaea194581cbd2531e4b23759d225f6806923f63222; raw 0201 hashes to 25dfd29c09617dcc9852281c030e5b3037a338a4712a42a21c907f259c6412a0, while ASCII 0102 hashes to f19ccf1eb395a4d74606c59b491ecd0a37b5f26eae0ec55c33bbd2743c658b26: swapped/text hashes reject. Packing 1f01 gives five-bit cells 31 and 8. For the restricted map J=(1,0)^T, (Z-I)J=0, unrestricted Frobenius norm squared=4, and the restricted Choi difference is 2x2 zero. Y=I2/8 and mu=3/8 give strictly positive 1/8 pivots, since Tr_out Y=1/4. The -I/I vector instead has phase-sensitive restricted norm squared=4 although uncontrolled channels agree. Independently audited all 30 fixture outcomes and 1096 full table rows, all raw hashes and reported coverage, and checked all assertions in the seven new reference tests against these relations; no expectations were sourced from interpreter result output. Validation: 22 focused reference tests and six conformance tests passed; 28 CLI admission cases passed; generator --check reproduced 60 artifacts. Separate scratch-only probes reproduced B01\u2013B03 with unchanged executable hashes. Numerical/channel and schedule-bound routes stay Unverified; image-relative theorem success remains conditional and cannot discharge unrestricted borrow/inverse-pair obligations. Preparation/native machinery is absent and no executable acceptance is established. All commands used headless execution and private TMPDIR/CARGO_TARGET_DIR; no repository edits, commits or bd writes were made."
+}
