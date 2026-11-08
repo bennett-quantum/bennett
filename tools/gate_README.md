@@ -44,6 +44,16 @@ The existing nonblocking lock at `.tmp/gate/locks/run-<sha>` rejects another att
 setup exit 3. Its error names the holder's PID and UTC lock-acquisition time. Different SHAs retain their existing
 per-sibling cache/build locks.
 
+### Receipts
+
+A PASS writes `<workspace>/<repo>/.tmp/gate/receipts/<key>.json` in the owning checkout, shared by job and
+main-health worktrees. The key is SHA-256 of `json.dumps([tree, tool_sha_ran, isolated], sort_keys=True)`:
+the commit's tree covers `gate.toml`, including sibling pins, checks and timeouts; the running tool and isolation
+mode must also match. A matching PASS skips sibling preparation and checks, announces the original run, and writes
+this SHA's record with `covered_by` and no `checks`. Failed or interrupted runs write no PASS receipt; unreadable or
+invalid receipts are reported and ignored. `run --fresh` (also `scripts/pre-push --fresh` through the stub) forces
+a full run, records `fresh: true`, and replaces the receipt on PASS. Machine, time and load are evidence, not key inputs.
+
 ### Receipt measurements
 
 Each entry in `checks` and `reports` retains `name`, `exit` and the compatible rounded `seconds` field, and adds:
