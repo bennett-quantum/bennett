@@ -43,6 +43,7 @@ class ReceiptTests(unittest.TestCase):
         self.repo = self.workspace / "fixture"
         self.repo.mkdir()
         self.git(self.repo, "init", "-qb", "main")
+        (self.repo / ".gitignore").write_text(".tmp/\n")
 
     def git(self, repo, *args):
         return subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "-C", str(repo), *args],
@@ -170,6 +171,18 @@ raise SystemExit(tool.main())
                 receipt = self.receipt(sha)
                 self.assertEqual([c["exit"] for c in receipt["checks"]], [expected])
                 self.assertGreaterEqual(receipt["checks"][0]["cpu_seconds"], 0)
+
+    def test_expired_command_guard_keeps_exit_and_records_reaped_usage(self):
+        # Zero represents an already-expired guard; the child waits for a signal,
+        # not a timed sleep. The outer CLI guard bounds a broken cleanup path.
+        sha = self.config([[sys.executable, "-c", "import signal; signal.pause()"]],
+                          extra="timeout_s = 0\n")
+        result = self.run_gate(sha)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        command = self.receipt(sha)["checks"][0]
+        self.assertEqual(command["exit"], 124)
+        self.assertGreater(command["cpu_seconds"], 0)
+        self.assertGreater(command["peak_rss_kib"], 0)
 
     def test_existing_lock_error_names_holder(self):
         tool = load_tool()
