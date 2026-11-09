@@ -186,10 +186,35 @@ requires deleting or merging one in the same edit.
   (struck 2026-11-03 / 2026-11-08).
 - Numbered R-rulings as authority; D9 seven-category councils; whole-repo graded re-audits (struck 2026-11-07/08).
 - Bare wall-clock pass/fail limits in gates or suites (struck 2026-11-08, R42 sweep; residue is a P2 bead).
+## Rule conflict repair (mechanism; maintainer 2026-11-08 and 2026-11-09: "rules can block each other; this needs a
+## mechanism to repair". Added 17:17Z 2026-11-09 after the one-child pace rule idled a 64-thread host for six hours while
+## rules 3 and 5 permitted parallel work and nothing inside the process raised it.)
+Rules are tools against a named failure. Every rule can also cause the opposite failure. Repair is triggered from INSIDE
+the process, never by waiting for the maintainer to notice:
+1. TRIGGER. Whenever an orchestrator declines to launch, land, gate or run something that is READY (a bd ready bead, a
+   staged brief, a merge whose review is done, a cell that fits in memory) because a rule forbids it, it writes one line
+   in the shift file's Decisions at that moment: `BLOCKED-BY-RULE <what> | rule <n or READ FIRST line> | permitted by
+   <rule or design intent> | maintainer words behind the blocking rule: "<verbatim>"`. Silence is the failure; the line
+   is not optional and it is not a request for permission to write it.
+2. SIGNAL. The orchestrator checks a capacity signal at every launch decision and every 30 min: children alive versus the
+   dial's cap, and `bd ready` across repos filtered to path sets disjoint from live writers. Cap not reached AND disjoint
+   ready work present AND resources admit (rule 5) is a BLOCKED-BY-RULE line, naming the rule. No separate dashboard.
+3. RESOLUTION, same shift. Each BLOCKED-BY-RULE line goes to the advisor by thread message in the same turn it is written.
+   The advisor resolves it before the shift ends by one of: amend the rule here (text in place, old wording struck below,
+   same turn); set or change a dial in the shift file; or confirm the block with its reason, in which case the line gets
+   `CONFIRMED <reason>`. An unresolved line at handoff is itself a rule violation and heads the rule audit.
+4. SHAPE OF A RULE. A rule in this file names: the failure it prevents; the opposite failure it can cause; its
+   precondition; the signal that says which failure you are in; the script that enforces it or `unenforced`. A rule
+   missing any of these is listed in the audit as UNREPAIRED until fixed. Reactive rules (written after an incident) are
+   dials by default, with a stated cap and ceiling and an expiry (next day unless re-affirmed), not standing rules.
+5. VERBATIM FIRST. A maintainer instruction is recorded verbatim; the operationalisation that follows is marked as the
+   advisor's or orchestrator's translation. Any later reader may challenge the translation against the words; nobody may
+   tighten a translation beyond the words without a new maintainer line.
 Rule-change procedure: a decision that changes a rule edits this file in the same turn (text in place, old wording struck
-here), and the handoff of every shift carries a five-line rule audit: rules bent this shift, preconditions that lapsed,
-lines above deleted. A rule bent twice is amended at that handoff, not excused a third time. For each rule name the
-script that enforces it or mark it unenforced.
+here). The handoff of every shift carries a rule audit of six lines: BLOCKED-BY-RULE lines and their resolutions;
+hours this shift with children below the cap while disjoint ready work existed (and why); rules bent; preconditions that
+lapsed; UNREPAIRED rules; lines above deleted. A rule bent twice is amended at that handoff, not excused a third time.
+For each rule name the script that enforces it or mark it unenforced.
 
 Publication note: historical host/session measurements and a provider reading were redacted;
 all procedural rules and their preconditions remain. Read this file together with

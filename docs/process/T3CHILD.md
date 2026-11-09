@@ -33,5 +33,8 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
   launch anything. Anything you notice beyond the brief becomes a bead (`bd create`, from the main checkout) or a line in
   PROGRESS.md for the orchestrator, who alone decides what is worked next. A child that keeps taking work is spending quota the
   orchestrator is pacing; that is a defect in the child, not initiative.
+- BLOCKED BY A RULE? If two instructions you were given (brief, COMMON.md, T3CHILD.md, CLAUDE.md) forbid each other for the
+  work in your brief, do not pick one silently: write JOB-BLOCKED naming both lines verbatim and stop. The orchestrator records it
+  as BLOCKED-BY-RULE (COMMON.md, Rule conflict repair) and the advisor resolves it. (maintainer 2026-11-09)
 - Do not ask questions; no human is watching. End with a final message (<=200 words, COMMON 13) whose last line is
   `JOB-COMPLETE` or `JOB-BLOCKED: <reason>`.
