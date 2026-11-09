@@ -121,10 +121,11 @@ requires deleting or merging one in the same edit.
 5. GATES RUN CONCURRENTLY, GUARDED BY RESOURCES, NOT BY A SLOT. There is no heavy slot and no slot order (maintainer
    direction, Spiral 2026-11-08T09:54Z). Gates and builds for different repos run at the same
    time, each detached in its own systemd unit; never two gates of the SAME repo at once (shared cache and target dirs).
-   The only admission check is resources at launch: MemAvailable >= the gate's recorded peak RSS plus 6 GB headroom and
-   load < nproc/2; a launch that fails the check waits on the condition, not on another gate. The rung-critical lane
-   is never queued behind anything. [precondition: one 64-thread/62 GB host (Spiral) is the only seat; re-derive the
-   two resource numbers from a receipt when the host changes]
+   Admission is resources at launch, with RESERVATIONS: MemAvailable minus the sum of (expected peak minus current RSS)
+   of every running job >= this job's recorded peak plus 6 GB; load < nproc/2; free disk >= this job's recorded build
+   size plus 20 GB. A launch that fails waits on the condition, not on another gate. The rung-critical lane is never
+   queued behind anything. Prevents: OOM stalls, full disks. Can cause: idle seat (signal: capacity check). [precondition:
+   one 64-thread/62 GB host, numbers re-derived from receipts on a new host; unenforced, bent twice 2026-11-09 (memory, disk)]
 6. SEATS. Editing children: sol xhigh only. gpt-6-astra: review and council only, never edits. Muse
    (muse-wonder-full-1.0): council seat pre-approved on every candidate rule 7 sends to council; an occasional
    ordinary review round is fine; never an implementer on main except by named maintainer exception; an erroring
