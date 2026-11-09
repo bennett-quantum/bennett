@@ -58,6 +58,9 @@ and execution stack for reversible/quantum compute. Contracts: `bennett-isa-spec
     and go on. A genuine contract decision goes in a bead and in your final message.
 13. Final message (<=200 words): what landed (shas), what was verified with which exact command and result, what is open
     (bead ids), any surprise. Do not claim green without having run it.
+13b. Scope is the brief. A child does only what its brief states and stops at its final message; it never takes the next
+   bead, a follow-on or an adjacent fix. Surplus observations become beads or PROGRESS.md lines for the orchestrator, who
+   alone assigns work (maintainer 2026-11-09: children kept taking new work while Codex was over pace).
 14. Codex jobs: the sandbox cannot write sibling repos, including their bead databases. Append any cross-repo bead you need to `<repo>/.tmp/<job>/cross-repo-beads.md` (or your progress file) for the orchestrator to file, and continue. Never end JOB-BLOCKED for this alone.
 
 ## Anti-slop rules for code you write (added 2026-11-06, maintainer-ratified; from the SlopCodeBench reading)

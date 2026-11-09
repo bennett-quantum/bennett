@@ -25,5 +25,10 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
   CARGO_TARGET_DIR=<worktree>/.tmp/<name>/target. Parallel width comes from the repo's machine profile (beside its
   hang-guard class table; until a repo has one, nproc and MemAvailable with headroom for the other jobs), never a number
   from a brief; long runs are bounded by the class table, never a bare `timeout N`.
+- SCOPE IS THE BRIEF, NOTHING MORE (maintainer 2026-11-09). You work only the task your brief states. When it is done, write the
+  final message and STOP. Never pull the next bead, start a follow-on, fix an adjacent finding, widen your owned paths, or
+  launch anything. Anything you notice beyond the brief becomes a bead (`bd create`, from the main checkout) or a line in
+  PROGRESS.md for the orchestrator, who alone decides what is worked next. A child that keeps taking work is spending quota the
+  orchestrator is pacing; that is a defect in the child, not initiative.
 - Do not ask questions; no human is watching. End with a final message (<=200 words, COMMON 13) whose last line is
   `JOB-COMPLETE` or `JOB-BLOCKED: <reason>`.
