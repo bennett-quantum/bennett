@@ -1,101 +1,133 @@
-# HANDOFF — Bennett ecosystem (bennett-quantum)
+# HANDOFF — Bennett ecosystem
 
-Current state only; rewritten at session end 2026-11-03 (shift 7 wind-down, maintainer order ~13:10Z). Narrative: top
-blocks of `worklog/002_2026-11-02_orchestration.md`. Detail: `.tmp/orchestrator/shift-4.md` … `shift-7.md` (Landed,
-Decisions, every child's result), advisor rulings `.tmp/orchestrator/advisor-notes.md` (D1-D4, R1-R24 and the wind-down
-order bind). Rules: each repo's CLAUDE.md; review policy `docs/decisions/2026-11-02-code-quality-policy.md` (IN FORCE);
-council policy `docs/council/README.md`; plan `docs/plan/2026-10-29-path-to-north-star.md`. Clock: `date -u`.
+Current-state checkpoint: 2026-11-09. Recheck live Beads and local shift state before resuming work.
 
-## State in one paragraph
+Bennett aims to compile unmodified LLVM-language programs into classical, reversible and coherent
+quantum execution, including Grover search over SQLite. The plugin infers the required execution tier;
+the driver links published runtime/arithmetic libraries and emits launchable objects. Independent
+consumers implement two published contracts: the dialect and virtual ISA. Scope and acceptance are
+in [the North Star](docs/Bennett-NorthStar.md), especially §§3–5 and the §8 demo ladder; unfinished
+mechanics never reduce that scope.
 
-Every repo except dialect has had its first batched review (`<repo>/docs/reviews/2026-11-03-*.md`); every one is BLOCK or
-waiting on a round-2 check, so under R12 + policy rule 1 NO code main was pushable at wind-down. Only meta and dialect
-pushed today. ISA 0.9 K85-K93 are applied (in-version K track, D2); K94-K97 (pe1, adg, 0jq+cfr) are accepted and queued
-for the editor. Dialect 0.2.13 is published; 0.2.14 (brt-vbi + the R23 console-close sentence) is committed locally (22f9ed6), checked, unpushed.
-Rung 4's critical path is the exact factored points-to engine: its design review came back REVISE (P0 bp-6rz in existing
-code). Codex is ahead of linear pace (R17: no launches while ahead); Claude weekly resets 2026-11-03 17:00Z.
+## Workspace and repositories
 
-## Mains (origin/main at wind-down; `git -C <repo> rev-list --left-right --count origin/main...HEAD`)
+Use sibling checkouts under `bennett-workspace/`. `bennett/` is the meta repository: manifest, tools,
+cross-repo documentation and this handoff. The twelve active `bennett-quantum` component repos are:
 
-| repo | origin/main | local ahead | why not pushed |
-|---|---|---|---|
-| bennett | (this commit) | 0 | |
-| bennett-isa-spec | 9825c42 | 72 | isaref review BLOCK (P0 opnq, P1 7cvg; two red crate tests x6to); K91 editor's note 4cc6ac5 |
-| bennett-dialect-spec | e0456ee | 5 | 0.2.14 draft 22f9ed6 (Opus) verified at wind-down (v02 2944/2944; v03 same 89+6 qbu non-pass set) but needs a sol fidelity read before publication (queue 7b); new b-dialect-spec-ac7 (smul/umul_with_overflow type for W>128) |
-| bennett-conformance | 6e6a6f1 | 25 | checker P0/P1 890 gm5 37u + xcheck P1 eq2 caq |
-| bennett-vm | c26a4fd | 34 | round-2 P0/P1 all CLOSED (0m5 wyg 79y 1pz ket d1y): needs the Claude round-2 check; gate pin fd626d3 needs isa-spec main pushed |
-| bennett-arith | 5e9b450 | 11 | round 2 rn8 gdg rhn + xcheck P0 ufr 8eb, P1 yuk |
-| bennett-runtimes | 248e468 | 16 | xcheck P1 brt-mab |
-| bennett-driver | 54d32fa | 34 | xcheck P1 6bl 7cc + re-graded P1 tbc |
-| bennett-plugin | 0ac6180 | 23 | round 3 bp-0xt, P1 bp-mqp bp-ok6, D4 interim bp-acm |
-| bennett-sched | 7f9ceb5 | 34 | review BLOCK: P0 fdu, P1 jez b08 (+ xzv 2u4 kbc a0v ark vt8 nsy) |
-| bennett-estimate | 54f2c1c | 19 | re-graded P1 7zd fn5 |
-| bennett-circuits | 9ef99d8 | 9 | gate repair d2fd693 (Opus) needs its sol review (rule 1); 677266c was review-clear |
-| bennett-targets | dd03671 | 9 | round-2 fixes (Opus) need the sol round-2 check rev-targets-r2c |
+| Repository | Role |
+|---|---|
+| `bennett-isa-spec` | Virtual ISA, object/launch/scheduling/certificate contracts, reference interpreter and conformance vectors |
+| `bennett-dialect-spec` | LLVM marker ABI, normalisation, legality rules and reference semantics to the ISA |
+| `bennett-plugin` | LLVM pass plugin: analysis, outlining, reversible/coherent lowering and ISA production |
+| `bennett-driver` | Link-time orchestration, plugin invocation, fat-object/launch interfaces and comparison receipts |
+| `bennett-vm` | Device execution, reversal, histories, effect tapes, simulation and launch/schedule consumption |
+| `bennett-sched` | Scheduling, source expansion, resource accounting and certificate production |
+| `bennett-circuits` | Bounded circuit specialisation, placement, proof-carrying output and exporters |
+| `bennett-estimate` | Resource estimates from objects, schedules/certificates and named targets |
+| `bennett-targets` | Target descriptions, independent validation and hardware-model importers |
+| `bennett-runtimes` | Ordinary runtime C/LLVM bitcode: allocator, libc/musl helpers and device models |
+| `bennett-arith` | Arithmetic bitcode and ISA circuit libraries with certificates |
+| `bennett-conformance` | Demo ladder, independent certificate checker and differential/conformance harnesses |
 
-Worktree branches (not mains): rung4-plugin 33ff4be (bennett-plugin-rung4), bjm-dense 432d4ff (bennett-vm-bjm, merge
-blocked on P1 bennett-vm-d2j), vm-fixes 3075153 (merged into vm main). Everything unpushed is backed up gate-free at
-`wip/session-end-2026-11-03` (mains) and `wip/session-end-2026-11-03-<branch>` (rung4-plugin, bjm-dense); Codex jobs also
-back up to `wip/<job>`.
+[manifest.toml](manifest.toml) also lists `Bennett.jl`, the Julia frontend/research lab, as an
+information-only personal repository. It is outside the twelve component repos and clone/update set.
+Repos communicate through published specs and versioned binary interfaces; each `gate.toml` pins its
+inputs. A live sibling checkout is not a substitute for a pin.
 
-## Stopped at session end
+## Contract and implementation checkpoint
 
-Nothing launches without the maintainer. Codex sol runners stopped 13:11Z by `.tmp/orchestrator/winddown.py` plus SIGTERM
-of their codex children (mid-attempt; each tree committed and pushed to `wip/<job>`; state `stopped-session-end`; log
-`~/.local/state/bennett-codex-jobs/winddown.log`): sol-checker, sol-estimate, sol-ref09, sol-sched, sol-vm-queue. Their
-interrupted attempts wrote no final message: READ EACH PROGRESS FILE FIRST on resume. Already ended earlier (blocked):
-sol-plugin-queue, sol-arith-softfloat, sol-driver-queue, sol-runtimes-queue. No council, heavy or Muse job running.
-Claude delegates: none alive. opus-dialect-0214 committed 22f9ed6 and stopped before closing q06/9rd (open until push);
-opus-notefix-ns stopped before writing (see 3c). Their cross-repo requests: bennett-dialect-spec/.tmp/opus-dialect-0214/cross-repo-beads.md.
-Resume with `python3 /home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/resume_job.py NAME ["NOTE"]`
-(systemd --user scope, OOMPolicy=continue, MemoryMax=14G; never plain `setsid nohup`), under R17 (only while Codex is
-BEHIND linear pace, one at a time, `quota` row first).
+ISA 0.9 is published alongside 0.8; reference and consumer migration remains partial. The dialect's
+classical R profile `0.3-r1` was accepted for rung 3 (`bennett-dialect-spec` merge `4bca41b`). That
+acceptance does not establish the coherent profile needed for function pointers inside lifted oracles.
+Check each producer's version declaration and gate pins before combining publications.
 
-## Codex queue, in order (R17-gated), with resume notes
+Verified main ancestry includes ISA reference CLI memory-file support and K93 (`f7cb01b`), plugin
+analysis counters and vector production work (`abe5557`), VM sparse pages/journals (`99f938c`),
+estimator terminal-recompute work (`923f185`), arithmetic pooled publication receipts (`cd245bc`),
+and explicit ladder revision selection (`bennett-conformance` `12134af`). These landings are partial
+capabilities, not acceptance of a whole rung or completion of their umbrella beads.
 
-1. sol-checker (bennett-conformance checker/): round 2 P0/P1 890 gm5 37u (after 2hl zlo 30g) + Claude cross-check P1s
-   eq2 (§16.1 token spelling in bodies) and caq (K89 borrow_frame claim rejected E_CERT_SCHEMA).
-2. sol-vm-queue (bennett-vm): round 2 DONE (0m5 wyg 79y 1pz ket d1y CLOSED; i63 pin committed fffc277). FIRST a
-   Claude round-2 check (Claude work, not Codex); then resume for 47t-c3 (needs one exclusive dual-engine slot, R3) and
-   its queue.
-2b. sol-bjm-5vj (bennett-vm-bjm, bjm-dense): fix P1 bennett-vm-d2j red-first (Runtime::equals vs Log::record seq,
-   review docs/reviews/2026-11-03-bjm-dense-premerge.md); Claude check; merge after one heavy dual-engine run.
-2i. sol-ref09 (isa-spec reference-interpreter/): round 2 of docs/reviews/2026-11-03-isaref-batch.md: P0 b-isa-spec-opnq,
-   P1 b-isa-spec-7cvg red-first; the two red crate tests (x6to) green or attributed before any push.
-2s. sol-sched: round 2 of docs/reviews/2026-11-03-sched-batch.md: P0 fdu (IN PROGRESS at the stop: sched 95aaca9 holds
-   src/source.rs + tests/source_adjoint.rs mid-TDD), P1 jez b08, xzv (in progress) + 2u4 kbc a0v ark vt8 nsy.
-2e. sol-estimate: round 2 of docs/reviews/2026-11-03-estimate-batch.md: P1 7zd (--budget default 0) and fn5 (K86
-   realisation_model), red-first.
-2r. sol-runtimes-queue: brt-mab P1 red-first; brt-4dk stays blocked on brt-4dk.1 / brt-vbi (0.2.14).
-3. sol-driver-queue: 6bl 7cc tbc red-first; 9zg/ppz stay blocked on cross-repo publications.
-3b. sol-plugin-queue: ROUND 3 bp-0xt first, then bp-mqp bp-ok6, bp-ylb (0.2.13 adoption; close bp-usp), bp-acm D4
-   interim (loud failure naming bp-acm, b-dialect-spec-6u6, "promised and pending"), bp-mq6 (arith + runtimes re-pin).
-3d. sol-arith-softfloat: owns adders/ and tests/; rn8 gdg rhn, then ufr (P0) 8eb (P0) yuk (P1) red-first (tighten _rm
-   tests to the exact directed-rounding side against MPFR), then 4yg.1 parity migration.
-3c. native-sharing round 2 (sol+astra) after the revision is written: opus-notefix-ns stopped at wind-down BEFORE writing anything
-   (resume block bennett-isa-spec/.tmp/opus-notefix-ns/PROGRESS.md, local; brief .tmp/orchestrator/briefs/opus-notefix-ns.md;
-   round-1 task file .tmp/opus-council-s3d/task-d4-native-sharing.md; check script derive4/verify.py per INDEX.md); Muse R13 call 2 only after it accepts and the
-   advisor confirms. P0 route for bp-acm / b-dialect-spec-6u6 (publishes first in ISA 0.10, D4).
-3c'. sol-notefix-b3ui (READY, briefs/sol-notefix-b3ui.md): K91 loader capability negotiation text -> sol+astra round ->
-   editorial K91 completion.
-3e. sol review of circuits d2fd693 (Opus gate repair), then the circuits push gate (heavy slot).
-4'. sol-rung4-ipp resume on rung4-plugin: fix P0 bp-6rz red-first (src/Analysis.cpp loadPair residue slot stride <
-   width; probe .tmp/opus-rev-fpt/probe), revise docs/design/factored-points-to.md for bp-9g8 bp-eiq bp-m7h (review
-   33ff4be), then a Claude round-2 check. Rung-4 critical path.
-5. sol-isa-k94: fidelity fixes h7l7 wk0k, then K94 pe1, K95 adg, K96/K97 0jq + cfr (R18, R19).
-6. rev-targets-r2c: sol round-2 check of the Opus targets round 2.
-7b. sol fidelity read of the dialect 0.2.14 draft (Opus-applied), then push dialect.
-8. rev-dialect (sol batched review of dialect tooling, Claude-authored).
-9. Council rounds: derive4 notes beyond native-sharing (INDEX order). 10. Rung-3 rerun (heavy) after bp-mq6.
-Claude work when quota allows: round-2 checks of each Codex fix as it lands (templates briefs/sonnet-r2check-*.md);
-cross-repo bead requests still unfiled in `<repo>/.tmp/<job>/cross-repo-beads.md` / checker/.tmp/CROSS_REPO_BEADS.md
-(bead clerk, template briefs/sonnet-beadclerk-s6.md).
+## Demo ladder
 
-## Waiting on the advisor / maintainer
+Recorded acceptance below is tied to its recorded inputs; no ladder run was performed for this edit.
+Evidence lives in `bennett-conformance/ladder/rung-N/RESULTS.md`, associated reports and `blockers.json`.
 
-- R13: Muse call 1 of 2 used (batch 3). Call 2 reserved for native-sharing after its round 2 accepts; ask first.
-- Contract escalations from earlier runner attempts that may still be open (sched-enz and b-isa-spec-z4c are closed):
-  estimate bennett-estimate-bph.4 (ISA source-to-wire / implicit-length binding, docs/CONTRACT_GAPS.md), checker
-  (resource aggregation across repeated invocation contexts; realised-operator bindings for approximate native gates,
-  checker/.tmp/CROSS_REPO_BEADS.md). Route through the bead clerk to isa-spec, then council if contract.
-- Deferred by design, nobody starts: F30 mixed-binary rung (bennett-4ht), bennett-p2i optimising specialiser/scheduler.
+| Rung | Demo | Verified recorded status |
+|---|---|---|
+| 1 | Scalar C, Rust, Julia | Full-domain acceptance remains blocked in committed evidence: `bp-75y`, `bp-xb8`, `bp-zeg`; input-only diagnostic passes do not establish full D. |
+| 2 | Pointers, structs, byte memory | Recorded COMPLETE on 2026-11-01: hashtable forward equals native, then byte-exact reversal, both executors and LLVM majors. See that run's frozen pins. |
+| 3 | musl hello-world | Acceptance outstanding (`bennett-conformance-7bx`); formatted-musl production, native agreement, reset and strict replay remain unmeasured in the latest committed results. |
+| 4 | Grover over unmodified SQLite | Acceptance outstanding (`bennett-conformance-tmb`). The November 8 main-snapshot run failed on arithmetic publication/pin compatibility; estimator schema and checker CLI diagnostics also failed. |
+| 5 | Julia shim runtime | Acceptance requirement only; rung directory contains a README, no executable gate/results. |
+| 6 | xv6, then Linux | Acceptance requirement only; rung directory contains a README, no executable gate/results. |
+| 7 | Quantum kernel fuzzing | Acceptance requirement only; rung directory contains a README, no executable gate/results. |
+| 8 | C Monte Carlo amplitude estimation | Acceptance requirement only; rung directory contains a README, no executable gate/results. |
+
+Rung 4 still requires all three North Star clauses: exhaustive oracle checks through N ≤ 2^10,
+Grover simulation through N ≤ 2^8, and a budgeted, padded estimate at N = 2^20. Reduced controls,
+measured-basis diagnostics and a small fixture estimate cannot satisfy those clauses.
+
+## Open critical path
+
+- **SQLite analysis:** the `job/s2-gai-fix` / `job/s2-9cy` stack remains outside main. Resolve
+  `bennett-plugin-4zi` (TOP/mask provenance), `bennett-plugin-ge7` (sound external-state premises)
+  and `bennett-plugin-9cy` (ICmp monotonicity). Fixpoint evidence must agree under original,
+  reversed-function and reversed-basic-block order. Remaining work includes `bp-6rz` and SQLite
+  vector/fixpoint umbrellas `bp-1bb` / `bp-fj1`; counters/production landings did not close them.
+- **ISA checker contracts and consumers:** K85 `b-isa-spec-qrc` is unfinished; its repaired candidate
+  is on `job/isa-k85-land`, awaiting the resumed council disposition and landing. K86
+  `b-isa-spec-0ib` is partial. K89 `b-isa-spec-t9l` blocks the scheduler's parked
+  `job/sched-vt8` reader/adoption work. Track the remaining K85–K92 work in ISA Beads.
+- **K91 and coherent function pointers:** `b-isa-spec-b3ui` and `bennett-0vi` remain open. The
+  accepted direction is explicit per-role `token_aliases/1` negotiation inside ISA 0.9 K91, plus
+  explicit coherent dialect 0.3 acceptance and pin migration. Identity/ABI fixtures and executed
+  unreachable-site evidence are required; classical R-profile acceptance is insufficient.
+- **musl/native comparison:** `brt-yz5` remains open in runtimes. The parked varargs repair
+  needs a spec-first re-land using each LLVM major's own layout, before further printf promotion.
+- **Rung-4 checking and cost:** `bennett-conformance-51d` covers the real fixed-image verdict and
+  gate/checker CLI mismatch; `bennett-estimate-b8o` still needs the full SQLite ISA launch. Report
+  padded cost using an ideal quantum circuit with ideal logical qubits, implementing the standard
+  quantum circuit model; report the illustrative superconducting target's capacity shortfall
+  separately. Target publication and estimator/ladder re-pins must agree.
+- **VM:** `bennett-vm-o7n` remains open for launch/estimate ABI correctness; do not advertise alias
+  support before it works. Slice 4 (`bennett-vm-4pj`, prepared commits) and slice 5
+  (`bennett-vm-p7f`, interval locks), then the dense engine (`bennett-vm-bjm`), remain unfinished.
+- **Evidence and infrastructure:** `bennett-wa1` tracks the outstanding independent review of
+  strict-order landings; `bennett-b78` tracks machine-derived parallelism. Remaining hang-guard
+  sweeps and consumer gaps stay in each repo's Beads; `bennett-cbj` tracks an intermittent receipt
+  CPU-accounting test failure. Recompute proof extensions remain open as
+  `bennett-estimate-e9a.1`. Keep the future mixed native/device boundary reachable (`bennett-4ht`).
+
+## Orchestration and durable state
+
+Spiral is the single orchestrator seat (64 hardware threads, about 62 GB RAM); the laptop retired
+on 2026-11-09. Old seat ownership, relay and gate-slot instructions have expired. Read the target
+repo's `CLAUDE.md` / `AGENTS.md`, then the local rulebook
+`bennett/.tmp/orchestrator/briefs/COMMON.md` including its READ FIRST block. Children also read
+`briefs/T3CHILD.md`. COMMON is the rulebook; historical advisor/shift notes are evidence.
+
+Live issue state is `bd` in each repo's **main checkout**, not an old JSONL export. Use `bd ready`,
+`bd show <id>` and `bd note`/`bd create`; the orchestrator exports Beads when landing. Current local
+operations are in `bennett/.tmp/orchestrator/spiral-2.md` (Running, Decisions, Landed); earlier
+handoffs are in `spiral-1.md` and `shift-16.md`. A child's resume point is its assigned
+`.tmp/<job>/PROGRESS.md` plus git history. Recheck these changing records instead of reviving an old queue.
+
+All `bennett-quantum/*` repos are public. Keep transcripts, logs, memory, orchestrator records and
+`.tmp` artifacts out of commits and public backup branches; reference local records by path only.
+
+## Landing work
+
+Work in the assigned `job/<name>` worktree and owned paths. Commit explicit paths at green
+checkpoints, back up code to `wip/<name>` as authorised, and hand the head to the orchestrator;
+children do not push main. The orchestrator obtains the required review/council disposition,
+merges `--no-ff`, exports Beads, and pushes. Preserve review and gate evidence for the same content.
+
+There is **one full gate per content tree**. `tools/gate_run.py` reuses a PASS receipt keyed by tree,
+actual gate-tool SHA and isolation mode; a changed tree/pin needs a new gate, and FAIL has no PASS
+receipt. Receipt support starts at meta `e25f3aa`; all twelve local component mains now pin tool
+`3779522`. Check the live shift file for their gate/push outcomes rather than assuming deployment.
+The meta gate is `scripts/pre-push`; the orchestrator runs it at merge.
+
+Gates/pushes run detached in their own systemd units. Different repos may gate concurrently when
+resources permit; never run two gates of the same repo. Admission, machine-derived widths and
+hang-guard classes follow COMMON and the repo profile. A hang-guard trip means UNKNOWN, not PASS.
