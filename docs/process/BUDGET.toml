@@ -1,0 +1,9 @@
+# Rulebook ratchet (maintainer 2026-11-09: "rule accretion has killed multiple of my projects").
+# The meta gate fails if the live rulebook exceeds these numbers. They may only go DOWN without a
+# maintainer line in the commit message that raises them ("maintainer: raise rulebook budget because ...").
+# Adding a rule therefore means deleting one. Measured at the 2026-11-09 17:3xZ state, no slack.
+common_lines = 221
+t3child_lines = 40
+standing_rules = 29          # numbered "N. " items in COMMON.md (child rules + anti-slop + ten standing rules)
+read_first_lines = 5         # live rulings in the READ FIRST block ("- " bullets before the first "# Common rules" line)
+read_first_max_age_days = 7  # a READ FIRST line older than this fails: it has become a standing rule or is dead
