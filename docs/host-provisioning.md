@@ -20,10 +20,14 @@ twelve), each main checkout's `gate.toml`, and
 `bennett-dialect-spec/corpus/legality/toolchains.toml`. Concurrent job worktrees
 are excluded. Unknown configuration keys fail loudly. Gate and sibling-build
 commands are inspected without executing them. Tool versions, source entry
-paths, Cargo compiler/components, declared LLVM majors, frontends and LLVM
-CMake development configs are checked. Built gate outputs are not required
+paths and script interpreters, pinned commits and published sibling files,
+Cargo compiler/components, declared LLVM majors, frontends and LLVM CMake
+development configs are checked. Built gate outputs are not required
 to exist before a gate builds them. Python, Git, Bash, bubblewrap, systemd-run,
 bd and Dolt are explicit shared infrastructure prerequisites.
+
+Bubblewrap must also execute a namespace probe, and systemd-run must execute
+a trivial command through the user manager. These probes do not run a gate.
 
 Repairs use Ubuntu/Debian `apt-get`, existing rustup, or existing Julia as
 appropriate. The configured LLVM majors determine package names; enable the

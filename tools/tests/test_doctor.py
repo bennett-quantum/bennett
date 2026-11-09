@@ -2,7 +2,6 @@
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -229,3 +228,95 @@ class DoctorTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("unknown", result.stdout)
         self.assertNotIn("'sudo'", self.calls.read_text())
+
+    def test_timeout_and_env_wrappers_expose_the_child_tool(self):
+        self.config(command='["sh", "-c", "exec timeout 1800 env CC=clang cargo test --offline"]')
+        for name in ("sh", "timeout", "env"):
+            self.tool(self.bin / name, name + " 1.0")
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("cargo", result.stdout)
+        self.assertIn("rustc", result.stdout)
+
+    def test_absolute_environment_input_path_is_checked(self):
+        missing = self.root / "absent-host-sdk"
+        self.config(extra=f'[env]\nLLVM_DIR="{missing}"\n')
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn(str(missing), result.stdout)
+
+    def test_unknown_environment_placeholder_is_not_silently_ignored(self):
+        self.config(extra='[env]\nSDK="{sibling:not-pinned}/include"\n')
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("not-pinned", result.stdout)
+
+    def test_bwrap_availability_does_not_hide_broken_isolation(self):
+        path = self.bin / "bwrap"
+        path.write_text(f'#!{sys.executable}\nimport sys\n'
+                        'print("bwrap 0.9.0" if "--version" in sys.argv else "namespace denied")\n'
+                        'raise SystemExit(0 if "--version" in sys.argv else 1)\n')
+        path.chmod(0o755)
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("namespace denied", result.stdout)
+
+    def test_systemd_user_manager_is_checked_without_running_a_gate(self):
+        path = self.bin / "systemd-run"
+        path.write_text(f'#!{sys.executable}\nimport sys\n'
+                        'print("systemd 255" if "--version" in sys.argv else "user manager missing")\n'
+                        'raise SystemExit(0 if "--version" in sys.argv else 1)\n')
+        path.chmod(0o755)
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("user manager missing", result.stdout)
+
+    def test_direct_script_interpreter_is_checked_without_running_script(self):
+        self.config(command='["scripts/check"]')
+        path = self.repo / "scripts/check"
+        path.parent.mkdir()
+        path.write_text("#!/usr/bin/env mystery-interpreter\nexit 37\n")
+        path.chmod(0o755)
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("mystery-interpreter", result.stdout)
+
+    def test_llvm_header_is_not_the_only_version_output(self):
+        self.tool(self.llvm / "opt", "LLVM (http://llvm.org/):\n  LLVM version 18.1.3")
+        result = self.run_script()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        line = next(line for line in result.stdout.splitlines() if str(self.llvm / "opt") in line)
+        self.assertIn("18.1.3", line)
+
+    def test_missing_llvm_cmake_config_is_a_gap_with_install_command(self):
+        (self.llvm.parent / "lib/cmake/llvm/LLVMConfig.cmake").unlink()
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("LLVMConfig.cmake", result.stdout)
+        self.assertIn("llvm-18-dev", result.stdout)
+
+    def test_build_script_is_a_source_file_not_a_generated_build_directory(self):
+        self.config(command='["python3", "scripts/build"]')
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("scripts/build", result.stdout)
+
+    def test_missing_published_sibling_file_is_reported_at_the_pin(self):
+        self.config(extra='[siblings.bennett-other]\nsha="' + "b" * 40 +
+                    '"\n[siblings.bennett-other.files]\n"include/required.h"="' + "c" * 64 + '"\n')
+        git = self.bin / "git"
+        git.write_text(f'#!{sys.executable}\nimport sys\nprint("git 2.43.0")\n'
+                       'raise SystemExit(1 if any(":include/required.h" in s for s in sys.argv) else 0)\n')
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("include/required.h", result.stdout)
+        self.assertIn("b" * 40, result.stdout)
+
+    def test_missing_sibling_object_without_a_build_is_reported(self):
+        self.config(extra='[siblings.bennett-other]\nsha="' + "b" * 40 + '"\n')
+        git = self.bin / "git"
+        git.write_text(f'#!{sys.executable}\nimport sys\nprint("git 2.43.0")\n'
+                       'raise SystemExit(1 if "cat-file" in sys.argv else 0)\n')
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("b" * 40, result.stdout)

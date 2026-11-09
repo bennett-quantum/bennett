@@ -27,7 +27,7 @@ PACKAGES = {"python3": "python3", "git": "git", "bash": "bash", "bwrap": "bubble
             "cc": "build-essential", "c++": "build-essential", "sh": "dash",
             "find": "findutils", "sort": "coreutils", "mkdir": "coreutils", "ln": "coreutils",
             "rm": "coreutils", "touch": "coreutils", "timeout": "coreutils", "time": "time",
-            "systemd-run": "systemd", "ninja": "ninja-build"}
+            "systemd-run": "systemd", "ninja": "ninja-build", "env": "coreutils"}
 BUILTINS = {":", "true", "false", "echo", "printf", "exit", "return", "cd", "export", "unset",
             "ulimit", "test", "[", "break", "continue", "read", "set", "shift", "wait"}
 
@@ -100,10 +100,13 @@ def load_gate(path, expected):
             raise ConfigError(f"{where}: sha must be a full commit SHA")
         if not isinstance(pin.get("repo", name), str):
             raise ConfigError(f"{where}: repo must be a string")
+        repo = Path(pin.get("repo", name))
+        if repo.is_absolute() or len(repo.parts) != 1 or repo.parts[0] in {".", ".."}:
+            raise ConfigError(f"{where}: repo must be a workspace repository name")
         if not isinstance(pin.get("files", {}), dict):
             raise ConfigError(f"{where}: files must be a table")
         for filename, digest in pin.get("files", {}).items():
-            if not filename or not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
+            if not filename or Path(filename).is_absolute() or ".." in Path(filename).parts or not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
                 raise ConfigError(f"{where}: invalid file digest for {filename}")
         if not isinstance(pin.get("build", []), list):
             raise ConfigError(f"{where}: build must be an array of tables")
@@ -141,6 +144,7 @@ class Inventory:
         self.gaps = []
         self.tools = {}
         self.paths = set()
+        self.pins = set()
 
     def gap(self, label, reason, install=()):
         self.gaps.append(dict(label=label, reason=reason, install=list(install)))
@@ -175,7 +179,9 @@ class Inventory:
             self.gap(name, f"{source}: {reason}", install)
             self.tools[key] = False
             return False
-        self.found.append(dict(label=name, path=path, version=output.splitlines()[0], source=source))
+        lines = output.splitlines()
+        summary = next((line.strip() for line in lines if re.search(r"version\s+\d", line, re.I)), lines[0])
+        self.found.append(dict(label=name, path=path, version=summary, source=source))
         self.tools[key] = True
         return True
 
@@ -197,6 +203,18 @@ class Inventory:
         else:
             self.found.append(dict(label=str(path), path=str(path), version="source/path present", source=source))
 
+    def pin(self, repo, sha, source):
+        if (repo, sha) in self.pins:
+            return
+        self.pins.add((repo, sha))
+        result = run(["git", "-C", str(repo), "cat-file", "-e", sha + "^{commit}"])
+        if result.returncode:
+            install = [["git", "-C", str(repo), "fetch", "origin", sha]] if repo.is_dir() else []
+            self.gap(f"{repo}@{sha}", f"pinned commit unavailable; required by {source}", install)
+        else:
+            self.found.append(dict(label=f"{repo}@{sha}", path=str(repo),
+                                   version="pinned commit present", source=source))
+
 
 def source_path(value, root, cwd):
     # Gate-created trees and built outputs are deliberately checked by the gate, not host provisioning.
@@ -206,8 +224,9 @@ def source_path(value, root, cwd):
     path = Path(value).expanduser()
     if not path.is_absolute():
         path = cwd / path
-    parts = path.relative_to(root).parts if path.is_relative_to(root) else path.parts
-    if any(part in {".tmp", "target", "build", ".isa-ref"} for part in parts):
+    parts = path.relative_to(root).parts if path.is_relative_to(root) else ()
+    generated = {".tmp", "target", "build", ".isa-ref"}
+    if any(part in generated for part in parts[:-1]) or (parts and parts[0] in generated):
         return None
     return path
 
@@ -216,6 +235,29 @@ def check_source(value, root, cwd, source, inventory, ref=None, executable=False
     path = source_path(value, root, cwd)
     if path is not None:
         inventory.path(path, source, executable, ref)
+        if executable and not ref and path.is_file():
+            with path.open("rb") as stream:
+                first = stream.read(4096).split(b"\n", 1)[0].decode("utf-8", errors="replace").strip()
+            if first.startswith("#!"):
+                interpreter = shlex.split(first[2:])
+                if interpreter and interpreter[0] == "/usr/bin/env":
+                    interpreter = interpreter[1:]
+                    if interpreter and interpreter[0] == "-S":
+                        interpreter = interpreter[1:]
+                if interpreter:
+                    inventory.tool(interpreter[0], f"{source}: {path} shebang")
+
+
+def check_environment(values, root, cwd, source, inventory, aliases):
+    known = {"root", "wt", "layout"} | {"sibling:" + alias for alias in aliases}
+    for key, value in values.items():
+        for placeholder in re.findall(r"(?<!\$)\{([^{}]+)\}", value):
+            if placeholder not in known:
+                raise ConfigError(f"{source}: unknown placeholder {{{placeholder}}} in {key}")
+        if key in {"CC", "CXX", "AR", "RANLIB", "LD"}:
+            inspect_command(shlex.split(value), root, cwd, source, inventory)
+        elif value.startswith(("/", "~/", "{root}")):
+            check_source(value, root, cwd, source, inventory)
 
 
 def shell_commands(text):
@@ -262,7 +304,22 @@ def inspect_command(argv, root, cwd, source, inventory, ref=None):
     else:
         inventory.tool(name, source)
     base = Path(name).name
-    if base in {"sh", "bash"}:
+    if base == "timeout":
+        index = next((i for i, arg in enumerate(args) if re.fullmatch(r"\d+(?:\.\d+)?[smhd]?", arg)), None)
+        if index is None:
+            raise ConfigError(f"{source}: cannot inventory timeout command without a duration")
+        inspect_command(args[index + 1:], root, cwd, source, inventory, ref)
+    elif base == "env":
+        index = 0
+        while index < len(args):
+            if args[index] in {"-u", "--unset"}:
+                index += 2
+            elif args[index] in {"-i", "--ignore-environment", "--"} or "=" in args[index]:
+                index += 1
+            else:
+                break
+        inspect_command(args[index:], root, cwd, source, inventory, ref)
+    elif base in {"sh", "bash"}:
         shell_index = next((i for i, a in enumerate(args) if a.startswith("-") and "c" in a), None)
         if shell_index is not None:
             if shell_index + 1 >= len(args):
@@ -298,21 +355,28 @@ def inspect_command(argv, root, cwd, source, inventory, ref=None):
 def collect_gate(path, name, workspace, inventory):
     data = load_gate(path, name)
     root = path.parent
+    aliases = data.get("siblings", {})
+    check_environment(data.get("env", {}), root, root, str(path), inventory, aliases)
     for kind in ("check", "report"):
         for cmd in data.get(kind, []):
             source = f"{path}: {cmd['name']}"
             cwd = root / cmd.get("cwd", ".")
             if "cwd" in cmd:
                 check_source(cmd["cwd"], root, root, source, inventory)
+            check_environment(cmd.get("env", {}), root, cwd, source, inventory, aliases)
             inspect_command(cmd["argv"], root, cwd, source, inventory)
     for alias, pin in data.get("siblings", {}).items():
         sibling = workspace / pin.get("repo", alias)
+        inventory.pin(sibling, pin["sha"], str(path))
+        for filename in pin.get("files", {}):
+            inventory.path(sibling / filename, str(path), ref=(sibling, pin["sha"]))
         for cmd in pin.get("build", []):
             source = f"{path}: {alias} {cmd['name']}"
             cwd = sibling / cmd.get("cwd", ".")
             ref = (sibling, pin["sha"])
             if "cwd" in cmd:
                 check_source(cmd["cwd"], sibling, sibling, source, inventory, ref)
+            check_environment(cmd.get("env", {}), sibling, cwd, source, inventory, aliases)
             inspect_command(cmd["argv"], sibling, cwd, source, inventory, ref)
     inventory.found.append(dict(label=str(path), path=str(path), version="schema 1 parsed", source=str(path)))
 
@@ -365,10 +429,31 @@ def collect_toolchains(path, inventory):
             inventory.tool("cmake", str(path))
 
 
-def collect(args):
-    inventory = Inventory()
+def check_infrastructure(inventory):
     for name in INFRASTRUCTURE:
         inventory.tool(name, "gate / Beads infrastructure")
+    probes = {
+        "bwrap": ["--dev-bind", "/", "/", "--die-with-parent", "--", "/bin/true"],
+        "systemd-run": ["--user", "--quiet", "--wait", "--pipe", "/bin/true"],
+    }
+    for name, args in probes.items():
+        path = shutil.which(name)
+        if not path:
+            continue  # The missing executable is already a consolidated gap.
+        try:
+            result = run([path, *args])
+            if result.returncode:
+                inventory.gap(name + " functional probe", (result.stdout + result.stderr).strip())
+            else:
+                inventory.found.append(dict(label=name + " functional probe", path=path,
+                                            version="PASS", source="gate infrastructure"))
+        except OSError as error:
+            inventory.gap(name + " functional probe", str(error))
+
+
+def collect(args):
+    inventory = Inventory()
+    check_infrastructure(inventory)
     try:
         manifest = tomllib.loads(args.manifest.read_text())
         table(manifest, {"repos"}, str(args.manifest))
