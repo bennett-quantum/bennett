@@ -2,10 +2,10 @@
 # when its precondition does; the next shift deletes dead lines). Everything in advisor-notes.md and shift files is history.
 - 2026-11-09 17:13Z VELOCITY DIAL (maintainer: "we now have codex quota, you can go a bit over pace. I want some more velocity";
   "the whole point of a modular design is precisely that we can work in parallel"). The day's pace dial lives in the current
-  shift file's Quota section and overrides rule 10's default. Today: VELOCITY = up to FIVE Codex implementer children alive
-  at once (FOUR until 17:18Z; raised on the first BLOCKED-BY-RULE line, the cap was the advisor's translation, not the maintainer's words), each in a different repo or on disjoint owned path sets named in both briefs (rule 3 holds; one Analysis.cpp
-  writer still), reviews and councils on top; Codex may run ahead of linear pace; stop launching only when Codex weekly
-  used exceeds three times the pace line. Idle CPU while disjoint ready work exists is a defect to report, not a state.
+  shift file's Quota section and overrides rule 10's default. Today: VELOCITY = up to FIVE Codex implementers alive at once
+  (four until 17:21Z; raised on the first BLOCKED-BY-RULE line: the count was the advisor's translation), each in a different
+  repo or on disjoint owned path sets (rule 3; one Analysis.cpp writer), reviews and councils on top; Codex may run ahead of
+  pace; stop launching only above three times the pace line. Idle CPU with disjoint ready work is a defect to report.
 - 2026-11-09 SINGLE SEAT. The laptop is retired; Spiral (64 threads, 62 GB) is the only machine and the only orchestrator
   seat. Every "laptop keeps X", lane split, relay ("wait for the relayed line"), hand-over hold and two-seat ownership
   line is void. All repos and paths belong to this seat's children under rule 3.
@@ -165,15 +165,16 @@ requires deleting or merging one in the same edit.
    say "bounded by the repo's hang-guard class table", never "bounded" or "fast" alone. Orchestrator-process timers
    (commit cadence, slot windows) are exempt by name. [precondition: shared loaded machine, three documented false reds;
    per repo, the lint from the R42 sweep enforces this once landed]
-10. QUOTA IS WEATHER, NOT LAW. Read `quota` before each launch wave and log the reading in the shift file; launch while
-    the relevant provider is behind linear weekly pace, UNLESS the maintainer has set the day's dial in the shift file's
-    Quota section (velocity: a stated concurrent-child cap and a stated quota ceiling; both expire with the day). Under
-    the default dial, at or ahead of pace: launch nothing new except one named rung-critical child (logged as an
-    exception), let running jobs stop after their current bead, and tell the advisor, who decides resumption. Under any
-    dial, disjoint ready work (different repos, or disjoint owned path sets per rule 3) runs concurrently up to the cap:
-    the modular design exists so that work is parallel; a seat running one child while disjoint work is ready reports why. No quota state, cap, stream count or vendor preference is ever written into this rulebook,
-    a brief or a memory as a standing fact (maintainer 2026-11-08: "a daily changing phenomenon, never a project ruling
-    for all time"). [precondition: none; this is the procedure for reading weather, not a reading]
+10. QUOTA IS WEATHER, NOT LAW; PACE IS A RATE, NEVER A CHILD COUNT. Read `quota` at every launch decision and at least every
+    30 min (wake for it); log each reading in the shift file. Compute the day's allowance as the provider's daily pace line
+    minus what the current window has spent, and the number of concurrent implementers as that allowance divided by the
+    MEASURED cost per child-hour of this shift (first value: 0.23%/child-hour, 2026-11-09 afternoon; re-measure each
+    shift). Reviews, council seats and machine-only runs never count toward any cap. A maintainer pace instruction is a
+    rate; the advisor never turns it into a child count unless the maintainer names one; a dial in the shift file may
+    override for the day (cap, ceiling, expiry). Launch concurrently across repos up to the computed number. No quota
+    state, cap, stream count or vendor preference is ever written here, in a brief or a memory as a standing fact
+    (maintainer 2026-11-08: "a daily changing phenomenon"). Prevents: over-spend. Can cause: an idle seat (signal: the
+    capacity check in Rule conflict repair). [precondition: none; enforcement: unenforced, the shift audit reports it]
 
 ## Struck rulings (heresies: recognise and refuse them; dated when struck)
 - Heavy slot / slot order / "one heavy gate at a time" / slot treaties (struck 2026-11-08, rulebook fixed 2026-11-09).
@@ -186,9 +187,8 @@ requires deleting or merging one in the same edit.
   (struck 2026-11-03 / 2026-11-08).
 - Numbered R-rulings as authority; D9 seven-category councils; whole-repo graded re-audits (struck 2026-11-07/08).
 - Bare wall-clock pass/fail limits in gates or suites (struck 2026-11-08, R42 sweep; residue is a P2 bead).
-## Rule conflict repair (mechanism; maintainer 2026-11-08 and 2026-11-09: "rules can block each other; this needs a
-## mechanism to repair". Added 17:17Z 2026-11-09 after the one-child pace rule idled a 64-thread host for six hours while
-## rules 3 and 5 permitted parallel work and nothing inside the process raised it.)
+## Rule conflict repair (maintainer 2026-11-08/09: "rules can block each other; this needs a mechanism to repair"; added
+## after the one-child pace rule idled a 64-thread host for six hours while rules 3 and 5 permitted parallel work)
 Rules are tools against a named failure. Every rule can also cause the opposite failure. Repair is triggered from INSIDE
 the process, never by waiting for the maintainer to notice:
 1. TRIGGER. Whenever an orchestrator declines to launch, land, gate or run something that is READY (a bd ready bead, a
