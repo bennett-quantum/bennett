@@ -6,10 +6,6 @@
 - 2026-11-09 NO HEAVY SLOT (maintainer, decided 2026-11-08T09:54Z, rulebook not edited until today: a heresy). Rule 5 below
   is the replacement: concurrent gates per repo, resource-guarded. Any brief, script or note that queues a gate behind
   another repo's gate, or speaks of "the slot", is wrong; fix it or report it.
-- 2026-11-09 ONE GATE PER TREE, ENFORCED BY RECEIPTS. gate_run on meta main (>= e25f3aa) skips a tree that already holds a
-  PASS receipt. It is live in a repo only when gate.toml tool_sha pins a meta commit at or after e25f3aa. Until the re-pin
-  wave lands in all 12 repos, note in the shift file every gate that re-ran a receipted tree (that is waste to count,
-  not a procedure to follow).
 - 2026-11-09 PUBLIC REPOS. Every bennett-quantum/* repo is public. Code on wip/* branches is fine; transcripts, logs,
   memory, orchestrator or .tmp records never go there (private repo tobiasosborne/bennett-laptop-transfer or hand copy).
 - 2026-11-08 RULINGS of 19:21Z (maintainer): b3ui = alternative A, normative inside ISA 0.9 K91, sol+astra review; rung-4(c)
@@ -168,6 +164,8 @@ requires deleting or merging one in the same edit.
 - Two-seat lane split, laptop ownership lines, advisor relay protocol (struck 2026-11-09: laptop retired).
 - `codex exec` runners, codex_job.py / resume_job.py launches (struck 2026-11-06, R26).
 - Gate-before-review AND push-hook re-gate of the same tree (struck 2026-11-08: tree-keyed receipts).
+- The READ FIRST re-pin-wave line 'ONE GATE PER TREE, ENFORCED BY RECEIPTS' (retired 2026-11-09: all 12 repos pin a receipt tool >= e25f3aa,
+  arith last at 19fb8b5; rule 4 now stands alone and gate_run enforces it).
 - "Codex banked resets are spare budget", "use up Muse before reset", Muse batching dossiers, any quota state as a rule
   (struck 2026-11-03 / 2026-11-08).
 - Numbered R-rulings as authority; D9 seven-category councils; whole-repo graded re-audits (struck 2026-11-07/08).
