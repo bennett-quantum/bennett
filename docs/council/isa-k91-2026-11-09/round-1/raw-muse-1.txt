@@ -1,0 +1,75 @@
+exit 0 in 214s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "The clause adds no machine state: queries take no program/request handle, require no program/target/run creation, and MUST return identical bytes on repeated/concurrent calls without changing program, request, run or device state (spec/Bennett-ISA-Spec-0.9.md:2605-2625). Live-handle execution still derives actual identities under the pre-existing §12.3 rule (:2699-2700), so the state diagram two implementers draw for tokens is unchanged by negotiation.",
+      "change": "In §10.1 Query results, extend the no-state-change sentence to cover identities explicitly: state 'A query MUST NOT mint, revoke, retarget or observe any token identity (§5.4), and its result does not depend on any live handle.'"
+    },
+    {
+      "id": "C2",
+      "score": 4,
+      "evidence": "No instruction changes; the clause only binds the existing §12.3 canonical partition encoding to the additive estimate/sched entry points (:2595-2603, declarations at :2576-2580 and :2853-2857). I independently verified the §15 group 5 list [0,0,0],[0,0,1],[0,1,0],[0,1,1],[0,1,2] is exactly the set of first-occurrence canonical partitions of 3 positions (all restricted-growth strings, Bell(3)=5) and that group 6 rejects [1,1] and [0,2] under the same rule (probe.py in tmp-muse).",
+      "change": "In the first K91 paragraph (§10.1), repeat the arity rule in one line instead of only citing §12.3: state 'The array lists the oracle primary token first, then token-typed arguments in signature order; actions/perm_actions list only token-typed parameters (§12.3).'"
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "Semantics stay exact and reversible: both providers admit every consistent partition, the launch estimate is exact under K12, a bound over partitions is not exact, and diagnostics never make a valid program/partition illegal (:2595-2603, :2691-2692). The loader is forbidden the two unsound escapes (partition-erasing legacy retry, cross-partition bound as exact) at :2688-2692, and live identity/reversal obligations are cross-referenced to §5.4/§7.4 unchanged in the role table (:2656).",
+      "change": "After the role table in §10.1, name the preserved post-negotiation statuses in one sentence: state 'After successful negotiation an invalid binding is BENNETT_E_ARG and a missing expansion library is BENNETT_E_SCHEDULE_INFEASIBLE (§10.1, §11); neither is a negotiation failure and neither re-opens negotiation.'"
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Resource exactness is delegated unchanged to K12/§8.2 aggregation of the resolved realisation, and §15 group 5 requires comparing advertised exact estimates against independent aggregation of each resolved realisation, not a bound (:5187-5188). Negotiation itself is target-free (no target creation, :2620) and adds no resource fields, so a vendor target description and the scheduler's consumption of it are untouched.",
+      "change": "In §10.1 Manifest validation, state the scoping explicitly: 'An advertisement is a property of the loaded provider binary, independent of target, device and region selection; per-target feasibility remains governed by §11 outcomes after negotiation.'"
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "The contract is decided to byte level: two named exports with exact C signatures (:2609-2612), a closed three-field bennett.abi-features/1 manifest whose two examples I re-canonicalized and found JCS-identical (probe.py), exact-match versioning with token_aliases/2 distinguished from /1 (:2643-2649), per-role pledges with neither role requiring the other's exports (:2651-2659), synthesized pre-request BENNETT_E_VERSION vs propagated query failure (:2681-2692), and hash invariance correctly scoped to unchanged input artifacts with regenerated artifacts following §§9.2/10.1/11 (:2717-2728; §11 bindings include scheduler name/version at :2890). Re-ran the author's checks: check_contract.py --self-check PASS (21 MUSTs mapped, 9 corruptions rejected) and ref_catalog.py --check PASS (219 recipes, envelope 5de4e499... unchanged). The one named-at-once gap: the new declarations appear only in §10.1 (one declaration each, verified by grep), not in the §10/§11 C blocks, and the text never says whether a post-K91 provider must implement its role query at all.",
+      "change": "Mirror the declarations into the §10 and §11 C blocks (bennett_launch_features after bennett_estimate_run_with_token_aliases in §10; bennett_sched_features in §11) and state in §10.1: 'A provider claiming launch/0.9 or sched/0.9 conformance under this edition MUST implement its role query, returning an empty features array if it pledges no extension; the missing-query loader rule applies to libraries published before this clause.'"
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "§15 adds nine observable conformance groups (:5148-5222) and I confirmed independently that the clause contains exactly 21 MUST occurrences (sed count over :2593-2728), matching the author's role/observable audit; check_contract.py --self-check re-run passes its mapping of all 21 to groups. Groups cover the hard cases a text-only review would miss: concurrent identical queries, unload/reload cache invalidation, wrong-role ABI, missing query with additive export present, buffer mutate/free after setter, and fixed-artifact hash comparison. Weakest observable is the loader-side 'retain the unresolved request' (:2688-2690), which has no named surface in groups 1/3.",
+      "change": "In §15 group 3, add the retention observation: state 'The harness, acting as loader and returning bennett_status, then reissues the identical unresolved request (arguments, budget and partition byte-identical) against a conforming provider and obtains the alias-aware result with no partition edit.'"
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Fidelity to the maintainer ruling (2026-11-08 19:21Z item 1) is item-for-item: alternative A inside ISA 0.9 §10.1, two per-role queries, bennett.abi-features/1, one shared token_aliases/1 with role-specific obligations, driver owns per-root shim negotiation and runtimes own native layout under the existing 4ht obligations (:2706-2715), and a VM's every role list stays empty until its alias-aware estimate works while the capability stays promised (:2660-2669). Standing 4ht check passes: native entry/argv/envp/host-only libc need no alias records or whole-binary lowering, the mixed-container/host-memory work remains required rather than being silently assumed away (:2711-2715), and §15 group 9 tests two roots with separate bindings. No north-star capability is rejected: every consistent partition is admitted by advertising providers and deployment incompatibility is explicitly not program illegality (:2691). Residual stale text: §12.3 still says 'The future mixed launch shim negotiates the alias-binding ABI feature; §10 alone does not specify that shim' (:4883-4884), which a reader can misread as negotiation still unspecified.",
+      "change": "Update the §12.3 mixed-object paragraph to read: 'The mixed launch shim negotiates token_aliases/1 through the §10.1 feature queries for each selected device root; §10 does not specify the shim or container interface itself.'"
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "A VM author and a scheduler author can each start tomorrow: signatures, buffer ownership/lifetime, NULL-output and failure clearing rules, manifest grammar with exact example bytes, and pre-request failure behaviour are all pinned (:2609-2649, :2681-2692), and legacy callers keep callable symbols with [0]/[] inference and BENNETT_E_ARG for unbound token arguments (:2694-2704). The one gap an implementer names at once is MUST #19: a token-free legacy loader 'MUST independently establish its base C ABI' (:2700-2702) with no stated mechanism or failure status, even though the design note shows a same-named 0.8-arity estimate export exists today (bennett-vm); §15 group 7 requires detection before dispatch but names no observable status for that detection.",
+      "change": "In §10.1 Legacy compatibility, define establishment and its failure: state 'A valid manifest whose abi matches the role, a static link compiled against that role's 0.9 declarations, or a deployment record naming the provider build and ABI family establishes the base C ABI; where none applies the loader reports a synthesized BENNETT_E_VERSION and makes no legacy call.' Add that status to §15 group 7."
+    }
+  ],
+  "blocking": [],
+  "previous_status": [
+    {
+      "id": "sol-P1",
+      "status": "resolved",
+      "note": "Prior sol review P1 (cross-provider hash invariance vs §9.2/§11), fixed in ec81d8b: I read the 8541ad3..ec81d8b diff; §10.1 Artifact identity and §15 group 8 now scope invariance to querying/consuming unchanged artifacts and state regenerated schedules/certificates keep their actual scheduler identity and decisions under §§9.2/10.1/11, with provider substitution not implying byte-identical production. Consistent with §11 bindings carrying scheduler {name,version} (spec:2890), and check_contract.py --self-check re-run reproduces the two distinct scheduler-identity hashes (PASS)."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1 (§10.1 Legacy compatibility, MUST #19): the obligation to 'independently establish' the base C ABI before a token-free legacy dispatch has no mechanism and no failure status, so two loaders may apply different bars to the same legacy-only library (the outcome - never calling a 0.8 signature as 0.9 - is pinned, so this is S1, not blocking). Add the sentence: 'A valid bennett.abi-features/1 manifest whose abi matches the selected role, a static link compiled against that role's 0.9 declarations, or a deployment record naming the provider build and its ABI family establishes the base C ABI; where none applies, the loader reports a synthesized BENNETT_E_VERSION before dispatch and makes no legacy call.' Name that status in §15 group 7.",
+    "S1 (§10.1 Query results / §10 and §11 C blocks): the text never states whether implementing bennett_launch_features/bennett_sched_features is itself mandatory for a provider claiming launch/0.9 or sched/0.9 conformance under this edition, and the declarations live only in §10.1 (verified: exactly one declaration each in the whole spec). State: 'A provider claiming launch/0.9 or sched/0.9 conformance under this edition MUST implement its role query (an empty features array pledges no extension); the missing-query rule covers libraries published before this clause.' Mirror bennett_launch_features into the §10 C block after bennett_estimate_run_with_token_aliases and bennett_sched_features into the §11 C block, with §10.1 retaining the semantics.",
+    "S1 (§10.1 Loader behavior and §15 groups 1/3): 'retain the unresolved request and its partition' and 'a diagnostic corresponding to BENNETT_E_VERSION' bind a loader whose own API surface the spec never names, so the retention MUST is not directly observable and re-negotiation frequency (per request vs cached per provider load) is ambiguous. Add: 'Negotiation results may be cached for the lifetime of one provider load and MUST be discarded at unload. In suites G/H the harness acts as the loader, returns bennett_status, and retention is observed by reissuing the byte-identical unresolved request against a conforming provider.' Also qualify the K91 ledger line 'Missing or inconsistent support gives a pre-request BENNETT_E_VERSION loader diagnostic' with 'a failed query instead propagates its original status (§10.1)' so ledger-only readers do not diverge."
+  ],
+  "verdict": "accept",
+  "path_to_accept": "Already accept; no change is required. To raise the lowest criteria (all 4) by one point, in order: (1) define base-C-ABI establishment and its BENNETT_E_VERSION failure for token-free legacy dispatch (suggestion 1, raises C8); (2) state the role query is mandatory for this edition's providers and mirror both declarations into the §10/§11 C blocks (suggestion 2, raises C5); (3) give loader retention/caching a harness-observable statement in §15 group 3 (suggestion 3, raises C6).",
+  "summary": "The K91 clause faithfully implements alternative A of the maintainer ruling: per-role feature queries with byte-exact bennett.abi-features/1 manifests, one shared token_aliases/1 with role-specific pledges, fail-before-request loader behaviour with no partition erasure or bound substitution, truthful VM advertisement, driver/runtime mixed-launch ownership under 4ht, and hash invariance correctly scoped to unchanged artifacts (sol P1 verified fixed in ec81d8b). I re-ran check_contract.py --self-check and ref_catalog.py --check (both PASS) and independently verified the manifest JCS bytes, the 21-MUST count, and that the §15 partition lists are exactly the canonical sets. No S0 issue, no narrowing, and no regression found; three S1 clarifications (legacy base-ABI establishment, query mandatory-or-not plus declaration placement, loader-side observables) are suggestions only.",
+  "verdict_core": "accept"
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k91-council/r1-muse.json

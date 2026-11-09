@@ -1,0 +1,49 @@
+{
+ "run": "isa-k91-2026-11-09",
+ "round": 1,
+ "doc": "/home/tobias/Projects/bennett-workspace/bennett-job-k85-council/.tmp/k91-council/packet-round-1.md",
+ "doc_sha256": "cac3d1fbd8f619b717256ebef477fa6253618b507166f258be1be7ef25ef9afe",
+ "prepared": "2026-11-09T09:03:32+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-09T09:11:54+00:00",
+   "exit": 0,
+   "seconds": 68,
+   "errors": [],
+   "updated": "2026-11-09T09:13:02+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-09T09:11:11+00:00",
+   "exit": 0,
+   "seconds": 111,
+   "errors": [],
+   "updated": "2026-11-09T09:13:02+00:00"
+  },
+  "muse": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-09T09:09:28+00:00",
+   "exit": 0,
+   "seconds": 214,
+   "errors": [],
+   "updated": "2026-11-09T09:13:02+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-isa.md",
+ "subject": "ISA 0.9 K91 token-alias ABI feature clause (b3ui alternative A), job/b3ui-k91 ec81d8b",
+ "context": [
+  "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-b3ui-k91/spec/Bennett-ISA-Spec-0.9.md",
+  "/home/tobias/Projects/bennett-workspace/bennett/docs/design/2026-11-08-loader-capability-negotiation.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": "docs/council/task-spec.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-b3ui-k91"
+}
