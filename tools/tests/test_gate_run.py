@@ -32,38 +32,47 @@ def load_tool():
     return module
 
 
-class ContentReceiptTests(RunnerFixture):
+class ContentReceiptFixture(RunnerFixture):
     def setUp(self):
         super().setUp()
         self.env["BENNETT_GATE_WORKSPACE"] = str(self.root)
         (self.repo / ".gitignore").write_text(".tmp/\n")
         (self.repo / ".tmp").mkdir()
         self.marker = self.repo / ".tmp/executed"
+        self.meta = self.root / "bennett"
+        (self.meta / "tools").mkdir(parents=True)
+        self.git("init", "-q", "-b", "main", cd=self.meta)
+        (self.meta / "tools/gate_run.py").write_bytes(TOOL.read_bytes())
+        self.git("add", "tools/gate_run.py", cd=self.meta)
+        self.git("commit", "-qm", "gate tool fixture", cd=self.meta)
+        self.tool_sha = self.git("rev-parse", "HEAD", cd=self.meta).strip()
 
-    def config(self, fail_once=False):
+    def config(self, fail_once=False, tool_sha=None):
         command = ("from pathlib import Path; "
                    f"p = Path({str(self.marker)!r}); "
                    "p.open('a').write('run\\n'); "
                    f"raise SystemExit({fail_once!r} and len(p.read_text().splitlines()) == 1)")
         (self.repo / "gate.toml").write_text(
-            'schema = 1\nrepo = "repo"\ntool_sha = "' + "1" * 40 + '"\n'
+            'schema = 1\nrepo = "repo"\ntool_sha = "' + (tool_sha or self.tool_sha) + '"\n'
             '\n[[check]]\nname = "marker"\n' +
             f'argv = {json.dumps([sys.executable, "-c", command])}\n')
         self.git("add", ".")
         self.git("commit", "-qm", "gate fixture")
         return self.git("rev-parse", "HEAD").strip()
 
-    def run_gate(self, sha, *options, repo=None, isolated=False):
+    def run_gate(self, sha, *options, repo=None, isolated=False, tool=TOOL):
         return subprocess.run(
-            [sys.executable, "-I", str(TOOL), "run", "--repo", str(repo or self.repo),
+            [sys.executable, "-I", str(tool), "run", "--repo", str(repo or self.repo),
              "--sha", sha, *([] if isolated else ["--no-isolate"]), *options],
             env=self.env, capture_output=True, text=True, timeout=CLI_HANG_GUARD_SECONDS)
 
-    def receipt_path(self, sha, isolated=False):
+    def receipt_path(self, sha, isolated=False, tool_sha=None):
         tree = self.git("rev-parse", f"{sha}^{{tree}}").strip()
-        key = hashlib.sha256(json.dumps([tree, "1" * 40, isolated], sort_keys=True).encode()).hexdigest()
+        key = hashlib.sha256(json.dumps([tree, tool_sha or self.tool_sha, isolated], sort_keys=True).encode()).hexdigest()
         return self.repo / ".tmp/gate/receipts" / f"{key}.json"
 
+
+class ContentReceiptTests(ContentReceiptFixture):
     def test_identical_tree_is_covered_across_worktrees_before_preparation(self):
         sha = self.config()
         job = self.root / "repo-job"
@@ -195,6 +204,173 @@ raise SystemExit(tool["main"]())
         self.assertNotIn("covered by receipt", result.stderr)
         self.assertEqual(self.marker.read_text(), "run\nrun\n")
         self.assertEqual(json.loads(path.read_text())["result"], "pass")
+
+
+class ToolIdentityTests(ContentReceiptFixture):
+    def assert_unverified(self, result, sha, executions):
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("PASS RECEIPTS DISABLED", result.stderr)
+        self.assertIn("tool identity", result.stderr)
+        self.assertNotIn("covered by receipt", result.stderr)
+        self.assertNotIn("an ancestor of the running None", result.stderr)
+        self.assertEqual(self.marker.read_text(), "run\n" * executions)
+        record = json.loads((self.repo / ".tmp/gate/records" / f"{sha}.json").read_text())
+        self.assertIsNone(record["tool_sha_ran"])
+        self.assertEqual(record["result"], "pass")
+        self.assertEqual([c["name"] for c in record["checks"]], ["marker"])
+
+    def test_nonexistent_tool_commit_never_publishes_or_reuses_pass(self):
+        missing = "1" * 40
+        sha = self.config(tool_sha=missing)
+        self.assertNotEqual(subprocess.run(
+            ["git", "-C", str(self.meta), "cat-file", "-e", f"{missing}^{{commit}}"],
+            env=self.env, capture_output=True, timeout=GIT_HANG_GUARD_SECONDS).returncode, 0)
+        path = self.receipt_path(sha, True, missing)
+        self.assert_unverified(self.run_gate(sha, isolated=True), sha, 1)
+        self.assertFalse(path.exists())
+        # An old unidentified run may already have populated this claimed key.
+        path.parent.mkdir(parents=True, exist_ok=True)
+        legacy = json.dumps(dict(key=path.stem, tree=self.git("rev-parse", f"{sha}^{{tree}}").strip(),
+                                 sha=sha, result="pass", finished_utc="2026-11-08T12:00:00Z"))
+        path.write_text(legacy)
+        self.assert_unverified(self.run_gate(sha, "--tool-sha", missing, isolated=True), sha, 2)
+        self.assertEqual(path.read_text(), legacy)
+        self.assert_unverified(self.run_gate(sha, "--fresh", isolated=True), sha, 3)
+        self.assertEqual(path.read_text(), legacy)
+
+    def test_mismatched_source_cannot_reuse_or_replace_verified_receipt(self):
+        sha = self.config()
+        self.assertEqual(self.run_gate(sha, "--tool-sha", self.tool_sha).returncode, 0)
+        path = self.receipt_path(sha)
+        verified = path.read_bytes()
+        modified = self.root / "experimental.py"
+        modified.write_bytes(TOOL.read_bytes() + b"\n# experimental copy\n")
+        for executions, options in enumerate(((), ("--tool-sha", self.tool_sha)), start=2):
+            with self.subTest(options=options):
+                result = self.run_gate(sha, *options, tool=modified)
+                self.assert_unverified(result, sha, executions)
+                self.assertIn("source", result.stderr)
+                self.assertEqual(path.read_bytes(), verified)
+        covered = self.run_gate(sha)
+        self.assertIn("covered by receipt", covered.stderr)
+        self.assertEqual(self.marker.read_text(), "run\n" * 3)
+
+    def test_existing_commit_without_tool_source_is_unverifiable(self):
+        self.git("rm", "tools/gate_run.py", cd=self.meta)
+        self.git("commit", "-qm", "no gate source", cd=self.meta)
+        pin = self.git("rev-parse", "HEAD", cd=self.meta).strip()
+        sha = self.config(tool_sha=pin)
+        self.assert_unverified(self.run_gate(sha), sha, 1)
+        self.assertFalse(self.receipt_path(sha, tool_sha=pin).exists())
+
+    def test_missing_meta_checkout_is_unverifiable(self):
+        sha = self.config()
+        self.meta.rename(self.root / "unavailable-meta")
+        self.assert_unverified(self.run_gate(sha), sha, 1)
+        self.assertFalse(self.receipt_path(sha).exists())
+
+    def test_unreadable_executing_source_is_unverifiable(self):
+        sha = self.config()
+        bootstrap = '''import runpy, sys
+path = sys.argv.pop(1)
+tool = runpy.run_path(path)
+tool["gate_one"].__globals__["__file__"] = path + ".missing"
+raise SystemExit(tool["main"]())
+'''
+        result = subprocess.run(
+            [sys.executable, "-I", "-c", bootstrap, str(TOOL), "run", "--repo", str(self.repo),
+             "--sha", sha, "--no-isolate"], env=self.env, capture_output=True, text=True,
+            timeout=CLI_HANG_GUARD_SECONDS)
+        self.assert_unverified(result, sha, 1)
+        self.assertFalse(self.receipt_path(sha).exists())
+
+    def test_unverified_tool_keeps_failed_checks_and_reports(self):
+        sha = self.config(fail_once=True, tool_sha="1" * 40)
+        with (self.repo / "gate.toml").open("a") as config:
+            config.write('\n[[report]]\nname = "evidence"\nargv = ["sh", "-c", "exit 9"]\n')
+        self.git("add", "gate.toml")
+        self.git("commit", "-qm", "report fixture")
+        sha = self.git("rev-parse", "HEAD").strip()
+        result = self.run_gate(sha)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn("PASS RECEIPTS DISABLED", result.stderr)
+        record = json.loads((self.repo / ".tmp/gate/records" / f"{sha}.json").read_text())
+        self.assertIsNone(record["tool_sha_ran"])
+        self.assertEqual(record["checks"][0]["exit"], 1)
+        self.assertEqual(record["reports"][0]["exit"], 9)
+        self.assertFalse(self.receipt_path(sha, tool_sha="1" * 40).exists())
+
+    def test_verified_distinct_tool_commits_keep_separate_receipts(self):
+        sha = self.config()
+        self.git("commit", "--allow-empty", "-qm", "new tool revision", cd=self.meta)
+        newer = self.git("rev-parse", "HEAD", cd=self.meta).strip()
+        for pin in (self.tool_sha, newer):
+            result = self.run_gate(sha, "--tool-sha", pin, isolated=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("covered by receipt", result.stderr)
+            path = self.receipt_path(sha, True, pin)
+            self.assertEqual(json.loads(path.read_text())["tool_sha_ran"], pin)
+        self.assertNotEqual(self.receipt_path(sha, True), self.receipt_path(sha, True, newer))
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+        self.assertIn("covered by receipt", self.run_gate(sha, "--tool-sha", newer, isolated=True).stderr)
+
+    def test_sibling_pin_changes_invalidate_verified_receipt(self):
+        sibling = self.root / "sibling"
+        sibling.mkdir()
+        self.git("init", "-q", "-b", "main", cd=sibling)
+        (sibling / "data").write_text("first\n")
+        self.git("add", "data", cd=sibling)
+        self.git("commit", "-qm", "first", cd=sibling)
+        first = self.git("rev-parse", "HEAD", cd=sibling).strip()
+        (sibling / "data").write_text("second\n")
+        self.git("commit", "-am", "second", cd=sibling)
+        second = self.git("rev-parse", "HEAD", cd=sibling).strip()
+        self.config()
+        config = self.repo / "gate.toml"
+        original = config.read_text()
+        paths = []
+        for pin in (first, second):
+            config.write_text(original + f'\n[siblings.sibling]\nsha = "{pin}"\n')
+            self.git("add", "gate.toml")
+            self.git("commit", "-qm", "sibling pin")
+            sha = self.git("rev-parse", "HEAD").strip()
+            result = self.run_gate(sha, isolated=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("covered by receipt", result.stderr)
+            paths.append(self.receipt_path(sha, True))
+            self.assertTrue(paths[-1].exists())
+        self.assertNotEqual(*paths)
+        self.assertEqual(self.marker.read_text(), "run\nrun\n")
+
+    def test_hook_extracted_tool_reuses_legacy_fixture_receipt_with_unchanged_key(self):
+        sha = self.config()
+        tree = self.git("rev-parse", f"{sha}^{{tree}}").strip()
+        # The original receipt contract: these exact JSON bytes were hashed.
+        legacy_key = hashlib.sha256(f'["{tree}", "{self.tool_sha}", true]'.encode()).hexdigest()
+        path = self.repo / ".tmp/gate/receipts" / f"{legacy_key}.json"
+        path.parent.mkdir(parents=True)
+        fixture = json.dumps(dict(key=legacy_key, tree=tree, sha=sha, result="pass",
+                                  tool_sha=self.tool_sha, tool_sha_ran=self.tool_sha, isolated=True,
+                                  finished_utc="2026-11-09T06:00:00Z",
+                                  checks=[dict(name="marker", exit=0, seconds=0.1)])) + "\n"
+        path.write_text(fixture)
+        hook = self.repo / "scripts/pre-push"
+        hook.parent.mkdir()
+        hook.write_bytes((TOOL.parent / "gate_pre-push.template").read_bytes())
+        hook.chmod(0o755)
+        result = subprocess.run([str(hook), "--sha", sha], env=self.env,
+                                stdin=subprocess.DEVNULL, capture_output=True, text=True,
+                                timeout=CLI_HANG_GUARD_SECONDS)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("PASS RECEIPTS DISABLED", result.stderr)
+        self.assertIn(f"covered by receipt {path}", result.stderr)
+        self.assertFalse(self.marker.exists())
+        self.assertEqual(path.read_text(), fixture)
+        extracted = self.repo / f".tmp/gate/tool/gate_run-{self.tool_sha}.py"
+        self.assertEqual(extracted.read_bytes(), TOOL.read_bytes())
+        record = json.loads((self.repo / ".tmp/gate/records" / f"{sha}.json").read_text())
+        self.assertEqual(record["covered_by"]["receipt"], str(path))
+        self.assertNotIn("checks", record)
 
 
 class ReceiptTests(unittest.TestCase):
@@ -510,16 +686,51 @@ raise SystemExit(tool.main())
                     self.assertGreaterEqual(receipt["checks"][0]["cpu_seconds"], 0)
 
     def test_expired_command_guard_keeps_exit_and_records_reaped_usage(self):
-        # Zero represents an already-expired guard; the child waits for a signal,
-        # not a timed sleep. The outer CLI guard bounds a broken cleanup path.
-        sha = self.config([[sys.executable, "-c", "import signal; signal.pause()"]],
-                          extra="timeout_s = 0\n")
-        result = self.run_gate(sha)
+        # Killing immediately after exec can legitimately yield zero CPU usage.
+        # Wait for independently sampled positive usage before applying the
+        # already-expired guard. No delay, and production wait/kill/reap is intact.
+        usage = self.workspace / "usage.json"
+        child = f'''import json, os, resource, signal
+from pathlib import Path
+data = bytearray(8 * 1024 * 1024)
+while True:
+    sum(i*i for i in range(10000))
+    r = resource.getrusage(resource.RUSAGE_SELF)
+    if r.ru_utime + r.ru_stime > 0:
+        break
+Path({str(usage)!r}).write_text(json.dumps(dict(cpu=r.ru_utime + r.ru_stime, rss=r.ru_maxrss)))
+with os.fdopen(int(os.environ["GATE_USAGE_READY_FD"]), "wb") as ready:
+    ready.write(b"ready")
+signal.pause()
+'''
+        bootstrap = '''import importlib.util, os, sys
+path = sys.argv.pop(1)
+spec = importlib.util.spec_from_file_location("gate_fixture", path)
+tool = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(tool)
+class ReadyProcess(tool.ResourceProcess):
+    def __init__(self, *args, **kwargs):
+        read_fd, write_fd = os.pipe()
+        with os.fdopen(read_fd, "rb") as ready:
+            try:
+                kwargs["env"] = dict(kwargs["env"], GATE_USAGE_READY_FD=str(write_fd))
+                super().__init__(*args, **kwargs, pass_fds=(write_fd,))
+            finally:
+                os.close(write_fd)
+            assert ready.read() == b"ready", "child did not publish its usage sample"
+tool.ResourceProcess = ReadyProcess
+raise SystemExit(tool.main())
+'''
+        sha = self.config([[sys.executable, "-c", child]], extra="timeout_s = 0\n")
+        result = self.run_gate(sha, bootstrap)
         self.assertEqual(result.returncode, 1, result.stderr)
         command = self.receipt(sha)["checks"][0]
+        independent = json.loads(usage.read_text())
         self.assertEqual(command["exit"], 124)
-        self.assertGreater(command["cpu_seconds"], 0)
-        self.assertGreater(command["peak_rss_kib"], 0)
+        self.assertGreater(independent["cpu"], 0)
+        self.assertGreater(independent["rss"], 0)
+        self.assertGreaterEqual(command["cpu_seconds"], independent["cpu"])
+        self.assertGreaterEqual(command["peak_rss_kib"], independent["rss"])
 
     def test_existing_lock_error_names_holder(self):
         tool = load_tool()

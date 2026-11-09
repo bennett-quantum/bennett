@@ -455,6 +455,23 @@ def resolve_shas(args, root):
     return list(dict.fromkeys(shas))
 
 
+def verified_tool_sha(workspace, claimed):
+    """Only a commit whose tool blob matches this source can name a PASS receipt."""
+    meta = Path(workspace) / "bennett"
+    try:
+        if not SHA.fullmatch(claimed):
+            raise GateError("tool identity must be a full 40-hex meta commit")
+        expected = git(meta, "rev-parse", "--verify", f"{claimed}^{{commit}}:tools/gate_run.py")
+        actual = git(meta, "hash-object", "--no-filters", "--", str(Path(__file__).resolve()))
+        if actual != expected:
+            raise GateError(f"executing source {__file__} has blob {actual}, expected {expected}")
+    except (GateError, OSError) as error:
+        say(f"PASS RECEIPTS DISABLED: cannot verify tool identity {claimed} in {meta}: {error}; "
+            "checks will run without reading or writing PASS receipts")
+        return None
+    return claimed
+
+
 def run_config(root, workspace, sha, args):
     """Resolve the pinned configuration and running tool before materialising anything."""
     cfg = load_config(root, sha)
@@ -467,7 +484,7 @@ def run_config(root, workspace, sha, args):
         if z.returncode != 0:
             raise GateError(f"{sha} pins tool_sha {cfg['tool_sha']}, not an ancestor of the running {tool_sha} in {meta}"
                             f" ({z.stderr.strip() or 'git exit ' + str(z.returncode)}): push from a HEAD with that pin or a newer one")
-    cfg["tool_sha_ran"] = tool_sha or cfg["tool_sha"]
+    cfg["tool_sha_ran"] = verified_tool_sha(workspace, tool_sha or cfg["tool_sha"])
     return cfg
 
 
@@ -475,7 +492,7 @@ def prepare(root, workspace, sha, args, live=False, cfg=None, prefix=None):
     """A clean detached worktree of sha with its siblings beside it. Returns everything a run needs."""
     if cfg is None:
         cfg = run_config(root, workspace, sha, args)
-    if cfg["tool_sha_ran"] != cfg["tool_sha"]:
+    if cfg["tool_sha_ran"] is not None and cfg["tool_sha_ran"] != cfg["tool_sha"]:
         say(f"{sha} pins tool_sha {cfg['tool_sha']}, an ancestor of the running {cfg['tool_sha_ran']}: running the newer tool")
     if prefix is None:
         prefix = [] if getattr(args, "no_isolate", False) or live else isolation_prefix(workspace, [root])
@@ -558,14 +575,18 @@ def gate_one(root, workspace, sha, args):
         cfg = run_config(root, workspace, sha, args)
         prefix = [] if getattr(args, "no_isolate", False) else isolation_prefix(workspace, [root])
         tree = git(root, "rev-parse", f"{sha}^{{tree}}")
-        key = hashlib.sha256(json.dumps([tree, cfg["tool_sha_ran"], bool(prefix)], sort_keys=True).encode()).hexdigest()
-        receipt_path = workspace / cfg["repo"] / ".tmp/gate/receipts" / f"{key}.json"
+        receipt_path = None
+        if cfg["tool_sha_ran"] is not None:
+            key = hashlib.sha256(json.dumps([tree, cfg["tool_sha_ran"], bool(prefix)], sort_keys=True).encode()).hexdigest()
+            receipt_path = workspace / cfg["repo"] / ".tmp/gate/receipts" / f"{key}.json"
         record = {"sha": sha, "repo": cfg["repo"], "tool_sha": cfg["tool_sha"],
                   "tool_sha_ran": cfg["tool_sha_ran"], "isolated": bool(prefix)}
         records = root / ".tmp/gate/records"
         records.mkdir(parents=True, exist_ok=True)
         record_path = records / f"{sha}.json"
-        if not getattr(args, "fresh", False):
+        if getattr(args, "fresh", False):
+            record["fresh"] = True
+        elif receipt_path is not None:
             receipt = read_pass_receipt(receipt_path, key, tree)
             if receipt is not None:
                 record.update(result="pass", finished_utc=receipt["finished_utc"],
@@ -574,8 +595,6 @@ def gate_one(root, workspace, sha, args):
                 say(f"PASS {sha} covered by receipt {receipt_path}: tree {tree[:12]} "
                     f"gated as {receipt['sha'][:12]} at {receipt['finished_utc']}")
                 return 0
-        else:
-            record["fresh"] = True
         machine = receipt_probe("machine", machine_profile)
         cfg, sibs, prefix, layout, wt, ctx, env = prepare(root, workspace, sha, args, cfg=cfg, prefix=prefix)
         setup_seconds = elapsed_seconds("setup_seconds", started)
@@ -601,7 +620,7 @@ def gate_one(root, workspace, sha, args):
             "finished_utc": receipt_probe("finished_utc", lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
         })
         record_path.write_text(json.dumps(record, indent=1) + "\n")
-        if passed:
+        if passed and receipt_path is not None:
             receipt_path.parent.mkdir(parents=True, exist_ok=True)
             pending = receipt_path.with_suffix(f".tmp{os.getpid()}")
             try:
