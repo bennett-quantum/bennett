@@ -304,49 +304,55 @@ def inspect_command(argv, root, cwd, source, inventory, ref=None):
     else:
         inventory.tool(name, source)
     base = Path(name).name
-    if base == "timeout":
-        index = next((i for i, arg in enumerate(args) if re.fullmatch(r"\d+(?:\.\d+)?[smhd]?", arg)), None)
-        if index is None:
-            raise ConfigError(f"{source}: cannot inventory timeout command without a duration")
-        inspect_command(args[index + 1:], root, cwd, source, inventory, ref)
-    elif base == "env":
-        index = 0
-        while index < len(args):
-            if args[index] in {"-u", "--unset"}:
-                index += 2
-            elif args[index] in {"-i", "--ignore-environment", "--"} or "=" in args[index]:
-                index += 1
-            else:
-                break
-        inspect_command(args[index:], root, cwd, source, inventory, ref)
-    elif base in {"sh", "bash"}:
-        shell_index = next((i for i, a in enumerate(args) if a.startswith("-") and "c" in a), None)
-        if shell_index is not None:
-            if shell_index + 1 >= len(args):
-                raise ConfigError(f"{source}: shell -c lacks command")
-            for command in shell_commands(args[shell_index + 1]):
-                inspect_command(command, root, cwd, source, inventory, ref)
-        elif args and not args[0].startswith("-"):
-            check_source(args[0], root, cwd, source, inventory, ref)
-    elif re.fullmatch(r"python(?:3(?:\.\d+)?)?", base):
-        if "-c" in args:
-            code = args[args.index("-c") + 1]
-            for node in ast.walk(ast.parse(code)):
-                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in {"run", "check_output", "check_call", "Popen"}:
-                    if node.args and isinstance(node.args[0], (ast.List, ast.Tuple)):
-                        values = node.args[0].elts
-                        if values and isinstance(values[0], ast.Constant) and isinstance(values[0].value, str):
-                            inspect_command([values[0].value], root, cwd, source, inventory, ref)
-        elif "-m" not in args:
-            script = next((a for a in args if not a.startswith("-")), None)
-            if script:
-                check_source(script, root, cwd, source, inventory, ref)
-        if "--gate-check" in args:
-            inspect_command(args[args.index("--gate-check") + 1:], root, cwd, source, inventory, ref)
-    elif base == "cargo":
-        inventory.tool("rustc", source)
-        if args and args[0] in {"fmt", "clippy"}:
-            inventory.tool("cargo-" + args[0], source)
+    match base:
+        case "timeout":
+            index = next((i for i, arg in enumerate(args) if re.fullmatch(r"\d+(?:\.\d+)?[smhd]?", arg)), None)
+            if index is None:
+                raise ConfigError(f"{source}: cannot inventory timeout command without a duration")
+            inspect_command(args[index + 1:], root, cwd, source, inventory, ref)
+        case "env":
+            index = 0
+            while index < len(args):
+                if args[index] in {"-u", "--unset"}:
+                    index += 2
+                elif args[index] in {"-i", "--ignore-environment", "--"} or "=" in args[index]:
+                    index += 1
+                else:
+                    break
+            inspect_command(args[index:], root, cwd, source, inventory, ref)
+        case "sh" | "bash":
+            shell_index = next((i for i, a in enumerate(args) if a.startswith("-") and "c" in a), None)
+            if shell_index is not None:
+                if shell_index + 1 >= len(args):
+                    raise ConfigError(f"{source}: shell -c lacks command")
+                for command in shell_commands(args[shell_index + 1]):
+                    inspect_command(command, root, cwd, source, inventory, ref)
+            elif args and not args[0].startswith("-"):
+                check_source(args[0], root, cwd, source, inventory, ref)
+        case python if re.fullmatch(r"python(?:3(?:\.\d+)?)?", python):
+            if "-c" in args:
+                index = args.index("-c") + 1
+                if index == len(args):
+                    raise ConfigError(f"{source}: Python -c lacks code")
+                for node in ast.walk(ast.parse(args[index])):
+                    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                        continue
+                    if node.func.attr not in {"run", "check_output", "check_call", "Popen"}:
+                        continue
+                    values = node.args[0].elts if node.args and isinstance(node.args[0], (ast.List, ast.Tuple)) else []
+                    if not values or not isinstance(values[0], ast.Constant) or not isinstance(values[0].value, str):
+                        raise ConfigError(f"{source}: dynamic subprocess cannot be inventoried")
+                    inspect_command([values[0].value], root, cwd, source, inventory, ref)
+            elif "-m" not in args:
+                script = next((a for a in args if not a.startswith("-")), None)
+                if script:
+                    check_source(script, root, cwd, source, inventory, ref)
+            if "--gate-check" in args:
+                inspect_command(args[args.index("--gate-check") + 1:], root, cwd, source, inventory, ref)
+        case "cargo":
+            inventory.tool("rustc", source)
+            if args and args[0] in {"fmt", "clippy"}:
+                inventory.tool("cargo-" + args[0], source)
     for i, arg in enumerate(args[:-1]):
         if arg == "--manifest-path":
             check_source(args[i + 1], root, cwd, source, inventory, ref)

@@ -320,3 +320,17 @@ class DoctorTests(unittest.TestCase):
         result = self.run_script()
         self.assertEqual(result.returncode, 1)
         self.assertIn("b" * 40, result.stdout)
+
+    def test_python_command_without_code_is_a_consolidated_gap(self):
+        self.config(command='["python3", "-c"]')
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("GAPS", result.stdout)
+        self.assertIn("lacks code", result.stdout)
+
+    def test_dynamic_python_subprocess_is_a_consolidated_gap(self):
+        self.config(command=json.dumps(["python3", "-c",
+                    "import os,subprocess; subprocess.run([os.environ['CC']])"]))
+        result = self.run_script()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("dynamic subprocess", result.stdout)
