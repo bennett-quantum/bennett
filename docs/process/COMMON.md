@@ -1,5 +1,11 @@
 # READ FIRST: live rulings that changed since the rulebook was consolidated (edited in place; newest first; each line dies
 # when its precondition does; the next shift deletes dead lines). Everything in advisor-notes.md and shift files is history.
+- 2026-11-09 17:13Z VELOCITY DIAL (maintainer: "we now have codex quota, you can go a bit over pace. I want some more velocity";
+  "the whole point of a modular design is precisely that we can work in parallel"). The day's pace dial lives in the current
+  shift file's Quota section and overrides rule 10's default. Today: VELOCITY = up to FOUR Codex implementer children alive
+  at once, each in a different repo or on disjoint owned path sets named in both briefs (rule 3 holds; one Analysis.cpp
+  writer still), reviews and councils on top; Codex may run ahead of linear pace; stop launching only when Codex weekly
+  used exceeds three times the pace line. Idle CPU while disjoint ready work exists is a defect to report, not a state.
 - 2026-11-09 SINGLE SEAT. The laptop is retired; Spiral (64 threads, 62 GB) is the only machine and the only orchestrator
   seat. Every "laptop keeps X", lane split, relay ("wait for the relayed line"), hand-over hold and two-seat ownership
   line is void. All repos and paths belong to this seat's children under rule 3.
@@ -160,9 +166,12 @@ requires deleting or merging one in the same edit.
    (commit cadence, slot windows) are exempt by name. [precondition: shared loaded machine, three documented false reds;
    per repo, the lint from the R42 sweep enforces this once landed]
 10. QUOTA IS WEATHER, NOT LAW. Read `quota` before each launch wave and log the reading in the shift file; launch while
-    the relevant provider is behind linear weekly pace. At or ahead of pace: launch nothing new except one named
-    rung-critical child (logged as an exception), let running jobs stop after their current bead, and tell the advisor,
-    who decides resumption. No quota state, cap, stream count or vendor preference is ever written into this rulebook,
+    the relevant provider is behind linear weekly pace, UNLESS the maintainer has set the day's dial in the shift file's
+    Quota section (velocity: a stated concurrent-child cap and a stated quota ceiling; both expire with the day). Under
+    the default dial, at or ahead of pace: launch nothing new except one named rung-critical child (logged as an
+    exception), let running jobs stop after their current bead, and tell the advisor, who decides resumption. Under any
+    dial, disjoint ready work (different repos, or disjoint owned path sets per rule 3) runs concurrently up to the cap:
+    the modular design exists so that work is parallel; a seat running one child while disjoint work is ready reports why. No quota state, cap, stream count or vendor preference is ever written into this rulebook,
     a brief or a memory as a standing fact (maintainer 2026-11-08: "a daily changing phenomenon, never a project ruling
     for all time"). [precondition: none; this is the procedure for reading weather, not a reading]
 
