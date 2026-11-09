@@ -94,7 +94,7 @@ Do this in each repo's MAIN checkout (not a worktree). Repos with beads: all 12 
 - [ ] Gate-isolation failure: a red gate whose error names an absolute or `../sibling` path means a test reads a live tree. Fix the pin or the test; do not bypass.
 
 ## 7. Working rules (one screen)
-Read before touching anything: each repo's `CLAUDE.md`; `bennett/docs/Bennett-NorthStar.md`; `bennett/docs/decisions/2026-11-02-code-quality-policy.md`; and the orchestrator briefs `COMMON.md` and `T3CHILD.md`. Those two are currently untracked at `bennett/.tmp/orchestrator/briefs/COMMON.md` and `T3CHILD.md`; they are being moved into the repo as `bennett/docs/process/COMMON.md` and `T3CHILD.md` (use the new location once it exists).
+Read before touching anything: each repo's `CLAUDE.md`; `bennett/docs/Bennett-NorthStar.md`; `bennett/docs/decisions/2026-11-02-code-quality-policy.md`; and the tracked rulebooks [COMMON.md](process/COMMON.md) and [T3CHILD.md](process/T3CHILD.md). `scripts/doctor.sh` checks that every process document linked here is present as a file.
 - [ ] One writer per path set. Parallel writers only on disjoint owned paths named in both briefs. Never `git add -A` at repo level, never `git stash`, `reset`, `checkout --`, rebase or force-push.
 - [ ] Red-green TDD: write the test, watch it fail, make it pass, refactor. Fail fast and loud; no silent fallbacks. "Runs without errors" is not a pass; verify against the conformance suite for the versions in `SPEC_VERSIONS.toml`.
 - [ ] Repos couple only through the published specs (ISA, dialect). Never share code across a contract boundary.

@@ -459,6 +459,19 @@ def check_infrastructure(inventory):
 
 def collect(args):
     inventory = Inventory()
+    onboarding = META / "docs/onboarding.md"
+    try:
+        documents = re.findall(r"\[[^\]]+\]\((process/[^)#]+\.md)\)", onboarding.read_text())
+        if not documents:
+            raise ConfigError("no process documents linked from onboarding")
+        for relative in dict.fromkeys(documents):
+            path = onboarding.parent / relative
+            if not path.is_file():
+                inventory.gap(str(path), f"missing process document required by {onboarding}")
+            else:
+                inventory.path(path, str(onboarding))
+    except (OSError, ValueError) as error:
+        inventory.gap(str(onboarding), str(error))
     check_infrastructure(inventory)
     try:
         manifest = tomllib.loads(args.manifest.read_text())
