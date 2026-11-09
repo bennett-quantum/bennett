@@ -54,6 +54,13 @@ this SHA's record with `covered_by` and no `checks`. Failed or interrupted runs 
 invalid receipts are reported and ignored. `run --fresh` (also `scripts/pre-push --fresh` through the stub) forces
 a full run, records `fresh: true`, and replaces the receipt on PASS. Machine, time and load are evidence, not key inputs.
 
+Before reading or publishing a PASS receipt, the tool verifies that its own source file has exactly the Git blob
+of `tools/gate_run.py` at the claimed full meta commit in `<workspace>/bennett`. The claim is `--tool-sha` when
+provided, otherwise the candidate's `gate.toml` pin. This also verifies the hook's extracted tool; verified runs keep
+the existing key and can reuse existing receipts. A missing commit/source, unreadable source or byte mismatch emits
+`PASS RECEIPTS DISABLED` with the reason on stderr. Checks and reports still execute with their usual exit behavior,
+the run record has `tool_sha_ran: null`, and no PASS receipt is read or written (including with `--fresh`).
+
 ### Receipt measurements
 
 Each entry in `checks` and `reports` retains `name`, `exit` and the compatible rounded `seconds` field, and adds:
