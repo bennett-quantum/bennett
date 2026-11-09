@@ -686,16 +686,51 @@ raise SystemExit(tool.main())
                     self.assertGreaterEqual(receipt["checks"][0]["cpu_seconds"], 0)
 
     def test_expired_command_guard_keeps_exit_and_records_reaped_usage(self):
-        # Zero represents an already-expired guard; the child waits for a signal,
-        # not a timed sleep. The outer CLI guard bounds a broken cleanup path.
-        sha = self.config([[sys.executable, "-c", "import signal; signal.pause()"]],
-                          extra="timeout_s = 0\n")
-        result = self.run_gate(sha)
+        # Killing immediately after exec can legitimately yield zero CPU usage.
+        # Wait for independently sampled positive usage before applying the
+        # already-expired guard. No delay, and production wait/kill/reap is intact.
+        usage = self.workspace / "usage.json"
+        child = f'''import json, os, resource, signal
+from pathlib import Path
+data = bytearray(8 * 1024 * 1024)
+while True:
+    sum(i*i for i in range(10000))
+    r = resource.getrusage(resource.RUSAGE_SELF)
+    if r.ru_utime + r.ru_stime > 0:
+        break
+Path({str(usage)!r}).write_text(json.dumps(dict(cpu=r.ru_utime + r.ru_stime, rss=r.ru_maxrss)))
+with os.fdopen(int(os.environ["GATE_USAGE_READY_FD"]), "wb") as ready:
+    ready.write(b"ready")
+signal.pause()
+'''
+        bootstrap = '''import importlib.util, os, sys
+path = sys.argv.pop(1)
+spec = importlib.util.spec_from_file_location("gate_fixture", path)
+tool = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(tool)
+class ReadyProcess(tool.ResourceProcess):
+    def __init__(self, *args, **kwargs):
+        read_fd, write_fd = os.pipe()
+        with os.fdopen(read_fd, "rb") as ready:
+            try:
+                kwargs["env"] = dict(kwargs["env"], GATE_USAGE_READY_FD=str(write_fd))
+                super().__init__(*args, **kwargs, pass_fds=(write_fd,))
+            finally:
+                os.close(write_fd)
+            assert ready.read() == b"ready", "child did not publish its usage sample"
+tool.ResourceProcess = ReadyProcess
+raise SystemExit(tool.main())
+'''
+        sha = self.config([[sys.executable, "-c", child]], extra="timeout_s = 0\n")
+        result = self.run_gate(sha, bootstrap)
         self.assertEqual(result.returncode, 1, result.stderr)
         command = self.receipt(sha)["checks"][0]
+        independent = json.loads(usage.read_text())
         self.assertEqual(command["exit"], 124)
-        self.assertGreater(command["cpu_seconds"], 0)
-        self.assertGreater(command["peak_rss_kib"], 0)
+        self.assertGreater(independent["cpu"], 0)
+        self.assertGreater(independent["rss"], 0)
+        self.assertGreaterEqual(command["cpu_seconds"], independent["cpu"])
+        self.assertGreaterEqual(command["peak_rss_kib"], independent["rss"])
 
     def test_existing_lock_error_names_holder(self):
         tool = load_tool()
