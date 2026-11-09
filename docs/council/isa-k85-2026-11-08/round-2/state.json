@@ -1,0 +1,48 @@
+{
+ "run": "isa-k85-2026-11-08",
+ "round": 2,
+ "doc": ".tmp/k85-council-r2/packet-round-2.md",
+ "doc_sha256": "654176a5040dcde2ce416e4f9027c458d3d6189ebe85a144ebe63657884382d5",
+ "prepared": "2026-11-08T13:21:13+00:00",
+ "members": {
+  "sol": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-09T08:51:59+00:00",
+   "exit": 0,
+   "seconds": 172,
+   "errors": [],
+   "updated": "2026-11-09T08:54:51+00:00"
+  },
+  "codex": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-09T08:49:42+00:00",
+   "exit": 0,
+   "seconds": 310,
+   "errors": [],
+   "updated": "2026-11-09T08:54:51+00:00"
+  },
+  "muse": {
+   "status": "done",
+   "attempts": 1,
+   "started": "2026-11-09T08:52:37+00:00",
+   "exit": 0,
+   "seconds": 135,
+   "errors": [],
+   "updated": "2026-11-09T08:54:51+00:00"
+  }
+ },
+ "rubric": "docs/council/rubric-impl.md",
+ "subject": "ISA 0.9 K85 fixed-image claims after round-1 fixes (job/isa-k85-land 58a1378)",
+ "context": [
+  "../bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md"
+ ],
+ "member_list": [
+  "sol",
+  "codex",
+  "muse"
+ ],
+ "task": ".tmp/k85-council-r2/task.md",
+ "cwd": "/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-isa-k85-land"
+}

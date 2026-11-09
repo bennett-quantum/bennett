@@ -1,0 +1,155 @@
+exit 0 in 310s
+--stdout--
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "score": 4,
+      "evidence": "certificate.rs::domain_for/table09 now use admission_borrow_lifetimes; ghost entries and width mismatches reject, and omitted complete tuples admit. All five committed council regressions failed against archived a0b49a0 and pass at 58a1378. The expected-program compatibility boundary still admits incompatible borrow interfaces and rejects compatible different-bound implementations (K85-CODEX-R2-01/02).",
+      "change": "In claims/replay09.rs::replay09, replace whole-signature equality with a K73 correspondence check, including independently resolved ordered borrow lifetimes, while permitting differing source bounds; add the two blocker regression families to tests/isa09_claim_replay.rs."
+    },
+    {
+      "id": "C2",
+      "score": 5,
+      "evidence": "No identity implementation or published vector changed in a0b49a0..58a1378. Independently assembled the nine LF-terminated ISA0.9 inc8 envelope lines; Python hashlib gives ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e, matching Object::identity and §16.3. The fixed-image identity-invariance test passes.",
+      "change": "No identity change is required for this patch; retain tests/isa09_fixed_image.rs::certificate_image_metadata_never_changes_executable_identities and the independent envelope/hash fixture when adding the K73 tests."
+    },
+    {
+      "id": "C3",
+      "score": 4,
+      "evidence": "The §14.1 engines are unchanged. Hand-derived inc8(255) has payload 0, code 0, steps 3 at B=3; at B=2 it has payload 0, code 1, steps 2. A freshly linked probe matches both. The focused typed-oracle claim test retains explicit arguments, budget, target/fault XORs and region preservation.",
+      "change": "In tests/isa09_claim_replay.rs, add an explicitly hand-derived tight-budget oracle/program correspondence case whose expected body has a different implementation but the same K73 interface; require both public checker APIs to compare the complete tuples."
+    },
+    {
+      "id": "C4",
+      "score": 4,
+      "evidence": "Traced machine.rs::inverse_step/inverse_call/inverse_ret against §§3.6–3.7: pc exchanges and successor clearing precede the row inverse; C5 counters restore before C3 stack addressing and C1 argument clearing; R5 restores callee fp before R4 delivery. The recursive call/ret complete-pre-step regression passes. No step-machine code changed.",
+      "change": "Retain tests/step_machine.rs::recursive_call_and_ret_each_invert_the_complete_pre_step_tuple as the focused reversal guard; any future replay adaptation must keep its full-snapshot and clean-frame assertions."
+    },
+    {
+      "id": "C5",
+      "score": 4,
+      "evidence": "Traced the nested f→g clock.read call/ret/uncall example through classical.rs::undo_frame/undo_record and §7.4: inner reversal restores clock/tape/memory and removes dynamic instances; outer reversal skips already-reversed frames and uncall markers. tests/classical.rs::nested_uncall_and_effects_are_reversed_exactly_once passes. No classical execution code changed.",
+      "change": "No classical-tier repair is indicated by this patch; preserve the nested call/ret and single-undo assertions in tests/classical.rs while extending certificate tests."
+    },
+    {
+      "id": "C6",
+      "score": 4,
+      "evidence": "borrow.rs adds only the read-only checked_borrow_lifetimes accessor (+88/-0). Ordered repeated/transitive/adjoint lifetimes and zero-trip/qif allocation cases pass. Independent [1,2] lifetime omission gives Evidence{elements:2}, unrestricted D=16, coverage=1/8. Exact dirty/external-reference and global-phase tests pass. However the expected program is executed with the subject inventory without independently checking compatibility.",
+      "change": "Resolve and compare both programs’ ordered checked lifetime requirements in claims/replay09.rs before execute_element_bound; reject [1] versus [] and [2] versus [1], preserve matching-inventory omission and transitive/adjoint positives, and retain unchecked reporting for unavailable inventories."
+    },
+    {
+      "id": "C7",
+      "score": 4,
+      "evidence": "Ran 24 focused tests (13 fixed-image, 2 inventory, 9 replay), plus 2 reversal tests: all pass. Re-ran the final council_ tests against archived a0b49a0 production code: exactly 5 intended failures. generate.py --check reports 60 independently derived artifacts checked; it computes tuple/coverage expectations arithmetically and uses the CLI only for executable identities. New probes expose missing cross-program compatibility coverage.",
+      "change": "Commit fail-first K73 negative tests for mismatched borrowed inventories and a positive test for different loop bounds, asserting verify_claim and verify_certificate plus exact coverage; promote the private claim-order/component-order and two-omitted-lifetime probes into the focused suite."
+    },
+    {
+      "id": "C8",
+      "score": 4,
+      "evidence": "The K75 wrapper returns Unverified with §12.2, unchecked (host limit), the failed count, and coverage=None, preserving later reports. Reversing claim and exhaustive component order preserves those outcomes. SPEC-QUESTIONS §34 records the common-label reading and the unchecked exemption. Scheduled/numerical/channel and preparation/native work remain explicitly staged, not silently certified.",
+      "change": "Update SPEC-QUESTIONS.md §21 to label its old flat-tuple/equal-signature reading explicitly ISA0.8-only and point ISA0.9 readers to K13/K73/K85 and the new correspondence tests; retain §34’s distinction between successful requested labels and unchecked outcomes."
+    }
+  ],
+  "blocking": [
+    {
+      "id": "K85-CODEX-R2-01",
+      "section": "ISA0.9 §12.1 K73 Expected-program correspondence; reference-interpreter/src/claims/replay09.rs::replay09 (lines 502–513, 554–561), claims.rs::execute_element_bound (lines 649–670)",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "Expected-program compatibility requires the same ordered borrowed-bundle widths/classes as the subject, and each borrowed bundle is initialized and compared by its checked lifetime position. Equality of ordinary function signatures is insufficient.",
+          "by": "clause:ISA0.9 §12.1 Expected-program correspondence (K73), \"classical parameter types and ordered borrowed-bundle widths/classes as the subject\"; clause:§12.1 Table tuples, \"widths fixed by the checked borrow lifetimes\""
+        },
+        {
+          "n": "2",
+          "claim": "replay09 only compares p.signature() with f.signature(), then passes the same subject Invocation, including borrowed_widths, to execute_element_bound for the expected program. Function signatures contain no checked borrowed-lifetime list, and execute_element_bound trusts that context instead of resolving the expected program.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-isa-k85-land/reference-interpreter/src/claims/replay09.rs:509; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-isa-k85-land/reference-interpreter/src/claims/replay09.rs:554; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-isa-k85-land/reference-interpreter/src/claims.rs:649"
+        },
+        {
+          "n": "3",
+          "claim": "Two linked perm_actions each expose only mut t:wire, with no args/memory/bounds. Subject a is d=qborrow any 1; qreturn d. Expected b is x t; x t. The claim is exhaustive, t and the one-bit subject borrow both full, expected.program=closure(b), invocation args=[], budget=[\"0\",\"0\",\"0\",\"0\"]. Parse and check_hashes succeed. The actual checked inventories are [1] and []; both public APIs nevertheless return Proof, n=4, D=4, coverage=1/1. A second input with a borrowing width 2 and b borrowing width 1 likewise returns Proof, n=D=8.",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/missing-expected-lifetime.bisa; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/wider-expected-lifetime.bisa; witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/target-codex CARGO_BIN_EXE_bennett-isa-ref=/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/target-codex/debug/bennett-isa-ref cargo run --offline -j4 --manifest-path /home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/probe/Cargo.toml; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/probe-results.txt"
+        },
+        {
+          "n": "4",
+          "claim": "These successful proofs certify program relations whose checked borrow interfaces violate K73. The new subject inventory fixes the prior producer-domain defects but is not checked against the other independently executed closure.",
+          "by": "step:1; step:2; step:3"
+        }
+      ],
+      "problem": "S0: incompatible expected programs receive successful full-domain proofs. The subject’s lifetime list is silently imposed on the expected program, so extra unused caller pool wires hide absent or differently sized expected lifetimes.",
+      "fix": "In claims/replay09.rs::replay09, resolve the expected closure’s ordered checked borrow inventory independently and validate it alongside the subject before enumeration/replay. Apply §12.1 K73’s \"ordered borrowed-bundle widths/classes as the subject\" requirement; compare count, order and widths, and preserve required class correspondence rather than assuming context equality establishes it. Pass a separately validated expected invocation to execute_element_bound (or explicitly prove both descriptors equal first). Missing linked inventories must remain unchecked; host limits must retain K75 treatment. Add tests/isa09_claim_replay.rs cases from missing-expected-lifetime.bisa and wider-expected-lifetime.bisa: at args=[] and budget=[0,0,0,0], both APIs must reject with a K73 correspondence diagnostic, never Proof/Evidence. Add positives with two separate closures having matching [1,2] inventories and omitted borrowed ranges: both APIs must still return Evidence{elements:2}, D=16, fraction=1/8. No spec amendment is needed."
+    },
+    {
+      "id": "K85-CODEX-R2-02",
+      "section": "ISA0.9 §12.1 K73 Expected-program correspondence; reference-interpreter/src/claims/replay09.rs::replay09:509",
+      "scope": "core",
+      "kind": "implementation",
+      "steps": [
+        {
+          "n": "1",
+          "claim": "K73 defines compatibility by ordered interface roles, bundle widths/classes, region shapes/classes/roles, classical parameter types and ordered borrowed widths/classes. The compared programs independently run their own reference semantics. Equality of their source-loop bounds is not an additional interface requirement.",
+          "by": "clause:ISA0.9 §12.1 Expected-program correspondence (K73); clause:§12.1 Comparison relation, \"independently runs the reference semantics of linked closure H\"; clause:§4.6 qloop, \"body n times\""
+        },
+        {
+          "n": "2",
+          "claim": "Construct two linked perm_actions with the identical single mut t:wire interface, no arguments, regions or borrowing: a has bounds [2] and body qloop 2 { x t }, b has bounds [] and body x t; x t. Each independently denotes identity on both t=0 and t=1. An exhaustive program claim over full t therefore has n=D=2 and must return Proof with coverage 1/1 at args=[], budget=[0,0,0,0].",
+          "by": "witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/different-bounds.bisa; clause:§4.4 X matrix and §4.6 qloop semantics"
+        },
+        {
+          "n": "3",
+          "claim": "The object parses and check_hashes succeeds, but verify_claim and verify_certificate both return Diagnostic(\"§12.1 K13: expected program has an incompatible signature\"). replay09 compares entire Function::signature values, which include source bounds [2] versus [].",
+          "by": "witness:env -u DISPLAY -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u BROWSER TMPDIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex CARGO_TARGET_DIR=/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/target-codex CARGO_BIN_EXE_bennett-isa-ref=/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/target-codex/debug/bennett-isa-ref cargo run --offline -j4 --manifest-path /home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/probe/Cargo.toml; witness:/home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/tmp-codex/probe-results.txt; witness:/home/tobias/Projects/bennett-workspace/bennett-isa-spec-job-isa-k85-land/reference-interpreter/src/claims/replay09.rs:509"
+        },
+        {
+          "n": "4",
+          "claim": "The checker rejects a legal equivalent-program proof solely because the implementations use different loop syntax. This narrows the K73 program relation; it is not a host limit, table-order issue, unresolved definition or differing quantum interface.",
+          "by": "step:1; step:2; step:3"
+        }
+      ],
+      "problem": "S0: whole-signature equality incorrectly treats implementation-specific loop bounds as a required expected-program interface match, rejecting legal claims.",
+      "fix": "Replace the p.signature()!=f.signature() check in claims/replay09.rs::replay09 with an explicit K73 compatibility predicate over the listed interface properties, including the independently checked borrow requirements from K85-CODEX-R2-01. Keep each program’s own validated bounds for its execution and identity; do not require equal bounds and do not rewrite either body. §12.1 K73 requires the \"same ordered interface roles, bundle widths/classes, region shapes/classes/roles, classical parameter types and ordered borrowed-bundle widths/classes\". Add different-bounds.bisa as a tests/isa09_claim_replay.rs positive regression: qloop 2 { x t } versus x t; x t, full one-bit t, empty borrowed/regions, args=[], budget=[0,0,0,0]; both APIs must return Proof, elements=2, full_domain_elements=\"2\", covered_fraction=\"1/1\". Retain negative tests for actual interface-width/role mismatches. No spec change is needed."
+    }
+  ],
+  "previous_status": [
+    {
+      "id": "SOL-K85-R1-B01",
+      "status": "resolved",
+      "note": "Ghost and width-two witnesses reject at admission; checked source lifetimes now supply subject widths, tuple shape and coverage. Both exact regression tests fail on a0b49a0 and pass on 58a1378."
+    },
+    {
+      "id": "SOL-K85-R1-B02",
+      "status": "resolved",
+      "note": "Both omitted-borrow program and complete-table forms succeed with Evidence{elements:128}, D=16777216 and 1/131072; requested proof/image-relative labels reject. Both regressions fail on a0b49a0 and pass on 58a1378."
+    },
+    {
+      "id": "SOL-K85-R1-B03",
+      "status": "resolved",
+      "note": "Huge sampled claim yields per-claim unchecked (host limit), no coverage, and the later claim survives with ProofRelativeToImage and 64/4194304=1/65536. The committed test fails on a0b49a0 and passes on 58a1378."
+    },
+    {
+      "id": "K85-CODEX-01",
+      "status": "resolved",
+      "note": "All original subject-domain admission and omission witnesses are fixed; the read-only accessor is the sole ISA0.9 subject-inventory source. New K73 cross-program findings are distinct from those repaired witnesses."
+    },
+    {
+      "id": "K85-CODEX-02",
+      "status": "resolved",
+      "note": "The shared replay boundary converts HostResource into the required unchecked verdict for both APIs; proof requests remain unchecked and coverage absent. Claim-order reversal confirms continuation is independent of array position."
+    }
+  ],
+  "regressions": [],
+  "suggestions": [
+    "S1: In tests/isa09_fixed_image.rs, retain a two-claim order matrix with the huge sampled claim before and after a valid exhaustive program relation, and reverse the latter’s declared bundle order. The private four-case matrix passed: the huge claim stays unchecked without coverage and the valid claim stays ProofRelativeToImage with 64/4194304 coverage, with indices following the current array.",
+    "S1: In SPEC-QUESTIONS.md §21, distinguish the frozen ISA0.8 flat-tuple/equal-signature reading from ISA0.9 K13/K73; link to the typed-tuple and expected-program compatibility tests so future changes do not restore whole-signature equality."
+  ],
+  "verdict": "revise",
+  "verdict_core": "revise",
+  "path_to_accept": "Implement one explicit K73 correspondence predicate that independently checks both borrow inventories and excludes source bounds from interface compatibility; use it before either program replay. Commit the mismatched-inventory negative and different-bounds positive regressions through both public APIs. Preserve the passing round-1 witness, legal omission, fixed-image, phase/reference and host-limit/order tests. These two implementation blockers are the minimal remaining changes identified here; the disclosed conditional numerical/preparation/native work is still staged and must not be advertised as completed.",
+  "summary": "Reviewed the frozen 58a13780c821bb72a2a29f37b7dbc0acd68e9038 K85 repair and its supplied packet/spec. All five prior blocking IDs are resolved on their exact witnesses. Fresh verification: cargo test --offline -j4 --manifest-path reference-interpreter/Cargo.toml --test isa09_fixed_image --test isa09_borrow_inventory --test isa09_claim_replay -- --test-threads=4 passed 24 tests. Copied the committed final isa09_fixed_image.rs into a private git-archive snapshot of a0b49a0, preserving its production sources; its council_ filter failed all five intended tests (baseline-red.txt). Additional focused recursive step-machine and nested classical uncall tests each passed. The generator --check with the freshly built private CLI checked 60 artifacts. Method (1): independently derived inc8(255) at B=3 -> (payload0,code0,steps3), B=2 -> (0,1,2), and its exact LF-terminated semantic envelope; hashlib independently reproduces ed9865300b85a519c2379de98e36e635e72b5b78d8bdfca03dccf9a09aa3df5e. Also derived controlled-dirty omission: 7 varied bits, 24 unrestricted bits, 128/16777216=1/131072. Method (2): traced C5^-1..C1^-1 and R5^-1..R1^-1 with restored stack addresses, plus the g clock.read call/ret and nested f uncall history; code order and focused reversal tests agree. Method (3): read the 34 SPEC-QUESTIONS entries against their cited rules, distinguishing historical 0.8 readings and staged APIs; §34 is a defensible recorded label reading, and §21 needs an explicit 0.8 qualification. Method (4): scanned source for the rubric markers; checker-path unwrap/unreachable sites are guarded by schema/variant checks, remaining observed categories are test assertions, internal representation invariants, explicit unsupported-version errors and approximate amplitude display (not proof). No reproduced new panic or silent fallback was found; this is not a claim of exhaustive fault-injection coverage of every inherited source path. Method (5): compared instruction/fault, tuple/domain/report and frame fields with the corresponding engine/schema/CLI dispatch surfaces; the new concrete discrepancy is K73 expected-program correspondence. No new CLI replay/report capability is claimed; staged schedule/numerical/preparation/native obligations were not mistaken for completed implementations. Verified borrow.rs is +88/-0 and subject inventory consumers no longer derive ISA0.9 lifetime count/widths from domain.borrowed. Additional legal [1,2] omitted-lifetime case gives Evidence2, D16, fraction1/8. Reversed independent claim arrays and exhaustive component enumeration order in all four combinations; outcomes and coverage are invariant modulo claim index. Nevertheless independent programs with [1] versus [] and [2] versus [1] borrow inventories falsely receive Proof, while identical quantum interfaces with bounds [2] versus [] falsely reject. Both are reproducible core S0 implementation findings, not spec gaps. No regression from a previously correct case was established; no full repository gate was run and no tracked file was edited."
+}
+
+--stderr--
+collected externally from /home/tobias/Projects/bennett-workspace/bennett/.tmp/orchestrator/k85-council/r2-codex.json
