@@ -1,6 +1,6 @@
 # HANDOFF — Bennett ecosystem
 
-Current-state checkpoint: 2026-11-09. Recheck live Beads and local shift state before resuming work.
+Current-state checkpoint: 2026-11-09 end of day (Spiral shift 5). Recheck live Beads and the shift file before resuming work.
 
 Bennett aims to compile unmodified LLVM-language programs into classical, reversible and coherent
 quantum execution, including Grover search over SQLite. The plugin infers the required execution tier;
@@ -54,9 +54,9 @@ Evidence lives in `bennett-conformance/ladder/rung-N/RESULTS.md`, associated rep
 
 | Rung | Demo | Verified recorded status |
 |---|---|---|
-| 1 | Scalar C, Rust, Julia | Full-domain acceptance remains blocked in committed evidence: `bp-75y`, `bp-xb8`, `bp-zeg`; input-only diagnostic passes do not establish full D. |
+| 1 | Scalar C, Rust, Julia | Blocked in committed evidence: `bp-75y` (C native comparison; plugin fix on `job/75y`, consumer `bennett-conformance-fki`), `bp-xb8`, `bp-zeg`. main-health re-runs it on pushed mains; input-only diagnostic passes do not establish full D. |
 | 2 | Pointers, structs, byte memory | Recorded COMPLETE on 2026-11-01: hashtable forward equals native, then byte-exact reversal, both executors and LLVM majors. See that run's frozen pins. |
-| 3 | musl hello-world | Acceptance outstanding (`bennett-conformance-7bx`); formatted-musl production, native agreement, reset and strict replay remain unmeasured in the latest committed results. |
+| 3 | musl hello-world | Acceptance outstanding (`bennett-conformance-7bx`). Latest run (conformance `84f8ecb`, pushed mains, arith `5e9b450` = the plugin's pinned arith): 21 PASS / 3 FAIL / 20 BLOCKED per LLVM major. Driver now accepts 0.3-r1/ISA 0.9; remaining stops are plugin `bennett-plugin-7qi` (G1-to-native-symbol association), `bennett-driver-s59` (R argv/envp storage, a plugin gap) and `bp-owg` (printf analysis budget). |
 | 4 | Grover over unmodified SQLite | Acceptance outstanding (`bennett-conformance-tmb`). The November 8 main-snapshot run failed on arithmetic publication/pin compatibility; estimator schema and checker CLI diagnostics also failed. |
 | 5 | Julia shim runtime | Acceptance requirement only; rung directory contains a README, no executable gate/results. |
 | 6 | xv6, then Linux | Acceptance requirement only; rung directory contains a README, no executable gate/results. |
@@ -67,36 +67,26 @@ Rung 4 still requires all three North Star clauses: exhaustive oracle checks thr
 Grover simulation through N ≤ 2^8, and a budgeted, padded estimate at N = 2^20. Reduced controls,
 measured-basis diagnostics and a small fixture estimate cannot satisfy those clauses.
 
-## Open critical path
+## Open critical path (lanes; order binds within a lane only)
 
-- **SQLite analysis:** the `job/s2-gai-fix` / `job/s2-9cy` stack remains outside main. Resolve
-  `bennett-plugin-4zi` (TOP/mask provenance), `bennett-plugin-ge7` (sound external-state premises)
-  and `bennett-plugin-9cy` (ICmp monotonicity). Fixpoint evidence must agree under original,
-  reversed-function and reversed-basic-block order. Remaining work includes `bp-6rz` and SQLite
-  vector/fixpoint umbrellas `bp-1bb` / `bp-fj1`; counters/production landings did not close them.
-- **ISA checker contracts and consumers:** K85 `b-isa-spec-qrc` is unfinished; its repaired candidate
-  is on `job/isa-k85-land`, awaiting the resumed council disposition and landing. K86
-  `b-isa-spec-0ib` is partial. K89 `b-isa-spec-t9l` blocks the scheduler's parked
-  `job/sched-vt8` reader/adoption work. Track the remaining K85–K92 work in ISA Beads.
-- **K91 and coherent function pointers:** `b-isa-spec-b3ui` and `bennett-0vi` remain open. The
-  accepted direction is explicit per-role `token_aliases/1` negotiation inside ISA 0.9 K91, plus
-  explicit coherent dialect 0.3 acceptance and pin migration. Identity/ABI fixtures and executed
-  unreachable-site evidence are required; classical R-profile acceptance is insufficient.
-- **musl/native comparison:** `brt-yz5` remains open in runtimes. The parked varargs repair
-  needs a spec-first re-land using each LLVM major's own layout, before further printf promotion.
-- **Rung-4 checking and cost:** `bennett-conformance-51d` covers the real fixed-image verdict and
-  gate/checker CLI mismatch; `bennett-estimate-b8o` still needs the full SQLite ISA launch. Report
-  padded cost using an ideal quantum circuit with ideal logical qubits, implementing the standard
-  quantum circuit model; report the illustrative superconducting target's capacity shortfall
-  separately. Target publication and estimator/ladder re-pins must agree.
-- **VM:** `bennett-vm-o7n` remains open for launch/estimate ABI correctness; do not advertise alias
-  support before it works. Slice 4 (`bennett-vm-4pj`, prepared commits) and slice 5
-  (`bennett-vm-p7f`, interval locks), then the dense engine (`bennett-vm-bjm`), remain unfinished.
-- **Evidence and infrastructure:** `bennett-wa1` tracks the outstanding independent review of
-  strict-order landings; `bennett-b78` tracks machine-derived parallelism. Remaining hang-guard
-  sweeps and consumer gaps stay in each repo's Beads; `bennett-cbj` tracks an intermittent receipt
-  CPU-accounting test failure. Recompute proof extensions remain open as
-  `bennett-estimate-e9a.1`. Keep the future mixed native/device boundary reachable (`bennett-4ht`).
+- **Plugin (rung 3 and rung 4 bottleneck):** `job/j3l` (full-SQLite PT6 round-0 blow-up; several measured causes fixed, the
+  four full cells not yet accepted; memory peaked ~48 GB per cell) -> review -> land; then `bennett-plugin-ot5` (split
+  `Analysis.cpp` so writers stop serialising), `bennett-plugin-eph` (arith pin), `bp-owg`, later `bp-1bb` slices. In parallel on
+  disjoint files: `job/75y` (comparison layout, review round 2) -> `bennett-plugin-7qi` (G1 association) -> s59 -> `bp-xb8`/`bp-zeg`.
+- **ISA spec:** local main carries the 0.9 C headers (356, council-accepted) awaiting a re-run gate; `job/isa-0cb` (mixed-launch
+  transport; council + one scoped round) and `job/isa-k86` (K86-K92 reference checks; council) await disposition. Then the
+  text batch `bennett-sched-r28` (P0, K25 classical pseudo-locations) and `bennett-estimate-bph.6/.7`.
+- **Conformance:** `job/conf-51d` (51d + 3jt checker fixes; council), then `bennett-conformance-fki`, `-ugg`; rung 3 re-runs after
+  each plugin/driver landing.
+- **Circuits:** export-qasm redesign (doc landed, `bennett-circuits-8xv`); stage 1 on `job/exporter-s1` blocked by the legacy
+  oracle panic `bennett-circuits-fc8` (repair job paused).
+- **Driver:** `job/buq` holds a loud-failure test only; resumes after plugin 7qi.
+- **VM:** dense engine (`bennett-vm-bjm`) lives only on old `wip/*bjm-dense` branches; decide land-or-park before `d2j`/`5vj`;
+  `bennett-vm-o7n` now unblocked by the 0.9 headers once pushed.
+- **Arith:** `bennett-arith-gdg` (release check on shipped bytes) on `job/gdg`.
+- **Meta tools:** `job/9iy` (main-health concurrency + one shared same-repo gate lock), then `bennett-0v2` (class tables for 11
+  repos) before re-arming main-health on the new code; `bennett-pow` (per-worktree gate cache). Disk filled to 100% once on
+  2026-11-09: prune rebuildable `.tmp/*target*` caches of landed job worktrees.
 
 ## Orchestration and durable state
 
@@ -106,10 +96,15 @@ repo's `CLAUDE.md` / `AGENTS.md`, then the local rulebook
 `bennett/docs/process/COMMON.md` including its READ FIRST block. Children also read
 `bennett/docs/process/T3CHILD.md`. COMMON is the rulebook; historical advisor/shift notes are evidence.
 
+Current process (2026-11-09): pace is a spend rate, never a child count (COMMON rule 10); the day's dial (implementer cap,
+ceiling, expiry) lives in the shift file's Quota section and expires with the shift; reviews and councils never count toward
+it. A rule that blocks ready work is written as a BLOCKED-BY-RULE line and resolved by the advisor the same shift
+(COMMON "Rule conflict repair"). Admission (rule 5) reserves each running job's expected peak memory, not its current RSS.
+
 Live issue state is `bd` in each repo's **main checkout**, not an old JSONL export. Use `bd ready`,
 `bd show <id>` and `bd note`/`bd create`; the orchestrator exports Beads when landing. Current local
-operations are in `bennett/.tmp/orchestrator/spiral-2.md` (Running, Decisions, Landed); earlier
-handoffs are in `spiral-1.md` and `shift-16.md`. A child's resume point is its assigned
+operations are in `bennett/.tmp/orchestrator/spiral-5.md` (HANDOFF first page, Decisions, Landed); earlier
+shifts are `spiral-1.md` to `spiral-4.md`. A child's resume point is its assigned
 `.tmp/<job>/PROGRESS.md` plus git history. Recheck these changing records instead of reviving an old queue.
 
 All `bennett-quantum/*` repos are public. Keep transcripts, logs, memory, orchestrator records and
