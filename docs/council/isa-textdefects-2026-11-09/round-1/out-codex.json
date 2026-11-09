@@ -1,0 +1,84 @@
+{
+ "criteria": [
+  {
+   "id": "C1",
+   "score": 5,
+   "evidence": "The additions preserve the existing full-D machine contract while making native realisations and conditional image claims explicit. Sections 8.3 and 12.3 distinguish an unavailable check from an illegal source program; neither host matrix limits nor missing preparation mechanics narrow the North Star's algorithm domains.",
+   "change": "No blocking change. Retain the explicit rule that unchecked models and unestablished applicability discharge no obligation without shrinking source legality."
+  },
+  {
+   "id": "C2",
+   "score": 5,
+   "evidence": "Section 8.3 retains a phase-bearing U, checks Kraus/instrument/environment equality on all matrix units, and separately checks unitarity and native accuracy. Section 12.3 uses reduced inputs with complete outputs and proves actual realised-prefix preparation. The exact arithmetic checks reproduce the duplicated-Kraus case, mixing counterexample, controlled phase, rectangular Frobenius/Choi examples, and 9/25 preparation leakage.",
+   "change": "No semantic repair required. When publishing executable vectors, retain the explicit negative case U=[[3/5,4/5],[4/5,-3/5]]: conditional identity/restoration may pass, but ideal zero-then-X preparation must not confer applicability."
+  },
+  {
+   "id": "C3",
+   "score": 5,
+   "evidence": "Occurrence and Allocation reuse the public expansion, invocation, fixed-binding, iteration, step/phase and lifetime model rather than introducing execution-private identities. Complete scheduled context coverage includes disabled coherent calls; the bounded VM and specialiser continue to implement the same construction.",
+   "change": "No capability change required. Keep the allocation-lifetime distinction and retained forward identities explicit in any future compact representation."
+  },
+  {
+   "id": "C4",
+   "score": 4,
+   "evidence": "The new model, process-domain, preparation and launch-manifest productions specify fields, types, array orders and hash bindings. K91 token partitions are preserved through concrete Invocation records. Mixed-object scope selects each device root and leaves native main/libc outside its certificate; the exact remaining transport/ownership work is named as bennett-4ht rather than invented here.",
+   "change": "Add one fully bound JCS example connecting a target, schedule, conditional claim, attachment and ImageLaunch manifest, publishing all computed hashes. State that its launch provider must independently perform and associate the copy; the example's bytes alone do not establish runtime applicability."
+  },
+  {
+   "id": "C5",
+   "score": 5,
+   "evidence": "The patch imposes no new LLVM, source-language or whole-binary lowering restriction. Fixed database/snapshot bytes can enter through logical preparation or checked launch copy, preserving the mixed native/device path needed by North Star rungs 4 and 7. Nonunitary native admission remains the pre-existing K86 policy; CC measurement is unchanged.",
+   "change": "No change required to this scoped contract. Preserve the named mixed-launch boundary obligations when implementing image transport."
+  },
+  {
+   "id": "C6",
+   "score": 4,
+   "evidence": "All 31 added MUSTs identify an enforcing role and an observable result in the fourteen new conformance groups. The publication self-check detects all twelve corruptions, mathematical witnesses pass, and the revised address probes pass while both baseline probes fail with COLLISION. These are publication/arithmetic/encoding checks, not decoder or executable-applicability verification.",
+   "change": "Under 0ib/qrc, turn the fourteen conformance groups into portable positive and negative decoder/checker vectors, including unsupported-versus-malformed outcomes, off-diagonal units, actual scheduled preparation and stale runtime associations. Require assertions on outcomes and bindings, not only successful parsing."
+  },
+  {
+   "id": "C7",
+   "score": 5,
+   "evidence": "The additions make no new prior-art or novelty claim. They preserve the existing distinction between phase-sensitive unitary comparison and induced-channel comparison, and apply the already specified SDP to the explicitly rectangular input/output dimensions.",
+   "change": "No landscape expansion is needed for these text-defect closures; retain the existing attribution and norm conventions."
+  },
+  {
+   "id": "C8",
+   "score": 4,
+   "evidence": "Both determining sentences are answered at contract level, including representation/environment treatment, explicit controls, optional certificates, image inputs and separate preparation/restoration/reuse. One editorial ambiguity remains: Occurrence.point says 'including nested-body components', although the existing source-point convention is a block ordinal counting nested instructions; the private probe uses a different illustrative spelling.",
+   "change": "In section 12.3 replace that phrase with: 'point is <block>:<ordinal>, with ordinal counting nested instruction lines in text order as in section 9.2, or a permitted section 11 reserved pseudo-point.' Add a qloop example whose loop is entry:0 and first body instruction is entry:1, with repetition distinguished by iteration."
+  }
+ ],
+ "blocking": [],
+ "previous_status": [
+  {
+   "id": "SOL-TEXT-01",
+   "status": "resolved",
+   "note": "The closed records now carry terminal symbol, iteration, instance, generated ordinal and conditional step/phase; K83 adds the forward allocation address. The revised probes distinguish instances, symbols and steps/phases; their baseline invocation reproduces the old collision."
+  },
+  {
+   "id": "SOL-TEXT-02",
+   "status": "resolved",
+   "note": "Section 12.3 compares complete resolved image bindings after mem-slot ordering without rewriting replay claims. The published [aux,db] fixture agrees with canonical [db,aux] attachments, matching claims/images09.rs's BTreeMap resolution."
+  },
+  {
+   "id": "F1",
+   "status": "resolved",
+   "note": "The occurrence/allocation repair also addresses the astra qloop and K83 support collisions: two loop visits and six support leaves encode distinctly. The probe's illustrative nested point spelling still merits the nonblocking clarification below; it does not establish decoder coverage."
+  },
+  {
+   "id": "F2",
+   "status": "resolved",
+   "note": "Executable applicability now requires the actual scheduled root prefix and all intervening operations to establish exact entry image/factorisation. The rational-X witness retains 9/25 leakage despite conditional identity/restoration; positive-epsilon realisations that exactly prepare the image remain eligible."
+  }
+ ],
+ "regressions": [],
+ "suggestions": [
+  "Section 12.3 Occurrence.point: replace 'including nested-body components' with the explicit existing block/flattened-ordinal convention from section 9.2, and publish entry:0 for a qloop followed by entry:1 for its first body instruction, with iteration [0] versus [1]. reference-interpreter/src/source_constructor/action.rs:566 recursively increments one block cursor; the private astra_probe.py instead constructs entry:0/body:0 without resolving it. This is nonblocking because the existing normative ordinal convention supplies the reading, but the probe must not be presented as an address-resolver test.",
+  "Sections 8.3, 12.3 and 15: publish at least one complete canonical model/target and one fully bound process-domain/preparation/ImageLaunch example with actual SHA-256 values, then add executable round trips under 0ib/qrc. Include a nested/imported subject to distinguish source interface hashes from closure bindings, two ordered images, an unsupported version, a malformed known version, and a stale preparation/handle association. Keep independent arithmetic witnesses separate from decoder and runtime evidence."
+ ],
+ "verdict": "accept",
+ "verdict_core": "accept",
+ "path_to_accept": "No S0 change is required. To raise the lowest-scoring criteria, first clarify the existing point spelling with the concrete qloop example, then publish a fully bound canonical target/domain/attachment/manifest vector and exercise its decoder and applicability outcomes under 0ib/qrc. The outstanding mixed-launch ABI remains the explicitly identified bennett-4ht work, not a hidden assumption of this patch.",
+ "summary": "ACCEPT for the scoped text-defect closures at b08940d2b6fa04e7322befe2e8f98b91a1055caf, base 695cb4b; core ACCEPT, no blocking findings. The full background snapshot equals the candidate spec. u94 now has closed native representations, matrix/expression constructors, control selection, operand mapping and independently checked optional certificates. rqn now encodes process images and preparation/restoration evidence without promoting conditional theorems to executable acceptance. K85 producer replay order and K91 token identity bindings are preserved; no North Star capability is narrowed. Re-ran python3 -I -B .tmp/isa-textdefects/check_contract.py --self-check (31 MUSTs, 12 corruptions, 14 groups PASS), python3 -I -B .tmp/isa-textdefects/check_witnesses.py (PASS), the fix-round check_revision.py, sol_probe.py and astra_probe.py via runpy (PASS), both probes with --baseline (expected exit 1, COLLISION), and python3 -I -B conformance/tools/ref_catalog.py --check (219 recipes, unchanged 5de4e4995350313e50217880ba1b95de39cd043283b726337d4894efb005d197). git diff --check and tracked-clean checks pass; interpreter, conformance and the published 0.8-to-0.9 diff are unchanged against 695cb4b. No full gate was run. Required interpreter follow-through remains explicit: 0ib must decode/reconstruct every native form and independently check unitarity, reduced maps, phase/accuracy and certificates; qrc must extend metadata_schema numerical/channel payloads and certificate bindings, use a process-domain validator separate from replay's mandatory regions, resolve public occurrence/lifetime addresses, reconstruct complete scheduled maps and preparation prefixes, implement rigorous rectangular numerical/SDP checks, prove exact restoration, validate runtime launch-copy association, and include all context/token/image bindings in applicability, composition and caches. Existing unavailable interval/target checks remain Unverified; metadata or manifest hashes alone must never upgrade them. The coordinate clarification and portable full-byte vectors are suggestions, not additional semantic blockers."
+}

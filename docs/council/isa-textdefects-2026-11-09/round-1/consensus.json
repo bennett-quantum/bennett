@@ -1,0 +1,70 @@
+{
+ "agree": false,
+ "core_agree": true,
+ "verdicts": {
+  "sol": "revise",
+  "codex": "accept",
+  "muse": "accept"
+ },
+ "core_verdicts": {
+  "sol": "accept",
+  "codex": "accept",
+  "muse": "accept"
+ },
+ "blocking": {
+  "sol": [
+   {
+    "id": "SOL-TEXT-C01",
+    "section": "\u00a78.3 Closed native-model/1 productions, arity/basis/operand_map rules (candidate lines 2213\u20132244); consistency with \u00a7\u00a73.3 and 11.1",
+    "scope": "contract",
+    "kind": "implementation",
+    "steps": [
+     {
+      "n": "1",
+      "claim": "An effective control may be the same physical wire as an instruction's own control, provided it is distinct from the target. Thus qpred p; cx p t; qunpred p is legal for distinct p,t.",
+      "by": "clause:\u00a711.1 Typed binding: \"A control may coincide with a gate's explicit control, but never with a target\"; clause:\u00a73.3 Disjointness."
+     },
+     {
+      "n": "2",
+      "claim": "For that operation, \u00a78.1 gives k=1 and c=2. The new controlled_U complete order is [p,p,t], while the distinct physical operand order has only [p,t]. The identity-derived index map is [0,0,1], which is not a permutation.",
+      "by": "clause:\u00a78.1 variable-binding table, c=k+effective control count; witness:\u00a78.3 \"For controlled_U the complete model order is the entry's own controls, then effective controls, then the listed base basis.\" Reproduce with python3 -I -B -c 'w=[\"p\",\"p\",\"t\"]; a=list(dict.fromkeys(w)); m=[a.index(x) for x in w]; print(a,m); assert len(set(m))<len(m)' (prints ['p', 't'] [0, 0, 1])."
+     },
+     {
+      "n": "3",
+      "claim": "Neither encoding alternative supplies a legal physical binding: the reader must reject a non-permutation operand_map; entry_to_allocation must denote that same permutation. Explicit form also mandates arity c+target_count, hence three logical bits instead of the two physical bits here. Silently introducing an independent second p changes the input space.",
+      "by": "clause:\u00a78.3 \"The model reader MUST reject any arity/basis disagreement or non-permutation operand_map\"; clause:explicit arity/basis and generated entry_to_allocation requirements."
+     },
+     {
+      "n": "4",
+      "claim": "The reference permutation adapter implements the legal operation by unioning and deduplicating own and effective controls. Its physical truth table is (p,t)->(p,t XOR p), not an operation on a new independent control input.",
+      "by": "witness:conformance/src/ref_language.rs, permutation(), X-family branch: extend controls by l.wires[..l.wires.len()-1], sort, dedup, then append the target. The four (p,t,p_out,t_out) tuples are (0,0,0,0),(0,1,0,1),(1,0,1,1),(1,1,1,0)."
+     },
+     {
+      "n": "5",
+      "claim": "Consequently u94 is not closed for every already-admitted control context: a literal compliant decoder rejects the correct identity binding, while a decoder that repairs it must invent an unstated alias/subspace rule. This is a contract inconsistency affecting a finite legal controlled operation, not a host-size limit or a request to implement the staged checker now. (orchestrator normalisation of the by field, wording moved here: step:1 permits the operation; step:2 derives its repeated identity; step:3 rules out both published binding forms; step:4 establishes the existing executable semantics that must be preserved.)",
+      "by": "step:1; step:2; step:3; step:4"
+     }
+    ],
+    "problem": "The new closed native-model rules assume the own-controls-plus-effective-controls list contains distinct wires. The ISA explicitly permits overlap between those two sets. The production therefore cannot bind a model for qpred p; cx p t; qunpred p even though that is a legal controlled operation. This is especially consequential for a positive-epsilon native entry, where omitting the model cannot discharge independent verification. The pre-existing K86 prose also assumes a permutation; completing its bytes must resolve this inherited inconsistency rather than codifying rejection. No core/source illegality should be introduced to make the map bijective.",
+    "fix": "In \u00a78.3 replace the unconditional permutation-only binding with an explicit alias-aware rule. Recommended wording: \"The complete entry list may repeat an identity only when an own control and an effective control denote the same wire. Number distinct physical operands in allocation order. operand_map lists each entry position's physical position and may repeat a control position; it covers every distinct physical operand, and target positions remain distinct from all controls. Define the equality isometry E on computational-basis states by E|b> = |b[operand_map[0]],...,b[operand_map[n-1]]>. For the complete model matrix M require M E = E U_phys, where U_phys=E\u2020 M E, and independently establish U_phys\u2020U_phys=I. A map leaking out of this equality subspace rejects. Native phase/epsilon and invocation-interface comparisons use U_phys on distinct physical operands. Apply the same embedding consistently to representation checks; entry_to_allocation generates this identity-derived map. When all identities are distinct, this is the existing row/column permutation. k and c retain their published target-matching/expression meanings.\" Amend the non-permutation rejection accordingly. An alternative is a separately encoded distinct-control count/order used consistently by arity, Basis, Control and matrix constructors, while retaining matching k/c; the equality-isometry approach keeps the present matrix shapes and matching values. Add a normative example with k=1,c=2, operand_map [0,0,1], base U=X and physical U_phys=diag(I2,X), giving (0,0)->(0,0), (0,1)->(0,1), (1,0)->(1,1), (1,1)->(1,0). Check the same case with a conformant positive advertised epsilon and with explicit control data. Implement the chosen binding in the native-model reader; do not change the reference adapter's existing deduplication semantics."
+   }
+  ],
+  "codex": [],
+  "muse": []
+ },
+ "means": {
+  "C1": 4.33,
+  "C2": 4.0,
+  "C3": 4.67,
+  "C4": 4.0,
+  "C5": 4.33,
+  "C6": 4.0,
+  "C7": 4.67,
+  "C8": 4.0
+ },
+ "members": [
+  "sol",
+  "codex",
+  "muse"
+ ]
+}
