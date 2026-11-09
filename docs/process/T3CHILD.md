@@ -8,7 +8,10 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
   work and at every green checkpoint: `git -C <worktree> add -- <paths>; git -C <worktree> commit -m "<what>" -- <paths>`
   (message ends with `Agent: gpt-6.1-sol`), then `git -C <worktree> push --no-verify -q origin HEAD:refs/heads/wip/<name>`.
   Never commit to or push main; never `git stash`, `reset`, `checkout --`, rebase, force-push anything but wip/<name>,
-  never `git add -A` at the repo level. The orchestrator merges job/<name> into main after review.
+  never `git add -A` at the repo level. The orchestrator merges job/<name> into main after review. One merge IS allowed when
+  your brief names it: `git merge <main sha>` of the repo's main INTO your job branch to resolve conflicts, as a plain merge
+  commit with every conflicted file listed in PROGRESS.md; the shared lines get the review at landing (COMMON rule 3).
+  (Bent twice on 2026-11-09 before it was written down; now it is the rule.)
 - Beads: run `bd` from the repo's MAIN checkout (`cd <repo main checkout> && bd ...`), for findings and closures
   (`bd close <id> --reason "<what, verified by which command>"`). Do NOT commit .beads/issues.jsonl on your branch; the
   orchestrator exports beads at merge. Cross-repo bead requests: .tmp/<name>/cross-repo-beads.md in your worktree.

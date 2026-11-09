@@ -132,6 +132,10 @@ requires deleting or merging one in the same edit.
    round; at most one nit bead per review. After round 2: merge with P2 beads or revert the offending commit.
    Councils (sol + astra + Muse; blocking findings + <= 3 suggestions per seat) only for the reference interpreter,
    checker verdicts, certificates and published contracts; elsewhere one advisory round whose findings become beads.
+   Landings that need no review child, by name: a pin bump (gate.toml sibling or tool sha), a beads export, and a test or
+   fixture addition whose red-on-base/green-on-head quotes are in PROGRESS.md; the orchestrator reads the diff and records
+   "orchestrator-read" with the sha in the shift Landed table. Anything touching product source or a gate's checks gets the
+   review child. (Four orchestrator-read landings on 2026-11-09 made this a bent rule; this names the class.)
    Gate-tightening changes: sol only. Prototypes land after one round with gaps as P2 beads, unimplemented mechanics
    failing loud. Old unreviewed main commits ride the next review of that repo. Any claim that an analysis reaches a
    least fixpoint carries an order-independence receipt: identical abstract values under original, function-reversed
