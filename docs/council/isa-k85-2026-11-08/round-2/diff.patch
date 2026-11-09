@@ -1,0 +1,2046 @@
+--- round-1/doc.md
++++ round-2/doc.md
+@@ -1,1038 +1,1062 @@
+-# K85 candidate packet: bennett-isa-spec job/isa-k85 62a0cf0..a0b49a0 (commits 4a6d20c, 6e0a3ce, a0b49a0)
+-
+-Implements ISA 0.9 K85 (§12.2 fixed-image claims) in the reference interpreter and publishes K85 conformance vectors (bead b-isa-spec-qrc). The implementer ended JOB-BLOCKED: conditional numerical/channel checking (J_I-restricted maps) and executable preparation/native bindings are NOT implemented (text-defect bead bennett-isa-spec-rqn: payloads have no conditional domain; §12.3 has no preparation-witness encoding). Grade what exists for fidelity; grade whether every unimplemented part fails loud (unverified/unestablished, never a silent pass) and is truthfully declared.
+-
+-## Implementer PROGRESS.md (verbatim)
+-
+-# Resume
+-
+-Done: read brief, COMMON.md, T3CHILD.md, CLAUDE.md, AGENTS.md, HANDOFF.md and Beads skill in full. Branch job/isa-k85 is at 62a0cf0; only owned paths will change. Old origin/wip/sol-isa-k85 is the published-text change 57151aa, not a prior implementation. Its .tmp notes are absent here.
+-
+-Ownership update (orchestrator 2026-11-08T11:37Z): SET B only; another writer owns validation.rs, action.rs, source_constructor/action.rs, borrow.rs, isa09_mcx_bundles.rs and all K93 vector paths. main.rs, cli_mem_file.rs and other K vector paths remain excluded. Do not change those paths. Current 4a6d20c changes comply. .tmp/isa-k85 remains the private progress/receipt area.
+-
+-Baseline inventory (ISA 0.9 K85, quoted normative clauses):
+-
+-| Clause | Existing behaviour at 62a0cf0 | Gap |
+-| --- | --- | --- |
+-| 4355–4361: “name resolves ... to an in-role interface region”; “Each resolved fixed region occurs exactly once” | claims/images09.rs:47–80 resolves shapes, roles, duplicates and ranged overlap | Dedicated portable shape/role/duplicate vectors and tests |
+-| 4363–4370: “Cell i consists of bits [iW,(i+1)W)”; “hashes independently” | claims/images09.rs:81–149 checks byte length, lowercase, padding, raw SHA256; unpacks cells | Non-byte packing, swapped/stale/hex-text vectors |
+-| 4372–4383: “exactly one outcome, in this order”; “Successful sampled claims always receive evidence” | claims/replay09.rs:475–503 classifies replay and enforces two requested labels | Full outcome/request matrix, omitted varying components, complete-sampling vectors; label enforcement bypasses structural/inverse-pair results |
+-| 4385–4393: “Coverage remains exact n/\|D\|”; “ordered resolved ... bindings” | claims/replay09.rs:24–81 computes exact coverage; images09.rs uses signature-order BTreeMap | mem slot identities not explicit; scheduled contexts remain staged |
+-| 4397–4405: “requires checked preparation/binding”; “Without that preparation evidence ... does not discharge the invocation” | claims.rs:43–44 documents conditional theorem only | No preparation encoding/checker/applicability report |
+-| 4407–4413: “cannot discharge an unrestricted borrow-frame, inverse-pair”; “exact +1 ... full-tuple ... external-reference” | claims.rs:957–975 requires Proof for borrow frames; pairs09.rs:164 rejects fixed images; replay09.rs executes complete tuples with exact phase/clean workspace | Controlled/dirty/phase/reference portable vectors |
+-| 4416–4417: “signature order using mem slot identities”; “Fixed regions do not add an enumeration component” | images09.rs orders resolved group/slot; replay09.rs:197–217 appends singleton fixed cells to enumerated components | Separate fixed-cell population from enumeration and expose mem slot id |
+-| 4080–4089: “apply ... to (U−V)J_I”; “reduced input dimension and complete output dimension” | claims.rs:869–872 returns staged Unverified for every numerical/channel claim | Entire rigorous interval and target/schedule executor absent; closed schema has no conditional domain |
+-| 4505–4521: “selected ... transitive device closures”; “corresponding materialized marked entry” | No native manifest/comparison executor | Outside interpreter source execution; record contract/API prerequisites, do not claim implementation |
+-
+-Done: 30 portable object vectors (including both independent 64-row 0102/0201 relations), 28 suite-D admission cases, a separate exact restricted-map vector, an independent conformance reader and seven reference integration tests. Centralised successful-label checking, removed fixed cells from enumeration and added explicit mem:N binding identities. Public source/interface/closure/object identities stay unchanged between image certificates. Existing closed 0.9 grammar already supported images; added explicit 0.8/0.9 closed-schema tests instead of widening it.
+-
+-Verified (private run.py adds headless env, private TMPDIR/target, four build jobs and hang guard; receipts carry exact argv/wall/CPU):
+-- baseline-build: cargo build --offline --manifest-path reference-interpreter/Cargo.toml, exit 0.
+-- red-baseline: cargo test --offline --manifest-path .tmp/isa-k85/tmp/baseline/reference-interpreter/Cargo.toml --test isa09_fixed_image -- --test-threads=4, exit 101: five pass, one intended structural requested-label failure. Archive is exact 62a0cf0 plus new tests/vectors.
+-- red-enumeration: same baseline crate with --lib fixed_cells_never_become_enumeration_components, exit 101: expected 3 enumeration components, found 5.
+-- green-reference: cargo test --offline --manifest-path reference-interpreter/Cargo.toml --test isa09_fixed_image --test isa09_claim_replay --test isa09_certificate --lib -- --test-threads=4, exit 0 (all passing).
+-- green-final-fixed: final generated-vector manifest, seven tests pass, exit 0.
+-- green-conformance: cargo test --offline --manifest-path conformance/Cargo.toml --test ref_k85 --test case_data -- --test-threads=4, six pass, exit 0.
+-- Both cargo fmt invocations and git diff --check pass. No scripts/quality.py exists or is invoked by gate.toml.
+-
+-Open: b-isa-spec-qrc remains IN_PROGRESS and now depends on text-defect bennett-isa-spec-rqn. The published numerical/channel payloads (spec lines 3839–3840) have no conditional domain and §12.3 has no checked preparation witness encoding, despite lines 4080–4089 and 4397–4405 requiring them. Existing staged rigorous interval/realised-schedule checks remain Unverified. Native selected transitive-closure manifest/comparison and executable image preparation are not implemented. The independent Z/I map vector is not an executable certificate. No main.rs change is required for the public Rust checker APIs used here; CLI check remains admission-only and no CLI report/replay is claimed. No full gate will run (orchestrator owns it).
+-
+-Commits 4a6d20c (interpreter and portable vectors), 6e0a3ce (phase-sensitive independent map case), and a0b49a0 (private-target/pinned witness helper) are backed up to origin wip/isa-k85. The later commits change only conformance tests/map data/generator/docs; reference source and its included object vectors stayed unchanged after the full reference run began. Full reference crate run passed: 728 passed, six existing ignores, exit 0; 338.49s wall, 523.92s CPU, 1590976KiB peak RSS (full-reference.log/.receipt). Verified at 6e0a3ce: both crates pass cargo fmt -- --check and cargo clippy --offline --manifest-path <crate>/Cargo.toml --lib --bins -- -D warnings (clippy-reference/conformance receipts). Final CLI rebuilt, its SHA256 is conformance-binary.sha256. Generator --check passes (final-vectors-check receipt). Updated phase-sensitive map test passes (two tests, phase-vector-check receipt). First full conformance run (full-conformance.log/.receipt) exited 101 after finding draft_witnesses.py ignored BENNETT_CONFORMANCE_BIN and used an unpinned sibling path. This was a fixture/harness setup failure, not a completed green run. Fixed in a0b49a0 (owned generic conformance/tests helper only): current binary follows BENNETT_CONFORMANCE_BIN; review binary resolves exact gate.toml SHA through the gate symlink/cache, verifies HEAD and tracked cleanliness, and retains all existing semantic assertions. Focused cargo test --offline --manifest-path conformance/Cargo.toml --test draft_contracts -- --test-threads=4 passed (one test, green-witness receipt). Finding bennett-isa-spec-6qk was filed and closed with that evidence. Third commit backed up to wip/isa-k85. Full conformance rerun passed at a0b49a0: 132 passed, zero failed/ignored, exit 0; 476.35s wall, 788.12s CPU, 726584KiB peak RSS (full-conformance-final.log/.receipt). Final tracked working tree is clean; only private .tmp evidence is untracked. Remote wip/isa-k85 was verified to equal a0b49a0646c56955b0e89e126b865965c5a82599. Final evidence verified at 2026-11-08T11:56:51Z. Next: orchestrator full gate and council on the final head; resolve rqn then implement the remaining rigorous conditional checker, preparation/applicability and selected native closure comparison before closing qrc. No rebase, merge, main push, .beads commit, excluded SET A edit or CLI/main.rs edit was performed. Orchestrator retains full gate/council review and the remaining contract-dependent implementation. Parent qrc must not be closed.
+-
+-Execution policy: no repo hang-guard class table or machine profile exists at this baseline. Derive private classes from docs/quality.md measured runs (reference 279s, conformance 482s, cold compile 180s), at >=10x (short 1800s, moderate 6000s, long 12000s); guard exit 124 is UNKNOWN. Host has 64 threads and ~47GiB MemAvailable; cap this job to four build jobs/four test threads, leaving >=16 threads/16GiB. Commands unset display/browser variables, use private TMPDIR and CARGO_TARGET_DIR; guard records wall and child CPU.
+-
+-Red evidence note: red-fixed.log was an early invalid fixture draft (extra blank line), not a claimed semantic red. The authoritative before-fix failures are red-baseline.log and red-enumeration.log against the exact archived baseline.
+-
+-## Source diff (reference-interpreter/src)
++# K85 round-2 packet: bennett-isa-spec job/isa-k85-land a0b49a0..58a1378
++
++Round-1 (docs/council/isa-k85-2026-11-08/round-1/report.md) returned REVISE (sol, astra) / ACCEPT (Muse) with two S0s: (1) core: no checked borrow-lifetime inventory (extra/wider borrowed positions accepted; legal omitted position rejected); (2) contract: K75 host-limit outcomes not reported per claim. The fix commits (cherry-picked unchanged from the SET B writer's branch job/isa-k86 8cf1f86/aae0cff/31c3b80/04d5fc3, without that branch's separate K86 helper commits) are 43c1b76, 7e576ac, 64f708a, 58a1378. src/borrow.rs gains ONE read-only accessor (ruled SET A -> SET B transfer for that accessor only).
++
++## Fix diff a0b49a0..58a1378
+ ```diff
++diff --git a/reference-interpreter/SPEC-QUESTIONS.md b/reference-interpreter/SPEC-QUESTIONS.md
++index d99b4f8..59259a8 100644
++--- a/reference-interpreter/SPEC-QUESTIONS.md
+++++ b/reference-interpreter/SPEC-QUESTIONS.md
++@@ -332,3 +332,33 @@ changed in response to the council's round-1 review
++     cli_xam::r18_cli_literal_nested_budget_check_hash_defer_and_run_reject,
++     metadata::r18_nested_specificity_family_matches_brute_force. The orchestrator
++     owns bead b-isa-spec-6hs; the interpreter's full-ISA bead remains active.
+++
+++34. **Requested labels across claim kinds (§12.2 K85/K75)**
+++    (bead `bennett-isa-spec-b7k`; council `isa-k85-2026-11-08`, round 1,
+++    Muse spec gap **B-K85-2**). The coverage paragraph defines its exclusive
+++    replay outcomes for exhaustive and sampled claims, but its label rejection
+++    sentences do not explicitly limit the claim kinds they govern.
+++
+++    Reading **(A)**, retained without a behaviour change: labels are a common
+++    claim field, and “Requested proof rejects unless the computed outcome is
+++    proof” and the corresponding image-relative rejection are kind-independent.
+++    An established structural theorem can satisfy `proof`; it cannot satisfy
+++    `proof_relative_to_image`. A producer label never upgrades the checker's
+++    independently computed result.
+++
+++    `Unverified` and K75 unchecked outcomes are exempt from label rejection and
+++    never satisfy a requested label. K75 explicitly retains an unchecked
+++    obligation “including when a producer requested a label”. Applying a proof
+++    request cannot convert missing checking machinery or a host limit into
+++    either proof or a producer error. This also preserves the closed common
+++    claim-field grammar and the existing kind-independent rejection wording.
+++    Reading (B), treating labels as replay-only or rejecting an uncheckable
+++    claim solely for its label, would contradict that unchecked exemption.
+++
+++    Proposed clarification of §12.2: “A label may accompany any claim kind.
+++    A requested successful label must match the independently computed
+++    successful outcome. An unchecked (host limit) or otherwise unestablished
+++    outcome is reported as such; requesting a label neither upgrades that
+++    outcome nor causes rejection solely because checking is unavailable.”
+++    This records the interpreter's reading; it does not amend the published
+++    ISA text or claim completion of staged numerical/channel verification.
++diff --git a/reference-interpreter/src/borrow.rs b/reference-interpreter/src/borrow.rs
++index ada9da3..2cd1072 100644
++--- a/reference-interpreter/src/borrow.rs
+++++ b/reference-interpreter/src/borrow.rs
++@@ -1980,6 +1980,94 @@ impl Object {
++         }
++         Ok(compiler)
++     }
+++    /// §12.2 K70: widths of distinct checked borrow lifetimes, in allocation
+++    /// order, including every repeated visit and transitive action call.
+++    /// `None` means an unlinked action prevents a complete inventory. This
+++    /// reads the existing compiler's facts without changing its semantics.
+++    pub fn checked_borrow_lifetimes(&self, root: &str) -> Result<Option<Vec<usize>>> {
+++        // Prove absence before materialising compiler wire coordinates. In
+++        // particular, a large legal interface with no borrows needs no storage
+++        // proportional to that interface merely to establish an empty list.
+++        fn inspect(seq: &[Instruction], borrows: &mut bool, calls: &mut Vec<String>) -> Result<()> {
+++            for instruction in seq {
+++                *borrows |= instruction.op == "qborrow";
+++                if matches!(instruction.op.as_str(), "action_call" | "adj" | "ctl") {
+++                    let call = normalize_call(instruction)?;
+++                    if call.instruction.op == "action_call" {
+++                        calls.push(call.instruction.operands[0].trim_start_matches('@').into());
+++                    }
+++                }
+++                for body in &instruction.bodies {
+++                    inspect(body, borrows, calls)?;
+++                }
+++            }
+++            Ok(())
+++        }
+++        fn collect(nodes: &[Node], out: &mut Vec<usize>) -> Result<()> {
+++            for node in nodes {
+++                match node {
+++                    Node::Borrow(wires) => {
+++                        crate::reserve_more(out, 1, "§12.2 K70", "checked borrow lifetimes")?;
+++                        out.push(wires.len());
+++                    }
+++                    Node::Call {
+++                        body: Some(body), ..
+++                    } => collect(body, out)?,
+++                    Node::Repeat(copies, body) => {
+++                        let mut period = Vec::new();
+++                        collect(body, &mut period)?;
+++                        if period.is_empty() {
+++                            continue;
+++                        }
+++                        let count = usize::try_from(*copies)
+++                            .ok()
+++                            .and_then(|n| n.checked_mul(period.len()))
+++                            .ok_or_else(|| {
+++                                crate::resource_error(
+++                                    "§12.2 K70",
+++                                    "checked borrow lifetime count exceeds usize",
+++                                )
+++                            })?;
+++                        crate::reserve_more(out, count, "§12.2 K70", "checked borrow lifetimes")?;
+++                        for _ in 0..*copies {
+++                            out.extend_from_slice(&period);
+++                        }
+++                    }
+++                    _ => {}
+++                }
+++            }
+++            Ok(())
+++        }
+++        let Some(function) = self.functions.get(root) else {
+++            return Ok(None);
+++        };
+++        if !matches!(function.kind.as_str(), "action" | "perm_action") {
+++            return Ok(Some(Vec::new()));
+++        }
+++        let mut pending = vec![root.to_string()];
+++        let mut seen = BTreeSet::new();
+++        let mut borrows = false;
+++        while let Some(name) = pending.pop() {
+++            if !seen.insert(name.clone()) {
+++                continue;
+++            }
+++            let Some(callee) = self.functions.get(&name) else {
+++                return Ok(None);
+++            };
+++            for block in &callee.blocks {
+++                inspect(&block.instructions, &mut borrows, &mut pending)?;
+++            }
+++        }
+++        if !borrows {
+++            return Ok(Some(Vec::new()));
+++        }
+++        let mut compiler = self.borrow_compiler(function)?;
+++        let mut nodes = Vec::new();
+++        compiler.compile_function(function, &[], &mut nodes)?;
+++        let mut widths = Vec::new();
+++        collect(&nodes, &mut widths)?;
+++        Ok(Some(widths))
+++    }
++     /// Check a named source frame against the complete compiled circuit,
++     /// including inherited predicates, loop structure and physical wire names.
++     pub(crate) fn check_translation_frame(
++diff --git a/reference-interpreter/src/certificate.rs b/reference-interpreter/src/certificate.rs
++index 9d0c64c..66a20f6 100644
++--- a/reference-interpreter/src/certificate.rs
+++++ b/reference-interpreter/src/certificate.rs
++@@ -262,7 +262,7 @@ fn frame09(value: &Json, f: &Function, contexts: &[u128]) -> Result<()> {
++     }
++     Ok(())
++ }
++-fn table09(c: &Json, f: &Function) -> Result<()> {
+++fn table09(c: &Json, f: &Function, borrowed: Option<&[usize]>) -> Result<()> {
++     let expected = c.get("expected")?;
++     let Some(table) = expected.object().ok().and_then(|m| m.get("table")) else {
++         return Ok(());
++@@ -280,13 +280,8 @@ fn table09(c: &Json, f: &Function) -> Result<()> {
++             }
++         })
++         .collect::<Vec<_>>();
++-    let borrowed = c
++-        .get("domain")?
++-        .get("borrowed")?
++-        .array()?
++-        .iter()
++-        .map(|p| p.get("width")?.uint())
++-        .collect::<Result<Vec<_>>>()?;
+++    // Unlinked source retains an unchecked replay obligation; producer domain
+++    // entries cannot establish the missing lifetime inventory.
++     let regions = f
++         .params
++         .iter()
++@@ -322,11 +317,13 @@ fn table09(c: &Json, f: &Function) -> Result<()> {
++                 crate::object::unsigned_literal(b.string()?, w)?;
++             }
++             let values = tuple.get("borrowed")?.array()?;
++-            if values.len() != borrowed.len() {
++-                return err("§12.1 K13", "incomplete borrowed tuple");
++-            }
++-            for (v, w) in values.iter().zip(&borrowed) {
++-                crate::object::unsigned_literal(v.string()?, *w)?;
+++            if let Some(borrowed) = borrowed {
+++                if values.len() != borrowed.len() {
+++                    return err("§12.1 K13", "incomplete borrowed tuple");
+++                }
+++                for (v, w) in values.iter().zip(borrowed) {
+++                    crate::object::unsigned_literal(v.string()?, *w as u128)?;
+++                }
++             }
++             let cells = tuple.get("regions")?.array()?;
++             if cells.len() != regions.len() {
++@@ -367,13 +364,14 @@ pub(crate) fn invocation_budget(value: &Json) -> Result<crate::Budget> {
++ 
++ #[cfg(test)]
++ fn domain(value: &Json, f: &Function) -> Result<()> {
++-    domain_for(value, f, crate::IsaVersion::V08, 0)
+++    domain_for(value, f, crate::IsaVersion::V08, 0, None)
++ }
++ pub(crate) fn domain_for(
++     value: &Json,
++     f: &Function,
++     version: crate::IsaVersion,
++     controls: u128,
+++    borrowed: Option<&[usize]>,
++ ) -> Result<()> {
++     let mut names = BTreeSet::new();
++     for group in ["bundles", "borrowed"] {
++@@ -390,6 +388,19 @@ pub(crate) fn domain_for(
++                 return err("§12.2", "repeated domain component");
++             }
++             let width = b.get("width")?.uint()?;
+++            if version == crate::IsaVersion::V09 && group == "borrowed" {
+++                if let Some(widths) = borrowed {
+++                    let actual = widths.get(position).ok_or_else(|| {
+++                        Error::new(
+++                            "§12.2 K70: borrowed position exceeds checked lifetime inventory"
+++                                .into(),
+++                        )
+++                    })?;
+++                    if width != *actual as u128 {
+++                        return err("§12.2 K72", "borrowed width differs from checked lifetime");
+++                    }
+++                }
+++            }
++             if width == 0 || (inherited && width != 1) {
++                 return err("§12.2", "zero-width domain component");
++             }
++@@ -683,7 +694,13 @@ impl Object {
++                 }
++                 let fault = v.get("fault_rate")?;
++ 
++-                domain_for(fault.get("domain")?, f, self.isa_version, 0)?;
+++                domain_for(
+++                    fault.get("domain")?,
+++                    f,
+++                    self.isa_version,
+++                    0,
+++                    self.admission_borrow_lifetimes(f)?.as_deref(),
+++                )?;
++                 if self.isa_version == crate::IsaVersion::V09 {
++                     self.validate_image_domains09(fault.get("domain")?, f)?;
++                 }
++@@ -716,6 +733,19 @@ impl Object {
++             Ok(())
++         })
++     }
+++    // §12.2 K75: inability to materialise an inventory is a deferred checking
+++    // obligation, not malformed producer metadata. Replay resolves it again
+++    // inside the per-claim host-limit boundary before any successful verdict.
+++    fn admission_borrow_lifetimes(&self, f: &Function) -> Result<Option<Vec<usize>>> {
+++        if self.isa_version != crate::IsaVersion::V09 {
+++            return Ok(None);
+++        }
+++        match self.checked_borrow_lifetimes(&f.name) {
+++            Err(error) if error.kind() == crate::ErrorKind::HostResource => Ok(None),
+++            result => result,
+++        }
+++    }
+++
++     fn validate_claim(&self, c: &Json, f: &Function, position: usize) -> Result<()> {
++         crate::metadata_schema::validate_for(self.isa_version, "claim", c)?;
++         if self.isa_version == crate::IsaVersion::V09
++@@ -758,7 +788,16 @@ impl Object {
++                 );
++             }
++             if matches!(c.get("kind")?.string()?, "exhaustive" | "sampled") {
++-                table09(c, f)?;
+++                let borrowed = self.admission_borrow_lifetimes(f)?;
+++                let controls = c.get("subject")?.get("inherited_controls")?.uint()?;
+++                domain_for(
+++                    c.get("domain")?,
+++                    f,
+++                    self.isa_version,
+++                    controls,
+++                    borrowed.as_deref(),
+++                )?;
+++                table09(c, f, borrowed.as_deref())?;
++             }
++             if let Some(v) = c.object()?.get("invocation") {
++                 if v.get("args")? != &Json::String("all".into()) {
++@@ -790,7 +829,15 @@ impl Object {
++                 } else {
++                     0
++                 };
++-                domain_for(c.get("domain")?, f, self.isa_version, controls)?;
+++                if self.isa_version != crate::IsaVersion::V09 {
+++                    domain_for(
+++                        c.get("domain")?,
+++                        f,
+++                        self.isa_version,
+++                        controls,
+++                        self.admission_borrow_lifetimes(f)?.as_deref(),
+++                    )?;
+++                }
++                 if c.get("expected")? == &Json::String("oracle".into()) {
++                     subject(c.get("subject")?)?;
++                 }
++@@ -801,7 +848,15 @@ impl Object {
++                 } else {
++                     0
++                 };
++-                domain_for(c.get("domain")?, f, self.isa_version, controls)?;
+++                if self.isa_version != crate::IsaVersion::V09 {
+++                    domain_for(
+++                        c.get("domain")?,
+++                        f,
+++                        self.isa_version,
+++                        controls,
+++                        self.admission_borrow_lifetimes(f)?.as_deref(),
+++                    )?;
+++                }
++                 if !c
++                     .get("sampler")?
++                     .get("seed")?
+ diff --git a/reference-interpreter/src/claims.rs b/reference-interpreter/src/claims.rs
+-index 819b7ba..8be74f2 100644
++index 8be74f2..bb21f6d 100644
+ --- a/reference-interpreter/src/claims.rs
+ +++ b/reference-interpreter/src/claims.rs
+-@@ -47,6 +47,31 @@ pub enum ClaimVerdict {
+-     /// Not checkable by this crate yet; the reason names the missing machinery.
+-     Unverified(String),
++@@ -112,6 +112,7 @@ enum Component {
++     Cell(usize, usize, usize),
+  }
+-+
+-+/// §12.2 K85: requests constrain the independently computed successful
+-+/// category. An unchecked claim has no successful category to advertise.
+-+fn check_requested_label(claim: &Json, verdict: &ClaimVerdict) -> Result<()> {
+-+    if matches!(verdict, ClaimVerdict::Unverified(_)) {
+-+        return Ok(());
+-+    }
+-+    let requested = claim.object()?.get("label").map(Json::string).transpose()?;
+-+    let matches = match requested {
+-+        None | Some("evidence") => true,
+-+        Some("proof") => *verdict == ClaimVerdict::Proof,
+-+        Some("proof_relative_to_image") => *verdict == ClaimVerdict::ProofRelativeToImage,
+-+        Some(other) => return err("§12.2 K85", format!("unknown requested label {other}")),
+-+    };
+-+    if !matches {
+-+        return err(
+-+            "§12.2 K85",
+-+            format!(
+-+                "requested {} differs from computed outcome",
+-+                requested.unwrap()
+-+            ),
+-+        );
+-+    }
+-+    Ok(())
+-+}
+- #[derive(Clone, Debug, PartialEq, Eq)]
+- pub struct CertificateReport {
+-     pub claims: Vec<ClaimReport>,
+-@@ -682,7 +707,21 @@ impl Object {
+-         if !active.insert((closure.to_string(), index)) {
+-             return err("§12", "cyclic claim reference");
++ struct Domain {
+++    borrowed_widths: Vec<usize>,
++     components: Vec<(Component, usize, BitVector, BitVector)>,
++     covers_d: bool,
++ }
++@@ -204,6 +205,7 @@ pub(crate) fn r21_resource_cases() {
++     for width in [1, 2, 3, 62, 63, 64, 127, 128] {
++         for count in [1, 2] {
++             let d = Domain {
+++                borrowed_widths: Vec::new(),
++                 covers_d: true,
++                 components: (0..count)
++                     .map(|i| {
++@@ -317,6 +319,16 @@ impl Object {
++             .ok_or_else(|| Error::new(format!("§12: closure {closure} is not a function")))
++     }
++     fn domain(&self, f: &Function, d: &Json) -> Result<Domain> {
+++        let borrowed_widths = if self.isa_version == crate::IsaVersion::V09 {
+++            self.checked_borrow_lifetimes(&f.name)?.ok_or_else(|| {
+++                Error::new(
+++                    "§12.2 K70: checked borrow lifetime inventory requires linked actions".into(),
+++                )
+++            })?
+++        } else {
+++            // Frozen 0.8 tuples retain their explicitly supplied idle pool.
+++            Vec::new()
+++        };
++         let mut components = Vec::new();
++         let mut bundles = BTreeSet::new();
++         let mut regions = BTreeSet::new();
++@@ -326,6 +338,15 @@ impl Object {
++                 let name = b.get("name")?.string()?.to_string();
++                 let width = usize::try_from(b.get("width")?.uint()?)
++                     .map_err(|_| Error::host_resource("§12.2: host limit: domain width".into()))?;
+++                if self.isa_version == crate::IsaVersion::V09
+++                    && borrowed
+++                    && borrowed_widths.get(ordinal) != Some(&width)
+++                {
+++                    return err(
+++                        "§12.2 K70/K72",
+++                        "borrowed position or width differs from checked lifetime inventory",
+++                    );
+++                }
++                 let lo = json_bits(b.get("lo")?, width)?;
++                 let hi = json_bits(b.get("hi")?, width)?;
++                 full &= lo.is_zero() && hi == ones(width)?;
++@@ -390,6 +411,9 @@ impl Object {
++                 }
++             }
+          }
+--        let result = self.verify_claim_inner(closure, index, active);
+-+        let result = self
+-+            .verify_claim_inner(closure, index, active)
+-+            .and_then(|verdict| {
+-+                let claim = &self
+-+                    .section("certificate")
+-+                    .unwrap()
+-+                    .get("regions")?
+-+                    .get(closure)?
+-+                    .get("claims")?
+-+                    .array()?[index];
+-+                if self.isa_version == crate::IsaVersion::V09 {
+-+                    check_requested_label(claim, &verdict)?;
+-+                }
+-+                Ok(verdict)
+-+            });
+-         active.remove(&(closure.to_string(), index));
+-         result
+-     }
+-diff --git a/reference-interpreter/src/claims/images09.rs b/reference-interpreter/src/claims/images09.rs
+-index c02f4d7..949a635 100644
+---- a/reference-interpreter/src/claims/images09.rs
+-+++ b/reference-interpreter/src/claims/images09.rs
+-@@ -4,6 +4,8 @@ use super::*;
+- 
+- #[derive(Clone, Debug, PartialEq, Eq)]
+- pub struct FixedRegionBinding {
+-+    /// §12.2 K85: signature mem slot, independent of local region spelling.
+-+    pub id: String,
+-     pub group: usize,
+-     pub slot: usize,
+-     pub address_width: u64,
+-@@ -18,14 +20,10 @@ pub(super) struct ImageDomain {
+++        if self.isa_version == crate::IsaVersion::V09 {
+++            full &= d.get("borrowed")?.array()?.len() == borrowed_widths.len();
+++        }
++         // D: every interface bundle and every region in the region's input
++         // domain (§5.2, §5.3; tgt/fault included for oracles).
++         let groups = if f.kind == "oracle" { 4 } else { 3 };
++@@ -404,6 +428,7 @@ impl Object {
++                     })
++                 });
++         Ok(Domain {
+++            borrowed_widths,
++             components,
++             covers_d,
++         })
++@@ -606,13 +631,62 @@ impl Object {
++             );
++         }
++         let mut borrowed = Vec::new();
++-        for (c, v) in element {
++-            if let Component::Borrowed(ordinal, _) = c {
++-                if *ordinal != borrowed.len() {
++-                    return err("§12.2", "borrowed component position mismatch");
+++        if self.isa_version == crate::IsaVersion::V08 {
+++            // Preserve the frozen legacy flat-tuple/idle-pool encoding. K70/K71
+++            // complete-lifetime replay below belongs to the 0.9 checker.
+++            for (component, value) in element {
+++                if let Component::Borrowed(ordinal, _) = component {
+++                    if *ordinal != borrowed.len() {
+++                        return err("§12.2", "borrowed component position mismatch");
+++                    }
+++                    let wires = q.allocate(value.width())?;
+++                    set(&mut q, &wires, value)?;
+++                    borrowed.push(wires.clone());
+++                    b.borrowed.push(wires);
++                 }
++-                let wires = q.allocate(v.width())?;
++-                set(&mut q, &wires, v)?;
+++            }
+++        } else {
+++            let borrowed_widths = if let Some(context) = context {
+++                context.borrowed_widths.clone().ok_or_else(|| {
+++                    Error::new(
+++                        "§12.2 K70: replay invocation has no checked borrow lifetime inventory"
+++                            .into(),
+++                    )
+++                })?
+++            } else {
+++                self.checked_borrow_lifetimes(&f.name)?.ok_or_else(|| {
+++                    Error::new(
+++                        "§12.2 K70: checked borrow lifetime inventory requires linked actions"
+++                            .into(),
+++                    )
+++                })?
+++            };
+++            crate::reserve_more(
+++                &mut borrowed,
+++                borrowed_widths.len(),
+++                "§12.2 K70",
+++                "borrowed replay systems",
+++            )?;
+++            for (ordinal, width) in borrowed_widths.iter().copied().enumerate() {
+++                let value = element.iter().find_map(|(component, value)| {
+++                    matches!(component, Component::Borrowed(position, _) if *position == ordinal).then_some(value)
+++                });
+++                let zero;
+++                let value = match value {
+++                    Some(value) if value.width() == width => value,
+++                    Some(_) => {
+++                        return err(
+++                            "§12.2 K72",
+++                            "borrowed replay width differs from checked lifetime",
+++                        )
+++                    }
+++                    None => {
+++                        zero = BitVector::zero(width)?;
+++                        &zero
+++                    }
+++                };
+++                let wires = q.allocate(width)?;
+++                set(&mut q, &wires, value)?;
++                 borrowed.push(wires.clone());
++                 b.borrowed.push(wires);
++             }
++@@ -1100,7 +1174,11 @@ impl Object {
++                 .filter(|(c, _)| matches!(c, Component::Borrowed(..)))
++                 .map(|(_, v)| v.to_decimal())
++                 .collect();
++-            let k = borrowed_in.len();
+++            let k = if self.isa_version == crate::IsaVersion::V09 {
+++                domain.borrowed_widths.len()
+++            } else {
+++                borrowed_in.len()
+++            };
++             let split = out
++                 .len()
++                 .checked_sub(k)
++@@ -1150,6 +1228,7 @@ mod r20_tests {
++             u64::MAX as u128,
++         ] {
++             let d = Domain {
+++                borrowed_widths: Vec::new(),
++                 covers_d: false,
++                 components: vec![(
++                     Component::Bundle(0, 0),
++diff --git a/reference-interpreter/src/claims/pairs09.rs b/reference-interpreter/src/claims/pairs09.rs
++index f280d2a..ccf0ebf 100644
++--- a/reference-interpreter/src/claims/pairs09.rs
+++++ b/reference-interpreter/src/claims/pairs09.rs
++@@ -157,7 +157,13 @@ pub(super) fn args_domain(
++     Ok(args)
++ }
++ fn full_quantum_domain(object: &Object, g: &Function, domain: &Json) -> Result<()> {
++-    crate::certificate::domain_for(domain, g, crate::IsaVersion::V09, 0)?;
+++    crate::certificate::domain_for(
+++        domain,
+++        g,
+++        crate::IsaVersion::V09,
+++        0,
+++        object.checked_borrow_lifetimes(&g.name)?.as_deref(),
+++    )?;
++     if !domain.get("borrowed")?.array()?.is_empty()
++         || domain
++             .object()?
++diff --git a/reference-interpreter/src/claims/replay09.rs b/reference-interpreter/src/claims/replay09.rs
++index f3e4323..4c5a134 100644
++--- a/reference-interpreter/src/claims/replay09.rs
+++++ b/reference-interpreter/src/claims/replay09.rs
++@@ -9,6 +9,7 @@ pub(super) struct Invocation {
++     pub controls: Vec<BitVector>,
++     pub adjoint: bool,
++     pub budget: Budget,
+++    pub borrowed_widths: Option<Vec<usize>>,
+  }
+  
+- impl ImageDomain {
+--    pub fn entry(&self, unrestricted: bool) -> Result<Json> {
+-+    pub fn unrestricted_entry(&self) -> Result<Json> {
+-         let mut cells = crate::reserved(self.values.len(), "§12.2 K85", "fixed region cells")?;
+-         for (index, value) in self.values.iter().enumerate() {
+--            let (lo, hi) = if unrestricted {
+--                (BitVector::zero(value.width())?, ones(value.width())?)
+--            } else {
+--                (value.clone(), value.clone())
+--            };
+-+            let (lo, hi) = (BitVector::zero(value.width())?, ones(value.width())?);
+-             cells.push(Json::Object(BTreeMap::from([
+-                 ("index".into(), Json::Number(index.to_string())),
+-                 ("lo".into(), decimal_json(&lo)),
+-@@ -37,6 +35,17 @@ impl ImageDomain {
+-             ("cells".into(), Json::Array(cells)),
+-         ])))
++ #[cfg(test)]
++@@ -88,12 +89,10 @@ fn coverage(
++                 })?;
++         }
+      }
+-+
+-+    pub fn append_cells(&self, cells: &mut Vec<(Component, BitVector)>) -> Result<()> {
+-+        crate::reserve_more(cells, self.values.len(), "§12.2 K85", "fixed cells")?;
+-+        cells.extend(self.values.iter().enumerate().map(|(index, value)| {
+-+            (
+-+                Component::Cell(self.binding.group, self.binding.slot, index),
+-+                value.clone(),
+-+            )
+-+        }));
+-+        Ok(())
+-+    }
+- }
++-    for (c, width, ..) in &domain.domain.components {
++-        if matches!(c, Component::Borrowed(..)) {
++-            bits = bits.checked_add(*width).ok_or_else(|| {
++-                crate::resource_error("§12.2 K74", "borrowed width exceeds usize")
++-            })?;
++-        }
+++    for width in &domain.domain.borrowed_widths {
+++        bits = bits
+++            .checked_add(*width)
+++            .ok_or_else(|| crate::resource_error("§12.2 K74", "borrowed width exceeds usize"))?;
++     }
++     let power = |exponent: usize| -> Result<String> {
++         let width = exponent
++@@ -163,7 +162,14 @@ impl Object {
++             }
++             bindings.get("invocation")?
++         };
++-        self.decode_invocation09(invocation, f)
+++        let mut invocation = self.decode_invocation09(invocation, f)?;
+++        invocation.borrowed_widths =
+++            Some(self.checked_borrow_lifetimes(&f.name)?.ok_or_else(|| {
+++                Error::new(
+++                    "§12.2 K70: checked borrow lifetime inventory requires linked actions".into(),
+++                )
+++            })?);
+++        Ok(invocation)
++     }
+  
+- impl Object {
+-@@ -132,6 +141,7 @@ impl Object {
+-                 (group, slot),
+-                 ImageDomain {
+-                     binding: FixedRegionBinding {
+-+                        id: format!("mem:{slot}"),
+-                         group,
+-                         slot,
+-                         address_width: a,
+-diff --git a/reference-interpreter/src/claims/replay09.rs b/reference-interpreter/src/claims/replay09.rs
+-index b031aab..f3e4323 100644
+---- a/reference-interpreter/src/claims/replay09.rs
+-+++ b/reference-interpreter/src/claims/replay09.rs
+-@@ -11,10 +11,49 @@ pub(super) struct Invocation {
+-     pub budget: Budget,
+- }
+- 
+-+#[cfg(test)]
+-+mod tests {
+-+    use super::*;
+-+
+-+    #[test]
+-+    fn fixed_cells_never_become_enumeration_components() {
+-+        let object = Object::parse(include_str!(
+-+            "../../../conformance/fixtures/accepted-k85-09/image-0102.bisa"
+-+        ))
+-+        .unwrap();
+-+        let certificate = object.section("certificate").unwrap();
+-+        let closure = certificate
+-+            .get("bindings")
+-+            .unwrap()
+-+            .get("closure_hash")
+-+            .unwrap()
+-+            .string()
+-+            .unwrap();
+-+        let claim = &certificate
+-+            .get("regions")
+-+            .unwrap()
+-+            .get(closure)
+-+            .unwrap()
+-+            .get("claims")
+-+            .unwrap()
+-+            .array()
+-+            .unwrap()[0];
+-+        let domain = object.domain09(claim, &object.functions["lookup"]).unwrap();
+-+        // Only t,f,a enumerate. db[0],db[1] fill the tuple independently.
+-+        assert_eq!(domain.domain.components.len(), 3);
+-+        assert!(domain
+-+            .domain
+-+            .components
+-+            .iter()
+-+            .all(|(c, ..)| !matches!(c, Component::Cell(..))));
+-+    }
+-+}
+-+
+- struct ResolvedDomain {
+-     domain: Domain,
+-     relative_to_image: bool,
+-     images: Vec<FixedRegionBinding>,
+-+    fixed_cells: Vec<(Component, BitVector)>,
+- }
+- pub(super) struct Outcome {
+-     pub verdict: ClaimVerdict,
+-@@ -193,16 +232,16 @@ impl Object {
+-         let inherited = bundles.drain(..controls).collect::<Vec<_>>();
+-         let images = self.image_domains09(claim.get("domain")?, f)?;
+-         let mut unrestricted = source.clone();
+--        for (value, full) in [(&mut source, false), (&mut unrestricted, true)] {
+--            let Json::Object(fields) = value else {
+--                unreachable!()
+--            };
+--            let Json::Array(regions) = fields.get_mut("regions").unwrap() else {
+--                unreachable!()
+--            };
+--            for image in &images {
+--                regions.push(image.entry(full)?);
+--            }
+-+        let Json::Object(fields) = &mut unrestricted else {
+-+            unreachable!()
+-+        };
+-+        let Json::Array(regions) = fields.get_mut("regions").unwrap() else {
+-+            unreachable!()
+-+        };
+-+        let mut fixed_cells = Vec::new();
+-+        for image in &images {
+-+            regions.push(image.unrestricted_entry()?);
+-+            image.append_cells(&mut fixed_cells)?;
+-         }
+-         let mut domain = self.domain(f, &source)?;
+-         let mut relative_to_image = !images.is_empty() && self.domain(f, &unrestricted)?.covers_d;
+-@@ -223,6 +262,7 @@ impl Object {
+-             domain,
+-             relative_to_image,
+-             images: images.into_iter().map(|i| i.binding).collect(),
+-+            fixed_cells,
++     pub(super) fn decode_invocation09(
++@@ -211,6 +217,9 @@ impl Object {
++             controls: Vec::new(),
++             adjoint: false,
++             budget,
+++            // K92 uses this decoder without replay or a linked borrow closure.
+++            // Only invocation09 attaches a checked replay inventory.
+++            borrowed_widths: None,
+          })
+      }
+  
+-@@ -433,12 +473,21 @@ impl Object {
+-             .filter(|(c, ..)| matches!(c, Component::Borrowed(..)))
+-             .count();
++@@ -273,7 +282,7 @@ impl Object {
++         f: &Function,
++         flat: &[BitVector],
++         controls: usize,
++-        borrowed: usize,
+++        borrowed_widths: &[usize],
++     ) -> Result<Json> {
++         let bundle_count = controls
++             + f.params
++@@ -300,9 +309,19 @@ impl Object {
++                 offset = end;
++             }
++         }
++-        if flat.len() != offset + borrowed {
+++        if flat.len() != offset + borrowed_widths.len() {
++             return err("§12.1 K13", "executor tuple length differs from interface");
++         }
+++        if flat[offset..]
+++            .iter()
+++            .zip(borrowed_widths)
+++            .any(|(value, width)| value.width() != *width)
+++        {
+++            return err(
+++                "§12.1 K13",
+++                "executor borrowed tuple width differs from checked lifetime",
+++            );
+++        }
++         Ok(Json::Object(BTreeMap::from([
++             (
++                 "bundles".into(),
++@@ -321,6 +340,7 @@ impl Object {
++         f: &Function,
++         element: &[(Component, BitVector)],
++         controls: usize,
+++        borrowed_widths: &[usize],
++     ) -> Result<Vec<BitVector>> {
++         let find = |component: Component, width| {
++             element
++@@ -329,6 +349,7 @@ impl Object {
++                     (match (&component, c) {
++                         (Component::Control(a), Component::Control(b)) => a == b,
++                         (Component::Bundle(a, b), Component::Bundle(c, d)) => (a, b) == (c, d),
+++                        (Component::Borrowed(a, _), Component::Borrowed(b, _)) => a == b,
++                         (Component::Cell(a, b, c), Component::Cell(d, e, f)) => {
++                             (a, b, c) == (d, e, f)
++                         }
++@@ -366,11 +387,9 @@ impl Object {
++                 }
++             }
++         }
++-        out.extend(
++-            element
++-                .iter()
++-                .filter_map(|(c, v)| matches!(c, Component::Borrowed(..)).then_some(v.clone())),
++-        );
+++        for (ordinal, width) in borrowed_widths.iter().copied().enumerate() {
+++            out.push(find(Component::Borrowed(ordinal, String::new()), width)?);
+++        }
++         Ok(out)
++     }
++ 
++@@ -381,6 +400,24 @@ impl Object {
++         claim: &Json,
++         f: &Function,
++     ) -> Result<Outcome> {
+++        let result = self.replay09(closure, index, claim, f);
+++        match result {
+++            Err(error)
+++                if error.kind() == crate::ErrorKind::HostResource
+++                    && claim.get("expected")? != &Json::String("inverse_pair".into()) =>
+++            {
+++                Ok(Outcome {
+++                    verdict: ClaimVerdict::Unverified(format!(
+++                        "§12.2 K75: unchecked (host limit): {error}"
+++                    )),
+++                    coverage: None,
+++                })
+++            }
+++            result => result,
+++        }
+++    }
+++
+++    fn replay09(&self, closure: &str, index: usize, claim: &Json, f: &Function) -> Result<Outcome> {
++         if claim.get("expected")? == &Json::String("inverse_pair".into()) {
++             return Ok(Outcome {
++                 verdict: self.verify_inverse_pair_claim09(f, index, claim)?,
++@@ -399,6 +436,14 @@ impl Object {
++                 coverage: None,
++             });
++         }
+++        if self.checked_borrow_lifetimes(&f.name)?.is_none() {
+++            return Ok(Outcome {
+++                verdict: ClaimVerdict::Unverified(
+++                    "§12.2 K70: checked borrow lifetime inventory requires linked actions".into(),
+++                ),
+++                coverage: None,
+++            });
+++        }
++         let mut invocation = self.invocation09(claim, f, closure)?;
++         let controls = usize::try_from(claim.get("subject")?.get("inherited_controls")?.uint()?)
++             .map_err(|_| crate::resource_error("§12.1 K13", "control count exceeds usize"))?;
++@@ -467,11 +512,7 @@ impl Object {
++                 "expected program has an incompatible signature",
++             );
++         }
++-        let borrowed = domain
++-            .components
++-            .iter()
++-            .filter(|(c, ..)| matches!(c, Component::Borrowed(..)))
++-            .count();
+++        let borrowed_widths = &domain.borrowed_widths;
+          for (row, values) in elements.iter().enumerate() {
+--            let element = domain
+-+            let mut element = domain
++             let mut element = domain
+                  .components
+-                 .iter()
+-                 .map(|c| c.0.clone())
+-                 .zip(values.iter().cloned())
+-                 .collect::<Vec<_>>();
+-+            // K85: fixed cells fill complete tuples but never add an
+-+            // enumeration component or consume sampler generator words.
+-+            crate::reserve_more(
+-+                &mut element,
+-+                resolved.fixed_cells.len(),
+-+                "§12.2 K85",
+-+                "replay fixed cells",
+-+            )?;
+-+            element.extend(resolved.fixed_cells.iter().cloned());
+-             let before = self.entry09(f, &element, controls)?;
++@@ -488,7 +529,7 @@ impl Object {
++                 "replay fixed cells",
++             )?;
++             element.extend(resolved.fixed_cells.iter().cloned());
++-            let before = self.entry09(f, &element, controls)?;
+++            let before = self.entry09(f, &element, controls, borrowed_widths)?;
+              invocation.controls = before[..controls].to_vec();
+              let after = self.execute_element_bound(
+-@@ -481,22 +530,7 @@ impl Object {
+-                 elements: elements.len() as u128,
+-             }
+-         };
+--        if claim.object()?.get("label") == Some(&Json::String("proof".into()))
+--            && verdict != ClaimVerdict::Proof
+--        {
+--            return err(
+--                "§12.2 K74",
+--                "requested proof but replay covers only a slice of D",
+--            );
+--        }
+--        if claim.object()?.get("label") == Some(&Json::String("proof_relative_to_image".into()))
+--            && verdict != ClaimVerdict::ProofRelativeToImage
+--        {
+--            return err(
+--                "§12.2 K85",
+--                "requested proof_relative_to_image without complete remaining domain",
+--            );
+--        }
+-+        check_requested_label(claim, &verdict)?;
+-         Ok(Outcome {
+-             verdict,
+-             coverage: Some(coverage(f, controls, &resolved, elements.len())?),
+-diff --git a/reference-interpreter/src/metadata_schema/tests.rs b/reference-interpreter/src/metadata_schema/tests.rs
+-index 03ec5dc..dc641c4 100644
+---- a/reference-interpreter/src/metadata_schema/tests.rs
+-+++ b/reference-interpreter/src/metadata_schema/tests.rs
+-@@ -5,6 +5,25 @@ use std::collections::{BTreeMap, BTreeSet};
+- fn j(s: &str) -> Json {
+-     Json::parse(s).unwrap()
+- }
++                 f,
++@@ -499,8 +540,8 @@ impl Object {
++             )?;
++             if let Some(table) = table {
++                 let entry = &table[row];
++-                if entry.get("before")? != &self.tuple09(f, &before, controls, borrowed)?
++-                    || entry.get("after")? != &self.tuple09(f, &after, controls, borrowed)?
+++                if entry.get("before")? != &self.tuple09(f, &before, controls, borrowed_widths)?
+++                    || entry.get("after")? != &self.tuple09(f, &after, controls, borrowed_widths)?
++                 {
++                     return err(
++                         "§12.1 K13",
++diff --git a/reference-interpreter/tests/isa09_borrow_inventory.rs b/reference-interpreter/tests/isa09_borrow_inventory.rs
++new file mode 100644
++index 0000000..2f9ddfd
++--- /dev/null
+++++ b/reference-interpreter/tests/isa09_borrow_inventory.rs
++@@ -0,0 +1,43 @@
+++mod support;
+++use bennett_isa_ref::Object;
+ +
+ +#[test]
+-+fn fixed_images_and_relative_label_are_explicitly_versioned_closed_fields() {
+-+    let domain = j(
+-+        r#"{"bundles":[],"borrowed":[],"regions":[],"fixed_regions":[{"name":"db","A":0,"W":1,"image":"00","sha256":"6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"}]}"#,
+-+    );
+-+    validate_for(crate::IsaVersion::V09, "domain", &domain).unwrap();
+-+    assert!(validate_for(crate::IsaVersion::V08, "domain", &domain).is_err());
+-+    let label = j(r#""proof_relative_to_image""#);
+-+    validate_for(crate::IsaVersion::V09, "label", &label).unwrap();
+-+    assert!(validate_for(crate::IsaVersion::V08, "label", &label).is_err());
+-+    let mut malformed = domain;
+-+    let Json::Object(fields) = &mut malformed else {
+-+        panic!("domain")
+-+    };
+-+    fields.insert("image_prepared".into(), Json::Bool(true));
+-+    // K85 never grants a producer boolean authority to discharge preparation.
+-+    assert!(validate_for(crate::IsaVersion::V09, "domain", &malformed).is_err());
+-+}
+- #[test]
+- fn r15_translation_frame_is_first_and_last_point_tuple() {
+-     // Literal §12.1 cardinality oracle, independent of TABLE/samples/baseline.
+-```
+-
+-## Test diff (reference-interpreter/tests, conformance/tests, conformance/src)
+-```diff
+-diff --git a/conformance/tests/draft_witnesses.py b/conformance/tests/draft_witnesses.py
+-index f5c7049..33b79c4 100644
+---- a/conformance/tests/draft_witnesses.py
+-+++ b/conformance/tests/draft_witnesses.py
+-@@ -3,8 +3,13 @@ from pathlib import Path
+- from fractions import Fraction
+- import hashlib
+- import json
+-+import os
+-+import tomllib
+- 
+- root = Path(__file__).resolve().parents[2]
+-+reference = Path(os.environ.get("BENNETT_CONFORMANCE_BIN", str(
+-+    root / "reference-interpreter/target/debug/bennett-isa-ref")))
+-+assert reference.is_file(), f"reference binary missing: {reference}; build it or set BENNETT_CONFORMANCE_BIN"
+- draft = (root / "spec/Bennett-ISA-Spec-0.9.md").read_text()
+- accepted = root / "spec/Bennett-ISA-Spec.md"
+- assert hashlib.sha256(accepted.read_bytes()).hexdigest() == "90e61d9c377c939fe9652758f61cd5ead068ef06e4e40d812d3f3c5197ab605e"
+-@@ -175,7 +180,7 @@ for t in range(4):
+-         first = t ^ 1
+-         expected = first ^ ((first & 1) << 1) ^ p
+-         for value, adjoint, output in [(t, False, expected), (expected, True, t)]:
+--            command = [str(root / "reference-interpreter/target/debug/bennett-isa-ref"), "run-action", str(multi_dir / "two-blocks.bisa"), "flip", "--mut", str(value), "--in", str(p)]
+-+            command = [str(reference), "run-action", str(multi_dir / "two-blocks.bisa"), "flip", "--mut", str(value), "--in", str(p)]
+-             if adjoint:
+-                 command.append("--adjoint")
+-             result = subprocess.run(command, capture_output=True, text=True)
+-@@ -225,7 +230,7 @@ assert bits == draws["outcomes_bits"] and values == draws["outcomes_values"]
+- assert values[::-1] == draws["reversed_draw_values"]
+- assert [bit_order.index(b) for b in bits] == draws["integer_order_values"]
+- draw_dir = root / "conformance/cases/A/A-measure-draw-order-09"
+--result = subprocess.run([str(root / "reference-interpreter/target/debug/bennett-isa-ref"), "run-program", str(draw_dir / "two-measures.bisa"), "twice", "--draws", ",".join(draws["draws"])], capture_output=True, text=True)
+-+result = subprocess.run([str(reference), "run-program", str(draw_dir / "two-measures.bisa"), "twice", "--draws", ",".join(draws["draws"])], capture_output=True, text=True)
+- assert result.returncode == 0, result.stderr
+- measurements = json.loads(result.stdout)["measurements"]
+- assert [m["bits"] for m in measurements] == bits
+-@@ -269,7 +274,22 @@ runpy.run_path(str(root / "conformance/tools/draft_examples.py"))["check"](draft
+- fixture = runpy.run_path(str(root / "conformance/tools/controlled_action_fixture.py"))
+- for name, raw in fixture["artifacts"]().items():
+-     assert (fixture["DIR"] / name).read_bytes() == raw, name
+--pinned = root.parent / "bennett-isa-spec-review/reference-interpreter/target/debug/bennett-isa-ref"
+-+name = "bennett-isa-spec-review"
+-+pin = tomllib.loads((root / "gate.toml").read_text())["siblings"][name]["sha"]
+-+# The gate exposes a symlink beside its detached checkout. Direct crate runs
+-+# use that same pin's materialised cache, never an unpinned sibling worktree.
+-+pinned_checkout = root.parent / name
+-+if not pinned_checkout.is_symlink():
+-+    pinned_checkout = root / ".tmp/gate/cache" / f"{name}@{pin[:12]}" / name
+-+assert pinned_checkout.is_dir(), f"materialise gate.toml sibling {name}@{pin} before checking witnesses"
+-+head = subprocess.run(["git", "-C", str(pinned_checkout), "rev-parse", "HEAD"],
+-+                      check=True, capture_output=True, text=True).stdout.strip()
+-+assert head == pin, f"pinned witness checkout {head} differs from gate.toml {pin}"
+-+dirty = subprocess.run(["git", "-C", str(pinned_checkout), "status", "--porcelain", "-uno"],
+-+                       check=True, capture_output=True, text=True).stdout
+-+assert not dirty, f"pinned witness checkout has tracked changes: {dirty}"
+-+pinned = pinned_checkout / "reference-interpreter/target/debug/bennett-isa-ref"
+-+assert pinned.is_file(), f"build gate.toml sibling {name}@{pin} before checking witnesses"
+- compat = fixture["DIR"] / "compat-0.8.bisa"
+- for command in ("check", "hash"):
+-     result = subprocess.run([str(pinned), command, str(compat)], capture_output=True, text=True)
+-diff --git a/conformance/tests/ref_k85.rs b/conformance/tests/ref_k85.rs
+-new file mode 100644
+-index 0000000..7a6dd83
+---- /dev/null
+-+++ b/conformance/tests/ref_k85.rs
+-@@ -0,0 +1,249 @@
+-+//! Portable K85 readers deliberately admit fixed_regions and the third
+-+//! successful category; old closed readers must upgrade explicitly.
+-+use bennett_isa_conformance::{
+-+    json::{self, Json},
+-+    ref_hash::sha256,
+-+};
+-+use std::{collections::BTreeSet, path::PathBuf};
+-+
+-+const VECTORS: &str = include_str!("../fixtures/accepted-k85-09/k85.json");
+-+const RESTRICTED: &str = include_str!("../fixtures/accepted-k85-09/restricted-map.json");
+-+
+-+fn text(value: &Json) -> &str {
+-+    value.as_str().unwrap()
+-+}
+-+
+-+fn keys(value: &Json) -> BTreeSet<&str> {
+-+    let Json::Obj(fields) = value else {
+-+        panic!("object")
+-+    };
+-+    fields.keys().map(String::as_str).collect()
+-+}
+-+
+-+#[test]
+-+fn portable_fixed_image_reader_preserves_closed_schema_and_independent_hashes() {
+-+    let vectors = json::parse(VECTORS).unwrap();
+++fn checked_lifetimes_keep_repeated_transitive_and_adjoint_allocations_in_order() {
+++    let signature = r#"{"abi":"0.8","args":[],"bounds":[3],"in":[],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}"#;
+++    let child_signature = signature.replace("[3]", "[]");
+++    let root = "perm_action @root (t:wire mut) () () () ()\nregs {  } bounds {3}\n^entry():\naction_call @child (t) () () ()\nqloop 3 {\naction_call @child (t) () () ()\n}\nadj action_call @child (t) () () ()";
+++    let child = "perm_action @child (t:wire mut) () () () ()\n^entry():\nb = qborrow any 1\nqreturn b\nc = qborrow any 2\nqreturn c";
+++    let source = support::object(
+++        &[
+++            ("root", signature, root),
+++            ("child", &child_signature, child),
+++        ],
+++        "{}",
+++        "",
+++    )
+++    .replace("0.8", "0.9");
+++    let object = support::rehash(&source);
+++    let before = object.text.clone();
+++    // First child [1,2], three repeated children [1,2] each, adjoint [2,1].
+ +    assert_eq!(
+-+        text(vectors.get("format").unwrap()),
+-+        "bennett.fixed-images.v1"
+-+    );
+-+    let mut names = BTreeSet::new();
+-+    let mut image_relations = 0;
+-+    for vector in vectors.get("cases").unwrap().as_arr().unwrap() {
+-+        let name = text(vector.get("name").unwrap());
+-+        assert!(names.insert(name), "duplicate vector {name}");
+-+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+-+            .join("fixtures/accepted-k85-09")
+-+            .join(text(vector.get("object").unwrap()));
+-+        let source = std::fs::read_to_string(path).unwrap();
+-+        assert_eq!(
+-+            sha256(source.as_bytes()),
+-+            text(vector.get("sha256").unwrap()),
+-+            "{name}"
+-+        );
+-+        let certificate =
+-+            json::parse(source.split_once("section certificate\n").unwrap().1.trim()).unwrap();
+-+        let Json::Obj(regions) = certificate.get("regions").unwrap() else {
+-+            panic!("regions")
+-+        };
+-+        let claim = &regions
+-+            .values()
+-+            .next()
+-+            .unwrap()
+-+            .get("claims")
+-+            .unwrap()
+-+            .as_arr()
+-+            .unwrap()[0];
+-+        let domain = claim.get("domain").unwrap();
+-+        let allowed = BTreeSet::from(["bundles", "borrowed", "regions", "args", "fixed_regions"]);
+-+        assert!(
+-+            keys(domain).is_subset(&allowed),
+-+            "unknown domain field in {name}"
+-+        );
+-+        if let Some(label) = claim.get("label") {
+-+            assert!(["proof", "proof_relative_to_image", "evidence"].contains(&text(label)));
+-+        }
+-+        if name == "image-0102" || name == "image-0201" {
+-+            image_relations += 1;
+-+            let image = &domain.get("fixed_regions").unwrap().as_arr().unwrap()[0];
+-+            assert_eq!(
+-+                keys(image),
+-+                BTreeSet::from(["name", "A", "W", "image", "sha256"])
+-+            );
+-+            let bytes = match text(image.get("image").unwrap()) {
+-+                "0102" => [1, 2],
+-+                "0201" => [2, 1],
+-+                other => panic!("unexpected image {other}"),
+-+            };
+-+            assert_eq!(sha256(&bytes), text(image.get("sha256").unwrap()));
+-+            let rows = claim
+-+                .get("expected")
+-+                .unwrap()
+-+                .get("table")
+-+                .unwrap()
+-+                .as_arr()
+-+                .unwrap();
+-+            assert_eq!(rows.len(), 64);
+-+            for (ordinal, row) in rows.iter().enumerate() {
+-+                // t outermost, f next, a fastest: ordinal=32*t+2*f+a.
+-+                let t = ordinal / 32;
+-+                let f = (ordinal / 2) % 16;
+-+                let a = ordinal % 2;
+-+                for (side, value) in [("before", t), ("after", t ^ (bytes[a] as usize & 1))] {
+-+                    let tuple = row.get(side).unwrap();
+-+                    let bundles = tuple.get("bundles").unwrap().as_arr().unwrap();
+-+                    assert_eq!(
+-+                        bundles.iter().map(text).collect::<Vec<_>>(),
+-+                        [value.to_string(), f.to_string(), a.to_string()]
+-+                    );
+-+                    let cells = &tuple.get("regions").unwrap().as_arr().unwrap()[0];
+-+                    assert_eq!(
+-+                        cells.as_arr().unwrap().iter().map(text).collect::<Vec<_>>(),
+-+                        bytes.map(|n| n.to_string())
+-+                    );
+-+                    assert!(tuple.get("borrowed").unwrap().as_arr().unwrap().is_empty());
+-+                }
+-+            }
+-+            assert_eq!(text(vector.get("covered_fraction").unwrap()), "1/65536");
+-+            assert_eq!(text(vector.get("full_domain_elements").unwrap()), "4194304");
+-+        }
+-+    }
+-+    assert_eq!(image_relations, 2);
+-+    for required in [
+-+        "swapped-hash",
+-+        "stale-hash",
+-+        "hex-text-hash",
+-+        "omit-a",
+-+        "omit-f",
+-+        "omit-t",
+-+        "sampled-full-d",
+-+        "mut-region",
+-+        "nonzero-padding",
+-+        "duplicate-image",
+-+        "controlled-dirty",
+-+        "external-reference",
+-+    ] {
+-+        assert!(names.contains(required), "missing vector {required}");
+-+    }
+-+}
+-+
+-+fn matrix(value: &Json) -> Vec<Vec<i64>> {
+-+    value
+-+        .as_arr()
+-+        .unwrap()
+-+        .iter()
+-+        .map(|row| {
+-+            row.as_arr()
+-+                .unwrap()
+-+                .iter()
+-+                .map(|n| {
+-+                    let Json::Num(n) = n else { panic!("integer") };
+-+                    assert_eq!(n.fract(), 0.0);
+-+                    *n as i64
+-+                })
+-+                .collect()
+-+        })
+-+        .collect()
+-+}
+-+
+-+#[test]
+-+fn restricted_z_identity_map_has_reduced_input_and_complete_output() {
+-+    let vector = json::parse(RESTRICTED).unwrap();
+-+    let u = matrix(vector.get("U").unwrap());
+-+    let v = matrix(vector.get("V").unwrap());
+-+    let j = matrix(vector.get("J").unwrap());
+-+    assert_eq!(u, vec![vec![1, 0], vec![0, -1]]);
+-+    assert_eq!(v, vec![vec![1, 0], vec![0, 1]]);
+-+    assert_eq!(j, vec![vec![1], vec![0]]);
+-+    assert_eq!(vector.get("input_dimension"), Some(&Json::Num(1.0)));
+-+    assert_eq!(vector.get("output_dimension"), Some(&Json::Num(2.0)));
+-+    // Exact integer algebra: no interpreter state or numerical output is read.
+-+    let difference = (0..2)
+-+        .map(|r| (0..2).map(|c| u[r][c] - v[r][c]).collect::<Vec<_>>())
+-+        .collect::<Vec<_>>();
+-+    let restricted = difference
+-+        .iter()
+-+        .map(|row| {
+-+            row.iter()
+-+                .enumerate()
+-+                .map(|(c, x)| x * j[c][0])
+-+                .sum::<i64>()
+-+        })
+-+        .collect::<Vec<_>>();
+-+    assert_eq!(restricted, vec![0, 0]);
+-+    assert_eq!(
+-+        vector.get("restricted_frobenius_squared"),
+-+        Some(&Json::Num(0.0))
+-+    );
+-+    assert_eq!(difference.iter().flatten().map(|x| x * x).sum::<i64>(), 4);
+-+    assert_eq!(
+-+        vector.get("unrestricted_frobenius_squared"),
+-+        Some(&Json::Num(4.0))
+-+    );
+-+    // Reduced input dimension one times complete output dimension two gives
+-+    // a 2x2 Choi difference, not 1x1 and not unrestricted 4x4.
+-+    assert_eq!(
+-+        matrix(vector.get("restricted_choi_difference").unwrap()),
+-+        vec![vec![0, 0], vec![0, 0]]
+-+    );
+-+    let dual = vector.get("strict_dual").unwrap();
+-+    let y = dual.get("Y").unwrap().as_arr().unwrap();
+-+    assert_eq!(y.len(), 2);
+-+    assert_eq!(
+-+        y[0].as_arr().unwrap().iter().map(text).collect::<Vec<_>>(),
+-+        vec!["0.125", "0"]
+++        object.checked_borrow_lifetimes("root").unwrap().unwrap(),
+++        vec![1, 2, 1, 2, 1, 2, 1, 2, 2, 1]
+ +    );
+ +    assert_eq!(
+-+        y[1].as_arr().unwrap().iter().map(text).collect::<Vec<_>>(),
+-+        vec!["0", "0.125"]
+++        object.checked_borrow_lifetimes("child").unwrap().unwrap(),
+++        vec![1, 2]
+ +    );
+-+    assert_eq!(text(dual.get("mu").unwrap()), "0.375");
+-+    assert_eq!(text(dual.get("bound").unwrap()), "0.375");
+-+    // Exact dyadic arithmetic in units of 1/8 for this diagonal witness.
+-+    let eighths = |s: &str| match s {
+-+        "0" => 0,
+-+        "0.125" => 1,
+-+        "0.375" => 3,
+-+        _ => panic!("unexpected witness endpoint {s}"),
+-+    };
+-+    let a = eighths(text(&y[0].as_arr().unwrap()[0]));
+-+    let b = eighths(text(&y[1].as_arr().unwrap()[1]));
+-+    let mu = eighths(text(dual.get("mu").unwrap()));
+-+    assert!(a > 0 && b > 0);
+-+    assert_eq!(mu - (a + b), 1);
+-+
+-+    let phase = vector.get("phase_sensitive").unwrap();
+-+    let phase_u = matrix(phase.get("U").unwrap());
+-+    let phase_v = matrix(phase.get("V").unwrap());
+-+    assert_eq!(phase_u, vec![vec![-1, 0], vec![0, -1]]);
+-+    assert_eq!(phase_v, v);
+-+    let column = |m: &[Vec<i64>]| {
+-+        (0..2)
+-+            .map(|r| (0..2).map(|c| m[r][c] * j[c][0]).sum::<i64>())
+-+            .collect::<Vec<_>>()
+-+    };
+-+    let prepared_u = column(&phase_u);
+-+    let prepared_v = column(&phase_v);
+-+    let phase_norm_squared = prepared_u
+-+        .iter()
+-+        .zip(&prepared_v)
+-+        .map(|(u, v)| (u - v) * (u - v))
+-+        .sum::<i64>();
+-+    assert_eq!(phase_norm_squared, 4);
+++    assert_eq!(object.text, before);
+++}
+++
+++#[test]
+++fn zero_trip_has_no_lifetimes_and_qif_visits_both_unconditional_arms() {
+++    let signature = r#"{"abi":"0.8","args":[],"bounds":[0],"in":[1],"kind":"perm_action","mem":[],"mut":[1],"tier":"q"}"#;
+++    let body = "perm_action @a (t:wire mut) (p:wire in) () () ()\nregs {  } bounds {0}\n^entry():\nqloop 0 {\nb = qborrow any 7\nqreturn b\n}\nqif p {\nc = qborrow any 1\nqreturn c\n} {\nd = qborrow any 2\nqreturn d\n}";
+++    let source = support::object(&[("a", signature, body)], "{}", "").replace("0.8", "0.9");
+++    let object = support::rehash(&source);
+ +    assert_eq!(
+-+        phase.get("restricted_frobenius_squared"),
+-+        Some(&Json::Num(phase_norm_squared as f64))
+++        object.checked_borrow_lifetimes("a").unwrap().unwrap(),
+++        vec![1, 2]
+ +    );
+-+    let choi = (0..2)
+-+        .map(|r| {
+-+            (0..2)
+-+                .map(|c| prepared_u[r] * prepared_u[c] - prepared_v[r] * prepared_v[c])
+-+                .collect::<Vec<_>>()
+-+        })
+-+        .collect::<Vec<_>>();
+++}
++diff --git a/reference-interpreter/tests/isa09_claim_replay.rs b/reference-interpreter/tests/isa09_claim_replay.rs
++index 767e4b4..06a67f2 100644
++--- a/reference-interpreter/tests/isa09_claim_replay.rs
+++++ b/reference-interpreter/tests/isa09_claim_replay.rs
++@@ -102,15 +102,19 @@ fn typed_oracle(argument: &str, steps: u64) -> Object {
++         "\nsection layout\n{\"A_tab\":1,\"H\":2,\"S_cells\":0,\"globals\":{},\"heap_base\":3,\"heap_limit_max\":0,\"interface_regions\":{\"sum\":{\"db\":{\"base\":1}}},\"null_size\":1,\"ptr_width\":2}\n")
++         .replace("=0.8", "=0.9").replace("\"0.8\"", "\"0.9\"").replace("ptr_width=32", "ptr_width=2");
++     let object = support::rehash(&source);
+ +    assert_eq!(
+-+        choi,
+-+        matrix(phase.get("uncontrolled_choi_difference").unwrap())
+++        object.checked_borrow_lifetimes("sum").unwrap(),
+++        Some(vec![])
+ +    );
+-+    assert_eq!(choi, vec![vec![0, 0], vec![0, 0]]);
+-+}
++     let mut claim = support::json(
++         r#"{
++         "kind":"exhaustive","subject":{"closure_hash":"","variant":"forward","inherited_controls":0},
++         "invocation":{"args":["2"],"budget":["2","0","0","0"]},
++         "domain":{"bundles":[{"name":"x","width":2,"lo":1,"hi":1},{"name":"t","width":2,"lo":2,"hi":2},{"name":"f","width":4,"lo":3,"hi":3}],
++-          "borrowed":[{"name":"dirty","width":1,"lo":1,"hi":1}],
+++          "borrowed":[],
++           "regions":[{"name":"db","cells":[{"index":0,"lo":2,"hi":2},{"index":1,"lo":1,"hi":1}]}]},
++-        "expected":{"table":[{"before":{"bundles":["1","2","3"],"borrowed":["1"],"regions":[["2","1"]]},
++-                               "after":{"bundles":["1","1","3"],"borrowed":["1"],"regions":[["2","1"]]}}]}}
+++        "expected":{"table":[{"before":{"bundles":["1","2","3"],"borrowed":[],"regions":[["2","1"]]},
+++                               "after":{"bundles":["1","1","3"],"borrowed":[],"regions":[["2","1"]]}}]}}
++     "#,
++     );
++     fields(fields(&mut claim).get_mut("invocation").unwrap()).insert(
++@@ -146,7 +150,7 @@ fn standalone_oracle_binds_its_own_argument_budget_and_complete_interface() {
++         let error = verify_root(&object).unwrap_err().to_string();
++         assert!(error.contains("full tuple mismatch"), "{error}");
++     }
++-    for field in ["bundles", "borrowed", "regions"] {
+++    for field in ["bundles", "regions"] {
++         let object = changed(&typed_oracle("2", 2).text, |claim| {
++             let table = fields(fields(claim).get_mut("expected").unwrap())
++                 .get_mut("table")
++@@ -369,10 +373,7 @@ fn fixed_image_oracle() -> Object {
++             {"name":"f","width":4,"lo":0,"hi":15}]"#,
++             ),
++         );
++-        fields(domain).insert(
++-            "borrowed".into(),
++-            support::json(r#"[{"name":"dirty","width":1,"lo":0,"hi":1}]"#),
++-        );
+++        fields(domain).insert("borrowed".into(), support::json("[]"));
++         fields(domain).insert("regions".into(), support::json("[]"));
++         fields(domain).insert(
++             "fixed_regions".into(),
++@@ -385,11 +386,12 @@ fn fixed_image_oracle() -> Object {
++         for x in 0..4 {
++             for t in 0..4 {
++                 for f in 0..16 {
++-                    for b in 0..2 {
++-                        rows.push(support::json(&format!(r#"{{
++-                "before":{{"bundles":["{x}","{t}","{f}"],"borrowed":["{b}"],"regions":[["2","1"]]}},
++-                "after":{{"bundles":["{x}","{}","{f}"],"borrowed":["{b}"],"regions":[["2","1"]]}}}}"#, t^((x+2)&3))));
++-                    }
+++                    rows.push(support::json(&format!(
+++                        r#"{{
+++                "before":{{"bundles":["{x}","{t}","{f}"],"borrowed":[],"regions":[["2","1"]]}},
+++                "after":{{"bundles":["{x}","{}","{f}"],"borrowed":[],"regions":[["2","1"]]}}}}"#,
+++                        t ^ ((x + 2) & 3)
+++                    )));
++                 }
++             }
++         }
++@@ -414,7 +416,7 @@ fn fixed_image_metadata_is_admitted_without_inspecting_quantum_state() {
++             coverage.full_domain_elements.as_str(),
++             coverage.covered_fraction.as_str()
++         ),
++-        (512, "33554432", "1/65536")
+++        (256, "16777216", "1/65536")
++     );
++     assert_eq!(coverage.fixed_regions.len(), 1);
++     assert_eq!(coverage.fixed_regions[0].sha256, sha256_hex(&[2, 1]));
++@@ -475,5 +477,5 @@ fn sampled_singleton_report_has_exact_distinct_coverage() {
++     let report = object.verify_certificate().unwrap().claims.remove(0);
++     assert_eq!(report.verdict, ClaimVerdict::Evidence { elements: 1 });
++     let coverage = report.coverage.unwrap();
++-    assert_eq!(coverage.covered_fraction, "1/33554432");
+++    assert_eq!(coverage.covered_fraction, "1/16777216");
++ }
+ diff --git a/reference-interpreter/tests/isa09_fixed_image.rs b/reference-interpreter/tests/isa09_fixed_image.rs
+-new file mode 100644
+-index 0000000..4583238
+---- /dev/null
++index 4583238..c247c99 100644
++--- a/reference-interpreter/tests/isa09_fixed_image.rs
+ +++ b/reference-interpreter/tests/isa09_fixed_image.rs
+-@@ -0,0 +1,319 @@
+-+//! Every expected tuple/verdict is derived in the portable vector generator,
+-+//! independently of the interpreter. K85 preserves exact phase and full tuples.
+-+mod support;
+-+use bennett_isa_ref::{
+-+    json::Json, ClaimVerdict, Object, QuantumBindings, QuantumRegion, QuantumState,
+-+};
+-+use std::{collections::BTreeMap, path::PathBuf};
+-+
+-+fn fields(value: &mut Json) -> &mut BTreeMap<String, Json> {
+-+    let Json::Object(fields) = value else {
+-+        panic!("object")
+-+    };
+-+    fields
+-+}
+-+
+-+fn root(object: &Object) -> &str {
+-+    object
+-+        .section("certificate")
+-+        .unwrap()
+-+        .get("bindings")
++@@ -50,6 +50,184 @@ fn claim(record: &mut Json) -> &mut Json {
++     &mut claims[0]
++ }
++ 
+++fn program_relation(c: &mut Json) {
+++    let hash = c
+++        .get("subject")
+ +        .unwrap()
+ +        .get("closure_hash")
+ +        .unwrap()
+-+        .string()
+-+        .unwrap()
+++        .clone();
+++    fields(c).insert(
+++        "expected".into(),
+++        Json::Object(BTreeMap::from([("program".into(), hash)])),
+++    );
+ +}
+ +
+-+fn fixture(name: &str) -> String {
+-+    std::fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!(
+-+        "../conformance/fixtures/accepted-k85-09/{name}.bisa"
+-+    )))
+-+    .unwrap()
+-+}
+-+
+-+fn mutate(source: &str, change: impl FnOnce(&mut Json)) -> String {
+-+    let (base, cert) = source.split_once("section certificate\n").unwrap();
+-+    let mut cert = Json::parse(cert.trim()).unwrap();
+-+    let record = fields(fields(&mut cert).get_mut("regions").unwrap())
+-+        .values_mut()
+-+        .next()
+-+        .unwrap();
+-+    change(record);
+-+    format!("{base}section certificate\n{}\n", cert.canonical())
+-+}
+-+
+-+fn claim(record: &mut Json) -> &mut Json {
+-+    let Json::Array(claims) = fields(record).get_mut("claims").unwrap() else {
+-+        panic!("claims")
+-+    };
+-+    &mut claims[0]
+-+}
+-+
+ +#[test]
+-+fn published_fixed_image_vectors_replay_with_exact_coverage_and_bindings() {
+-+    let manifest = Json::parse(include_str!(
+-+        "../../conformance/fixtures/accepted-k85-09/k85.json"
+-+    ))
+-+    .unwrap();
+-+    for vector in manifest.get("cases").unwrap().array().unwrap() {
+-+        let name = vector.get("name").unwrap().string().unwrap();
+-+        let text = fixture(name);
+-+        assert_eq!(
+-+            bennett_isa_ref::sha256_hex(text.as_bytes()),
+-+            vector.get("sha256").unwrap().string().unwrap(),
+-+            "{name}"
+-+        );
+-+        let outcome = vector.get("outcome").unwrap().string().unwrap();
+-+        let parsed = Object::parse(&text);
+-+        if outcome == "reject_admission" {
+-+            let error = parsed.unwrap_err().to_string();
+-+            assert!(error.contains("§12.2"), "{name}: {error}");
+-+            continue;
+-+        }
+-+        let object = parsed.unwrap_or_else(|e| panic!("{name}: {e}"));
+-+        object.check_hashes().unwrap();
+-+        if outcome == "reject_replay" {
+-+            assert!(
+-+                object.verify_claim(root(&object), 0).is_err(),
+-+                "{name}: direct checker"
+-+            );
+-+            assert!(
+-+                object.verify_certificate().is_err(),
+-+                "{name}: certificate checker"
+-+            );
+-+            continue;
+-+        }
+-+        let n = vector.get("elements").unwrap().uint().unwrap();
+-+        let expected = match outcome {
+-+            "proof" => ClaimVerdict::Proof,
+-+            "proof_relative_to_image" => ClaimVerdict::ProofRelativeToImage,
+-+            "evidence" => ClaimVerdict::Evidence { elements: n },
+-+            _ => panic!("unexpected outcome {outcome}"),
+-+        };
+-+        assert_eq!(
+-+            object.verify_claim(root(&object), 0).unwrap(),
+-+            expected,
+-+            "{name}"
+-+        );
+-+        let report = object.verify_certificate().unwrap().claims.remove(0);
+-+        assert_eq!(report.verdict, expected, "{name}");
+-+        assert_eq!(report.closure_hash, root(&object));
+-+        assert_eq!(report.index, 0);
+-+        assert_eq!(report.context_key, support::json("[]"));
+-+        let coverage = report.coverage.unwrap();
+-+        assert_eq!(coverage.elements, n, "{name}");
+-+        assert_eq!(
+-+            coverage.full_domain_elements,
+-+            vector
+-+                .get("full_domain_elements")
+-+                .unwrap()
+-+                .string()
+-+                .unwrap(),
+-+            "{name}"
+-+        );
+-+        assert_eq!(
+-+            coverage.covered_fraction,
+-+            vector.get("covered_fraction").unwrap().string().unwrap(),
+-+            "{name}"
+-+        );
+-+        if name == "report-order" {
+-+            // Producer order is aux,db. Signature mem slots are db,aux.
+-+            assert_eq!(
+-+                coverage
+-+                    .fixed_regions
+-+                    .iter()
+-+                    .map(|b| (b.group, b.slot))
+-+                    .collect::<Vec<_>>(),
+-+                vec![(2, 0), (2, 1)]
+-+            );
+-+            assert_eq!(
+-+                coverage.fixed_regions[0].sha256,
+-+                bennett_isa_ref::sha256_hex(&[1, 2])
+-+            );
+-+            assert_eq!(
+-+                coverage.fixed_regions[1].sha256,
+-+                bennett_isa_ref::sha256_hex(&[1])
+-+            );
+-+            assert_eq!(
+-+                coverage
+-+                    .fixed_regions
+-+                    .iter()
+-+                    .map(|b| b.id.as_str())
+-+                    .collect::<Vec<_>>(),
+-+                vec!["mem:0", "mem:1"]
+-+            );
+-+        }
+-+    }
+-+}
+-+
+-+#[test]
+-+fn requested_labels_are_exclusive_for_full_and_image_relative_proofs() {
+-+    for (fixture_name, computed) in [
+-+        ("full-d-x", "proof"),
+-+        ("image-0102", "proof_relative_to_image"),
+-+        ("omit-a", "evidence"),
+-+        ("sampled-full-d", "evidence"),
+-+    ] {
+-+        for label in ["proof", "proof_relative_to_image", "evidence"] {
+-+            let text = mutate(&fixture(fixture_name), |record| {
+-+                fields(claim(record)).insert("label".into(), Json::String(label.into()));
+-+            });
+-+            let object = Object::parse(&text).unwrap();
+-+            let accepts = label == "evidence" || label == computed;
+-+            assert_eq!(
+-+                object.verify_claim(root(&object), 0).is_ok(),
+-+                accepts,
+-+                "{fixture_name}: {label}"
+-+            );
+-+            assert_eq!(
+-+                object.verify_certificate().is_ok(),
+-+                accepts,
+-+                "{fixture_name}: {label}"
+-+            );
+-+        }
+-+    }
+-+}
+-+
+-+#[test]
+-+fn structural_full_d_theorem_cannot_satisfy_an_image_relative_request() {
+-+    let text = mutate(&fixture("full-d-x"), |record| {
+-+        *claim(record) = support::json(
+-+            r#"{"kind":"structural","rule":"adjoint_table","subclaims":[],"witness":{},"invocation":{"args":[],"budget":["0","0","0","0"]},"label":"proof_relative_to_image"}"#,
+++fn council_ghost_borrowed_position_rejects_admission() {
+++    let text = mutate(&fixture("image-0102"), |record| {
+++        let c = claim(record);
+++        program_relation(c);
+++        fields(fields(c).get_mut("domain").unwrap()).insert(
+++            "borrowed".into(),
+++            support::json(r#"[{"name":"ghost","width":1,"lo":0,"hi":1}]"#),
+ +        );
+ +    });
+-+    let object = Object::parse(&text).unwrap();
+-+    // K94 establishes a full-D adjoint theorem. K85's relative request is
+-+    // exclusive; stronger/different theorem categories cannot stand in for it.
+-+    assert!(object.verify_claim(root(&object), 0).is_err());
+-+    assert!(object.verify_certificate().is_err());
+++    let error =
+++        Object::parse(&text).expect_err("a source without qborrow cannot acquire a ghost lifetime");
+++    assert!(error.to_string().contains("§12.2"), "{error}");
+ +}
+ +
+ +#[test]
+-+fn fixed_image_proof_does_not_discharge_an_unrestricted_borrow_frame() {
+++fn council_borrowed_width_two_rejects_one_bit_lifetime() {
+ +    let text = mutate(&fixture("controlled-dirty"), |record| {
+-+        fields(fields(record).get_mut("verification").unwrap())
+-+            .insert("borrow_frames".into(), support::json("[0]"));
+++        let c = claim(record);
+++        program_relation(c);
+++        fields(fields(c).get_mut("domain").unwrap()).insert(
+++            "borrowed".into(),
+++            support::json(r#"[{"name":"b","width":2,"lo":0,"hi":3}]"#),
+++        );
+ +    });
+-+    let object = Object::parse(&text).unwrap();
+-+    assert_eq!(
+-+        object.verify_claim(root(&object), 0).unwrap(),
+-+        ClaimVerdict::ProofRelativeToImage
+-+    );
+-+    let error = object.verify_certificate().unwrap_err().to_string();
+-+    assert!(error.contains("proof over D"), "{error}");
+++    let error = Object::parse(&text).expect_err("the checked lifetime has exactly one bit");
+++    assert!(error.to_string().contains("§12.2"), "{error}");
+ +}
+ +
+-+#[test]
+-+fn full_tuples_include_every_fixed_cell_and_preserved_bundle() {
+-+    for field in ["bundles", "regions"] {
+-+        let text = mutate(&fixture("image-0102"), |record| {
+-+            let Json::Array(rows) = fields(fields(claim(record)).get_mut("expected").unwrap())
+++fn omitted_borrowed_slice(program: bool, label: Option<&str>) -> String {
+++    mutate(&fixture("controlled-dirty"), |record| {
+++        let c = claim(record);
+++        fields(fields(c).get_mut("domain").unwrap()).insert("borrowed".into(), support::json("[]"));
+++        if program {
+++            program_relation(c);
+++        } else {
+++            let Json::Array(rows) = fields(fields(c).get_mut("expected").unwrap())
+ +                .get_mut("table")
+ +                .unwrap()
+ +            else {
+-+                panic!("rows")
+++                panic!("table");
+ +            };
+-+            let after = fields(fields(&mut rows[0]).get_mut("after").unwrap());
+-+            let Json::Array(values) = after.get_mut(field).unwrap() else {
+-+                panic!("values")
+++            // K71 holds the omitted lifetime at zero. The original complete
+++            // tuples already include that unchanged borrowed system.
+++            rows.retain(|row| {
+++                row.get("before").unwrap().get("borrowed").unwrap() == &support::json(r#"["0"]"#)
+++            });
+++            assert_eq!(rows.len(), 128);
+++        }
+++        if let Some(label) = label {
+++            fields(c).insert("label".into(), Json::String(label.into()));
+++        }
+++    })
+++}
+++
+++fn check_omitted_borrowed_slice(program: bool) {
+++    for label in [None, Some("evidence")] {
+++        let object = Object::parse(&omitted_borrowed_slice(program, label)).unwrap();
+++        object.check_hashes().unwrap();
+++        let expected = ClaimVerdict::Evidence { elements: 128 };
+++        assert_eq!(object.verify_claim(root(&object), 0).unwrap(), expected);
+++        let report = object.verify_certificate().unwrap().claims.remove(0);
+++        assert_eq!(report.verdict, expected);
+++        let coverage = report.coverage.unwrap();
+++        // 1 control + 1 target + 4 fault + 1 address + 16 image + 1 borrow
+++        // = 24 unrestricted bits; 2*2*16*2 = 128 replayed zero-borrow tuples.
+++        assert_eq!(coverage.elements, 128);
+++        assert_eq!(coverage.full_domain_elements, "16777216");
+++        assert_eq!(coverage.covered_fraction, "1/131072");
+++        assert_eq!(coverage.fixed_regions.len(), 1);
+++        assert_eq!(
+++            coverage.fixed_regions[0].sha256,
+++            bennett_isa_ref::sha256_hex(&[1, 2])
+++        );
+++    }
+++    for label in ["proof", "proof_relative_to_image"] {
+++        let object = Object::parse(&omitted_borrowed_slice(program, Some(label))).unwrap();
+++        assert!(object.verify_claim(root(&object), 0).is_err(), "{label}");
+++        assert!(object.verify_certificate().is_err(), "{label}");
+++    }
+++}
+++
+++#[test]
+++fn council_omitted_borrowed_program_is_zero_slice_evidence() {
+++    check_omitted_borrowed_slice(true);
+++}
+++
+++#[test]
+++fn council_omitted_borrowed_complete_table_is_zero_slice_evidence() {
+++    check_omitted_borrowed_slice(false);
+++}
+++
+++#[test]
+++fn checked_borrowed_output_is_part_of_the_complete_relation() {
+++    let text = mutate(&fixture("controlled-dirty"), |record| {
+++        let c = claim(record);
+++        let Json::Array(rows) = fields(fields(c).get_mut("expected").unwrap())
+++            .get_mut("table")
+++            .unwrap()
+++        else {
+++            panic!("table");
+++        };
+++        fields(fields(&mut rows[0]).get_mut("after").unwrap())
+++            .insert("borrowed".into(), support::json(r#"["1"]"#));
+++    });
+++    let object = Object::parse(&text).unwrap();
+++    for result in [
+++        object.verify_claim(root(&object), 0).map(|_| ()),
+++        object.verify_certificate().map(|_| ()),
+++    ] {
+++        let error = result.unwrap_err().to_string();
+++        assert!(error.contains("full tuple mismatch"), "{error}");
+++    }
+++}
+++
+++#[test]
+++fn council_host_limited_claim_retains_later_claim_and_no_coverage() {
+++    for label in [None, Some("proof"), Some("proof_relative_to_image")] {
+++        let text = mutate(&fixture("image-0102"), |record| {
+++            let original = claim(record).clone();
+++            let c = claim(record);
+++            fields(c).insert("kind".into(), Json::String("sampled".into()));
+++            program_relation(c);
+++            fields(c).insert("sampler".into(),support::json(r#"{"algorithm":"xoshiro256**","seed":["1","0","0","0"],"count":"18446744073709551615"}"#));
+++            if let Some(label) = label {
+++                fields(c).insert("label".into(), Json::String(label.into()));
+++            }
+++            let Json::Array(claims) = fields(record).get_mut("claims").unwrap() else {
+++                panic!("claims");
+ +            };
+-+            if field == "regions" {
+-+                let Json::Array(cells) = &mut values[0] else {
+-+                    panic!("cells")
+-+                };
+-+                cells[0] = Json::String("0".into());
+-+            } else {
+-+                values[1] = Json::String("1".into());
+-+            }
+++            claims.push(original);
+ +        });
+ +        let object = Object::parse(&text).unwrap();
+-+        let error = object
+++        object.check_hashes().unwrap();
+++        let direct = object
+ +            .verify_claim(root(&object), 0)
+-+            .unwrap_err()
+-+            .to_string();
+-+        assert!(error.contains("full tuple mismatch"), "{field}: {error}");
+++            .expect("legal host-limited claims have a verdict");
+++        let ClaimVerdict::Unverified(reason) = &direct else {
+++            panic!("host limit discharged a claim: {direct:?}");
+++        };
+++        assert!(
+++            reason.contains("§12.2")
+++                && reason.contains("unchecked (host limit)")
+++                && reason.contains("18446744073709551615"),
+++            "{reason}"
+++        );
+++        let reports = object
+++            .verify_certificate()
+++            .expect("later independent claims survive")
+++            .claims;
+++        assert_eq!(reports.len(), 2);
+++        assert_eq!(reports[0].verdict, direct);
+++        assert_eq!(reports[0].closure_hash, root(&object));
+++        assert_eq!(reports[0].index, 0);
+++        assert_eq!(reports[0].context_key, support::json("[]"));
+++        assert!(reports[0].coverage.is_none());
+++        assert_eq!(reports[1].index, 1);
+++        assert_eq!(reports[1].verdict, ClaimVerdict::ProofRelativeToImage);
+++        let coverage = reports[1].coverage.as_ref().unwrap();
+++        assert_eq!(coverage.elements, 64);
+++        assert_eq!(coverage.full_domain_elements, "4194304");
+++        assert_eq!(coverage.covered_fraction, "1/65536");
+ +    }
+ +}
+ +
+-+#[test]
+-+fn certificate_image_metadata_never_changes_executable_identities() {
+-+    let a = Object::parse(&fixture("image-0102")).unwrap();
+-+    let b = Object::parse(&fixture("image-0201")).unwrap();
+-+    let a_id = a.identity().unwrap();
+-+    let b_id = b.identity().unwrap();
+-+    assert_eq!(a_id.object_hash, b_id.object_hash);
+-+    assert_eq!(a_id.interface_hashes, b_id.interface_hashes);
+-+    assert_eq!(a_id.closure_hashes, b_id.closure_hashes);
+-+    // Old closed 0.8 readers must reject the 0.9 fields/label explicitly.
+-+    let legacy = fixture("image-0102")
+-+        .replace("=0.9", "=0.8")
+-+        .replace("\"0.9\"", "\"0.8\"");
+-+    assert!(Object::parse(&legacy).is_err());
+-+}
+-+
+-+#[test]
+-+fn controlled_fixed_map_restores_dirty_and_arbitrary_entangled_references() {
+-+    let object = Object::parse(&fixture("external-reference")).unwrap();
+-+    assert_eq!(
+-+        object.verify_claim(root(&object), 0).unwrap(),
+-+        ClaimVerdict::ProofRelativeToImage
+-+    );
+-+    let mut q = QuantumState::new();
+-+    let t = q.allocate(1).unwrap();
+-+    let f = q.allocate(4).unwrap();
+-+    let a = q.allocate(1).unwrap();
+-+    let cells = vec![q.allocate(1).unwrap(), q.allocate(1).unwrap()];
+-+    let dirty = q.allocate(1).unwrap();
+-+    let control = q.allocate(1).unwrap();
+-+    let references = [
+-+        q.allocate(1).unwrap(),
+-+        q.allocate(1).unwrap(),
+-+        q.allocate(1).unwrap(),
+-+    ];
+-+    q.gate("x", &cells[0], None, &[]).unwrap();
+-+    for bit in [f[0], f[2]] {
+-+        q.gate("x", &[bit], None, &[]).unwrap();
+-+    }
+-+    for (wire, reference) in [&a, &dirty, &control].into_iter().zip(&references) {
+-+        q.gate("h", wire, None, &[]).unwrap();
+-+        q.gate("cx", &[wire[0], reference[0]], None, &[]).unwrap();
+-+    }
+-+    let mut bindings = QuantumBindings::default();
+-+    for (name, wires) in [("t", &t), ("f", &f), ("a", &a)] {
+-+        bindings.bundles.insert(name.into(), wires.clone());
+-+    }
+-+    bindings.regions.insert(
+-+        "db".into(),
+-+        QuantumRegion {
+-+            address_width: 1,
+-+            cell_width: 1,
+-+            cells: cells.clone(),
+-+        },
+-+    );
+-+    bindings.borrowed.push(dirty.clone());
+-+    object
+-+        .execute_action("lookup", &mut q, &bindings, false, &control)
+-+        .unwrap();
+-+    // Independently derived inverse of t ^= control & !a. The other
+-+    // systems, including the three untouched references, must factor back.
+-+    q.gate("x", &a, None, &[]).unwrap();
+-+    q.gate("ccx", &[control[0], a[0], t[0]], None, &[]).unwrap();
+-+    q.gate("x", &a, None, &[]).unwrap();
+-+    for (wire, reference) in [&a, &dirty, &control].into_iter().zip(&references).rev() {
+-+        q.gate("cx", &[wire[0], reference[0]], None, &[]).unwrap();
+-+        q.gate("h", wire, None, &[]).unwrap();
+-+    }
+-+    q.gate("x", &cells[0], None, &[]).unwrap();
+-+    for bit in [f[0], f[2]] {
+-+        q.gate("x", &[bit], None, &[]).unwrap();
+-+    }
+-+    for wires in [&t, &f, &a, &cells[0], &cells[1], &dirty, &control]
+-+        .into_iter()
+-+        .chain(references.iter())
+-+    {
+-+        // release checks exact-zero amplitudes, not a binary64 tolerance.
+-+        q.release(wires).unwrap();
+-+    }
+-+    assert_eq!(q.wire_count(), 0);
+-+}
++ #[test]
++ fn published_fixed_image_vectors_replay_with_exact_coverage_and_bindings() {
++     let manifest = Json::parse(include_str!(
+ ```
+ 
+-## Vector files added/changed (contents in the repository you run in)
+-     conformance/cases/D/D-k85-also-ranged/case.json                           |  18 ++++++++
+-     conformance/cases/D/D-k85-controlled-dirty/case.json                      |  17 ++++++++
+-     conformance/cases/D/D-k85-duplicate-bundle/case.json                      |  18 ++++++++
+-     conformance/cases/D/D-k85-duplicate-cell/case.json                        |  18 ++++++++
+-     conformance/cases/D/D-k85-duplicate-image/case.json                       |  18 ++++++++
+-     conformance/cases/D/D-k85-duplicate-region/case.json                      |  18 ++++++++
+-     conformance/cases/D/D-k85-external-reference/case.json                    |  17 ++++++++
+-     conformance/cases/D/D-k85-full-d-x/case.json                              |  17 ++++++++
+-     conformance/cases/D/D-k85-hex-text-hash/case.json                         |  18 ++++++++
+-     conformance/cases/D/D-k85-image-0102/case.json                            |  17 ++++++++
+-     conformance/cases/D/D-k85-image-0201/case.json                            |  17 ++++++++
+-     conformance/cases/D/D-k85-long-image/case.json                            |  18 ++++++++
+-     conformance/cases/D/D-k85-mut-region/case.json                            |  18 ++++++++
+-     conformance/cases/D/D-k85-nonzero-padding/case.json                       |  18 ++++++++
+-     conformance/cases/D/D-k85-omit-a/case.json                                |  17 ++++++++
+-     conformance/cases/D/D-k85-omit-f/case.json                                |  17 ++++++++
+-     conformance/cases/D/D-k85-omit-t/case.json                                |  17 ++++++++
+-     conformance/cases/D/D-k85-packing/case.json                               |  17 ++++++++
+-     conformance/cases/D/D-k85-report-order/case.json                          |  17 ++++++++
+-     conformance/cases/D/D-k85-request-evidence/case.json                      |  17 ++++++++
+-     conformance/cases/D/D-k85-request-proof_relative_to_image/case.json       |  17 ++++++++
+-     conformance/cases/D/D-k85-sampled-full-d/case.json                        |  17 ++++++++
+-     conformance/cases/D/D-k85-short-image/case.json                           |  18 ++++++++
+-     conformance/cases/D/D-k85-stale-hash/case.json                            |  18 ++++++++
+-     conformance/cases/D/D-k85-swapped-hash/case.json                          |  18 ++++++++
+-     conformance/cases/D/D-k85-uppercase/case.json                             |  18 ++++++++
+-     conformance/cases/D/D-k85-wrong-a/case.json                               |  18 ++++++++
+-     conformance/cases/D/D-k85-wrong-w/case.json                               |  18 ++++++++
+-     conformance/fixtures/accepted-k85-09/README.md                            |  64 ++++++++++++++++++++++++++++
+-     conformance/fixtures/accepted-k85-09/also-ranged.bisa                     |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/controlled-dirty.bisa                |  21 +++++++++
+-     conformance/fixtures/accepted-k85-09/duplicate-bundle.bisa                |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/duplicate-cell.bisa                  |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/duplicate-image.bisa                 |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/duplicate-region.bisa                |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/external-reference.bisa              |  21 +++++++++
+-     conformance/fixtures/accepted-k85-09/full-d-x.bisa                        |  12 ++++++
+-     conformance/fixtures/accepted-k85-09/generate.py                          | 276 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-     conformance/fixtures/accepted-k85-09/hex-text-hash.bisa                   |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/image-0102.bisa                      |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/image-0201.bisa                      |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/k85.json                             |   1 +
+-     conformance/fixtures/accepted-k85-09/long-image.bisa                      |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/mut-region.bisa                      |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/nonzero-padding.bisa                 |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/omit-a.bisa                          |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/omit-f.bisa                          |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/omit-t.bisa                          |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/packing.bisa                         |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/phase.bisa                           |  19 +++++++++
+-     conformance/fixtures/accepted-k85-09/report-order.bisa                    |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/request-evidence.bisa                |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/request-proof.bisa                   |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/request-proof_relative_to_image.bisa |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/restricted-map.json                  |   1 +
+-     conformance/fixtures/accepted-k85-09/sampled-full-d.bisa                  |  12 ++++++
+-     conformance/fixtures/accepted-k85-09/short-image.bisa                     |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/stale-hash.bisa                      |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/swapped-hash.bisa                    |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/uppercase.bisa                       |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/wrong-a.bisa                         |  17 ++++++++
+-     conformance/fixtures/accepted-k85-09/wrong-w.bisa                         |  17 ++++++++
+-     62 files changed, 1343 insertions(+)
++## Implementer receipts (job/isa-k86 PROGRESS.md, verbatim)
++# Resume
++
++STOPPED as maintainer directed (2026-11-08T12:35Z, restated): finish K85 fixes to green, preserve the K86 committed/backed-up checkpoint, start no further K86 clause or follow-on work. Final verification recorded by date -u: Sun Nov  8 13:19:36 UTC 2026.
++
++Head: 04d5fc381cf906a007c17657e4f320129527906c, branch job/isa-k86, backed up to origin refs/heads/wip/isa-k86 (remote equality checked). Tracked working tree clean; only private .tmp evidence untracked. No rebase/merge, main push, .beads commit, full repo gate, sub-agent or sibling source edit. Orchestrator merges K93 first, rebases later and reviews shared borrow.rs lines; K85 council round2/full gate remain orchestrator-owned. No K93 blocker was delivered.
++
++K85-fix commits (separate from K86):
++- 8cf1f86: ONE read-only Object::checked_borrow_lifetimes accessor plus tests. borrow.rs diff is +88/-0; existing compiler semantics unchanged. It reads Borrow/Repeat/transitive Call facts; repeated and adjoint allocations remain ordered, zero-trip contributes none, both qif arms retain unconditional lifetimes. Unknown linked source is None, not a proven empty inventory.
++- aae0cff: shared checked inventory for domain admission, tuple widths/counts, missing-zero replay systems, full-D denominator and proof classification; exact council regressions and K75 per-claim host-limit outcomes, retaining later reports. Admission host limits defer the inventory obligation to the replay boundary; known semantic errors remain rejection.
++- 31c3b80: SPEC-QUESTIONS.md §34 records labels reading A, reasons, bennett-isa-spec-b7k and council round1 B-K85-2; no label-policy behavior change.
++- 04d5fc3: preserve frozen0.8 flat tuple/idle-pool behavior; generic K92 invocation decoding leaves checked replay inventory unset, and only the replay invocation binder attaches it. This preserves unresolved-import applicability reports.
++All messages end Agent: gpt-6.1-sol and each commit was backed up.
++
++Clause disposition:
++| Clause | Result |
++| --- | --- |
++| §12.2 K69/K70/K72 checked positions/widths | Extra ghost and width2/hi3 on a checked one-bit lifetime reject admission |
++| §12.1 K13 / §12.2 K71/K85 omission/full tuples/coverage | Both table and program forms preserve omitted b=0; Evidence{elements:128}, fullD=16777216, fraction1/131072; proof/image-relative requests reject |
++| §12.2 K75 | count=18446744073709551615 claim0 yields Unverified("§12.2 K75: unchecked (host limit): ..."), coverage=None; original claim1 still reports conditional theorem with64/4194304=1/65536; requested proof labels remain unchecked |
++| §12.2 labels (b7k) | Reading A documented; common field, kind-independent rejection, unchecked/Unverified exempt and never satisfy a label |
++| K86 | Exact arithmetic/interval/process helpers only; model/target/schedule reconstruction and vectors remain incomplete |
++
++Exact red-first council witnesses are committed tests in isa09_fixed_image.rs. Command:
++python3 .tmp/isa-k86/run.py k85-council-red short cargo test --offline --manifest-path reference-interpreter/Cargo.toml --test isa09_fixed_image council_ -- --nocapture
++Before fixes: exit101,0 passed,5 intended failures (four witnesses, omitted table/program separate). Quotes:
++- ghost: “a source without qborrow cannot acquire a ghost lifetime: Object ...” (admission wrongly succeeds).
++- width2/hi3: “the checked lifetime has exactly one bit: Object ...” (admission wrongly succeeds).
++- omitted table: “§12: §12.1 K13: incomplete borrowed tuple”.
++- omitted program: “§5.6: designated idle set lacks requested borrowed wires”.
++- huge sampled claim: “legal host-limited claims have a verdict: Error(... sampled domain elements allocation of 18446744073709551615 elements failed ... HostResource)”.
++Green quotes in k85-focused-committable.log and the final full reference log: council_ghost_borrowed_position_rejects_admission ... ok; council_borrowed_width_two_rejects_one_bit_lifetime ... ok; council_omitted_borrowed_program_is_zero_slice_evidence ... ok; council_omitted_borrowed_complete_table_is_zero_slice_evidence ... ok; council_host_limited_claim_retains_later_claim_and_no_coverage ... ok. Both public APIs and requested-label variants are asserted. Expected values are independently derived from the council's source relation, never copied from interpreter output.
++
++Accessor red: k85-accessor-red receipt, missing checked_borrow_lifetimes, exit101. Valid accessor green: k85-accessor-green-valid,2 passed. Two intermediate accessor fixture drafts had malformed bounds/regs syntax; those are not semantic red evidence.
++
++SOLE INVENTORY receipt: .tmp/isa-k86/borrowed-inventory-grep-final.txt, generated after all fixes with:
++rg -n 'borrowed_widths|checked_borrow_lifetimes|admission_borrow_lifetimes|domain_for\(|get\("borrowed"\)' reference-interpreter/src/certificate.rs reference-interpreter/src/claims.rs reference-interpreter/src/claims/replay09.rs
++Quoted consumers: claims.rs “self.checked_borrow_lifetimes(&f.name)?”; width validation “borrowed_widths.get(ordinal) != Some(&width)”; completeness compares listed length with resolver length; 0.9 replay iterates “borrowed_widths.iter().copied().enumerate()”; replay09 coverage sums “&domain.domain.borrowed_widths”; tuple/entry conversion receives “&domain.borrowed_widths”; certificate.rs passes “self.admission_borrow_lifetimes(f)?” to domain_for/table09. In ISA0.9, domain.borrowed is no longer an inventory anywhere: it supplies only labels/ranges validated against the resolver, plus a completeness check. Complete tuple shape, omitted zero systems and unrestricted D derive solely from checked widths. Frozen ISA0.8 retains its prior explicit flat tuple encoding, with a visible version branch; it does not supply a 0.9 checked inventory. Object::borrow_capacity is unused by the resolver.
++
++Necessary test-fixture correction: the older typed_oracle helper invented a dirty borrowed entry although its oracle source has no checked lifetime. Its legal domain now has borrowed=[],24 bits (2 input+2 target+4 fault+16 region), singleton1/16777216 and fixed-image256/16777216=1/65536. All real input/fault/address/image ranges and arithmetic assertions remain. The borrowed-output mismatch assertion now uses the checked lifetime in controlled-dirty (checked_borrowed_output_is_part_of_the_complete_relation); both checker APIs must reject a changed borrowed output. Existing entangled dirty/reference tests remain. No published vector/source/object/catalog bytes changed, and no test was skipped/ignored or weakened to accept a wrong result.
++
++Verification on the frozen final implementation (run.py supplies headless env/private TMPDIR/CARGO_TARGET_DIR,4 compiler jobs,4 test threads; full crates also use8GiB AS cap/core dumps off):
++- Focused: cargo test --offline --manifest-path reference-interpreter/Cargo.toml --test isa09_fixed_image --test isa09_borrow_inventory --test isa09_claim_replay --test isa09_certificate --lib -- --test-threads=4 =>64 pass,exit0 (k85-focused-committable).
++- Initial full reference k85-full-reference =>exit101,8 compatibility failures in4 targets. Corrected only the0.8/version routing and shared K92 decoder in04d5fc3. All failures and receipts retained.
++- Affected targets plus focused/lib: k85-compatibility-green =>152 passed,0 failed,2 existing ignores,exit0.
++- Full reference: python3 .tmp/isa-k86/run.py k85-full-reference-final moderate cargo test --offline --manifest-path reference-interpreter/Cargo.toml --no-fail-fast -- --test-threads=4 =>743 passed,0 failed,6 existing ignores,exit0;309.06s wall,416.42s CPU,1591040KiB peak RSS.
++- Private CLI: cargo build --offline --manifest-path reference-interpreter/Cargo.toml =>exit0 (k85-final-cli). SHA256=12a429a4b8536be7916a797c3391c028f8c7dc09109cb7dd6fbddb72ba2c5d4f.
++- Focused conformance with BENNETT_CONFORMANCE_BIN selecting that CLI: cargo test --offline --manifest-path conformance/Cargo.toml --test ref_k85 --test case_data -- --test-threads=4 =>6 pass,exit0.
++- Full conformance with the same selected CLI: python3 .tmp/isa-k86/run.py k85-full-conformance moderate cargo test --offline --manifest-path conformance/Cargo.toml --no-fail-fast -- --test-threads=4 =>132 passed,0 failed/ignored,exit0;478.81s wall,809.30s CPU,722716KiB peak RSS.
++- Both cargo fmt --manifest-path <crate>/Cargo.toml -- --check commands pass; git diff --check passes.
++- Both crates pass cargo clippy --offline --manifest-path <crate>/Cargo.toml --lib --bins -- -D warnings (k85-clippy-reference-final and k85-clippy-conformance receipts). Conformance source remained unchanged throughout. No source changes after04d5fc3 or after either full run.
++
++K86 committed checkpoint, retained without starting further clauses:34c9f0c exact arbitrary-precision Rational/binary64 bindings; ed1e4c7 directed binary interval operations, complex matrices, V†U-I Frobenius bounds, strict Hermitian LDL channel dual and rectangular K85 process helpers. Their7 independent helper tests pass in the full reference run. No connected target/model reader, native normalization/control/accuracy verifier, exact transcendental model evaluator, target/schedule invocation executor, certificate process dispatch or portable K86 vectors is implemented. Low-level process helpers are not executable certificate acceptance. No SET A need remains for the completed K85 slice; action.rs/validation.rs/source_constructor/action.rs/main.rs stayed unchanged.
++
++Open: b-isa-spec-0ib remains IN_PROGRESS (not closed; depends on bennett-isa-spec-u94). K85 parent b-isa-spec-qrc remains open/in progress with bennett-isa-spec-rqn for conditional process/preparation/native attachment. b7k remains a published-text clarification; its requested reference reading is recorded. u94 records missing closed Kraus/instrument/explicit-control/enclosure-certificate encodings in §8.3; no producer encoding was invented. Existing scheduled/numerical/channel claims remain explicitly staged/Unverified.
++
++Execution policy retained: always /home/tobias paths, owned SET B only with the narrow read-only borrow.rs grant. No repo hang-guard table/profile exists at this baseline; private classes derive from docs/quality.md measurements at>=10x: short1800s,moderate18000s,long30000s; exit124 UNKNOWN. TMPDIR=.tmp/isa-k86/tmp; CARGO_TARGET_DIR=.tmp/isa-k86/target; DISPLAY/WAYLAND_DISPLAY/DBUS_SESSION_BUS_ADDRESS/BROWSER unset. Final action: hand off this green checkpoint and STOP; only the orchestrator proceeds with K93-first integration, shared-line review, K85 council round2 and full gate. No further K86 clause or follow-on work is authorized in this run.
