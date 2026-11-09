@@ -2,10 +2,9 @@
 # when its precondition does; the next shift deletes dead lines). Everything in advisor-notes.md and shift files is history.
 - 2026-11-09 17:13Z VELOCITY DIAL (maintainer: "we now have codex quota, you can go a bit over pace. I want some more velocity";
   "the whole point of a modular design is precisely that we can work in parallel"). The day's pace dial lives in the current
-  shift file's Quota section and overrides rule 10's default. Today: VELOCITY = up to FIVE Codex implementers alive at once
-  (four until 17:21Z; raised on the first BLOCKED-BY-RULE line: the count was the advisor's translation), each in a different
-  repo or on disjoint owned path sets (rule 3; one Analysis.cpp writer), reviews and councils on top; Codex may run ahead of
-  pace; stop launching only above three times the pace line. Idle CPU with disjoint ready work is a defect to report.
+  shift file's Quota section and overrides rule 10's default; the cap and ceiling are numbers in THAT section, never here.
+  Today: VELOCITY (Codex may run ahead of pace; disjoint repos / path sets per rule 3; one Analysis.cpp writer; reviews and
+  councils never count). Idle CPU with disjoint ready work is a defect to report.
 - 2026-11-09 SINGLE SEAT. The laptop is retired; Spiral (64 threads, 62 GB) is the only machine and the only orchestrator
   seat. Every "laptop keeps X", lane split, relay ("wait for the relayed line"), hand-over hold and two-seat ownership
   line is void. All repos and paths belong to this seat's children under rule 3.
