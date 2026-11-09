@@ -400,6 +400,18 @@ def toolchain_repair(directory, major):
              f"libclang-{major}-dev", f"libpolly-{major}-dev", f"lld-{major}"]]
 
 
+def toolchain_directory(value, source):
+    if value.startswith("$HOME/"):
+        home = os.environ.get("HOME")
+        if not home:
+            raise ConfigError(f"{source}: HOME is unset; set HOME to resolve {value}")
+        value = str(Path(home) / value[len("$HOME/"):])
+    directory = Path(value).expanduser()
+    if not directory.is_absolute() or "$" in str(directory):
+        raise ConfigError(f"{source}: expected an absolute or $HOME/ directory, got {value!r}")
+    return directory
+
+
 def collect_toolchains(path, inventory):
     data = tomllib.loads(path.read_text())
     if not data:
@@ -414,16 +426,12 @@ def collect_toolchains(path, inventory):
         if "frontend_bin" in cfg and (not isinstance(cfg["frontend_bin"], str) or not cfg["frontend_bin"]):
             raise ConfigError(f"{path}.{section}: frontend_bin must be a nonempty directory path")
         major = int(match[1])
-        directory = Path(cfg["bin"]).expanduser()
-        if not directory.is_absolute():
-            raise ConfigError(f"{path}.{section}: bin must be absolute")
+        directory = toolchain_directory(cfg["bin"], f"{path}.{section}.bin")
         install = toolchain_repair(directory, major)
         for tool in ("opt", "llc"):
             inventory.tool(str(directory / tool), str(path), major, install)
         if "frontend_bin" in cfg:
-            frontend = Path(cfg["frontend_bin"]).expanduser()
-            if not frontend.is_absolute():
-                raise ConfigError(f"{path}.{section}: frontend_bin must be absolute")
+            frontend = toolchain_directory(cfg["frontend_bin"], f"{path}.{section}.frontend_bin")
             install = toolchain_repair(frontend, major)
             for tool in ("clang", "clang++", "llvm-config"):
                 inventory.tool(str(frontend / tool), str(path), major, install)
