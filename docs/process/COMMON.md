@@ -125,7 +125,7 @@ requires deleting or merging one in the same edit.
    (muse-wonder-full-1.0): council seat pre-approved on every candidate rule 7 sends to council; an occasional
    ordinary review round is fine; never an implementer on main except by named maintainer exception; an erroring
    quota row is logged, not a block. After two failed sol rounds the escape is revert + spec-first re-land, not a
-   different-model fixer. [precondition: maintainer findings of 2026-11-07 on sol/astra; [provider reading redacted; re-read 2026-11-10]]
+   different-model fixer. [precondition: maintainer findings of 2026-11-07 on sol/astra; re-read the Muse seat on 2026-11-10]
 7. REVIEW: EVIDENCE-FIRST, TWO ROUNDS, RUNG-NAMED SEVERITIES. One fresh sol review that starts from the implementer's
    PROGRESS.md, gate log and red-first test, re-runs each claim, and reads the diff where evidence is thin. P0/P1 only
    for a wrong result or silent fallback on a named north-star §8 rung path, an unsound oracle (reference

@@ -18,7 +18,7 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
   --sha $(git -C <worktree> rev-parse HEAD)` (commit gate.toml first; the tool lives in any repo's .tmp/gate/tool/,
   e.g. /home/tobias/Projects/bennett-workspace/bennett-driver/.tmp/gate/tool/gate_run-01c0314c9aaa4a37313ab530da2134efafe9cbd5.py).
   Do not run --repo <worktree>: bwrap cannot follow the symlink. Never run a repo's full push gate or `gate_run.py run`
-  (the orchestrator does that at merge, ~~heavy gates one at a time~~).
+  (the orchestrator does that at merge).
 - Progress: keep .tmp/<name>/PROGRESS.md in your worktree current as a Resume block (done / verified with which command /
   next). If you are stopped at any moment, a successor continues from it plus the git log.
 - Headless: DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS, BROWSER unset; TMPDIR=<worktree>/.tmp/<name>/tmp;
@@ -27,6 +27,3 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
   from a brief; long runs are bounded by the class table, never a bare `timeout N`.
 - Do not ask questions; no human is watching. End with a final message (<=200 words, COMMON 13) whose last line is
   `JOB-COMPLETE` or `JOB-BLOCKED: <reason>`.
-
-The struck gate-slot phrase above is void under COMMON.md's READ FIRST / NO HEAVY SLOT ruling.
-Standing rule 5 governs concurrent gates; the prohibition on children running a full gate remains.

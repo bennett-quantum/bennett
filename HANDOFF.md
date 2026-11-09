@@ -103,8 +103,8 @@ measured-basis diagnostics and a small fixture estimate cannot satisfy those cla
 Spiral is the single orchestrator seat (64 hardware threads, about 62 GB RAM); the laptop retired
 on 2026-11-09. Old seat ownership, relay and gate-slot instructions have expired. Read the target
 repo's `CLAUDE.md` / `AGENTS.md`, then the local rulebook
-`bennett/.tmp/orchestrator/briefs/COMMON.md` including its READ FIRST block. Children also read
-`briefs/T3CHILD.md`. COMMON is the rulebook; historical advisor/shift notes are evidence.
+`bennett/docs/process/COMMON.md` including its READ FIRST block. Children also read
+`bennett/docs/process/T3CHILD.md`. COMMON is the rulebook; historical advisor/shift notes are evidence.
 
 Live issue state is `bd` in each repo's **main checkout**, not an old JSONL export. Use `bd ready`,
 `bd show <id>` and `bd note`/`bd create`; the orchestrator exports Beads when landing. Current local

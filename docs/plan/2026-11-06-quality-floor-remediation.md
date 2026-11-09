@@ -115,7 +115,7 @@ Common work list for every job, in this order, each item red-first and committed
 10. Per-repo HANDOFF.md is retired: it is stale context the next agent reads (isa-spec and circuits were wrong at audit).
    Delete it; the README gets one line pointing at `bennett/HANDOFF.md`; dated `docs/reviews/` and `docs/quality/`
    stay as the record. Progress lives in `.tmp/`.
-11. Every job reads the "Anti-slop rules" section of `.tmp/orchestrator/briefs/COMMON.md` (good/bad examples) before
+11. Every job reads the "Anti-slop rules" section of `docs/process/COMMON.md` (good/bad examples) before
    writing code; reviewers check against the same list.
 
 Per-repo specifics (from the audit; the job reads the full report first):
