@@ -274,7 +274,7 @@ class Runner:
                 raise HealthError(f"{name} origin/main lacks {path}")
         env = environment(self.state / "tmp", self.workspace)
         env["BENNETT_GATE_BWRAP"] = cache_isolation(checkout)
-        return execute(["bash", str(checkout / "scripts/pre-push"), "--sha", revisions[name]],
+        return execute(["bash", str(checkout / "scripts/pre-push"), "--sha", revisions[name], "--tier", "full", "--fresh"],
                        checkout, log, env,
                        self.args.max_wait, self.args.command_timeout)
 

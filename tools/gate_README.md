@@ -1,204 +1,183 @@
 # Pinned-sibling push gate
 
-Problem: repo gates read live sibling trees, so they go red whenever a sibling job is mid-edit, and a green result
-says nothing about which sibling it held for. This tool runs a repo's own checks on the pushed sha with every sibling
-at a commit the repo pinned.
+The gate runs a repository's checks on a committed input, with siblings pinned by that
+commit's `gate.toml`. Python stdlib only; isolated runs require Linux bwrap. A component's
+`scripts/pre-push` extracts `tools/gate_run.py` from the meta commit pinned by `tool_sha`.
+Tool upgrades require a deliberate pin bump. The existing stubs forward all arguments.
 
-Files: `gate_run.py` (the tool), `gate_pre-push.template` (the per-repo `scripts/pre-push`), `gate_selftest.py`.
-Selftest: `TMPDIR=<local dir> python3 -I tools/gate_selftest.py`.
+```sh
+python3 tools/gate_run.py run --repo R [--sha S] [--tier pre-merge|full] [--fresh]
+python3 tools/gate_run.py verify --repo R --sha S
+python3 tools/gate_launch.py start --repo R [--sha S] [--tier pre-merge|full]
+python3 tools/gate_launch.py wait <unit>
+python3 tools/gate_launch.py status
+python3 tools/admit.py gate --repo R --tier full
+```
 
-## Tool or template: an installed tool, reached through a pinned stub
+Without `--sha`, run reads Git's pre-push ref stream, or HEAD with empty stdin; deletions
+gate nothing. Config is read from the selected commit, never the dirty checkout.
+`verify` materialises/hashes/builds pins without running checks. `hook-check --repo R`
+verifies that the effective executable pre-push hook reaches the stub (including
+`core.hooksPath`), using its `BENNETT_GATE_HOOK_PROBE=1` handshake.
 
-A copied template would be 13 diverging copies, which is the problem as it stands today (every `scripts/pre-push` was a
-drifted copy). Non-negotiable 5 forbids sharing code across a *contract* boundary. This tool is not on one: no product
-code or test imports it, and repos only run it, as they run `cargo` or `bd`. What a repo depends on is the `gate.toml`
-format and environment variables, documented here. A repo's tests stay ignorant of the tool: they read a sibling path or
-an env var.
-
-Calling `../bennett/tools/gate_run.py` directly would itself be a live sibling read, so the stub extracts the tool from
-the meta repo's objects at `tool_sha` in `gate.toml` (`git show <tool_sha>:tools/gate_run.py`) into `.tmp/gate/tool/`.
-A tool upgrade is a deliberate one-line commit per repo. The stub reads `tool_sha` from HEAD's `gate.toml`; a pushed sha
-whose `gate.toml` pins an *ancestor* of that tool runs under the newer one (announced; the record keeps `tool_sha` and
-`tool_sha_ran`), so a walk-back push gets tool fixes. A pushed pin that is newer than, or unrelated to, the running tool
-is refused (exit 3). The stub's own job is that fetch and the hook probe.
-
-## What a run does
-
-1. Reads refs from stdin as git supplies them (HEAD when run directly; deletion-only pushes gate nothing), and `gate.toml`
-   **at the pushed sha**, never the working tree.
-2. Materialises each pinned sibling as a detached worktree: `.tmp/gate/cache/<name>@<sha12>/<name>`. Reused across runs;
-   rematerialised, with a notice, if its HEAD moved or tracked files changed. Beads hooks are blanked during `git worktree add`.
-3. Verifies `files` hashes on every run. Builds declared `build` steps once per sha (stamped; a failed build is not stamped).
-4. Creates `.tmp/gate/runs/<sha>/<repo>` (clean detached worktree of the pushed sha) with a symlink per sibling beside it,
-   so `../bennett-isa-spec` and `../../bennett-isa-spec` resolve to the pin with no test change. A pin named `bennett` needs
-   only objects from the meta repo.
-5. Runs each `[[check]]` in order under bwrap, in which **every other top-level directory of the workspace is an empty
-   tmpfs** except its `.git`. The workspace is rescanned before every command, so a sibling worktree created or removed mid-run is followed. An absolute or unpinned read of a live sibling gets ENOENT and the check goes red: that is the
-   fail-loud for unpinned reads, and it cannot be bypassed by a path the static scan misses. Inherited `BENNETT_*`,
-   `CARGO_TARGET_DIR`, `GIT_*` and display variables are scrubbed.
-6. Runs each `[[report]]` (milestone and blocker status); its exit is printed and never decides anything.
-7. Writes `.tmp/gate/records/<sha>.json`: pins used, `pushed` per pin, tool pinned and tool run, command measurements,
-   setup time, machine profile, sibling cache state and result (receipt fields below).
-
-The existing nonblocking lock at `.tmp/gate/locks/run-<sha>` rejects another attempt on the same SHA immediately with
-setup exit 3. Its error names the holder's PID and UTC lock-acquisition time. Different SHAs retain their existing
-per-sibling cache/build locks.
-
-### Receipts
-
-A PASS writes `<workspace>/<repo>/.tmp/gate/receipts/<key>.json` in the owning checkout, shared by job and
-main-health worktrees. The key is SHA-256 of `json.dumps([tree, tool_sha_ran, isolated], sort_keys=True)`:
-the commit's tree covers `gate.toml`, including sibling pins, checks and timeouts; the running tool and isolation
-mode must also match. A matching PASS skips sibling preparation and checks, announces the original run, and writes
-this SHA's record with `covered_by` and no `checks`. Failed or interrupted runs write no PASS receipt; unreadable or
-invalid receipts are reported and ignored. `run --fresh` (also `scripts/pre-push --fresh` through the stub) forces
-a full run, records `fresh: true`, and replaces the receipt on PASS. Machine, time and load are evidence, not key inputs.
-
-Before reading or publishing a PASS receipt, the tool verifies that its own source file has exactly the Git blob
-of `tools/gate_run.py` at the claimed full meta commit in `<workspace>/bennett`. The claim is `--tool-sha` when
-provided, otherwise the candidate's `gate.toml` pin. This also verifies the hook's extracted tool; verified runs keep
-the existing key and can reuse existing receipts. A missing commit/source, unreadable source or byte mismatch emits
-`PASS RECEIPTS DISABLED` with the reason on stderr. Checks and reports still execute with their usual exit behavior,
-the run record has `tool_sha_ran: null`, and no PASS receipt is read or written (including with `--fresh`).
-
-### Receipt measurements
-
-Each entry in `checks` and `reports` retains `name`, `exit` and the compatible rounded `seconds` field, and adds:
-
-- `wall_seconds`: unrounded monotonic elapsed seconds for that command, including launch and isolation overhead.
-- `cpu_seconds`: user + system CPU seconds from Linux `wait4`, including descendants reaped by the command's process
-  tree. Detached descendants that outlive their parents are not accounted for.
-- `peak_rss_kib`: Linux `wait4` peak resident memory in KiB, the largest individual process peak in that tree,
-  rather than the sum of simultaneous process memory. Each command is measured independently of earlier commands/builds.
-- `width_env`: the width-related variables actually present in that command's environment, after expansion and overrides.
-  No width is inferred from command arguments or tool defaults. The observed keys are `CARGO_BUILD_JOBS`,
-  `CARGO_MAKEFLAGS`, `MAKEFLAGS`, `MFLAGS`, `RUST_TEST_THREADS`, `RAYON_NUM_THREADS`, `CMAKE_BUILD_PARALLEL_LEVEL`,
-  `CTEST_PARALLEL_LEVEL`, `NINJAFLAGS`, `OMP_NUM_THREADS`, `OMP_THREAD_LIMIT`, `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS`,
-  `NUMEXPR_NUM_THREADS` and `GOMAXPROCS`. A command that cannot be launched retains exit 127 and records unavailable CPU/RSS.
-
-Receipt probes are optional evidence and cannot change which checks/reports execute, their statuses, or the gate's
-verdict/exit. A failed probe records `{"unavailable": "<exception class>: <message>"}` at the affected field and emits
-a named `receipt <field> unavailable` diagnostic. Memory, CPU count, load, machine label, timing, CPU/RSS, cache state
-and width observations are isolated; independent fields remain available. A label depending on unavailable machine
-inputs is also explicitly unavailable. If `wait4` accounting fails, ordinary process waiting still obtains the real
-command exit status; CPU/RSS are marked unavailable. Failed samples never supply a default number or empty environment.
-
-Run-level `setup_seconds` measures configuration, isolation preparation, sibling materialisation/builds and creation
-of the run worktree, ending before the first check. It excludes checks, reports and final worktree cleanup. The
-run-level `width_env` records the common check environment; command entries include their individual overrides.
-`machine` is sampled before setup: `nproc` (CPUs available through process affinity), `mem_total_kib` and
-`mem_available_kib` from `/proc/meminfo`, `load1`, and `label`. The hostname-free label is `machine-<12 hex>` from a
-SHA-256 fingerprint of architecture, available CPU count and total memory. It identifies a hardware profile;
-identical profiles share a label.
-
-Each `siblings` entry adds `cache_state`: `hit` when the pin and all declared build stamps/outputs were reused,
-`materialised` when its worktree was created or repaired without running a build, or `built` when this run executed
-at least one build step (including after materialisation). These fields are evidence only: they introduce no limits,
-thresholds or changes to gate decisions. Repositories adopt this receipt format only when they bump their `tool_sha` pin.
-
-SIGTERM, SIGHUP or SIGINT (an orchestrator kill under memory pressure) kills the running command's whole process group,
-removes the run worktree and writes no record; exit 128+signal. Kill the gate's python process, never only the bwrap
-below it. Tool c698ce1 (adopted everywhere on 2026-11-02) orphans the running build or test tree on SIGTERM and fails every later
-command once a workspace worktree it saw at start is removed; both fixed since.
-
-Exit: **0 iff every check passed**, 1 a check failed, 3 setup failed (missing or mismatched pin, absent commit, hash
-mismatch, unbuildable sibling, unknown key or placeholder, no bwrap). `--no-isolate` is announced and means the run is not
-a push gate. A pin not yet on `origin/main` is a noted fact in the record, not a failure, since a push order can make it true.
-
-## gate.toml
+## Config
 
 ```toml
 schema = 1
-repo = "bennett-plugin"          # directory name inside the layout
-tool_sha = "<40 hex meta commit>"
-timeout_s = 28800                # per command; optional
+repo = "example"                    # layout directory / owning main checkout
+tool_sha = "<40 hex meta commit>"   # pinned tool identity
+timeout_s = 28800                  # optional per-command hang guard
 
-[env]                            # placeholders: {wt} {root} {layout} {sibling:NAME}; unknown ones are an error
-BENNETT_SIBLINGS = "{layout}"
+[receipt]                          # optional; no implicit exclusions
+non_product = ["worklog/", "HANDOFF.md"]
+
+[env]                              # {wt}, {root}, {layout}, {sibling:NAME}
 CARGO_TARGET_DIR = "{root}/.tmp/gate-target"
 
-[[check]]                        # also: env = {...}, cwd = "subdir"
-name = "repo gate"
-argv = ["scripts/gate"]
+[[check]]                          # default tier: pre-merge
+name = "tests"
+argv = ["scripts/test"]
+# cwd = "subdir"
+# env = {RUST_TEST_THREADS = "2"}
 
-[[report]]                       # optional; evidence only
+[[check]]
+name = "expensive regression"
+argv = ["scripts/slow"]
+tier = "post-merge"
+inputs = ["src/", "tests/", "Cargo.toml"]  # optional early-warning trigger
+
+[[report]]                         # optional; exits never decide the gate verdict
+                                   # reports alone get BENNETT_GATE_SHA, the real gated commit, and run with the
+                                   # filesystem read-only except their own run layout (nothing they write outlives the run)
 name = "blockers"
 argv = ["scripts/blockers"]
 
-[siblings."bennett-isa-spec"]
+[siblings.library]
 sha = "<40 hex>"
-repo = "bennett-isa-spec"        # optional alias source, e.g. name bennett-isa-spec-review
-note = "why this commit"
-[siblings."bennett-isa-spec".files]
-"spec/ref-0.9.json" = "<sha256>"
-[[siblings."bennett-isa-spec".build]]
-name = "reference interpreter"
-cwd = "reference-interpreter"
+# repo = "source-directory"        # alias; defaults to sibling name
+# note = "reason for pin"
+[siblings.library.files]
+"dist/library.bc" = "<sha256>"
+[[siblings.library.build]]
+name = "library"
 argv = ["cargo", "build", "--offline"]
-outputs = ["reference-interpreter/target/debug/bennett-isa-ref"]
-needs = []                       # pinned siblings to place beside this one for its build; part of the build key
+cwd = "crate"
+outputs = ["crate/target/debug/library"]
+needs = []                         # other pinned siblings needed by this build
 ```
 
-Unknown keys, abbreviated shas and a file with no `[[check]]` are refused. Moving a pin is a commit in the consumer, so a
-sibling's change reaches a gate only when the consumer says so; to learn whether it should, use the consumer check:
+Unknown keys/placeholders, abbreviated pins, invalid tiers, and a config with no checks
+are setup errors. `inputs` requires a post-merge check and a nonempty relative path list;
+directory inputs accept a trailing slash or a directory name. Missing inputs are part of
+the content identity, so creation/deletion changes it. Pins, command configuration and
+environment templates also enter the input key.
 
-## Consumer evidence: `report-live`
+`non_product` accepts exact relative paths or directory prefixes ending in `/`, without
+globs, absolute paths, `..`, empty paths or Git metadata. Configuration load refuses an
+entry covering `gate.toml`, `scripts/pre-push`, any check/report executable or cwd, or a
+path named in a global or command environment template. Diagnostics name the entry.
+There is no automatic documentation exclusion: baselines/specs may be test inputs.
 
-`gate_run.py report-live --repo R [--sha S] [--run [--trace]]` always exits 0 on a completed report; it is never a
-stop condition for R's gate. It prints pin drift against each live sibling and tracked references to sibling paths
-(`absolute`, `relative-pinned`, `relative-unpinned`). `--run` runs the checks against the **live** siblings, unisolated,
-and reports `consumer check against live siblings: PASS|FAIL`. `--trace` adds strace and lists the absolute live paths touched.
-`verify --repo R --sha S` is the preflight: materialise, hash and build every pin, run no check.
+## Receipts and tiers
 
-## Hook chain
+With `[receipt]`, the content identity is SHA-256 of Git's NUL-delimited recursive tree
+listing (`ls-tree -rtz`) after exclusions, including every remaining entry's mode, type,
+object ID and path. Directory IDs are recomputed after filtering. The receipt key hashes
+`json.dumps([content, tool_sha_ran, isolated, tier], sort_keys=True)`. `gate.toml` always
+remains product, so exclusion-policy, check and pin changes invalidate coverage.
 
-`gate_run.py hook-check --repo R` exits 0 iff git's effective pre-push hook reaches this repo's stub. It resolves the path git
-would use (honouring `core.hooksPath`), requires it executable, requires it to be or `exec` `scripts/pre-push`, then runs
-it with `BENNETT_GATE_HOOK_PROBE=1`, which the stub answers without gating. `bd init` sets `core.hooksPath=.beads/hooks`
-and leaves a *copy* of the gate there, and `.git/hooks/pre-push` is then dead. The right file is:
+Before any build/check/report runs, the run checkout uses a parentless synthetic commit
+with exactly that filtered tree. Excluded paths are absent from the filesystem, index
+and HEAD; `cat excluded` and `git show HEAD:excluded` fail. This avoids leaving excluded
+index entries behind after deleting files. **Model:** `non_product` is sound for checks that do not go looking for excluded paths; the backstop is the fresh run:
+main-health gates every pushed main with `--tier full --fresh`, so a wrong receipt skip surfaces there as a red. Known
+residual side channels (a check deliberately inspecting git metadata, host-writable mounts) are listed in bead
+bennett-jug. Config load refuses any check argv or `inputs` that names an excluded path.
 
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
-hook_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-root="$(dirname "$(dirname "$hook_dir")")"
-exec "$root/scripts/pre-push" "$@"
-```
+When `non_product` is declared, the gating checkout's own working tree is hidden inside bwrap (an empty tmpfs) and
+only its `.git` and `.tmp` (gate state, run tree, caches, `CARGO_TARGET_DIR`) are bound back. Excluded paths are
+therefore uniformly absent: their bytes, symlink text and existence cannot reach a check through `{root}`, an env
+template or a tracked symlink, so a fresh gate's verdict cannot depend on them. A config that keeps state in the
+checkout outside `.tmp` must move it under `{root}/.tmp/` when it adopts `non_product`; entries under `.tmp/` or
+`.git/` are refused. Git objects remain available for pinned
+worktree operation; arbitrary historical-object reads are not sandboxed. A check must
+use its run input, rather than deliberately fetching historical excluded objects.
 
-Without `core.hooksPath`: `ln -s ../../scripts/pre-push .git/hooks/pre-push`.
+Without `[receipt]`, pre-merge retains the exact legacy key:
+SHA-256 of `json.dumps([original_tree_id, tool_sha_ran, isolated], sort_keys=True)`.
+Existing verified receipts remain valid. Full-tier receipts have distinct keys. Before
+receipt use, the executing tool blob must match its full meta commit claim (the config
+pin or `--tool-sha`); otherwise `PASS RECEIPTS DISABLED` names the reason and checks still
+run. A newer running tool may replace an ancestor pin; unrelated/newer pins are refused.
 
-In the meta repository, `scripts/install-hooks.sh` installs an executable wrapper at
-`git rev-parse --git-path hooks/pre-push`, so it follows the effective `core.hooksPath` and works in linked
-worktrees. The wrapper executes the current worktree's `scripts/pre-push`. This repo's own hook runs
-`python3 -m unittest discover tools/tests` and fails if discovery finds zero tests. Installers and hook tests
-use scratch repositories; installation into the main checkout belongs to the orchestrator.
+Pre-merge runs default checks. A post-merge check with `inputs` also runs when its
+(inputs content, pins, command/env, tool, isolation) key has no PASS; otherwise the record
+says `deferred to post-merge, inputs unchanged since <sha>`. Without inputs it defers.
+This trigger is an early warning only. **Main-health runs `--tier full` on every pushed
+main**; full always runs post-merge checks unless the complete content already passed
+full. It can reuse a same-content pre-merge receipt and run just post-merge checks.
+A full PASS also covers pre-merge. Records name `tier`, `tiers_ran`, `tiers_covered` and
+`deferred`. A full content hit writes `covered_by` without preparing siblings/checks.
+`--fresh` bypasses every receipt. Failures and interruptions publish no tier PASS.
 
-## Ecosystem ignore convention
+PASS receipts remain shared under the owning main checkout's `.tmp/gate/receipts/`,
+atomically replaced. Records are local `.tmp/gate/records/<sha>.json`; successive tiers
+replace that SHA's latest record, while distinct receipts retain tier evidence.
 
-Every repository's quality job copies these patterns into its own `.gitignore`:
+## Worktrees, isolation and evidence
 
-```gitignore
-__pycache__/
-*.pyc
-*.log
-.beads/**/LOCK
-*.darc
-```
+Each supplied checkout has real local `.tmp/gate/{cache,locks,runs,records}` directories.
+The old shared-cache symlink is unlinked (including dangling links) with a diagnostic;
+its target is never followed. Other symlinked mutable state is refused. Use `--repo`
+**the job worktree** for job gates and pin preparation. Concurrent worktrees have separate
+pin builds, target dirs and locks; same-SHA runs within one checkout fail immediately,
+with the holder PID/UTC time. Shared immutable pin caches are not implemented.
 
-Ignore rules do not untrack existing files. Remove tracked generated files from the index in the owning repo;
-keep Beads source and its passive exports tracked. Council run logs under `docs/council/` are generated output.
+Pins live in `cache/<name>@<sha12>/<name>`; dirty/moved tracked cache contents are
+rematerialised. Declared hashes are verified each run; successful builds are stamped
+with their command/pin/dependency identity. The run is `runs/<sha>/<repo>` with sibling
+links beside it. Hooks are disabled while creating Git worktrees. Bwrap hides other
+workspace checkouts while preserving their `.git` object directories, including linked
+worktree common directories. It rescans before every command. Unpinned live reads fail.
+Inherited `BENNETT_*`, Git overrides, cargo target and display variables are scrubbed;
+`--no-isolate` is explicitly announced and is not a push gate.
 
-Under R26, the orchestrator creates each T3 child's worktree at `../<repo>-job-<name>` on `job/<name>`.
-The child commits owned paths and pushes `HEAD` to `wip/<name>` after every commit.
-The orchestrator merges the job branch after review.
+A byte-for-byte second copy of one real `bennett-runtimes` cache cost **42,225,664 bytes
+(40.27 MiB)** allocated disk (`cp -a --reflink=never`, `du -s -B1`, both copies equal).
+This measures duplication, not a new component build; real costs vary with pins/outputs.
 
-## Adopting a repo
+Records retain command exits, wall/CPU seconds, largest-process peak RSS (KiB), effective
+width variables, setup time, machine profile and sibling cache states. Failed optional
+probes report an explicit `unavailable` diagnostic/value without changing command exits.
+Reports are evidence only. SIGTERM/SIGHUP/SIGINT kill the command group and clean the run
+worktree; setup failures are loud. `--keep` retains a run for inspection.
+Exit: 0 PASS, 1 check failure (including a recorded command hang guard 124), 3 setup error,
+128+signal interruption. Detached events promote a recorded hang guard to gate exit 124.
 
-1. Write `gate.toml`: the same checks the old `scripts/pre-push` ran, each sibling it reads, each binary it needs.
-2. Commit it. `verify --repo R --sha HEAD`.
-3. Replace `scripts/pre-push` by the template with an atomic `mv` (a running bash reads its script as it goes), and commit.
-4. `hook-check`; run `scripts/pre-push </dev/null` once and record the true result.
+## Detached completion and admission
 
-Red under isolation with a path in the error means the test reads a live tree: point it at `../sibling` or an env var, or
-add the pin. Never `--no-isolate` to get a push through.
+`start` serializes resource assessment/reservation, then uses `systemd-run --user` to
+create a detached **service**, never a scope. A content-addressed snapshot of the three
+Python modules keeps execution/completion available after caller checkout edits/removal. Unit identity includes checkout path, SHA12
+and tier. ExecStopPost atomically writes one object to
+`<workspace>/bennett/.tmp/gates/events/<unit>.json`, including pass/fail/setup error,
+hang guard, signal or wrapper crash, SHA/tier, record path, UTC start/finish, peak RSS and
+disk use when measurable (otherwise explicit unavailability). The cgroup MemoryPeak is
+preferred over process accounting. `wait` blocks on that event and returns its exit;
+`status` lists admitted running and completed units. Launch failures also publish events.
+The user systemd manager must be available; no shell-background fallback is used.
+
+Admission requires MemAvailable minus all running reservations
+`max(0, expected peak - current RSS)` (conservative cgroup anon + shmem) >= expected peak + **6 GiB**, load1 < nproc/**2**,
+and free disk >= expected disk + **20 GiB**. Expected peak/disk use latest same-tier
+records/events. Missing history uses explicit conservative defaults **8 GiB peak / 16
+GiB disk**; the reason prints those numbers. Constants and sources are in `admit.py`.
+Probe failures print `WAIT` with the error; there are no fabricated resource samples.
+
+`report-live --repo R [--sha S] [--run [--trace]]` reports pin drift and tracked sibling
+references; optional checks read live siblings unisolated. Completed reports exit 0;
+they never supply a push receipt. `--trace` reports absolute live reads with strace.
+
+Validation: `scripts/pre-push` runs the meta unit tests. Run
+`TMPDIR=<local scratch> python3 -I tools/gate_selftest.py` for scratch-repo integration
+checks. Unit tests inject launch/probe functions and never start real systemd services.
