@@ -292,7 +292,30 @@ def resources(repo):
             'disk_free': shutil.disk_usage(repo).free}
 
 
+QUIET_WINDOWS = META_ROOT / '.tmp/orchestrator/quiet-windows.txt'  # lines: <start_utc ISO> <end_utc ISO> [note]
+QUIET_DRAIN = {'full': timedelta(minutes=55), 'pre-merge': timedelta(minutes=20)}
+
+
+def quiet_hold(tier, now, path=QUIET_WINDOWS):
+    """WAIT reason if a host-quiet window (shared with other projects on this box) is near or open, else ''."""
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        return ''
+    for line in lines:
+        fields = line.split()
+        if len(fields) < 2 or line.lstrip().startswith('#'):
+            continue
+        start, end = (datetime.fromisoformat(f) for f in fields[:2])
+        if start - QUIET_DRAIN.get(tier, QUIET_DRAIN['pre-merge']) <= now < end:
+            return f'host quiet window {fields[0]}..{fields[1]} ({tier} drain {QUIET_DRAIN.get(tier, QUIET_DRAIN["pre-merge"])})'
+    return ''
+
+
 def assess(repo, workspace, tier):
+    hold = quiet_hold(tier, datetime.now(timezone.utc))
+    if hold:
+        return False, hold, {}
     try:
         expected = expected_from_history(history(repo, workspace, tier))
         allowed, reason = decide(resources(repo), expected, running_reservations(workspace))
@@ -326,6 +349,8 @@ def main():
             ok, reason = decide_launch(resources(args.repo), expected, running_reservations(workspace),
                                        quota, dial, args.vendor, args.kind, readings=readings,
                                        now=datetime.now(timezone.utc))
+            hold = quiet_hold(args.tier, datetime.now(timezone.utc))
+            ok, reason = (False, hold) if hold else (ok, reason)
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, RuntimeError) as error:
         ok, reason = False, f'admission probe unavailable: {error}'
     print(('ADMIT ' if ok else 'WAIT ') + reason)
