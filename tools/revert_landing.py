@@ -88,7 +88,13 @@ def revert(repo, merge, workspace=None):
     git(repo, 'revert', '--no-edit', '-m', '1', merge)
     sha = git(repo, 'rev-parse', 'HEAD')
     # Ordinary non-force push rejects a concurrent landing. Never rewrite main.
-    git(repo, 'push', 'origin', 'HEAD:refs/heads/main')
+    # Pushed with the repo's own hook (unlike the git calls above), so the fast tier runs behind the revert and a
+    # pass clears the red in bennett/.tmp/gates/reds.log.
+    pushed = subprocess.run(['git', '-C', str(repo), 'push', 'origin', 'HEAD:refs/heads/main'], env=environment(),
+                            stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=CONTROL_TIMEOUT_SECONDS)
+    if pushed.returncode:
+        raise RevertError(f'git push: exit {pushed.returncode}: {pushed.stderr.strip()}')
+    print(pushed.stderr, end='', file=sys.stderr)
     return dict(sha=sha, merge=merge, consumers=consumers)
 
 
