@@ -81,6 +81,26 @@ class LaunchTests(RunnerFixture):
                 self.assertIn('finished_utc', event)
                 event_path.unlink()
 
+    def test_red_gate_writes_one_new_or_known_line(self):
+        a = module()
+        log = self.ws / 'bennett/.tmp/gates/reds.log'
+        for known in (False, True):
+            unit, path = self.request(a)
+            request = json.loads(path.read_text())
+            record = Path(request['record_path'])
+            record.parent.mkdir(parents=True, exist_ok=True)
+            record.write_text(json.dumps({'checks': [{'name': 'ok', 'exit': 0}, {'name': 'unit tests', 'exit': 1}]}))
+            baseline = self.ws / 'bennett/health/known-reds.toml'
+            baseline.parent.mkdir(parents=True, exist_ok=True)
+            baseline.write_text('schema = 1\n' + (f'[[red]]\nscope = "{request["repo_name"]}"\ncheck = "unit tests"\n'
+                                                   'bead = "b-1"\n' if known else ''))
+            a.atomic_json(path.with_name(unit + '.outcome.json'), {'exit': 1})
+            a.complete(path, service_result='exit-code', exit_code='exited', exit_status='1', query=lambda unit: {})
+            line = log.read_text().splitlines()[-1]
+            self.assertIn(('KNOWN' if known else 'NEW') + '-RED ' + request['repo_name'], line)
+            self.assertTrue(line.endswith(' unit tests'), line)
+            (self.ws / 'bennett/.tmp/gates/events' / (unit + '.json')).unlink()
+
     def test_stop_post_without_worker_outcome_maps_signal_and_timeout(self):
         a = module()
         for code, status, service, expected in [('killed', 'TERM', 'signal', 143),

@@ -1,0 +1,3 @@
+# Seed from pushed mains with tools/main_health.py seed; never hand-copy failure lists.
+# Empty until the orchestrator runs seed with reviewed bead assignments.
+schema = 1
