@@ -831,6 +831,19 @@ class ReformTests(ContentReceiptFixture):
         z = self.run_gate(sha, isolated=True)
         self.assertEqual(z.returncode, 0, z.stderr)
 
+    def test_reports_alone_see_the_gated_sha(self):
+        # A report (never a verdict) may read excluded content from the real commit, e.g. a beads export;
+        # checks must not get the handle, or their verdict could depend on excluded bytes.
+        (self.repo / 'notes').write_text('obligations\n')
+        check = ["sh", "-c", "test -z \"$BENNETT_GATE_SHA\""]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n\n[[report]]\nname = "audit"\n'
+                         'argv = ["sh", "-c", "git cat-file -p \\"$BENNETT_GATE_SHA:notes\\" > \\"$TMPDIR/seen\\"; '
+                         'cat \\"$TMPDIR/seen\\"; grep -qx obligations \\"$TMPDIR/seen\\""]\n', check)
+        self.env = dict(self.env, BENNETT_GATE_SHA='inherited-must-not-reach-checks')
+        z = self.run_gate(sha, isolated=True)
+        self.assertEqual(z.returncode, 0, z.stderr)
+        self.assertIn('report audit exited 0', z.stdout + z.stderr)
+
     def test_filtered_receipt_covers_docs_but_not_product_byte(self):
         (self.repo / 'product').write_text('a')
         (self.repo / 'notes').mkdir()

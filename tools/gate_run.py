@@ -302,7 +302,7 @@ def base_env(tmpdir):
     env = {}
     scrubbed = []
     for k, v in os.environ.items():
-        if k in HEADLESS or k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "CARGO_TARGET_DIR"):
+        if k in HEADLESS or k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "CARGO_TARGET_DIR", "BENNETT_GATE_SHA"):
             continue
         if k.startswith("BENNETT_") and not k.startswith("BENNETT_GATE_"):
             scrubbed.append(k)
@@ -818,7 +818,10 @@ def gate_one(root, workspace, sha, args):
                     atomic_json(ipath, dict(record, result="pass", tree=ikey, key=ikey,
                                            finished_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
             passed = len(checks) == len(selected) and all(c["exit"] == 0 for c in checks)
-            reports = run_commands(cfg.get("report", []), wt, env, ctx, prefix, cfg.get("timeout_s"), "report")
+            # Reports never decide the verdict, so only they get the real gated commit (e.g. to read a non_product beads
+            # export from git); checks run on the filtered tree alone.
+            reports = run_commands(cfg.get("report", []), wt, dict(env, BENNETT_GATE_SHA=sha), ctx, prefix,
+                                   cfg.get("timeout_s"), "report")
             for r in reports:
                 print(f"gate: report {r['name']} exited {r['exit']} (evidence, never the gate's exit)", flush=True)
             run_disk = receipt_probe("disk_bytes", lambda: disk_bytes(root / ".tmp"))
