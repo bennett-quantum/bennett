@@ -67,6 +67,8 @@ linked here is present as a file.
 
 ## 8. Known per-host gaps
 - [ ] Hardcoded absolute paths in `<workspace>/bennett-dialect-spec/corpus/legality/toolchains.toml`: `llvm18.bin=/usr/lib/llvm-18/bin`; `llvm23.bin=$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin`, `frontend_bin=/usr/lib/llvm-23/bin`; `llvm20.bin=$HOME/.julia/artifacts/21334d62ab8fb1788be32b83ab0373b77916a794/tools`. Satisfy them (user `tobias`, default rustup/julia homes, artifact hash from LLVM_full_jll 20.1.8) or edit the three paths in that file (a spec-repo change that must go through its gate). The laptop's `~/.julia/artifacts` holds three LLVM_full_jll-era hashes; only 21334d62... is the 20.1.8 one referenced.
+- [ ] Pinned sibling commits are immutable and some hardcode `/home/tobias/.rustup` and `/home/tobias/.julia`: as root, create
+  those two as symlinks to your own `~/.rustup` and `~/.julia` (nothing else under /home/tobias). `scripts/doctor.sh` checks them.
 - [ ] Moving or renaming the workspace breaks linked worktrees (git < 2.48 records absolute paths both ways). After a move run `python3 -I <workspace>/bennett/tools/repair_worktrees.py`; it re-points every worktree it can locate and lists, never prunes, the rest.
 - [ ] `bd` must be 1.3.2 exactly, `dolt` 2.6.0. Spiral initially had bd 1.0.0 and dolt 1.82.4, which breaks imports.
 - [ ] `bwrap` is required; without it gates are not push gates. Rootless user namespaces must be allowed.

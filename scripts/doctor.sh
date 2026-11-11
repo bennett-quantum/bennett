@@ -443,9 +443,18 @@ def collect_toolchains(path, inventory):
             inventory.tool("cmake", str(path))
 
 
+# Pinned sibling commits are immutable and some hardcode the old host's toolchain paths (e.g. bennett-dialect-spec
+# 1c29c8d corpus/legality/toolchains.toml). These links replace the old bind mount; nothing else under /home/tobias.
+LEGACY_TOOLCHAIN_LINKS = (Path("/home/tobias/.rustup"), Path("/home/tobias/.julia"))
+
+
 def check_infrastructure(inventory):
     for name in INFRASTRUCTURE:
         inventory.tool(name, "gate / Beads infrastructure")
+    for link in LEGACY_TOOLCHAIN_LINKS:
+        if not link.is_dir():
+            inventory.gap(str(link), "legacy toolchain path read by pinned sibling commits: as root, "
+                          f"ln -s $HOME/{link.name} {link}", ())
     probes = {
         "bwrap": ["--dev-bind", "/", "/", "--die-with-parent", "--", "/bin/true"],
         "systemd-run": ["--user", "--quiet", "--wait", "--pipe", "/bin/true"],
