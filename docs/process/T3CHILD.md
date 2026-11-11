@@ -18,7 +18,8 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
 - Pinned siblings: tests read siblings only through the repo's gate.toml pin. Your worktree has its own gate cache
   (<worktree>/.tmp/gate/cache, a real directory; a legacy symlink there is refused). To materialise or build a pin, run
   the gate tool against your worktree: `python3 -I <worktree>/.tmp/gate/tool/gate_run-<tool_sha>.py verify --repo <worktree>
-  --sha $(git -C <worktree> rev-parse HEAD)` (commit gate.toml first; scripts/pre-push extracts the tool on first use).
+  --sha $(git -C <worktree> rev-parse HEAD)` (commit gate.toml first; extract the pinned tool once with `git -C <workspace>/bennett
+  show <tool_sha>:tools/gate_run.py > <worktree>/.tmp/gate/tool/gate_run-<tool_sha>.py`).
   Never run a repo's full push gate or `gate_run.py run` (the orchestrator does that at merge).
 - Progress: keep .tmp/<name>/PROGRESS.md in your worktree current as a Resume block (done / verified with which command /
   next). If you are stopped at any moment, a successor continues from it plus the git log.
