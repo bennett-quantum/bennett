@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Gate resource admission. Decision policy is pure; probes fail closed with a reason."""
+"""Resource and weekly-pace admission. Probes fail closed with a reason."""
 import argparse
+from decimal import Decimal
+import fcntl
 import json
+import math
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
+import time
+import tomllib
 
 GIB = 1024 ** 3
 # Resource headroom mandated by the gate contract / process rule 5.
@@ -21,6 +27,118 @@ DEFAULT_DISK_BYTES = 16 * GIB
 CONTROL_TIMEOUT_SECONDS = 60
 CGROUP_ROOT = Path('/sys/fs/cgroup')  # Linux cgroup v2 hierarchical memory.stat.
 ACTIVE_STATES = {'active', 'activating', 'deactivating', 'reloading'}
+VENDORS = ('codex', 'claude', 'muse')
+KINDS = ('implementer', 'review', 'gate', 'council')
+# Product allowance: one quota invocation per five minutes, including failures.
+QUOTA_CACHE_SECONDS = 5 * 60
+QUOTA_CLI = Path.home() / '.claude/skills/quota/scripts/quota.sh'
+META_ROOT = Path(__file__).resolve().parents[1]
+
+
+def validate_dial(dial):
+    if set(dial) != set(VENDORS):
+        raise ValueError(f'dial requires exactly {VENDORS}')
+    result = {}
+    for vendor, value in dial.items():
+        if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
+            raise ValueError(f'dial {vendor}: pace must be a finite nonnegative number')
+        number = Decimal(str(value))
+        if not number.is_finite() or number < 0:
+            raise ValueError(f'dial {vendor}: pace must be a finite nonnegative number')
+        result[vendor] = number
+    return result
+
+
+def read_dial(path):
+    data = tomllib.loads(Path(path).read_text(), parse_float=Decimal)
+    if any(not isinstance(row, dict) or set(row) != {'pace'} for row in data.values()):
+        raise ValueError('dial requires only one pace number per vendor')
+    return validate_dial({vendor: row['pace'] for vendor, row in data.items()})
+
+
+def weekly_quota(output, vendor):
+    rows = [re.split(r'\s{2,}', line.strip()) for line in output.splitlines()]
+    rows = [row for row in rows if row[0].lower() == vendor]
+    weekly = [row for row in rows if len(row) > 1 and row[1].lower() == 'weekly']
+    if len(weekly) != 1:
+        errors = [row[-1] for row in rows if 'error:' in row[-1]]
+        raise ValueError('; '.join(errors) or 'expected exactly one aggregate Weekly row')
+    row = weekly[0]
+    if len(row) != 9 or row[8] != 'ok':
+        raise ValueError(f'unreadable or inactive Weekly row: {row}')
+    used = re.fullmatch(r'(\d+(?:\.\d+)?)%', row[2])
+    pace = re.fullmatch(r'\+?(\d+(?:\.\d+)?)% (ahead|behind)', row[4])
+    if not used or (not pace and row[4] != 'on pace'):
+        raise ValueError(f'unreadable Weekly USED/PACE: {row[2]} / {row[4]}')
+    used = Decimal(used[1])
+    delta = (Decimal(pace[1]) * (1 if pace[2] == 'ahead' else -1)) if pace else Decimal(0)
+    uniform = used - delta
+    if not 0 <= used <= 100 or not 0 <= uniform <= 100:
+        raise ValueError('Weekly USED or inferred uniform line outside 0..100%')
+    return used, uniform
+
+
+def decide_launch(resources, expected, running, quota, dial, vendor, kind):
+    """Pure launch policy: all kinds spend quota; only the requested vendor blocks."""
+    resource_ok, resource_reason = decide(resources, expected, running)
+    try:
+        dial = validate_dial(dial)
+        if vendor not in VENDORS or kind not in KINDS:
+            raise ValueError(f'invalid vendor/kind: {vendor}/{kind}')
+    except (ValueError, TypeError) as error:
+        return False, f'dial unavailable: {error}; {resource_reason}'
+    summaries, permitted = [], {}
+    for name in VENDORS:
+        try:
+            used, uniform = weekly_quota(quota, name)
+            line = min(Decimal(100), uniform * dial[name])
+            gap = line - used
+            position = 'below' if gap > 0 else 'above' if gap < 0 else 'at'
+            summaries.append(f'{name} {abs(gap):.1f}pp {position} line={line:.1f}% '
+                             f'used={used:.1f}% pace={dial[name]}')
+            permitted[name] = gap > 0
+        except (ValueError, TypeError) as error:
+            summaries.append(f'{name} unavailable: {error}')
+            permitted[name] = False
+    return resource_ok and permitted[vendor], f'{vendor}/{kind}; ' + '; '.join(summaries) + '; ' + resource_reason
+
+
+def quota_output(cache_dir, runner=None, clock=None):
+    """Serialize and cache CLI successes AND failures across linked worktrees."""
+    runner, clock = runner or subprocess.run, clock or time.time
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    with (cache_dir / 'quota.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        path = cache_dir / 'quota.json'
+        cached = None
+        if path.exists():
+            cached = read_json(path)
+            timestamp = cached['timestamp']
+            if (not isinstance(timestamp, (int, float)) or isinstance(timestamp, bool)
+                    or not math.isfinite(timestamp) or timestamp > clock()):
+                raise ValueError('quota cache timestamp invalid or in the future')
+            if not isinstance(cached['output'], str) or not isinstance(cached['error'], (str, type(None))):
+                raise ValueError('quota cache output/error malformed')
+            if clock() - timestamp >= QUOTA_CACHE_SECONDS:
+                cached = None
+        if cached is None:
+            output, error = '', None
+            try:
+                probe = runner(['bash', str(QUOTA_CLI)], capture_output=True, text=True,
+                               timeout=CONTROL_TIMEOUT_SECONDS)
+                output = probe.stdout
+                if probe.returncode:
+                    error = f'quota CLI exit {probe.returncode}: {probe.stderr.strip() or output.strip()}'
+            except (OSError, subprocess.SubprocessError) as failure:
+                error = f'quota probe unavailable: {type(failure).__name__}: {failure}'
+            cached = {'timestamp': clock(), 'output': output, 'error': error}
+            pending = cache_dir / 'quota.pending'
+            pending.write_text(json.dumps(cached) + '\n')
+            pending.replace(path)
+        if cached['error'] is not None:
+            raise RuntimeError(cached['error'])
+        return cached['output']
 
 
 def decide(resources, expected, running):
@@ -153,13 +271,24 @@ def main():
     gate = sub.add_parser('gate')
     gate.add_argument('--repo', required=True, type=Path)
     gate.add_argument('--tier', choices=('pre-merge', 'full'), default='pre-merge')
+    launch = sub.add_parser('launch')
+    launch.add_argument('--vendor', required=True, choices=VENDORS)
+    launch.add_argument('--kind', required=True, choices=KINDS)
+    launch.set_defaults(repo=META_ROOT, tier='pre-merge')
     args = ap.parse_args()
     try:
         common = subprocess.run(['git', '-C', str(args.repo), 'rev-parse', '--path-format=absolute', '--git-common-dir'],
                                 check=True, capture_output=True, text=True, timeout=CONTROL_TIMEOUT_SECONDS).stdout.strip()
         workspace = Path(os.environ.get('BENNETT_GATE_WORKSPACE', str(Path(common).parent.parent)))
-        ok, reason, _ = assess(args.repo.resolve(), workspace, args.tier)
-    except (OSError, subprocess.SubprocessError) as error:
+        if args.command == 'gate':
+            ok, reason, _ = assess(args.repo.resolve(), workspace, args.tier)
+        else:
+            quota = quota_output(Path(common).parent / '.tmp/admit')
+            dial = read_dial(META_ROOT / 'dial.toml')
+            expected = expected_from_history(history(args.repo, workspace, args.tier))
+            ok, reason = decide_launch(resources(args.repo), expected, running_reservations(workspace),
+                                       quota, dial, args.vendor, args.kind)
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, RuntimeError) as error:
         ok, reason = False, f'admission probe unavailable: {error}'
     print(('ADMIT ' if ok else 'WAIT ') + reason)
     return 0 if ok else 1
