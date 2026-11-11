@@ -8,3 +8,4 @@
 2026-11-11	bennett-isa-spec	ISA 0.9 xz1 legacy-entry policy: E_ESTIMATE_ACCURACY_REQUIRED (maintainer option A)	nothing (ACCEPT)	~10 min
 2026-11-11	bennett-dialect-spec	dialect 0.3-draft §17.7 isolated hosted launch provider (r1p, maintainer option B)	nothing (ACCEPT)	~10 min
 2026-11-11	bennett-isa-spec	reference interpreter: tea, 99n (r1 catalog), ni9 K89 reader (6c95708)	nothing (ACCEPT; reviewer's own full-suite run cut by admission, lane's 828/0 stands)	~25 min
+2026-11-11	bennett-isa-spec	reference interpreter reverse-action-batch (01k throughput)	nothing (ACCEPT; one doc wording note)	~30 min
