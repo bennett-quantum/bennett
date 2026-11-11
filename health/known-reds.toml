@@ -1,3 +1,9 @@
 # Seed from pushed mains with tools/main_health.py seed; never hand-copy failure lists.
 # Empty until the orchestrator runs seed with reviewed bead assignments.
 schema = 1
+
+[[red]]
+scope = "bennett-plugin"
+check = "corpus gate"
+sha = "3234f9806c095ea3f2189e7b55c49cd78d6b7626"
+bead = "bennett-plugin-j3k"
