@@ -47,3 +47,14 @@ class AdmissionTests(unittest.TestCase):
                 ok, reason, expected = a.assess(Path('/repo'), Path('/workspace'), 'full')
         self.assertFalse(ok)
         self.assertIn('missing meminfo', reason)
+
+    def test_rss_reservations_do_not_subtract_reclaimable_file_cache(self):
+        import tempfile
+        a = module()
+        with tempfile.TemporaryDirectory() as tmp:
+            cgroup = Path(tmp) / 'user.slice/service'
+            cgroup.mkdir(parents=True)
+            (cgroup / 'memory.stat').write_text('anon 2048\nfile 8192\nshmem 1024\n')
+            with patch.object(a, 'CGROUP_ROOT', Path(tmp)):
+                self.assertEqual(a.current_rss({'ControlGroup': '/user.slice/service',
+                                                'ActiveState': 'active', 'MemoryCurrent': '11264'}), 3072)

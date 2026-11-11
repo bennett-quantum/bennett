@@ -16,7 +16,7 @@ import unittest
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
-TOOL = TOOLS / "gate_run.py"
+TOOL = Path(os.environ.get("GATE_TEST_TOOL", TOOLS / "gate_run.py"))
 STUB = TOOLS / "gate_pre-push.template"
 ZERO = "0" * 40
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
@@ -168,6 +168,27 @@ class Layout(Base):
             self.fail(f"grandchild {grandchild} outlived the terminated gate")
         self.assertFalse((self.me / ".tmp/gate/runs" / sha).exists())
         self.assertFalse((self.me / ".tmp/gate/records" / f"{sha}.json").exists())
+
+
+class ProductInput(Base):
+    def test_filtered_head_and_filesystem_under_linked_isolation(self):
+        check = "#!/bin/sh\ntest ! -e worklog/notes\n! git cat-file -e HEAD:worklog/notes\ngit cat-file -e HEAD:gate.toml\n"
+        sha = self.adopt([["./check.sh"]], {"check.sh": check, "worklog/notes": "excluded\n"},
+                         extra='[receipt]\nnon_product = ["worklog/"]\n')
+        job = self.ws / "me-job"
+        git(self.me, "worktree", "add", "--detach", str(job), sha)
+        # The command-line override uses the same synthetic SHA and pin layout.
+        result = self.run_tool("--repo", str(job), "--sha", sha)
+        self.assertRan(result)
+        self.assertTrue((job / ".tmp/gate/cache").is_dir())
+        self.assertFalse((job / ".tmp/gate/cache").is_symlink())
+
+    def test_default_defers_and_full_runs_postmerge(self):
+        cfg = self.toml([["true"]], sib="") + ('\n[[check]]\nname = "post"\n'
+            'argv = ["false"]\ntier = "post-merge"\n')
+        sha = self.commit(self.me, {"gate.toml": cfg})
+        self.assertRan(self.run_tool("--sha", sha))
+        self.assertRan(self.run_tool("--sha", sha, "--tier", "full"), 1)
 
 
 class Pins(Base):
@@ -433,7 +454,10 @@ class Hooks(Base):
         meta = self.ws / "bennett"
         sha = git(self.me, "rev-parse", "HEAD")
         new = self.commit(meta, {"tools/gate_run.py": TOOL.read_text() + "# fix\n"})
-        z = self.run_tool("--sha", sha, "--tool-sha", new)
+        # The executing source must actually match the claimed newer commit.
+        z = subprocess.run(["python3", "-I", str(meta / "tools/gate_run.py"), "run", "--repo", str(self.me),
+                            "--sha", sha, "--tool-sha", new], input="", capture_output=True, text=True,
+                           env=dict(ENV, BENNETT_GATE_WORKSPACE=str(self.ws)), timeout=300)
         self.assertRan(z)
         self.assertIn(f"pins tool_sha {old}, an ancestor of the running {new}", z.stderr)
         rec = json.loads((self.me / ".tmp/gate/records" / f"{sha}.json").read_text())

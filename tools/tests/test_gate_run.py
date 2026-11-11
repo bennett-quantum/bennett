@@ -13,7 +13,7 @@ import unittest
 from fixtures import RunnerFixture
 
 
-TOOL = Path(__file__).resolve().parents[1] / "gate_run.py"
+TOOL = Path(os.environ.get("GATE_TEST_TOOL", Path(__file__).resolve().parents[1] / "gate_run.py"))
 # Meta has no guard table yet. Follow test_clone_all.py / test_main_health.py:
 # Git 20s, CLI 30s, machine factor 1 on the shared 12-core / 30 GiB host.
 # These are hang guards, never performance assertions; a trip is UNKNOWN.
@@ -852,3 +852,86 @@ class ReformTests(ContentReceiptFixture):
             sha = self.adopt('[[check]]\nname = "bad"\nargv = ["true"]\n' + suffix)
             result = self.run_gate(sha)
             self.assertEqual(result.returncode, 3, result.stderr)
+
+    def test_templates_cannot_hide_protected_commands(self):
+        for argv, extra, entry in [(['{wt}/data/check'], '', 'data/'),
+                                    (['true'], 'cwd = "{wt}/data"\n', 'data/'),
+                                    (['true'], '', '.git/')]:
+            sha = self.adopt(extra + '[receipt]\nnon_product = ' + json.dumps([entry]) + '\n', argv)
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 3, result.stderr)
+            self.assertIn(repr(entry), result.stderr)
+
+    def test_inputs_directory_without_slash_detects_content_change(self):
+        (self.repo / 'data').mkdir()
+        (self.repo / 'data/input').write_text('a')
+        sha = self.adopt('[[check]]\nname = "slow"\nargv = ["true"]\ntier = "post-merge"\ninputs = ["data"]\n')
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        (self.repo / 'data/input').write_text('b')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'directory input changed')
+        other = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(other).returncode, 0)
+        self.assertEqual(len(self.record(other)['checks']), 2)
+
+    def test_full_pass_also_covers_subsequent_premerge(self):
+        sha = self.adopt('[[check]]\nname = "slow"\nargv = ["true"]\ntier = "post-merge"\n')
+        self.assertEqual(self.run_gate(sha, '--tier', 'full').returncode, 0)
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        self.assertIn('covered_by', self.record(sha))
+        self.assertEqual(self.marker.read_text(), 'run\n')
+
+    def test_report_commands_cwd_and_env_are_protected(self):
+        for command in ('argv = ["data/report"]\n',
+                        'argv = ["true"]\ncwd = "data/run"\n',
+                        'argv = ["true"]\nenv = {DATA = "{root}/data/report"}\n'):
+            sha = self.adopt('[[report]]\nname = "report"\n' + command + '[receipt]\nnon_product = ["data/"]\n')
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 3, result.stderr)
+            self.assertIn("'data/'", result.stderr)
+
+    def test_two_worktrees_run_concurrently_with_same_pin(self):
+        sibling = self.root / 'pin'
+        sibling.mkdir()
+        self.git('init', '-qb', 'main', cd=sibling)
+        (sibling / 'data').write_text('pin')
+        self.git('add', '.', cd=sibling)
+        self.git('commit', '-qm', 'pin', cd=sibling)
+        pin = self.git('rev-parse', 'HEAD', cd=sibling).strip()
+        # Each command announces entry and blocks until both gates are admitted.
+        # Files at workspace root survive isolation, unlike live checkout directories.
+        release = self.root / 'release'
+        command = [sys.executable, '-c',
+                   'from pathlib import Path; import time; '
+                   'ready = Path("{root}").name; '
+                   f'Path({str(self.root)!r}, ready + ".ready").touch(); '
+                   f'exec("while not Path({str(release)!r}).exists(): time.sleep(0.01)")']
+        sha = self.adopt(f'[siblings.pin]\nsha = "{pin}"\n', command)
+        jobs = [self.root / 'job-one', self.root / 'job-two']
+        processes = []
+        try:
+            (self.repo / '.tmp/gate/cache').mkdir(parents=True)
+            for job in jobs:
+                self.git('worktree', 'add', '--detach', str(job), sha)
+                (job / '.tmp/gate').mkdir(parents=True)
+                (job / '.tmp/gate/cache').symlink_to(self.repo / '.tmp/gate/cache')
+                processes.append(subprocess.Popen([sys.executable, '-I', str(TOOL), 'run', '--repo', str(job),
+                                                   '--sha', sha, '--fresh'], env=self.env,
+                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            deadline = time.monotonic() + CLI_HANG_GUARD_SECONDS
+            while not all((self.root / (job.name + '.ready')).exists() for job in jobs):
+                if any(p.poll() is not None for p in processes) or time.monotonic() > deadline:
+                    self.fail('both worktree gates did not enter their checks concurrently')
+                time.sleep(0.01)
+            for job in jobs:
+                self.assertTrue((job / '.tmp/gate/cache' / ('pin@' + pin[:12]) / 'pin/data').is_file())
+            release.touch()
+            for process in processes:
+                stdout, stderr = process.communicate(timeout=CLI_HANG_GUARD_SECONDS)
+                self.assertEqual(process.returncode, 0, stdout + stderr)
+        finally:
+            release.touch()
+            for process in processes:
+                if process.poll() is None:
+                    process.terminate()
+                process.communicate(timeout=CLI_HANG_GUARD_SECONDS)

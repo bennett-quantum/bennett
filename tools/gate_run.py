@@ -187,7 +187,8 @@ def load_config(root, sha):
 
 def validate_path(entry, where):
     if (not isinstance(entry, str) or not entry or entry.startswith("/")
-            or ".." in entry.split("/") or any(c in entry for c in "*?[]\\\n\r\0")
+            or ".." in entry or any(c in entry for c in "*?[]\\\n\r\0")
+            or entry.split("/")[0] == ".git" or "//" in entry
             or entry.rstrip("/") in ("", ".") or "." in entry.split("/")):
         raise GateError(f"{PIN_FILE}: {where} invalid path {entry!r}; use an exact relative path or directory prefix")
 
@@ -215,10 +216,11 @@ def validate_exclusions(cfg):
                 raise GateError(f"{PIN_FILE}: env template must be a string: {value!r}")
             # Protect paths in every template, including sibling/layout and absolute paths.
             protected.extend(re.findall(r"[^\s:=,;]+", re.sub(r"\{[^{}]+\}/?", "", value)))
+    protected = [re.sub(r"\{[^{}]+\}/?", "", p) for p in protected]
     for entry in entries:
         validate_path(entry, "receipt.non_product")
         for path in protected:
-            path = path.removeprefix("./")
+            path = path.strip("\"'").removeprefix("./")
             if path_covers(entry, path) or (path.startswith("/") and ("/" + entry.rstrip("/")) in path):
                 raise GateError(f"{PIN_FILE}: non_product entry {entry!r} covers protected path {path!r}")
 
@@ -616,26 +618,30 @@ def prepare(root, workspace, sha, args, live=False, cfg=None, prefix=None):
         if not live:
             say("ISOLATION OFF: absolute reads of live sibling trees would go undetected; this run is not a push gate")
     sibs = Siblings(cfg, root, workspace)
-    if not live:
-        for name in sibs.pins:
-            sibs.materialise(name)
-        for name in sibs.pins:
-            sibs.build(name, prefix)
     layout = root / ".tmp/gate/runs" / sha
     wt = layout / cfg["repo"]
     remove_worktree(root, wt)
     shutil.rmtree(layout, ignore_errors=True)
     layout.mkdir(parents=True)
-    git(root, "worktree", "add", "--detach", str(wt), run_commit(root, sha, cfg))
-    ctx = {"wt": wt, "root": root, "layout": layout}
-    for name in sibs.pins:
-        target = sibs.owner(name) if live else sibs.path(name)
-        (layout / name).symlink_to(target)
-        ctx[f"sibling:{name}"] = target
-    env = base_env(wt / ".tmp/gate-tmp")
-    env["BENNETT_GATE_LAYOUT"] = str(layout)
-    env.update({k: expand(v, ctx) for k, v in cfg.get("env", {}).items()})
-    return cfg, sibs, prefix, layout, wt, ctx, env
+    try:
+        git(root, "worktree", "add", "--detach", str(wt), run_commit(root, sha, cfg))
+        if not live:
+            for name in sibs.pins:
+                sibs.materialise(name)
+            for name in sibs.pins:
+                sibs.build(name, prefix)
+        ctx = {"wt": wt, "root": root, "layout": layout}
+        for name in sibs.pins:
+            target = sibs.owner(name) if live else sibs.path(name)
+            (layout / name).symlink_to(target)
+            ctx[f"sibling:{name}"] = target
+        env = base_env(wt / ".tmp/gate-tmp")
+        env["BENNETT_GATE_LAYOUT"] = str(layout)
+        env.update({k: expand(v, ctx) for k, v in cfg.get("env", {}).items()})
+        return cfg, sibs, prefix, layout, wt, ctx, env
+    except BaseException:
+        cleanup(root, layout, wt, False)
+        raise
 
 
 def cleanup(root, layout, wt, keep):
@@ -696,6 +702,20 @@ def atomic_json(path, value):
         Path(pending).unlink(missing_ok=True)
 
 
+def disk_bytes(path):
+    """Allocated local disk; do not follow cache links or count hardlinks twice."""
+    seen, size = set(), 0
+    for directory, dirs, files in os.walk(path, followlinks=False):
+        for name in files:
+            file = Path(directory) / name
+            stat = file.lstat()
+            key = (stat.st_dev, stat.st_ino)
+            if key not in seen and not file.is_symlink():
+                seen.add(key)
+                size += stat.st_blocks * 512
+    return size
+
+
 def tier_key(tree, cfg, isolated, tier):
     parts = [tree, cfg["tool_sha_ran"], isolated]
     if tier != "pre-merge" or "receipt" in cfg:
@@ -708,8 +728,9 @@ def inputs_key(root, sha, cfg, check, isolated):
     listing = subprocess.run(["git", "-C", str(root), "ls-tree", "-rz", tree],
                              check=True, capture_output=True, env=git_env()).stdout
     selected = [os.fsdecode(item) for item in listing.split(b"\0") if item and any(
-        path_covers(e, os.fsdecode(item.split(b"\t", 1)[1])) for e in check["inputs"])]
-    parts = [selected, cfg.get("siblings", {}), check, cfg["tool_sha_ran"], isolated]
+        (os.fsdecode(item.split(b"\t", 1)[1]) == e.rstrip("/") or
+         os.fsdecode(item.split(b"\t", 1)[1]).startswith(e.rstrip("/") + "/")) for e in check["inputs"])]
+    parts = [selected, cfg.get("siblings", {}), cfg.get("env", {}), check, cfg["tool_sha_ran"], isolated]
     return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()
 
 
@@ -790,6 +811,7 @@ def gate_one(root, workspace, sha, args):
             reports = run_commands(cfg.get("report", []), wt, env, ctx, prefix, cfg.get("timeout_s"), "report")
             for r in reports:
                 print(f"gate: report {r['name']} exited {r['exit']} (evidence, never the gate's exit)", flush=True)
+            run_disk = receipt_probe("disk_bytes", lambda: disk_bytes(root / ".tmp"))
         finally:
             cleanup(root, layout, wt, getattr(args, "keep", False))
         record.update({
@@ -798,12 +820,15 @@ def gate_one(root, workspace, sha, args):
             "siblings": {name: {**note, "cache_state": receipt_probe(
                 f"siblings.{name}.cache_state", lambda: note["cache_state"])}
                 for name, note in sibs.notes.items()},
-            "checks": checks, "reports": reports, "result": "pass" if passed else "fail",
+            "checks": checks, "reports": reports, "disk_bytes": run_disk,
+            "result": "pass" if passed else "fail",
             "finished_utc": receipt_probe("finished_utc", lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
         })
         atomic_json(record_path, record)
         if passed and enabled:
             atomic_json(receipt_path, dict(record, tree=tree, key=key))
+            if tier == "full" and not pre:
+                atomic_json(pre_path, dict(record, tier="pre-merge", tree=tree, key=pre_key))
         say(f"{'PASS' if passed else 'FAIL'} {sha}")
         return 0 if passed else EXIT_FAIL
 

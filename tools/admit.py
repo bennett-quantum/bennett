@@ -19,6 +19,7 @@ DEFAULT_PEAK_BYTES = 8 * GIB
 DEFAULT_DISK_BYTES = 16 * GIB
 # Control-plane hang guard, matching gate_run's hook-probe guard.
 CONTROL_TIMEOUT_SECONDS = 60
+CGROUP_ROOT = Path('/sys/fs/cgroup')  # Linux cgroup v2 hierarchical memory.stat.
 ACTIVE_STATES = {'active', 'activating', 'deactivating', 'reloading'}
 
 
@@ -98,11 +99,23 @@ def history(repo, workspace, tier):
 
 def unit_properties(unit):
     z = subprocess.run(['systemctl', '--user', 'show', unit,
-                        '--property=ActiveState,MemoryCurrent,MemoryPeak'],
+                        '--property=ActiveState,MemoryCurrent,MemoryPeak,ControlGroup'],
                        capture_output=True, text=True, timeout=CONTROL_TIMEOUT_SECONDS)
     if z.returncode:
         raise RuntimeError(f'systemctl show {unit}: {z.stderr.strip()}')
     return dict(line.split('=', 1) for line in z.stdout.splitlines() if '=' in line)
+
+
+def current_rss(properties):
+    if properties['ActiveState'] == 'activating' and not properties.get('ControlGroup'):
+        return 0  # No process exists yet: reserve the entire expected peak.
+    cgroup = properties['ControlGroup']
+    if not cgroup.startswith('/') or '..' in cgroup.split('/'):
+        raise ValueError(f'invalid service cgroup {cgroup!r}')
+    stats = dict(line.split() for line in (CGROUP_ROOT / cgroup.lstrip('/') / 'memory.stat').read_text().splitlines())
+    # Anonymous + shared memory is a conservative RSS estimate: excludes reclaimable
+    # file cache. MemoryCurrent includes cache, which would under-reserve headroom.
+    return int(stats['anon']) + int(stats['shmem'])
 
 
 def running_reservations(workspace):
@@ -114,11 +127,7 @@ def running_reservations(workspace):
         request = read_json(path)
         props = unit_properties(path.stem)
         if props['ActiveState'] in ACTIVE_STATES:
-            current = props.get('MemoryCurrent')
-            # Activating services have not allocated yet: reserve the whole peak explicitly.
-            if props['ActiveState'] == 'activating' and current in (None, '[not set]', 'infinity'):
-                current = 0
-            result.append({'expected_peak': request['expected_peak'], 'rss': int(current)})
+            result.append({'expected_peak': request['expected_peak'], 'rss': current_rss(props)})
     return result
 
 

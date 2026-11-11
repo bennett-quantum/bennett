@@ -81,7 +81,7 @@ class LaunchTests(RunnerFixture):
     def test_stop_post_without_worker_outcome_maps_signal_and_timeout(self):
         a = module()
         for code, status, service, expected in [('killed', 'TERM', 'signal', 143),
-                                               ('exited', '0', 'success', 0),
+                                               ('exited', '0', 'success', 255),
                                                ('killed', 'KILL', 'timeout', 124)]:
             unit, path = self.request(a)
             event = a.complete(path, service_result=service, exit_code=code, exit_status=status, query=lambda unit: {})
@@ -95,8 +95,7 @@ class LaunchTests(RunnerFixture):
             self.assertIn('--tier', argv)
             self.assertIn('full', argv)
             return subprocess.CompletedProcess(argv, 3)
-        with patch.object(a, 'run_gate', side_effect=run):
-            self.assertEqual(a.worker(path), 3)
+        self.assertEqual(a.worker(path, runner=run), 3)
         self.assertEqual(json.loads(path.with_name(unit + '.outcome.json').read_text())['exit'], 3)
 
     def test_launcher_failure_writes_setup_event(self):
@@ -108,3 +107,61 @@ class LaunchTests(RunnerFixture):
         events = list((self.ws / 'bennett/.tmp/gates/events').glob('*.json'))
         self.assertEqual(len(events), 1)
         self.assertEqual(json.loads(events[0].read_text())['exit'], 3)
+
+    def test_wrapper_crash_without_outcome_is_not_a_check_failure(self):
+        a = module()
+        unit, path = self.request(a)
+        event = a.complete(path, service_result='exit-code', exit_code='exited', exit_status='1', query=lambda unit: {})
+        self.assertEqual(event['result'], 'unit-crash')
+        self.assertNotEqual(event['exit'], 0)
+
+    def test_optional_worker_measurement_failure_preserves_gate_exit(self):
+        a = module()
+        unit, path = self.request(a)
+        with patch.object(a.resource, 'getrusage', side_effect=OSError('unavailable accounting')):
+            self.assertEqual(a.worker(path, runner=lambda *args, **kwargs: subprocess.CompletedProcess([], 0)), 0)
+        outcome = json.loads(path.with_name(unit + '.outcome.json').read_text())
+        self.assertIn('unavailable accounting', outcome['peak_rss_kib']['unavailable'])
+
+    def test_stop_post_success_without_outcome_is_crash(self):
+        a = module()
+        unit, path = self.request(a)
+        event = a.complete(path, service_result='success', exit_code='exited', exit_status='0', query=lambda unit: {})
+        self.assertEqual(event['result'], 'unit-crash')
+
+    def test_worker_promotes_current_command_hang_guard_to_124(self):
+        a = module()
+        unit, path = self.request(a)
+        request = json.loads(path.read_text())
+        def gate(argv, **kwargs):
+            a.atomic_json(Path(request['record_path']), {'sha': self.sha, 'tier': 'full',
+                'started_utc': '2026-01-01T00:00:01Z', 'checks': [{'exit': 124}], 'disk_bytes': 123456})
+            return subprocess.CompletedProcess(argv, 1)
+        self.assertEqual(a.worker(path, runner=gate), 124)
+        outcome = json.loads(path.with_name(unit + '.outcome.json').read_text())
+        self.assertGreaterEqual(outcome['disk_bytes'], 123456)
+        self.assertEqual(a.complete(path, query=lambda unit: {})['result'], 'hang-guard')
+
+    def test_wait_blocks_until_atomic_event_publication(self):
+        a = module()
+        unit, path = self.request(a)
+        count = []
+        def publish(seconds):
+            count.append(seconds)
+            a.atomic_json(self.ws / 'bennett/.tmp/gates/events' / (unit + '.json'), {'exit': 143})
+        with patch.object(a.time, 'sleep', side_effect=publish):
+            self.assertEqual(a.wait(unit, self.ws), 143)
+        self.assertEqual(len(count), 1)
+
+    def test_service_runtime_survives_caller_checkout_changes(self):
+        a = module()
+        calls = []
+        expected = {'peak_bytes': 1, 'disk_bytes': 1, 'source': 'fixture'}
+        with patch.object(a.admit, 'assess', return_value=(True, 'ok', expected)):
+            unit = a.start(self.repo, self.sha, launcher=lambda argv, **k: (calls.append(argv) or subprocess.CompletedProcess(argv, 0)), workspace=self.ws)
+        argv = calls[0]
+        runtime = Path(argv[argv.index('worker') - 1])
+        self.assertNotEqual(runtime, Path(a.__file__))
+        self.assertTrue(runtime.is_relative_to(self.ws / 'bennett/.tmp/gates/runtime'))
+        self.assertEqual(runtime.with_name('gate_run.py').read_bytes(), Path(a.gate_run.__file__).read_bytes())
+        self.assertTrue(any(str(runtime) in x for x in argv if 'ExecStopPost=' in x))
