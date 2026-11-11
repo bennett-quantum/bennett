@@ -1,6 +1,7 @@
 # HANDOFF — Bennett ecosystem
 
-Current-state checkpoint: 2026-11-09 end of day, process sections updated 2026-11-11 (rulebook rewrite). Recheck live Beads.
+Current-state checkpoint: 2026-11-11 (workflow reform; product lanes as of 2026-11-09). Beads triaged 2026-11-11: deferred
+beads carry label `triage-2026-11-11`; `bd ready` shows what blocks a rung. Recheck live Beads.
 
 Bennett aims to compile unmodified LLVM-language programs into classical, reversible and coherent
 quantum execution, including Grover search over SQLite. The plugin infers the required execution tier;
@@ -73,9 +74,11 @@ measured-basis diagnostics and a small fixture estimate cannot satisfy those cla
   four full cells not yet accepted; memory peaked ~48 GB per cell) -> review -> land; then `bennett-plugin-ot5` (split
   `Analysis.cpp` so writers stop serialising), `bennett-plugin-eph` (arith pin), `bp-owg`, later `bp-1bb` slices. In parallel on
   disjoint files: `job/75y` (comparison layout, review round 2) -> `bennett-plugin-7qi` (G1 association) -> s59 -> `bp-xb8`/`bp-zeg`.
-- **ISA spec:** local main carries the 0.9 C headers (356, council-accepted) awaiting a re-run gate; `job/isa-0cb` (mixed-launch
-  transport; council + one scoped round) and `job/isa-k86` (K86-K92 reference checks; council) await disposition. Then the
-  text batch `bennett-sched-r28` (P0, K25 classical pseudo-locations) and `bennett-estimate-bph.6/.7`.
+- **ISA spec:** local main (356 0.9 C headers + 0cb mixed-launch text, both council-accepted, merged locally) does NOT pass its
+  gate and is unpushed: `bennett-isa-spec-x2n` (P1). The stale `spec/isa-0.8-to-0.9.diff` is regenerated on `job/isa-x2n`; the 0.9
+  launch header still lacks 0cb's mixed-launch declarations (spec inventory 59 vs header 55). origin/main moved on separately
+  (re-pin, docs, beads): local main must merge origin/main. `job/isa-k86` (K86-K92 reference checks) awaits its scoped round.
+  Then `bennett-sched-r28` (P0, K25) and `bennett-estimate-bph.6/.7`. Reference interpreter speed: `bennett-isa-spec-nwu`.
 - **Conformance:** `job/conf-51d` (51d + 3jt checker fixes; council), then `bennett-conformance-fki`, `-ugg`; rung 3 re-runs after
   each plugin/driver landing.
 - **Circuits:** export-qasm redesign (doc landed, `bennett-circuits-8xv`); stage 1 on `job/exporter-s1` blocked by the legacy
@@ -84,9 +87,9 @@ measured-basis diagnostics and a small fixture estimate cannot satisfy those cla
 - **VM:** dense engine (`bennett-vm-bjm`) lives only on old `wip/*bjm-dense` branches; decide land-or-park before `d2j`/`5vj`;
   `bennett-vm-o7n` now unblocked by the 0.9 headers once pushed.
 - **Arith:** `bennett-arith-gdg` (release check on shipped bytes) on `job/gdg`.
-- **Meta tools:** `job/9iy` (main-health concurrency + one shared same-repo gate lock), then `bennett-0v2` (class tables for 11
-  repos) before re-arming main-health on the new code; `bennett-pow` (per-worktree gate cache). Disk filled to 100% once on
-  2026-11-09: prune rebuildable `.tmp/*target*` caches of landed job worktrees.
+- **Meta tools:** main-health is not re-armed as a daemon until each repo has cited hang-guard class tables
+  (`bennett-0v2`); meanwhile run `tools/gate_launch.py start --repo R --tier full` on pushed mains and seed
+  `health/known-reds.toml` from the reds. `job/9iy` is superseded by job/health (not to be merged).
 
 ## Where things are
 
