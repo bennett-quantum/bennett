@@ -67,6 +67,11 @@ def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=N
     sha = gate_run.git(repo, 'rev-parse', '--verify', f'{sha or "HEAD"}^{{commit}}')
     unit = unit_name(repo, sha, tier)
     base = admit.state_dir(workspace)
+    owner_name = Path(gate_run.git(repo, 'rev-parse', '--path-format=absolute', '--git-common-dir')).parent.name
+    reds = open_reds(workspace, owner_name)
+    if reds:  # every push passes through here: whoever pushes next sees the open reds of this repo
+        print(f'gate-launch: OPEN NEW-RED in {owner_name}: fix forward or revert (bennett/tools/revert_landing.py)\n  '
+              + '\n  '.join(reds), file=sys.stderr, flush=True)
     request_path = base / 'admissions' / (unit + '.json')
     # Serialize admission measurement + reservation + service launch, not gate execution.
     with gate_run.Lock(base / 'admission.lock'):
@@ -228,11 +233,34 @@ def note_red(event, workspace):
                  tomllib.loads((workspace / 'bennett/health/known-reds.toml').read_text()).get('red', [])}
     except (OSError, ValueError):
         known = set()
+    infra = event['result'] in ('setup-error', 'unit-crash', 'signal', 'hang-guard')  # not a product verdict
     for check in failing:
-        tag = 'KNOWN' if (event['repo_name'], check) in known else 'NEW'
+        tag = 'INFRA' if infra else 'KNOWN' if (event['repo_name'], check) in known else 'NEW'
         line = f"{event['finished_utc']} {tag}-RED {event['repo_name']} {event['sha'][:12]} {event['tier']} {check}\n"
         with (workspace / 'bennett/.tmp/gates/reds.log').open('a') as log:
             log.write(line)
+
+
+def open_reds(workspace, repo_name=None):
+    """NEW-RED lines of reds.log with no later pass of the same repo and tier (a full pass clears both tiers)."""
+    gates = Path(workspace) / 'bennett/.tmp/gates'
+    try:
+        lines = (gates / 'reds.log').read_text().splitlines()
+    except FileNotFoundError:
+        return []
+    passes = []
+    for path in (gates / 'events').glob('*.json'):
+        event = admit.read_json(path)
+        if event.get('result') == 'pass':
+            passes.append((event.get('repo_name'), event.get('tier'), event.get('finished_utc', '')))
+    open_lines = []
+    for line in lines:
+        when, tag, repo, _sha, tier, *_ = line.split()
+        if tag != 'NEW-RED' or (repo_name and repo != repo_name):
+            continue
+        if not any(r == repo and t in (tier, 'full') and f > when for r, t, f in passes):
+            open_lines.append(line)
+    return open_lines
 
 
 def wait(unit, workspace):
@@ -273,6 +301,8 @@ def main():
     waiting = sub.add_parser('wait')
     waiting.add_argument('unit')
     sub.add_parser('status')
+    reds = sub.add_parser('reds')
+    reds.add_argument('--repo-name')
     for name in ('worker', 'complete'):
         parser = sub.add_parser(name)
         parser.add_argument('--request', required=True, type=Path)
@@ -283,6 +313,9 @@ def main():
             return 0
         if args.command == 'wait':
             return wait(args.unit, args.workspace)
+        if args.command == 'reds':
+            print('\n'.join(open_reds(args.workspace, args.repo_name)) or 'no open NEW-RED')
+            return 0
         if args.command == 'status':
             print(json.dumps(status(args.workspace), indent=1))
             return 0

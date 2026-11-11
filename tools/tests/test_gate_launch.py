@@ -101,6 +101,27 @@ class LaunchTests(RunnerFixture):
             self.assertTrue(line.endswith(' unit tests'), line)
             (self.ws / 'bennett/.tmp/gates/events' / (unit + '.json')).unlink()
 
+    def test_open_reds_until_a_later_pass_and_shown_at_the_next_push(self):
+        a = module()
+        gates = self.ws / 'bennett/.tmp/gates'
+        (gates / 'events').mkdir(parents=True, exist_ok=True)
+        (gates / 'reds.log').write_text(
+            '2026-11-11T10:00:00Z NEW-RED r1 aaaaaaaaaaaa pre-merge tests\n'
+            '2026-11-11T10:00:00Z INFRA-RED r1 bbbbbbbbbbbb full setup-error\n'
+            '2026-11-11T10:00:00Z NEW-RED r2 cccccccccccc pre-merge tests\n')
+        a.atomic_json(gates / 'events/x.json', {'repo_name': 'r2', 'tier': 'full', 'result': 'pass',
+                                                'finished_utc': '2026-11-11T10:05:00Z'})
+        self.assertEqual([l.split()[2] for l in a.open_reds(self.ws)], ['r1'])
+        self.assertEqual(a.open_reds(self.ws, 'r2'), [])
+        name = Path(self.repo).name
+        (gates / 'reds.log').write_text(f'2026-11-11T10:00:00Z NEW-RED {name} dddddddddddd pre-merge tests\n')
+        expected = {'peak_bytes': 100, 'disk_bytes': 200, 'source': 'fixture'}
+        with patch.object(a.admit, 'assess', return_value=(True, 'ok', expected)), \
+                patch('sys.stderr', new_callable=__import__('io').StringIO) as err:
+            a.start(self.repo, self.sha, 'pre-merge', launcher=lambda argv, **k: subprocess.CompletedProcess(argv, 0), workspace=self.ws)
+        self.assertIn('OPEN NEW-RED', err.getvalue())
+        self.assertIn('dddddddddddd', err.getvalue())
+
     def test_stop_post_without_worker_outcome_maps_signal_and_timeout(self):
         a = module()
         for code, status, service, expected in [('killed', 'TERM', 'signal', 143),
