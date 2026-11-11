@@ -7,3 +7,7 @@ pace = 1.0
 # Maintainer-owned: Muse weekly use may reach 1.0 times its uniform pace line; unavailable quota waits.
 [muse]
 pace = 1.0
+# Maintainer reading from the Muse client (the quota CLI has no Muse row); used until it expires at the reset, then ask.
+weekly_used = 11.0
+read_utc = "2026-11-11T09:58:35+00:00"
+resets_utc = "2026-11-16T00:00:00+00:00"

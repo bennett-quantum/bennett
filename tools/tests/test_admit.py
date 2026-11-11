@@ -98,6 +98,23 @@ class LaunchTests(unittest.TestCase):
                 self.assertFalse(ok)
                 self.assertIn('codex 1.0pp above', reason)
 
+    def test_maintainer_reading_stands_in_for_a_missing_weekly_row_until_its_reset(self):
+        from datetime import datetime, timedelta, timezone
+        now = datetime(2026, 11, 11, 10, 0, tzinfo=timezone.utc)
+        no_muse = '\n'.join(l for l in quota_fixture().splitlines() if not l.startswith('Muse'))
+        reading = {'muse': {'used': self.a.Decimal('11'), 'read_utc': now,
+                            'resets_utc': now + timedelta(days=5)}}  # 2 of 7 days elapsed: line 28.6%
+        ok, reason = self.a.decide_launch(self.resources, self.expected, [], no_muse, self.dial, 'muse', 'council',
+                                          readings=reading, now=now)
+        self.assertTrue(ok, reason)
+        self.assertIn('muse 17.6pp below line=28.6% used=11.0%', reason)
+        self.assertIn('maintainer reading', reason)
+        ok, reason = self.a.decide_launch(self.resources, self.expected, [], no_muse, self.dial, 'muse', 'council',
+                                          readings=reading, now=now + timedelta(days=6))
+        self.assertFalse(ok)
+        self.assertIn('Muse reading expired', reason)
+        self.assertIn('ask the maintainer', reason)
+
     def test_at_line_waits_including_numeric_zero(self):
         for pace in ('on pace', '+0.0% ahead', '0.0% behind'):
             with self.subTest(pace=pace):

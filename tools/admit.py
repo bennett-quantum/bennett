@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Resource and weekly-pace admission. Probes fail closed with a reason."""
 import argparse
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import fcntl
 import json
@@ -49,11 +50,36 @@ def validate_dial(dial):
     return result
 
 
+READING_KEYS = {'weekly_used', 'read_utc', 'resets_utc'}
+WEEK = timedelta(days=7)
+
+
 def read_dial(path):
     data = tomllib.loads(Path(path).read_text(), parse_float=Decimal)
-    if any(not isinstance(row, dict) or set(row) != {'pace'} for row in data.values()):
-        raise ValueError('dial requires only one pace number per vendor')
+    if any(not isinstance(row, dict) or 'pace' not in row or set(row) - {'pace'} not in (set(), READING_KEYS)
+           for row in data.values()):
+        raise ValueError('dial requires one pace number per vendor (plus, optionally, a full maintainer reading)')
     return validate_dial({vendor: row['pace'] for vendor, row in data.items()})
+
+
+def read_readings(path):
+    """Maintainer-supplied weekly readings for vendors the quota CLI cannot see, valid until their reset."""
+    data = tomllib.loads(Path(path).read_text(), parse_float=Decimal)
+    readings = {}
+    for vendor, row in data.items():
+        if READING_KEYS <= set(row):
+            readings[vendor] = {'used': Decimal(str(row['weekly_used'])),
+                                'read_utc': datetime.fromisoformat(row['read_utc']),
+                                'resets_utc': datetime.fromisoformat(row['resets_utc'])}
+    return readings
+
+
+def reading_quota(reading, now):
+    if now >= reading['resets_utc']:
+        raise ValueError(f"reading expired at its reset {reading['resets_utc'].isoformat()}, ask the maintainer")
+    elapsed = now - (reading['resets_utc'] - WEEK)
+    uniform = max(Decimal(0), min(Decimal(100), Decimal(str(elapsed / WEEK)) * 100))
+    return reading['used'], uniform
 
 
 def weekly_quota(output, vendor):
@@ -78,7 +104,7 @@ def weekly_quota(output, vendor):
     return used, uniform
 
 
-def decide_launch(resources, expected, running, quota, dial, vendor, kind):
+def decide_launch(resources, expected, running, quota, dial, vendor, kind, readings=None, now=None):
     """Pure launch policy: all kinds spend quota; only the requested vendor blocks."""
     resource_ok, resource_reason = decide(resources, expected, running)
     try:
@@ -89,13 +115,23 @@ def decide_launch(resources, expected, running, quota, dial, vendor, kind):
         return False, f'dial unavailable: {error}; {resource_reason}'
     summaries, permitted = [], {}
     for name in VENDORS:
+        source = ''
         try:
-            used, uniform = weekly_quota(quota, name)
+            try:
+                used, uniform = weekly_quota(quota, name)
+            except ValueError as missing:
+                if name not in (readings or {}):
+                    raise
+                try:
+                    used, uniform = reading_quota(readings[name], now)
+                except ValueError as expired:
+                    raise ValueError(f'{name.capitalize()} {expired} (quota CLI: {missing})') from None
+                source = f" (maintainer reading {readings[name]['read_utc'].isoformat()})"
             line = min(Decimal(100), uniform * dial[name])
             gap = line - used
             position = 'below' if gap > 0 else 'above' if gap < 0 else 'at'
             summaries.append(f'{name} {abs(gap):.1f}pp {position} line={line:.1f}% '
-                             f'used={used:.1f}% pace={dial[name]}')
+                             f'used={used:.1f}% pace={dial[name]}{source}')
             permitted[name] = gap > 0
         except (ValueError, TypeError) as error:
             summaries.append(f'{name} unavailable: {error}')
@@ -285,9 +321,11 @@ def main():
         else:
             quota = quota_output(Path(common).parent / '.tmp/admit')
             dial = read_dial(META_ROOT / 'dial.toml')
+            readings = read_readings(META_ROOT / 'dial.toml')
             expected = expected_from_history(history(args.repo, workspace, args.tier))
             ok, reason = decide_launch(resources(args.repo), expected, running_reservations(workspace),
-                                       quota, dial, args.vendor, args.kind)
+                                       quota, dial, args.vendor, args.kind, readings=readings,
+                                       now=datetime.now(timezone.utc))
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, RuntimeError) as error:
         ok, reason = False, f'admission probe unavailable: {error}'
     print(('ADMIT ' if ok else 'WAIT ') + reason)
