@@ -9,7 +9,8 @@ Repo identities are gate record check names; ladder identities are `stage/<repor
 Results: PASS, KNOWN-RED, NEW-RED, FIXED; absent/guarded evidence is UNKNOWN, infrastructure failures ERROR. FIXED never deletes an entry.
 Events are atomic `bennett/.tmp/gates/events/main-health-*.json` objects with per-scope SHA vectors, check classifications, new reds, culprits, and logs.
 Attribution retains per-check last greens, lists first-parent merges, and bisects persistent regressions using full fresh runs; probe bounds/counts/logs are in events. A `gate_run --check NAME` filter would reduce cost and avoid short-circuit gaps.
-`python3 tools/revert_landing.py --repo R --merge M` requires clean main equal to origin/main, reverts a first-parent merge, fast-gates, and pushes only PASS; failures leave local evidence/revert for repair.
+`python3 tools/revert_landing.py --repo R --merge M` reverts a first-parent merge on a clean main equal to origin/main and pushes;
+the push hook starts the fast tier behind it. Every non-pass gate adds a line to `bennett/.tmp/gates/reds.log` (NEW or KNOWN).
 Consumer pins name immutable commits that still exist after the revert.
 Consumers keep building and gating against those commits until their pins are bumped.
 A revert leaves consumers on the old content; it does not invalidate their pins.

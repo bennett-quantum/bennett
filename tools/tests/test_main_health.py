@@ -289,3 +289,28 @@ class HealthTests(unittest.TestCase):
         self.assertIsNone(next_runner.cycle())
         self.assertEqual(next_runner.exit_code(), 0)
         self.assertEqual(next_runner.rows['fixture']['classification'], 'KNOWN-RED')
+
+    def test_incomplete_known_red_evidence_cannot_be_seeded(self):
+        runner = self.runner()
+        entry = dict(scope='fixture', check='unreached', sha=self.green, bead='b-old')
+        runner.baseline_path.write_text('schema=1\n[[red]]\nscope="fixture"\ncheck="unreached"\nsha="'
+                                       + self.green + '"\nbead="b-old"\n')
+        self.merge('red', 'bad')
+        self.git('push', '-q', 'origin', 'main')
+        self.assertEqual(runner.cycle(), 1)
+        with self.assertRaisesRegex(self.h.HealthError, 'incomplete'):
+            runner.seed('b-new')
+
+    def test_legacy_status_migrates_by_observing_checks_again(self):
+        self.state.mkdir()
+        self.h.atomic_json(self.state / 'status.json', dict(schema=1, rows={
+            'fixture': dict(sha=self.green, shas={'fixture': self.green}, result='PASS', last_green_shas={'fixture': self.green})}))
+        runner = self.runner()
+        self.assertEqual(runner.cycle(), 0)
+        self.assertEqual(runner.rows['fixture']['last_green']['tests'], {'fixture': self.green})
+        self.assertTrue((self.state / 'status-v1.json').is_file())
+
+    def test_na_baseline_case_is_not_fixed_and_cannot_be_last_green(self):
+        result = self.h.classify('ladder/rung-1', {'case/julia': {'exit': 0, 'status': 'N/A'}},
+            {('ladder/rung-1', 'case/julia'): dict(sha=self.green, bead='b-old')})
+        self.assertEqual(result['case/julia']['classification'], 'UNKNOWN')

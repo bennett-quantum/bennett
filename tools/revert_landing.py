@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Revert one first-parent main merge, fast-gate the revert, then push on PASS."""
+"""Revert one first-parent main merge and push (maintainer: "fast pushes go immediately and revert if the fast tier fails").
+The push hook starts the fast tier behind the revert like any other push."""
 import argparse
-import json
 import os
 from pathlib import Path
 import subprocess
@@ -61,7 +61,7 @@ def pinned_consumers(repo, merge, workspace):
     return consumers
 
 
-def revert(repo, merge, workspace=None, gate=None):
+def revert(repo, merge, workspace=None):
     repo = Path(repo).resolve()
     workspace = Path(workspace).resolve() if workspace else repo.parent
     if git(repo, 'rev-parse', '--show-toplevel') != str(repo):
@@ -85,28 +85,8 @@ def revert(repo, merge, workspace=None, gate=None):
     print('Consumer pins name immutable commits that still exist after the revert.\n'
           'Consumers keep building and gating against those commits until their pins are bumped.\n'
           'A revert leaves consumers on the old content; it does not invalidate their pins.', flush=True)
-    # Hooks are disabled on Git commands; the one explicit fast gate below is authoritative.
     git(repo, 'revert', '--no-edit', '-m', '1', merge)
     sha = git(repo, 'rev-parse', 'HEAD')
-    stub = repo / 'scripts/pre-push'
-    if not stub.is_file():
-        raise RevertError('revert lacks scripts/pre-push; local revert retained, nothing pushed')
-    record_path = repo / '.tmp/gate/records' / (sha + '.json')
-    record_path.unlink(missing_ok=True)
-    env = environment()
-    env['BENNETT_GATE_WORKSPACE'] = str(workspace)
-    result = (gate or subprocess.run)(['bash', str(stub), '--sha', sha, '--tier', 'pre-merge', '--fresh'],
-                                      cwd=repo, env=env, stdin=subprocess.DEVNULL)
-    if result.returncode:
-        raise RevertError(f'fast gate exited {result.returncode}; local revert {sha} retained, nothing pushed')
-    if not record_path.is_file():
-        raise RevertError('fast gate produced no PASS record; local revert retained, nothing pushed')
-    record = json.loads(record_path.read_text())
-    if (record.get('sha') != sha or record.get('tier') != 'pre-merge' or record.get('result') != 'pass'
-            or not record.get('checks') or any(c.get('exit') != 0 for c in record['checks'])):
-        raise RevertError('fast gate has no matching PASS record; local revert retained, nothing pushed')
-    if git(repo, 'rev-parse', 'HEAD') != sha or git(repo, 'status', '--porcelain', '--untracked-files=no'):
-        raise RevertError('checkout changed during fast gate; nothing pushed')
     # Ordinary non-force push rejects a concurrent landing. Never rewrite main.
     git(repo, 'push', 'origin', 'HEAD:refs/heads/main')
     return dict(sha=sha, merge=merge, consumers=consumers)
@@ -120,7 +100,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         outcome = revert(args.repo, args.merge, args.workspace)
-        print('PASS: pushed revert ' + outcome['sha'])
+        print('pushed revert ' + outcome['sha'])
         return 0
     except (RevertError, OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
         print(f'revert-landing: {error}', file=sys.stderr)

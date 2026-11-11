@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 
 # Explicit local imports also work under python -I and when loaded by test fixtures.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -135,7 +136,7 @@ def worker(request_path, runner=subprocess.run):
     argv = [sys.executable, '-I', str(Path(__file__).with_name('gate_run.py')), 'run',
             '--repo', request['repo'], '--sha', request['sha'], '--tier', request['tier']]
     env = {k: v for k, v in os.environ.items() if k not in gate_run.HEADLESS}
-    env['BENNETT_GATE_WORKSPACE'] = request.get('workspace', str(request_path.parents[3]))
+    env['BENNETT_GATE_WORKSPACE'] = request.get('workspace', str(request_path.parents[4]))
     outcome, record = {}, None
     before = Path(request["record_path"])
     request["record_mtime_before"] = before.stat().st_mtime_ns if before.exists() else -1
@@ -210,7 +211,28 @@ def complete(request_path, service_result=None, exit_code=None, exit_status=None
     for field in ('peak_rss_kib', 'disk_bytes'):
         event.setdefault(field, {'unavailable': 'unit exited before measurement'})
     atomic_json(event_path, event)
+    if result != 'pass':
+        note_red(event, Path(request.get('workspace', str(request_path.parents[4]))))
     return event
+
+
+def note_red(event, workspace):
+    """One line per non-pass gate in bennett/.tmp/gates/reds.log, NEW or KNOWN against bennett/health/known-reds.toml."""
+    try:
+        record = admit.read_json(Path(event['record_path']))
+        failing = [c['name'] for c in record.get('checks', []) if c.get('exit') != 0] or [event['result']]
+    except (OSError, ValueError, KeyError):
+        failing = [event['result']]
+    try:
+        known = {(r.get('scope'), r.get('check')) for r in
+                 tomllib.loads((workspace / 'bennett/health/known-reds.toml').read_text()).get('red', [])}
+    except (OSError, ValueError):
+        known = set()
+    for check in failing:
+        tag = 'KNOWN' if (event['repo_name'], check) in known else 'NEW'
+        line = f"{event['finished_utc']} {tag}-RED {event['repo_name']} {event['sha'][:12]} {event['tier']} {check}\n"
+        with (workspace / 'bennett/.tmp/gates/reds.log').open('a') as log:
+            log.write(line)
 
 
 def wait(unit, workspace):

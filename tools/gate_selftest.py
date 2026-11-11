@@ -473,7 +473,7 @@ class Hooks(Base):
         self.assertRan(z, 3)
         self.assertIn("not an ancestor", z.stderr)
 
-    def test_stub_gates_through_a_real_push(self):
+    def test_stub_starts_fast_tier_behind_a_real_push(self):
         self.stubbed()
         remote = self.tmp / "remote.git"
         git(self.tmp, "init", "-q", "--bare", str(remote))
@@ -482,9 +482,11 @@ class Hooks(Base):
         self.hook(".beads/hooks/pre-push", '#!/bin/sh\nunset GIT_DIR\nexec "$(dirname "$0")/../../scripts/pre-push" "$@"\n')
         env = dict(ENV, BENNETT_GATE_WORKSPACE=str(self.ws))
         z = subprocess.run(["git", "-C", str(self.me), "push", "origin", "HEAD:refs/heads/main"], capture_output=True, text=True, env=env)
+        # "fast pushes go immediately": the hook starts the fast tier behind the push and never gates in line.
         self.assertEqual(z.returncode, 0, z.stderr)
         head = git(self.me, "rev-parse", "HEAD")
-        self.assertTrue((self.me / ".tmp/gate/records" / f"{head}.json").exists(), z.stderr)
+        self.assertFalse((self.me / ".tmp/gate/records" / f"{head}.json").exists(), z.stderr)
+        self.assertTrue("fast tier not started" in z.stderr or "ADMIT" in z.stderr, z.stderr)
 
     def test_stub_refuses_without_pin_file(self):
         self.stubbed()

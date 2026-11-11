@@ -146,7 +146,10 @@ def load_baseline(path):
         if set(data) - {'schema', 'red'} or data['schema'] != 1:
             raise ValueError('expected schema = 1 and [[red]] entries')
         result = {}
-        for red in data.get('red', []):
+        reds = data.get('red', [])
+        if not isinstance(reds, list) or any(not isinstance(red, dict) for red in reds):
+            raise ValueError('red must be an array of tables')
+        for red in reds:
             if set(red) - {'scope', 'check', 'sha', 'shas', 'bead'}:
                 raise ValueError('unknown baseline field')
             if not all(isinstance(red.get(k), str) and red[k].strip() for k in ('scope', 'check', 'bead')):
@@ -171,7 +174,9 @@ def classify(scope, items, baseline):
     for name, item in items.items():
         entry = baseline.get((scope, name))
         code = item['exit']
-        if code == 0:
+        if item.get('status') == 'N/A':
+            verdict = 'UNKNOWN' if entry else 'PASS'
+        elif code == 0:
             verdict = 'FIXED' if entry else 'PASS'
         elif code == 124 or code < 0 or code > 128:
             verdict = 'UNKNOWN'
@@ -536,7 +541,7 @@ class Runner:
             items, logs, table = self.run_evidence(name, revisions, log)
             row.update(logs=logs, table=table, checks=classify(name, items, self.baseline), detail='')
             for check, item in row['checks'].items():
-                if item['classification'] in ('PASS', 'FIXED'):
+                if item['classification'] in ('PASS', 'FIXED') and item.get('status') != 'N/A':
                     row['last_green'][check] = revisions.copy()
                 elif item['classification'] == 'NEW-RED':
                     if self.args.command != 'seed':
@@ -557,7 +562,17 @@ class Runner:
     def cycle(self):
         self.baseline = load_baseline(self.baseline_path)
         status = self.state / 'status.json'
-        rows = json.loads(status.read_text())['rows'] if status.exists() else {}
+        data = json.loads(status.read_text()) if status.exists() else dict(schema=2, rows={})
+        if data['schema'] == 1:
+            # Aggregate PASS cannot attest a named check's last green. Retain the
+            # old evidence and take fresh per-check observations on upgrade.
+            atomic_json(self.state / 'status-v1.json', data)
+            print('main-health: archived aggregate status v1; fresh per-check observations required', file=sys.stderr)
+            rows = {}
+        elif data['schema'] == 2:
+            rows = data['rows']
+        else:
+            raise HealthError('unsupported main-health state schema')
         selected = [*self.selected, *(f'ladder/{r}' for r in self.rungs)]
         dependencies = {name: (('bennett-conformance', *LADDER_REPOS) if name.startswith('ladder/') else (name,))
                         for name in selected}
@@ -592,7 +607,7 @@ class Runner:
             for future in as_completed(pending):
                 rows[pending[future]] = future.result()
         self.rows = {n: rows[n] for n in selected}
-        event = dict(schema=1, kind='main-health', finished_utc=utc(), tier='full', fresh=True,
+        event = dict(schema=1, kind='main-health', command=self.args.command, finished_utc=utc(), tier='full', fresh=True,
                      changed=changed, rows=self.rows)
         atomic_json(self.workspace / 'bennett/.tmp/gates/events' / f'main-health-{time.time_ns()}.json', event)
         atomic_json(status, dict(schema=2, rows=rows))
@@ -607,7 +622,9 @@ class Runner:
         return 1 if 'NEW-RED' in verdicts else 0
 
     def seed(self, bead):
-        if not self.rows or any(r['classification'] in ('ERROR', 'UNKNOWN') for r in self.rows.values()):
+        if not self.rows or any(r['classification'] in ('ERROR', 'UNKNOWN')
+                               or any(c['classification'] == 'UNKNOWN' for c in r['checks'].values())
+                               for r in self.rows.values()):
             raise HealthError('cannot seed incomplete/errored evidence; rerun seed after resolving it')
         entries = dict(self.baseline)
         for scope, row in self.rows.items():
