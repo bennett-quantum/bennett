@@ -292,11 +292,11 @@ def resources(repo):
             'disk_free': shutil.disk_usage(repo).free}
 
 
-QUIET_WINDOWS = META_ROOT / '.tmp/orchestrator/quiet-windows.txt'  # lines: <start_utc ISO> <end_utc ISO> [note]
+QUIET_WINDOWS = Path('bennett/.tmp/orchestrator/quiet-windows.txt')  # under the workspace; lines: <start_utc ISO> <end_utc ISO> [note]
 QUIET_DRAIN = {'full': timedelta(minutes=55), 'pre-merge': timedelta(minutes=20)}
 
 
-def quiet_hold(tier, now, path=QUIET_WINDOWS):
+def quiet_hold(tier, now, path):
     """WAIT reason if a host-quiet window (shared with other projects on this box) is near or open, else ''."""
     try:
         lines = path.read_text().splitlines()
@@ -313,7 +313,7 @@ def quiet_hold(tier, now, path=QUIET_WINDOWS):
 
 
 def assess(repo, workspace, tier):
-    hold = quiet_hold(tier, datetime.now(timezone.utc))
+    hold = quiet_hold(tier, datetime.now(timezone.utc), Path(workspace) / QUIET_WINDOWS)
     if hold:
         return False, hold, {}
     try:
@@ -349,7 +349,7 @@ def main():
             ok, reason = decide_launch(resources(args.repo), expected, running_reservations(workspace),
                                        quota, dial, args.vendor, args.kind, readings=readings,
                                        now=datetime.now(timezone.utc))
-            hold = quiet_hold(args.tier, datetime.now(timezone.utc))
+            hold = quiet_hold(args.tier, datetime.now(timezone.utc), workspace / QUIET_WINDOWS)
             ok, reason = (False, hold) if hold else (ok, reason)
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, RuntimeError) as error:
         ok, reason = False, f'admission probe unavailable: {error}'
