@@ -47,7 +47,8 @@ tier = "post-merge"
 inputs = ["src/", "tests/", "Cargo.toml"]  # optional early-warning trigger
 
 [[report]]                         # optional; exits never decide the gate verdict
-                                   # reports alone get BENNETT_GATE_SHA, the real gated commit
+                                   # reports alone get BENNETT_GATE_SHA, the real gated commit, and run with the
+                                   # filesystem read-only except their own run layout (nothing they write outlives the run)
 name = "blockers"
 argv = ["scripts/blockers"]
 

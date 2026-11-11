@@ -844,6 +844,25 @@ class ReformTests(ContentReceiptFixture):
         self.assertEqual(z.returncode, 0, z.stderr)
         self.assertIn('report audit exited 0', z.stdout + z.stderr)
 
+    def test_reports_cannot_leave_state_for_checks(self):
+        # Review e8f P1: a report holding BENNETT_GATE_SHA wrote excluded bytes into a persistent target dir that a later
+        # invocation's check read (cached full PASS, fresh full FAIL). Reports now see a read-only world except their run layout.
+        (self.repo / 'notes').write_text('good\n')
+        report = ['sh', '-c', 'mkdir -p "$CARGO_TARGET_DIR" && git cat-file -p "$BENNETT_GATE_SHA:notes" > "$CARGO_TARGET_DIR/audit-input"'
+                  ' && echo staged; echo scratch > "$TMPDIR/report-scratch" && echo scratch-ok']
+        post = ['sh', '-c', 'test "$(cat "$CARGO_TARGET_DIR/audit-input")" = good']
+        extra = ('[env]\nCARGO_TARGET_DIR = "{root}/.tmp/gate-target"\n'
+                 '[receipt]\nnon_product = ["notes"]\n'
+                 '[[check]]\nname = "post"\ntier = "post-merge"\nargv = ' + json.dumps(post) + '\n'
+                 '[[report]]\nname = "audit"\nargv = ' + json.dumps(report) + '\n')
+        sha = self.adopt(extra, ['true'])
+        pre = self.run_gate(sha, isolated=True)
+        self.assertEqual(pre.returncode, 0, pre.stderr)
+        self.assertNotIn('staged', pre.stdout)
+        self.assertIn('scratch-ok', pre.stdout)  # its own TMPDIR inside the run layout stays writable
+        self.assertFalse((self.repo / '.tmp/gate-target/audit-input').exists())
+        self.assertEqual(self.run_gate(sha, '--tier', 'full', isolated=True).returncode, 1)
+
     def test_filtered_receipt_covers_docs_but_not_product_byte(self):
         (self.repo / 'product').write_text('a')
         (self.repo / 'notes').mkdir()

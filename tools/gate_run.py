@@ -357,6 +357,25 @@ class Isolation:
         return prefix
 
 
+class ReadOnlyView:
+    """Sandbox for [[report]] commands: the whole visible filesystem read-only except this invocation's run layout
+    (removed at cleanup). A report holds BENNETT_GATE_SHA and so can read non_product content; it must not be able to
+    leave anything a later check or build reads (review e8f P1: a report staged excluded bytes in a persistent target
+    dir). Host-writable submounts outside the gate's own binds (e.g. /dev/shm, /run) are out of this model, like
+    deliberate reads of historical git objects."""
+
+    def __init__(self, isolation, layout):
+        self.isolation, self.layout = isolation, Path(layout)
+
+    def argv(self):
+        prefix = self.isolation.argv()
+        readonly = ["--remount-ro", "/"]
+        for i, arg in enumerate(prefix):
+            if arg in ("--bind", "--bind-try"):
+                readonly += ["--ro-bind-try", prefix[i + 1], prefix[i + 2]]
+        return prefix + readonly + ["--bind", str(self.layout), str(self.layout)]
+
+
 def isolation_prefix(workspace, own_roots, masked=()):
     return Isolation(workspace, own_roots, masked)
 
@@ -820,7 +839,9 @@ def gate_one(root, workspace, sha, args):
             passed = len(checks) == len(selected) and all(c["exit"] == 0 for c in checks)
             # Reports never decide the verdict, so only they get the real gated commit (e.g. to read a non_product beads
             # export from git); checks run on the filtered tree alone.
-            reports = run_commands(cfg.get("report", []), wt, dict(env, BENNETT_GATE_SHA=sha), ctx, prefix,
+            report_prefix = ReadOnlyView(prefix, layout) if prefix else prefix
+            report_env = dict(env, BENNETT_GATE_SHA=sha) if prefix else env  # unisolated: no read-only view, no handle
+            reports = run_commands(cfg.get("report", []), wt, report_env, ctx, report_prefix,
                                    cfg.get("timeout_s"), "report")
             for r in reports:
                 print(f"gate: report {r['name']} exited {r['exit']} (evidence, never the gate's exit)", flush=True)
