@@ -9,3 +9,4 @@
 2026-11-11	bennett-dialect-spec	dialect 0.3-draft §17.7 isolated hosted launch provider (r1p, maintainer option B)	nothing (ACCEPT)	~10 min
 2026-11-11	bennett-isa-spec	reference interpreter: tea, 99n (r1 catalog), ni9 K89 reader (6c95708)	nothing (ACCEPT; reviewer's own full-suite run cut by admission, lane's 828/0 stands)	~25 min
 2026-11-11	bennett-isa-spec	reference interpreter reverse-action-batch (01k throughput)	nothing (ACCEPT; one doc wording note)	~30 min
+2026-11-11	bennett-dialect-spec	dialect 0.3-draft Julia shim-owned entry context (h54, maintainer option A)	nothing (ACCEPT; one wording note)	~20 min
