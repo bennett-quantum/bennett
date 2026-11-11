@@ -89,7 +89,12 @@ remains product, so exclusion-policy, check and pin changes invalidate coverage.
 Before any build/check/report runs, the run checkout uses a parentless synthetic commit
 with exactly that filtered tree. Excluded paths are absent from the filesystem, index
 and HEAD; `cat excluded` and `git show HEAD:excluded` fail. This avoids leaving excluded
-index entries behind after deleting files. When `non_product` is declared, the gating checkout's own working tree is hidden inside bwrap (an empty tmpfs) and
+index entries behind after deleting files. **Model:** `non_product` is sound for checks that do not go looking for excluded paths; the backstop is the fresh run:
+main-health gates every pushed main with `--tier full --fresh`, so a wrong receipt skip surfaces there as a red. Known
+residual side channels (a check deliberately inspecting git metadata, host-writable mounts) are listed in bead
+bennett-jug. Config load refuses any check argv or `inputs` that names an excluded path.
+
+When `non_product` is declared, the gating checkout's own working tree is hidden inside bwrap (an empty tmpfs) and
 only its `.git` and `.tmp` (gate state, run tree, caches, `CARGO_TARGET_DIR`) are bound back. Excluded paths are
 therefore uniformly absent: their bytes, symlink text and existence cannot reach a check through `{root}`, an env
 template or a tracked symlink, so a fresh gate's verdict cannot depend on them. A config that keeps state in the

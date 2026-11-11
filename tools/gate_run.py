@@ -209,6 +209,12 @@ def validate_exclusions(cfg):
     commands = cfg["check"] + cfg.get("report", [])
     for cmd in commands:
         protected.extend((cmd["argv"][0], cmd.get("cwd", ".")))
+    for cmd in cfg["check"]:
+        # Static defence (cheap, not complete): no check may name an excluded path in its argv or inputs. Reports may:
+        # they never decide the verdict and read excluded content from git by design.
+        for arg in cmd["argv"][1:]:
+            protected.extend(re.findall(r"[^\s:=,;'\"<>|&()]+", re.sub(r"\{[^{}]+\}/?", "", str(arg))))
+        protected.extend(cmd.get("inputs", []))
     envs = [cfg.get("env", {})] + [c.get("env", {}) for c in commands]
     for env in envs:
         for value in env.values():
@@ -327,6 +333,10 @@ class Isolation:
         # .tmp (gate state, run tree, caches) are bound back: excluded paths are uniformly absent, so neither their bytes,
         # symlink text nor existence can reach a check through {root}, env templates or tracked symlinks (review r1/r2 P1).
         self.hide_own_tree = bool(masked)
+        # The rebound .git would expose each own checkout's live, unfiltered index (review r3): cover it with an empty file,
+        # so a git read of the caller's index fails loudly instead of listing excluded paths.
+        self.own_indexes = [Path(git(r, "rev-parse", "--path-format=absolute", "--git-path", "index"))
+                            for r in own_roots] if self.hide_own_tree else []
         if not shutil.which(self.bwrap):
             raise GateError(f"isolation needs bwrap ({self.bwrap} not found); --no-isolate only with the omission recorded")
         self.workspace, self.own = Path(workspace), {Path(r).resolve() for r in own_roots}
@@ -354,6 +364,9 @@ class Isolation:
             for root in sorted(self.own):
                 prefix += ["--tmpfs", str(root), "--bind", str(root / ".tmp"), str(root / ".tmp"),
                            "--bind-try", str(root / ".git"), str(root / ".git")]
+            for index in self.own_indexes:
+                if index.exists():
+                    prefix += ["--ro-bind", "/dev/null", str(index)]
         return prefix
 
 

@@ -863,6 +863,21 @@ class ReformTests(ContentReceiptFixture):
         self.assertFalse((self.repo / '.tmp/gate-target/audit-input').exists())
         self.assertEqual(self.run_gate(sha, '--tier', 'full', isolated=True).returncode, 1)
 
+    def test_caller_index_does_not_reveal_excluded_paths(self):
+        # Review r3 P1: the rebound caller .git exposed its live index (excluded names and blob ids).
+        cmd = ['sh', '-c', 'test -z "$(git -C "$1" ls-files -- notes 2>/dev/null)"', 'sh', str(self.repo)]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        self.assert_invariant_under_excluded_change(sha, lambda: (self.repo / 'notes').write_text('x\n'))
+
+    def test_check_argv_or_inputs_naming_an_excluded_path_is_refused(self):
+        for extra, command in (('', ['cat', 'notes/a']),
+                               ('', ['sh', '-c', 'grep x notes/a']),
+                               ('[[check]]\nname = "late"\ntier = "post-merge"\nargv = ["true"]\ninputs = ["notes/"]\n', ['true'])):
+            sha = self.adopt('[receipt]\nnon_product = ["notes/"]\n' + extra, command)
+            z = self.run_gate(sha, isolated=True)
+            self.assertEqual(z.returncode, 3, z.stderr)
+            self.assertIn('notes', z.stderr)
+
     def test_filtered_receipt_covers_docs_but_not_product_byte(self):
         (self.repo / 'product').write_text('a')
         (self.repo / 'notes').mkdir()
@@ -886,7 +901,8 @@ class ReformTests(ContentReceiptFixture):
 
     def test_excluded_file_missing_from_filesystem_and_git_head(self):
         (self.repo / 'notes').write_text('secret')
-        for command in (["cat", "notes"], ['git', 'show', 'HEAD:notes']):
+        # Split names: the static argv check would refuse a literal excluded path before the runtime absence is tested.
+        for command in (['sh', '-c', 'cat "no""tes"'], ['sh', '-c', 'git show "HEAD:no""tes"']):
             sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', command)
             result = self.run_gate(sha)
             self.assertEqual(result.returncode, 1, result.stderr)
