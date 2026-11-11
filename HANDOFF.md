@@ -88,14 +88,9 @@ measured-basis diagnostics and a small fixture estimate cannot satisfy those cla
   repos) before re-arming main-health on the new code; `bennett-pow` (per-worktree gate cache). Disk filled to 100% once on
   2026-11-09: prune rebuildable `.tmp/*target*` caches of landed job worktrees.
 
-## Orchestration and records
+## Where things are
 
-Rules: [docs/process/COMMON.md](docs/process/COMMON.md), the one rulebook (children: rule 15 and T3CHILD.md). The orchestrator seat
-runs product work; there is no standing advisor seat in the product workflow. Launch admission is `tools/admit.py launch` against the
-maintainer's `dial.toml`; gates run through `tools/gate_launch.py`. Live work state is beads (`bd` in each repo's main checkout) plus
-this file; a job's resume point is its `.tmp/<job>/PROGRESS.md` and git history. Shift files and worklogs are historical.
-
-Landing: fast tier (`scripts/pre-push`, gate_run pre-merge) green on the merged tree, one `--no-ff` merge, push. main-health
-re-gates pushed mains with `--tier full --fresh` and attributes new reds against `health/known-reds.toml`; revert with
-`tools/revert_landing.py`. PASS receipts are keyed on product content (each gate.toml's `[receipt] non_product`), so beads exports and
-worklog edits do not re-gate. All bennett-quantum repos are public: no transcripts, logs or .tmp records in commits or branches.
+Rules: [docs/process/COMMON.md](docs/process/COMMON.md). Work items: `bd` in each repo's main checkout. A job's resume point:
+its `.tmp/<job>/PROGRESS.md` and git history. Gates: `tools/gate_launch.py start|wait|status` (events in `.tmp/gates/events/`).
+Launch admission: `tools/admit.py`, against the maintainer's `dial.toml`. main-health: `tools/main_health.py`. Shift files and
+worklogs are historical.
