@@ -1,5 +1,5 @@
-# Seed from pushed mains with tools/main_health.py seed; never hand-copy failure lists.
-# Empty until the orchestrator runs seed with reviewed bead assignments.
+# Standing reds on pushed mains, by repo and gate check name, each with its bead. A red listed here is KNOWN-RED in
+# reds.log; anything else is NEW-RED. Remove an entry when its check passes (or run tools/main_health.py seed).
 schema = 1
 
 [[red]]

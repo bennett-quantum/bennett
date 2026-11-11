@@ -97,3 +97,8 @@ Rules: [docs/process/COMMON.md](docs/process/COMMON.md). Work items: `bd` in eac
 its `.tmp/<job>/PROGRESS.md` and git history. Gates: `tools/gate_launch.py start|wait|status` (events in `.tmp/gates/events/`).
 Launch admission: `tools/admit.py`, against the maintainer's `dial.toml`. main-health: `tools/main_health.py`. Shift files and
 worklogs are historical.
+Reds: every push prints its repo's open NEW-REDs (from `.tmp/gates/reds.log`); `tools/gate_launch.py reds` lists all; known
+standing reds live in `health/known-reds.toml` (one bead each); revert with `tools/revert_landing.py`.
+Branches: on 2026-11-11 every superseded branch was deleted (tips under `refs/archive/branches/` in each repo). The in-flight
+ones are listed per lane below: j3l, 75y, plugin-arith-pin, combo-s3, isa-k86, isa 356/0cb/x2n, conf-51d, exporter-s1, buq,
+sched-vt8, vm-o7n, and vm's dense engine on `wip/session-end-2026-11-03-bjm-dense`.
