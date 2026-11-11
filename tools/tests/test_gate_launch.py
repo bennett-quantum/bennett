@@ -95,7 +95,8 @@ class LaunchTests(RunnerFixture):
             baseline.write_text('schema = 1\n' + (f'[[red]]\nscope = "{request["repo_name"]}"\ncheck = "unit tests"\n'
                                                    'bead = "b-1"\n' if known else ''))
             a.atomic_json(path.with_name(unit + '.outcome.json'), {'exit': 1})
-            a.complete(path, service_result='exit-code', exit_code='exited', exit_status='1', query=lambda unit: {})
+            with patch.object(a, 'on_origin_main', return_value=True):
+                a.complete(path, service_result='exit-code', exit_code='exited', exit_status='1', query=lambda unit: {})
             line = log.read_text().splitlines()[-1]
             self.assertIn(('KNOWN' if known else 'NEW') + '-RED ' + request['repo_name'], line)
             self.assertTrue(line.endswith(' unit tests'), line)
@@ -132,6 +133,19 @@ class LaunchTests(RunnerFixture):
         request = self.ws / 'bennett/.tmp/gates/admissions' / (unit + '.json')
         a.worker(request, runner=lambda argv, **k: calls.append(argv) or subprocess.CompletedProcess(argv, 0))
         self.assertIn('--fresh', calls[0])
+
+    def test_red_on_a_sha_not_on_origin_main_is_a_branch_red(self):
+        a = module()
+        log = self.ws / 'bennett/.tmp/gates/reds.log'
+        unit, path = self.request(a)
+        request = json.loads(path.read_text())
+        Path(request['record_path']).parent.mkdir(parents=True, exist_ok=True)
+        Path(request['record_path']).write_text(json.dumps({'checks': [{'name': 'unit tests', 'exit': 1}]}))
+        a.atomic_json(path.with_name(unit + '.outcome.json'), {'exit': 1})
+        with patch.object(a, 'on_origin_main', return_value=False):
+            a.complete(path, service_result='exit-code', exit_code='exited', exit_status='1', query=lambda unit: {})
+        self.assertIn('BRANCH-RED', log.read_text().splitlines()[-1])
+        self.assertEqual(a.open_reds(self.ws), [])
 
     def test_stop_post_without_worker_outcome_maps_signal_and_timeout(self):
         a = module()

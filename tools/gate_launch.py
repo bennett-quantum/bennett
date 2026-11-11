@@ -222,6 +222,12 @@ def complete(request_path, service_result=None, exit_code=None, exit_status=None
     return event
 
 
+def on_origin_main(repo, sha):
+    result = subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', sha, 'refs/remotes/origin/main'],
+                            capture_output=True, text=True, timeout=admit.CONTROL_TIMEOUT_SECONDS)
+    return result.returncode == 0
+
+
 def note_red(event, workspace):
     """One line per non-pass gate in bennett/.tmp/gates/reds.log, NEW or KNOWN against bennett/health/known-reds.toml."""
     try:
@@ -235,8 +241,10 @@ def note_red(event, workspace):
     except (OSError, ValueError):
         known = set()
     infra = event['result'] in ('setup-error', 'unit-crash', 'signal', 'hang-guard')  # not a product verdict
+    branch = not on_origin_main(event['repo'], event['sha'])  # a job-branch gate, not a regression of any main
     for check in failing:
-        tag = 'INFRA' if infra else 'KNOWN' if (event['repo_name'], check) in known else 'NEW'
+        tag = ('INFRA' if infra else 'BRANCH' if branch else
+               'KNOWN' if (event['repo_name'], check) in known else 'NEW')
         line = f"{event['finished_utc']} {tag}-RED {event['repo_name']} {event['sha'][:12]} {event['tier']} {check}\n"
         with (workspace / 'bennett/.tmp/gates/reds.log').open('a') as log:
             log.write(line)
