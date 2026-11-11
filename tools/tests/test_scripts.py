@@ -108,13 +108,6 @@ class HookTests(RunnerFixture):
 
 
 class CommandTests(RunnerFixture):
-    def test_council_selftest_runs_unittest_under_optimization(self):
-        result = subprocess.run([sys.executable, "-O", str(SOURCE / "tools/council.py"), "selftest"],
-                                capture_output=True, text=True, timeout=15)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Ran ", result.stderr)
-        self.assertIn("tests", result.stderr)
-
     def test_create_remotes_reports_hook_install_failure(self):
         meta = self.root / "bennett"
         (meta / "scripts").mkdir(parents=True)

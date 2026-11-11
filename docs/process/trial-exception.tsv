@@ -1,9 +1,3 @@
-# TRIAL EXCEPTION evidence (pre-merge review for oracle/contract/gate-tool changes; on audition since 2026-11-11). One line per review round of a trial-class landing.
-# date	repo	change	round	finding	landing wait (implementation done -> review verdict)
-2026-11-11	bennett (meta)	gate-reform (product-content receipts, per-worktree caches, tiers, gate_launch)	r1	real defect (P1: excluded bytes readable via caller checkout -> false PASS)	~50 min (impl 08:12Z -> r1 ~09:05Z incl. host restart)
-2026-11-11	bennett (meta)	gate-reform	r2	real defect (P1 x3: symlink text, path existence, abs-symlink setup break)	~35 min
-2026-11-11	bennett (meta)	gate-reform e8f32f87 (BENNETT_GATE_SHA for reports)	r1	real defect (P1: report could stage excluded bytes in persistent state read by a later check)	~25 min
-2026-11-11	bennett (meta)	gate-reform hidden-checkout redesign 01860029	r3	real defect (P1: caller .git index exposes excluded path names/blob ids -> false PASS; same class)	~45 min incl. restart relaunch
-# note 2026-11-11: all four rows above are side channels that bite only with a deliberately constructed check; the advisor then
-# ruled them non-blocking (bead bennett-jug) and stopped the rounds. For the re-examination count them as low-stakes, and the
-# rounds as the loop COMMON rule 11 now forbids.
+# TRIAL EXCEPTION evidence: pre-landing review of published contract text (ISA, dialect) and the reference interpreter.
+# One line per such landing: date<TAB>repo<TAB>change<TAB>what the review found (real defect / nothing / low-stakes)<TAB>how long the landing waited
+# 2026-11-11 summary, before the scope narrowed: gate tool, 4 review rounds, constructed side channels only; counted as low-stakes.

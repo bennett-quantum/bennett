@@ -16,8 +16,8 @@ import sys
 import tomllib
 
 META = Path(sys.argv.pop(1)).resolve().parents[1]
-TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude"}
-CMD_KEYS = {"name", "argv", "env", "cwd"}
+TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude", "receipt"}
+CMD_KEYS = {"name", "argv", "env", "cwd", "tier", "inputs"}
 BUILD_KEYS = CMD_KEYS | {"outputs", "needs"}
 SIB_KEYS = {"sha", "repo", "files", "build", "note"}
 # These are gate/Beads infrastructure, rather than a second per-repo tool list.

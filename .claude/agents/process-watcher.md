@@ -17,7 +17,7 @@ This is a quick advisory pass, not an audit. Budget: **15 tool calls, about 10 m
 
 ## What to look at (read-only, skim)
 - `CLAUDE.md` in each repo: the numbered non-negotiables and whatever has been appended to them. Which rules have fired? Which exist because of one incident and now cost every session?
-- The council: `bennett/tools/council.py`, `bennett/docs/council/**` (rubrics, task files, per-round prompt/report/response). For the latest rounds of each run, count blockers per round and classify each as (a) would have bitten silently in development, (b) legitimate edge case, (c) hygiene. Compare with what each round cost (ask `quota` if present; the orchestrator logs costs in HANDOFF/worklog).
+- The council: `bennett/docs/council/**` (rubrics, task files, per-round prompt/report/response). For the latest rounds of each run, count blockers per round and classify each as (a) would have bitten silently in development, (b) legitimate edge case, (c) hygiene. Compare with what each round cost (ask `quota` if present; the orchestrator logs costs in HANDOFF/worklog).
 - Records: `HANDOFF.md`, `worklog/`, `*PROGRESS.md`, `.beads/issues.jsonl`, `docs/briefs/`, `docs/council/*/response.md`. Look for the same fact recorded in three places, for documents with no reader, for progress files that restate the git log.
 - New infrastructure in `bennett-conformance/` (`clauses/`, `suite/`, `proofs/`, `defects/`): is each consumed by something, or does it exist to exist? A tool with no consumer after two sessions is a candidate for cutting.
 - Gates and hooks: pre-push scripts, freeze gates, `BEADS_HOOK_TIMEOUT`, beads export ceremonies. How often do they fail, and did a failure ever matter?

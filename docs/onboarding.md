@@ -61,8 +61,8 @@ Do this in each repo's MAIN checkout. Use doctor for installed-tool and source-p
 - [ ] Gate-isolation failure: investigate errors naming absolute or `../sibling` paths for reads of live trees. Fix an incorrect pin or test; do not bypass isolation.
 
 ## 7. Working rules
-Read each repo's `CLAUDE.md`, `bennett/docs/Bennett-NorthStar.md`, and the one rulebook [COMMON.md](process/COMMON.md)
-(children also [T3CHILD.md](process/T3CHILD.md)). The rules live only there. `scripts/doctor.sh` checks that every process document
+Read each repo's `CLAUDE.md`, `bennett/docs/Bennett-NorthStar.md`, and the one rulebook [COMMON.md](process/COMMON.md).
+The rules live only there. `scripts/doctor.sh` checks that every process document
 linked here is present as a file.
 
 ## 8. Known per-host gaps
