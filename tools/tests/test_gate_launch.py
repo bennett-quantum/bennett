@@ -165,3 +165,15 @@ class LaunchTests(RunnerFixture):
         self.assertTrue(runtime.is_relative_to(self.ws / 'bennett/.tmp/gates/runtime'))
         self.assertEqual(runtime.with_name('gate_run.py').read_bytes(), Path(a.gate_run.__file__).read_bytes())
         self.assertTrue(any(str(runtime) in x for x in argv if 'ExecStopPost=' in x))
+
+    def test_runtime_install_failure_publishes_setup_event(self):
+        a = module()
+        expected = {'peak_bytes': 1, 'disk_bytes': 1, 'source': 'fixture'}
+        with patch.object(a.admit, 'assess', return_value=(True, 'ok', expected)), \
+             patch.object(a, 'install_runtime', side_effect=OSError('cannot snapshot runtime')):
+            with self.assertRaisesRegex(a.LaunchError, 'cannot snapshot runtime'):
+                a.start(self.repo, self.sha, workspace=self.ws,
+                        launcher=lambda *a, **k: self.fail('must not launch'))
+        events = list((self.ws / 'bennett/.tmp/gates/events').glob('*.json'))
+        self.assertEqual(len(events), 1)
+        self.assertEqual(json.loads(events[0].read_text())['result'], 'setup-error')

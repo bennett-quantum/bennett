@@ -86,19 +86,19 @@ def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=N
                    'record_path': str(repo / '.tmp/gate/records' / (sha + '.json')),
                    'workspace': str(workspace)}
         atomic_json(request_path, request)
-        executable = str(install_runtime(base))
-        # systemd parses ExecStopPost as command words. Quote each word for paths with spaces.
-        def systemd_quote(arg):
-            return '"' + str(arg).replace('\\', '\\\\').replace('"', '\\"').replace('%', '%%').replace('$', '$$') + '"'
-        stop = ' '.join(systemd_quote(x) for x in (sys.executable, '-I', executable, 'complete', '--request', request_path))
-        argv = ['systemd-run', '--user', '--collect', '--unit=' + unit,
-                '--property=Type=exec', '--property=MemoryAccounting=yes', '--property=CPUAccounting=yes',
-                '--property=KillMode=control-group',
-                '--property=UnsetEnvironment=' + ' '.join(gate_run.HEADLESS),
-                '--property=ExecStopPost=' + stop,
-                '--', sys.executable, '-I', executable, 'worker', '--request', str(request_path)]
-        env = {k: v for k, v in os.environ.items() if k not in gate_run.HEADLESS}
         try:
+            executable = str(install_runtime(base))
+            # systemd parses ExecStopPost as command words. Quote each word for paths with spaces.
+            def systemd_quote(arg):
+                return '"' + str(arg).replace('\\', '\\\\').replace('"', '\\"').replace('%', '%%').replace('$', '$$') + '"'
+            stop = ' '.join(systemd_quote(x) for x in (sys.executable, '-I', executable, 'complete', '--request', request_path))
+            argv = ['systemd-run', '--user', '--collect', '--unit=' + unit,
+                    '--property=Type=exec', '--property=MemoryAccounting=yes', '--property=CPUAccounting=yes',
+                    '--property=KillMode=control-group',
+                    '--property=UnsetEnvironment=' + ' '.join(gate_run.HEADLESS),
+                    '--property=ExecStopPost=' + stop,
+                    '--', sys.executable, '-I', executable, 'worker', '--request', str(request_path)]
+            env = {k: v for k, v in os.environ.items() if k not in gate_run.HEADLESS}
             result = launcher(argv, capture_output=True, text=True, env=env,
                               timeout=admit.CONTROL_TIMEOUT_SECONDS)
             if result.returncode:
@@ -197,6 +197,9 @@ def complete(request_path, service_result=None, exit_code=None, exit_status=None
             event['peak_rss_kib'] = int(peak) // 1024
     except (OSError, RuntimeError, subprocess.SubprocessError) as error:
         event['measurement_error'] = str(error)
+    if 'disk_bytes' not in event:
+        event['disk_bytes'] = gate_run.receipt_probe(
+            'disk_bytes', lambda: gate_run.disk_bytes(Path(request['repo']) / '.tmp'))
     for field in ('peak_rss_kib', 'disk_bytes'):
         event.setdefault(field, {'unavailable': 'unit exited before measurement'})
     atomic_json(event_path, event)

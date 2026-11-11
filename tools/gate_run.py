@@ -221,7 +221,7 @@ def validate_exclusions(cfg):
         validate_path(entry, "receipt.non_product")
         for path in protected:
             path = path.strip("\"'").removeprefix("./")
-            if path_covers(entry, path) or (path.startswith("/") and ("/" + entry.rstrip("/")) in path):
+            if path_covers(entry.rstrip("/") + "/", path) or (path.startswith("/") and ("/" + entry.rstrip("/")) in path):
                 raise GateError(f"{PIN_FILE}: non_product entry {entry!r} covers protected path {path!r}")
 
 
@@ -781,7 +781,7 @@ def gate_one(root, workspace, sha, args):
             if "inputs" in c and enabled:
                 ikey = inputs_key(root, sha, cfg, c, bool(prefix))
                 ipath = receipts / f"inputs-{ikey}.json"
-                input_receipts[c["name"]] = (ipath, ikey)
+                input_receipts[json.dumps(c, sort_keys=True)] = (ipath, ikey)
                 previous = read_pass_receipt(ipath, ikey, ikey) if not fresh else None
             else:
                 previous = None
@@ -803,8 +803,8 @@ def gate_one(root, workspace, sha, args):
                 result["tier"] = ct
                 if ct not in record["tiers_ran"]:
                     record["tiers_ran"].append(ct)
-                if result["exit"] == 0 and c["name"] in input_receipts:
-                    ipath, ikey = input_receipts[c["name"]]
+                if result["exit"] == 0 and json.dumps(c, sort_keys=True) in input_receipts:
+                    ipath, ikey = input_receipts[json.dumps(c, sort_keys=True)]
                     atomic_json(ipath, dict(record, result="pass", tree=ikey, key=ikey,
                                            finished_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
             passed = len(checks) == len(selected) and all(c["exit"] == 0 for c in checks)

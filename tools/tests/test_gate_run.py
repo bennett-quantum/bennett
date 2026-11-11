@@ -758,6 +758,7 @@ class ReformTests(ContentReceiptFixture):
         return json.loads(((repo or self.repo) / '.tmp/gate/records' / (sha + '.json')).read_text())
 
     def test_filtered_receipt_covers_docs_but_not_product_byte(self):
+        (self.repo / 'product').write_text('a')
         (self.repo / 'notes').mkdir()
         (self.repo / 'notes/a').write_text('one')
         sha = self.adopt('[receipt]\nnon_product = ["notes/"]\n')
@@ -769,7 +770,7 @@ class ReformTests(ContentReceiptFixture):
         other = self.git('rev-parse', 'HEAD').strip()
         self.assertEqual(self.run_gate(other).returncode, 0)
         self.assertEqual(self.record(other)['covered_by']['sha'], sha)
-        (self.repo / 'product').write_text('x')
+        (self.repo / 'product').write_text('b')
         self.git('add', '.')
         self.git('commit', '-qm', 'product byte')
         third = self.git('rev-parse', 'HEAD').strip()
@@ -935,3 +936,23 @@ class ReformTests(ContentReceiptFixture):
                 if process.poll() is None:
                     process.terminate()
                 process.communicate(timeout=CLI_HANG_GUARD_SECONDS)
+
+    def test_same_named_postchecks_keep_separate_input_passes(self):
+        # The first check passes, the second fails once. Its receipt must not be
+        # published by the first merely because their human-readable names match.
+        (self.repo / 'input').write_text('a')
+        failure = self.root / 'failed-once'
+        attempts = self.root / 'attempts'
+        command = ['sh', '-c', f'echo run >> {attempts}; if test -f {failure}; then exit 0; else touch {failure}; exit 1; fi']
+        extra = ('[[check]]\nname = "same"\nargv = ["true"]\ntier = "post-merge"\ninputs = ["input"]\n'
+                 '[[check]]\nname = "same"\nargv = ' + json.dumps(command) + '\ntier = "post-merge"\ninputs = ["input"]\n')
+        sha = self.adopt(extra)
+        self.assertEqual(self.run_gate(sha).returncode, 1)
+        (self.repo / 'product').write_text('another input tree')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'retry other product tree')
+        other = self.git('rev-parse', 'HEAD').strip()
+        result = self.run_gate(other)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(attempts.read_text(), 'run\nrun\n')
+        self.assertEqual(len(self.record(other)['checks']), 2)
