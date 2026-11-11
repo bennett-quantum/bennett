@@ -1,0 +1,8 @@
+# Councils commit report.md (and response.md/scope.md) only; prompts, document copies and raw seat output stay in .tmp.
+*
+!*/
+!.gitignore
+!*.md
+*/**/prompt.md
+*/**/doc.md
+*/**/packet*.md
