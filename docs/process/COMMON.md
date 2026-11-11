@@ -1,4 +1,6 @@
 The Bennett rulebook. Only the maintainer changes a line here; anyone else proposes one sentence to the maintainer.
+Calibrate with the maintainer's words: "we are not writing software here that anyone is reading, this isn't a
+life-critical situation, noone cares about it right now excpet me."
 Other files may add what is specific to one repo; they never restate or override this file.
 
 # Common rules
@@ -19,13 +21,16 @@ Other files may add what is specific to one repo; they never restate or override
 ## A default never blocks ready work; if it seems to, the work wins.
 9. Do it directly: whoever sees a change makes it, runs the fast tier, pushes. Delegate only when the work is big
    enough or independent enough that parallelism pays.
-10. Land on the fast tier (`scripts/pre-push`), one `--no-ff` merge per landing; full tiers run after landing in
-   main-health; a new red is reverted (`git revert -m 1 <merge>`) or fixed forward. Maintainer: "it is *totally fine*
-   to ship and push bugs, as long as we can find and revert/fix forward easily."
+10. "fast pushes go immediately and revert if the fast tier fails" (maintainer). Push a main without waiting; the push
+   hook starts the fast tier behind it. A new red is reverted (`git revert -m 1 <merge>`) or fixed forward; full tiers
+   run later in main-health. "it is *totally fine* to ship and push bugs, as long as we can find and revert/fix
+   forward easily."
 11. Review is after landing. One open round lists blockers (a blocker bites on a real path, not a constructed one);
    everything else is a bead. A second round only confirms those blockers are fixed. There is never a third.
-12. TRIAL EXCEPTION (on audition since 2026-11-11, not settled): changes to the reference interpreter, checker
-   verdicts, certificates, published contract text and gate tooling are reviewed BEFORE landing; nothing else is.
-   Log each such landing in docs/process/trial-exception.tsv; a later session drops this unless it paid for itself.
+12. TRIAL EXCEPTION (on audition since 2026-11-11, not settled): the published contracts (ISA and dialect spec text) and
+   the reference interpreter are reviewed BEFORE landing; nothing else is. Maintainer: the caution may have paid for itself
+   there, "but is utterly inappropriate for everything else where, and this is the entire point, it is meant that other
+   vendors can come and write their own impls!" Log each such landing in docs/process/trial-exception.tsv; a later
+   session drops this unless it paid for itself.
 13. Reasoning effort fits the task: high by default, maximum only for hard design or analysis.
 14. One orchestrator talks to the maintainer directly; there is no standing advisor layer.
