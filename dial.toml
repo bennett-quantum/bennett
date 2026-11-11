@@ -1,0 +1,9 @@
+# Maintainer-owned: Codex weekly use may reach 1.0 times its uniform pace line (1.2 permits 20% ahead).
+[codex]
+pace = 1.0
+# Maintainer-owned: Claude weekly use may reach 1.0 times its uniform pace line (0 pauses launches).
+[claude]
+pace = 1.0
+# Maintainer-owned: Muse weekly use may reach 1.0 times its uniform pace line; unavailable quota waits.
+[muse]
+pace = 1.0
