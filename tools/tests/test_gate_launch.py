@@ -114,6 +114,22 @@ class LaunchTests(RunnerFixture):
         self.assertEqual(len(events), 1)
         self.assertEqual(json.loads(events[0].read_text())['exit'], 3)
 
+    def test_interrupt_right_after_admission_write_publishes_event(self):
+        # Review r2 P2: the admission request was published outside the interrupt guard.
+        a = module()
+        expected = {'peak_bytes': 100, 'disk_bytes': 200, 'source': 'fixture'}
+        real = a.atomic_json
+        def write_then_interrupt(path, data):
+            real(path, data)
+            if path.parent.name == 'admissions' and not path.name.endswith('.outcome.json'):
+                raise KeyboardInterrupt
+        with patch.object(a.admit, 'assess', return_value=(True, 'ok', expected)), patch.object(a, 'atomic_json', write_then_interrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                a.start(self.repo, self.sha, 'full', launcher=lambda argv, **k: subprocess.CompletedProcess(argv, 0), workspace=self.ws)
+        events = list((self.ws / 'bennett/.tmp/gates/events').glob('*.json'))
+        self.assertEqual(len(events), 1)
+        self.assertEqual(json.loads(events[0].read_text())['exit'], 3)
+
     def test_launcher_failure_writes_setup_event(self):
         a = module()
         expected = {'peak_bytes': 100, 'disk_bytes': 200, 'source': 'fixture'}

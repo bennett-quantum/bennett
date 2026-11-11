@@ -784,6 +784,53 @@ class ReformTests(ContentReceiptFixture):
         self.assertEqual(first.returncode, 1, first.stderr)
         self.assertEqual((self.repo / 'notes/a').read_text(), 'good\n')  # masked only inside the sandbox
 
+    def assert_invariant_under_excluded_change(self, sha, change):
+        """Receipt soundness: a fresh gate's verdict must not depend on non_product content (review r2)."""
+        before = self.run_gate(sha, '--fresh', isolated=True)
+        change()
+        self.git('add', '-A', '--', 'notes')
+        self.git('commit', '-qm', 'excluded path changed')
+        other = self.git('rev-parse', 'HEAD').strip()
+        after = self.run_gate(other, '--fresh', isolated=True)
+        self.assertEqual(before.returncode, after.returncode, before.stderr + after.stderr)
+        for tier in ('pre-merge', 'full'):
+            cached = self.run_gate(other, '--tier', tier, isolated=True)
+            self.assertEqual(cached.returncode, after.returncode, cached.stderr)
+        return before
+
+    def test_existence_of_excluded_path_is_not_observable(self):
+        cmd = ['sh', '-c', 'test ! -e "$1"', 'sh', str(self.repo / 'notes')]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        self.assert_invariant_under_excluded_change(sha, lambda: (self.repo / 'notes').write_text('x\n'))
+
+    def test_excluded_path_missing_only_in_caller_is_not_observable(self):
+        (self.repo / 'notes').write_text('good\n')
+        cmd = ['sh', '-c', 'test ! -e "$1"', 'sh', str(self.repo / 'notes')]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        (self.repo / 'notes').unlink()
+        before = self.run_gate(sha, '--fresh', isolated=True)
+        (self.repo / 'notes').write_text('bad\n')
+        again = self.run_gate(sha, '--fresh', isolated=True)
+        self.assertEqual(before.returncode, again.returncode, before.stderr + again.stderr)
+
+    def test_excluded_symlink_text_is_not_observable(self):
+        (self.repo / 'a').write_text('a\n')
+        (self.repo / 'b').write_text('b\n')
+        (self.repo / 'notes').symlink_to('a')
+        cmd = ['sh', '-c', 'test "$(readlink "$1")" = a', 'sh', str(self.repo / 'notes')]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        def change():
+            (self.repo / 'notes').unlink()
+            (self.repo / 'notes').symlink_to('b')
+        self.assert_invariant_under_excluded_change(sha, change)
+
+    def test_absolute_excluded_symlink_does_not_break_setup(self):
+        (self.repo / 'product').write_text('kept\n')
+        (self.repo / 'notes').symlink_to(self.repo / 'product')
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', ['true'])
+        z = self.run_gate(sha, isolated=True)
+        self.assertEqual(z.returncode, 0, z.stderr)
+
     def test_filtered_receipt_covers_docs_but_not_product_byte(self):
         (self.repo / 'product').write_text('a')
         (self.repo / 'notes').mkdir()

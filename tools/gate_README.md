@@ -87,10 +87,12 @@ remains product, so exclusion-policy, check and pin changes invalidate coverage.
 Before any build/check/report runs, the run checkout uses a parentless synthetic commit
 with exactly that filtered tree. Excluded paths are absent from the filesystem, index
 and HEAD; `cat excluded` and `git show HEAD:excluded` fail. This avoids leaving excluded
-index entries behind after deleting files. The gating checkout itself stays visible inside bwrap (it holds the gate
-state), so each excluded path there is masked too: a directory becomes an empty tmpfs and a file is covered by a mode-000
-placeholder, so a read through `{root}`, an env template or a tracked symlink fails (ENOENT/EACCES) instead of
-reaching bytes the key ignores. Git objects remain available for pinned
+index entries behind after deleting files. When `non_product` is declared, the gating checkout's own working tree is hidden inside bwrap (an empty tmpfs) and
+only its `.git` and `.tmp` (gate state, run tree, caches, `CARGO_TARGET_DIR`) are bound back. Excluded paths are
+therefore uniformly absent: their bytes, symlink text and existence cannot reach a check through `{root}`, an env
+template or a tracked symlink, so a fresh gate's verdict cannot depend on them. A config that keeps state in the
+checkout outside `.tmp` must move it under `{root}/.tmp/` when it adopts `non_product`; entries under `.tmp/` or
+`.git/` are refused. Git objects remain available for pinned
 worktree operation; arbitrary historical-object reads are not sandboxed. A check must
 use its run input, rather than deliberately fetching historical excluded objects.
 

@@ -188,7 +188,7 @@ def load_config(root, sha):
 def validate_path(entry, where):
     if (not isinstance(entry, str) or not entry or entry.startswith("/")
             or ".." in entry or any(c in entry for c in "*?[]\\\n\r\0")
-            or entry.split("/")[0] == ".git" or "//" in entry
+            or entry.split("/")[0] in (".git", ".tmp") or "//" in entry  # .tmp stays visible in the sandbox
             or entry.rstrip("/") in ("", ".") or "." in entry.split("/")):
         raise GateError(f"{PIN_FILE}: {where} invalid path {entry!r}; use an exact relative path or directory prefix")
 
@@ -323,17 +323,10 @@ class Isolation:
 
     def __init__(self, workspace, own_roots, masked=()):
         self.bwrap = os.environ.get("BENNETT_GATE_BWRAP", "bwrap")
-        # non_product paths of the gated config: absent from the run tree, and masked in each visible own checkout,
-        # so no path, symlink or env template reaches bytes the receipt key ignores.
-        self.masked = [str(m).rstrip("/") for m in masked]
-        self.placeholder = None
-        if self.masked:
-            for root in own_roots:
-                placeholder = Path(root) / ".tmp/gate/masked-non-product"
-                placeholder.parent.mkdir(parents=True, exist_ok=True)
-                placeholder.touch(exist_ok=True)
-                placeholder.chmod(0)  # reads fail loudly (EACCES), never an empty file
-                self.placeholder = placeholder
+        # With non_product declared, the gating checkout's working tree is hidden (empty tmpfs) and only its .git and
+        # .tmp (gate state, run tree, caches) are bound back: excluded paths are uniformly absent, so neither their bytes,
+        # symlink text nor existence can reach a check through {root}, env templates or tracked symlinks (review r1/r2 P1).
+        self.hide_own_tree = bool(masked)
         if not shutil.which(self.bwrap):
             raise GateError(f"isolation needs bwrap ({self.bwrap} not found); --no-isolate only with the omission recorded")
         self.workspace, self.own = Path(workspace), {Path(r).resolve() for r in own_roots}
@@ -357,13 +350,10 @@ class Isolation:
             for common in self.git_dirs:
                 if common.is_relative_to(entry) and common != entry / ".git":
                     prefix += ["--bind-try", str(common), str(common)]
-        for root in sorted(self.own):
-            for entry in self.masked:
-                path = root / entry
-                if path.is_dir() and not path.is_symlink():
-                    prefix += ["--tmpfs", str(path)]
-                elif os.path.lexists(path):
-                    prefix += ["--ro-bind", str(self.placeholder), str(path)]
+        if self.hide_own_tree:
+            for root in sorted(self.own):
+                prefix += ["--tmpfs", str(root), "--bind", str(root / ".tmp"), str(root / ".tmp"),
+                           "--bind-try", str(root / ".git"), str(root / ".git")]
         return prefix
 
 

@@ -85,8 +85,8 @@ def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=N
                    'expected_disk': expected['disk_bytes'], 'admission_reason': reason,
                    'record_path': str(repo / '.tmp/gate/records' / (sha + '.json')),
                    'workspace': str(workspace)}
-        atomic_json(request_path, request)
         try:
+            atomic_json(request_path, request)
             executable = str(install_runtime(base))
             # systemd parses ExecStopPost as command words. Quote each word for paths with spaces.
             def systemd_quote(arg):
