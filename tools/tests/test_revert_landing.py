@@ -60,6 +60,11 @@ class RevertTests(unittest.TestCase):
         return subprocess.run(['git', '-c', 'core.hooksPath=/dev/null', '-C', str(self.repo), *args],
                               env=self.env, capture_output=True, text=True, check=True, timeout=30).stdout.strip()
 
+    def test_untracked_files_do_not_block_a_revert(self):
+        (self.repo / 'untracked').write_text('like .beads/hooks')
+        outcome = self.r.revert(self.repo, self.merge, workspace=self.root)
+        self.assertEqual(self.git('ls-remote', 'origin', 'refs/heads/main').split()[0], outcome['sha'])
+
     def test_revert_pushes_and_lists_immutable_pins(self):
         outcome = self.r.revert(self.repo, self.merge, workspace=self.root)
         head = self.git('rev-parse', 'HEAD')
@@ -72,10 +77,11 @@ class RevertTests(unittest.TestCase):
         for sha in (self.green, self.feature):
             with self.subTest(sha=sha), self.assertRaises(self.r.RevertError):
                 self.r.revert(self.repo, sha, workspace=self.root)
-        (self.repo / 'untracked').write_text('dirty')
+        committed = self.git('show', 'HEAD:value')
+        (self.repo / 'value').write_text('dirty')
         with self.assertRaisesRegex(self.r.RevertError, 'clean'):
             self.r.revert(self.repo, self.merge, workspace=self.root)
-        (self.repo / 'untracked').unlink()
+        (self.repo / 'value').write_text(committed)
         (self.repo / 'value').write_text('ahead')
         self.git('commit', '-qam', 'ahead')
         with self.assertRaisesRegex(self.r.RevertError, 'origin/main'):

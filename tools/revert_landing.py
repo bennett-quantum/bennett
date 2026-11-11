@@ -68,8 +68,9 @@ def revert(repo, merge, workspace=None):
         raise RevertError('--repo must name the checkout root')
     if git(repo, 'branch', '--show-current') != 'main':
         raise RevertError('revert requires a main checkout')
-    if git(repo, 'status', '--porcelain'):
-        raise RevertError('revert requires a clean main checkout, including untracked files')
+    # Untracked files (e.g. .beads/hooks, present in every repo) cannot enter a revert commit; tracked changes can.
+    if git(repo, 'status', '--porcelain', '--untracked-files=no'):
+        raise RevertError('revert requires a clean main checkout (tracked files)')
     git(repo, 'fetch', '--no-tags', 'origin', '+refs/heads/main:refs/remotes/origin/main')
     head = git(repo, 'rev-parse', 'HEAD')
     if head != git(repo, 'rev-parse', 'origin/main'):
