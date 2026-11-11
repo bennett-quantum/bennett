@@ -70,6 +70,11 @@ measured-basis diagnostics and a small fixture estimate cannot satisfy those cla
 
 ## Open critical path (lanes; order binds within a lane only)
 
+2026-11-11 product lanes in flight: plugin j3l (rung 4) and 7qi -> s59 (rung 3); conformance 51d -> fki (rung 1); isa-spec
+x2n headers and k86 scoped round (trial class: reviewed before landing); circuits fc8/exporter stage 1; arith gdg. Landed:
+plugin 904e534 (75y, rung 1 comparison layout). Waiting: vm-o7n (after x2n), driver buq (after 7qi), sched-r28/estimate
+bph.6/.7 (ISA spec text, after x2n). The background full tier (tools/regate.py) re-gates every moved main.
+
 - **Plugin (rung 3 and rung 4 bottleneck):** `job/j3l` (full-SQLite PT6 round-0 blow-up; several measured causes fixed, the
   four full cells not yet accepted; memory peaked ~48 GB per cell) -> review -> land; then `bennett-plugin-ot5` (split
   `Analysis.cpp` so writers stop serialising), `bennett-plugin-eph` (arith pin), `bp-owg`, later `bp-1bb` slices. In parallel on
