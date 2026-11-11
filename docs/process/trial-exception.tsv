@@ -1,3 +1,4 @@
 # TRIAL EXCEPTION evidence: pre-landing review of published contract text (ISA, dialect) and the reference interpreter.
 # One line per such landing: date<TAB>repo<TAB>change<TAB>what the review found (real defect / nothing / low-stakes)<TAB>how long the landing waited
 # 2026-11-11 summary, before the scope narrowed: gate tool, 4 review rounds, constructed side channels only; counted as low-stakes.
+2026-11-11	bennett-isa-spec	x2n: the four 0cb mixed-launch declarations in the 0.9 launch header (+ landing 356/0cb)	nothing (ACCEPT; one stale README count, non-blocking)	~20 min (ready 12:50Z -> verdict ~13:10Z)
