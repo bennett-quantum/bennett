@@ -161,6 +161,22 @@ class LaunchTests(unittest.TestCase):
         dial = self.a.read_dial(Path(__file__).resolve().parents[2] / 'dial.toml')
         self.assertEqual(dial, self.dial)
 
+    def test_missing_malformed_and_extra_dial_settings_fail_closed(self):
+        import tempfile
+        valid = '[codex]\npace=1.0\n[claude]\npace=1.0\n[muse]\npace=1.0\n'
+        fixtures = ('', 'bad toml', valid.replace('[muse]\npace=1.0\n', ''),
+                    valid + 'children=2\n', valid.replace('pace=1.0', 'pace=true'),
+                    valid.replace('pace=1.0', 'pace=nan'), valid + '[other]\npace=1.0\n')
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'dial.toml'
+            with self.assertRaises(OSError):
+                self.a.read_dial(path)
+            for fixture in fixtures:
+                with self.subTest(fixture=fixture):
+                    path.write_text(fixture)
+                    with self.assertRaises(ValueError):
+                        self.a.read_dial(path)
+
     def test_launch_cli_and_existing_gate_cli(self):
         import contextlib
         import io
@@ -197,6 +213,33 @@ class LaunchTests(unittest.TestCase):
 
 
 class QuotaCacheTests(unittest.TestCase):
+    def test_concurrent_callers_share_one_locked_probe(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import fcntl
+        import subprocess
+        import tempfile
+        import threading
+        from unittest.mock import Mock
+        a = module()
+        start = threading.Barrier(4)
+        with tempfile.TemporaryDirectory() as tmp:
+            def probe(*args, **kwargs):
+                # A separate descriptor must be excluded while the CLI is running.
+                with (Path(tmp) / 'quota.lock').open('a') as lock:
+                    with self.assertRaises(BlockingIOError):
+                        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return subprocess.CompletedProcess([], 0, quota_fixture(), '')
+
+            runner = Mock(side_effect=probe)
+
+            def invoke(_):
+                start.wait()
+                return a.quota_output(Path(tmp), runner=runner, clock=lambda: 1000)
+
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                self.assertEqual(list(pool.map(invoke, range(4))), [quota_fixture()] * 4)
+            runner.assert_called_once()
+
     def test_success_cached_until_five_minutes_including_expiry(self):
         import subprocess
         import tempfile
