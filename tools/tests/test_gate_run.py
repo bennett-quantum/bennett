@@ -739,3 +739,116 @@ raise SystemExit(tool.main())
             with self.assertRaisesRegex(tool.GateError, rf"pid={os.getpid()}.*started_utc=\S+"):
                 with tool.Lock(path, blocking=False):
                     self.fail("existing flock unexpectedly admitted another holder")
+
+
+class ReformTests(ContentReceiptFixture):
+    def adopt(self, extra='', command=None):
+        self.config()
+        if command:
+            text = (self.repo / 'gate.toml').read_text()
+            text = text[:text.index('argv =')] + 'argv = ' + json.dumps(command) + '\n'
+            (self.repo / 'gate.toml').write_text(text)
+        with (self.repo / 'gate.toml').open('a') as f:
+            f.write('\n' + extra)
+        self.git('add', '.')
+        self.git('commit', '--allow-empty', '-qm', 'reform config')
+        return self.git('rev-parse', 'HEAD').strip()
+
+    def record(self, sha, repo=None):
+        return json.loads(((repo or self.repo) / '.tmp/gate/records' / (sha + '.json')).read_text())
+
+    def test_filtered_receipt_covers_docs_but_not_product_byte(self):
+        (self.repo / 'notes').mkdir()
+        (self.repo / 'notes/a').write_text('one')
+        sha = self.adopt('[receipt]\nnon_product = ["notes/"]\n')
+        first = self.run_gate(sha)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        (self.repo / 'notes/a').write_text('two')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'notes only')
+        other = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(other).returncode, 0)
+        self.assertEqual(self.record(other)['covered_by']['sha'], sha)
+        (self.repo / 'product').write_text('x')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'product byte')
+        third = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(third).returncode, 0)
+        self.assertNotIn('covered_by', self.record(third))
+        self.assertEqual(self.marker.read_text(), 'run\nrun\n')
+
+    def test_excluded_file_missing_from_filesystem_and_git_head(self):
+        (self.repo / 'notes').write_text('secret')
+        for command in (["cat", "notes"], ['git', 'show', 'HEAD:notes']):
+            sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', command)
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertNotEqual(self.record(sha)['checks'][0]['exit'], 0)
+
+    def test_refusals_name_entry_and_exit_setup(self):
+        cases = [('', ''), ('/absolute', ''), ('a/../b', ''), ('*.md', ''),
+                 ('gate.toml', ''), ('scripts/', ''), ('cat', ''),
+                 ('data/', 'cwd = "data/run"\n'),
+                 ('data/', '[env]\nDATA = "{wt}/data/input"\n'),
+                 ('data/', '[env]\nDATA = "data/input"\n')]
+        for entry, extra in cases:
+            with self.subTest(entry=entry, extra=extra):
+                sha = self.adopt(extra + '[receipt]\nnon_product = ' + json.dumps([entry]) + '\n', ['cat', 'notes'])
+                result = self.run_gate(sha)
+                self.assertEqual(result.returncode, 3, result.stderr)
+                self.assertIn(repr(entry), result.stderr)
+
+    def test_tiers_reuse_premerge_and_inputs_trigger_again_on_change(self):
+        (self.repo / 'input').write_text('a')
+        extra = ('[[check]]\nname = "slow"\nargv = ["true"]\n'
+                 'tier = "post-merge"\ninputs = ["input"]\n')
+        sha = self.adopt(extra)
+        first = self.run_gate(sha)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(len(self.record(sha)['checks']), 2)
+        full = self.run_gate(sha, '--tier', 'full')
+        self.assertEqual(full.returncode, 0, full.stderr)
+        self.assertEqual([c['name'] for c in self.record(sha)['checks']], ['slow'])
+        self.assertIn('pre-merge', self.record(sha)['tiers_covered'])
+        (self.repo / 'product').write_text('unrelated')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'unrelated product')
+        other = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(other).returncode, 0)
+        self.assertEqual([c['name'] for c in self.record(other)['checks']], ['marker'])
+        self.assertIn('inputs unchanged since', self.record(other)['deferred'][0]['reason'])
+        (self.repo / 'input').write_text('b')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'input changed')
+        third = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(third).returncode, 0)
+        self.assertEqual(len(self.record(third)['checks']), 2)
+        self.assertEqual(self.marker.read_text(), 'run\nrun\nrun\n')
+
+    def test_worktrees_have_private_real_caches_and_linked_git_isolation(self):
+        sha = self.adopt(command=['git', 'cat-file', '-e', 'HEAD'])
+        jobs = [self.root / 'job-a', self.root / 'job-b']
+        for job in jobs:
+            self.git('worktree', 'add', '--detach', str(job), sha)
+            (job / '.tmp/gate').mkdir(parents=True)
+            (job / '.tmp/gate/cache').symlink_to(self.root / 'missing-cache')
+            result = self.run_gate(sha, '--fresh', repo=job, isolated=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for name in ('cache', 'locks', 'runs', 'records'):
+                self.assertTrue((job / '.tmp/gate' / name).is_dir())
+                self.assertFalse((job / '.tmp/gate' / name).is_symlink())
+        self.assertTrue(all(self.record(sha, job)['isolated'] for job in jobs))
+
+    def test_postmerge_without_inputs_defers_until_full(self):
+        sha = self.adopt('[[check]]\nname = "later"\nargv = ["false"]\ntier = "post-merge"\n')
+        pre = self.run_gate(sha)
+        self.assertEqual(pre.returncode, 0, pre.stderr)
+        self.assertEqual(self.run_gate(sha, '--tier', 'full').returncode, 1)
+        self.assertEqual(self.marker.read_text(), 'run\n')
+
+    def test_invalid_tier_inputs_configuration_is_setup_error(self):
+        for suffix in ('tier = "oops"\n', 'inputs = ["input"]\n',
+                       'tier = "post-merge"\ninputs = ["../escape"]\n'):
+            sha = self.adopt('[[check]]\nname = "bad"\nargv = ["true"]\n' + suffix)
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 3, result.stderr)
