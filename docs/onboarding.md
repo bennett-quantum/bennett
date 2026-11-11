@@ -60,18 +60,10 @@ Do this in each repo's MAIN checkout. Use doctor for installed-tool and source-p
 - [ ] Parity check: gate results (PASS/FAIL and receipt contents) should match `bennett/.tmp/main-health/status.md` on the same shas; timings will differ. Reference Spiral timings: dialect-spec 310 s, isa-spec 872 s, sched 221 s, driver 328 s. Ladder rungs 1 and 2: `bennett-conformance/ladder/` (run command per rung README; unverified).
 - [ ] Gate-isolation failure: investigate errors naming absolute or `../sibling` paths for reads of live trees. Fix an incorrect pin or test; do not bypass isolation.
 
-## 7. Working rules (one screen)
-Read before touching anything: each repo's `CLAUDE.md`; `bennett/docs/Bennett-NorthStar.md`; `bennett/docs/decisions/2026-11-02-code-quality-policy.md`; and the tracked rulebooks [COMMON.md](process/COMMON.md) and [T3CHILD.md](process/T3CHILD.md). `scripts/doctor.sh` checks that every process document linked here is present as a file.
-- [ ] One writer per path set. Parallel writers only on disjoint owned paths named in both briefs. Never `git add -A` at repo level, never `git stash`, `reset`, `checkout --`, rebase or force-push.
-- [ ] Red-green TDD: write the test, watch it fail, make it pass, refactor. Fail fast and loud; no silent fallbacks. "Runs without errors" is not a pass; verify against the conformance suite for the versions in `SPEC_VERSIONS.toml`.
-- [ ] Repos couple only through the published specs (ISA, dialect). Never share code across a contract boundary.
-- [ ] No narrowing of north-star scope (non-negotiable 10): never reject, fault or omit a promised capability; raise a blocker bead naming the exact change instead.
-- [ ] Branches: work on `job/<name>` in a worktree `../<repo>-job-<name>`; commit owned paths often (`git -C <wt> add -- <paths>; git -C <wt> commit -m ... -- <paths>`); back up with `git -C <wt> push --no-verify -q origin HEAD:refs/heads/wip/<name>`. Only the orchestrator merges (`--no-ff`) and pushes `main`, after a gate PASS and a review on the same head. Commit trailer: `Co-Authored-By: <model> <noreply@anthropic.com>` for Claude models, `Agent: <model id>` for others.
-- [ ] Beads, not TODO files: `bd` from the repo's main checkout (`bd ready`, `bd show`, `bd update <id> --claim`, `bd create`, `bd note`, `bd close <id> --reason "<what, verified by which command>"`); `bd export -o .beads/issues.jsonl` and commit that file only at the orchestrator's merge (children do not commit it). No Dolt remote sync. Use `bd remember`, not MEMORY.md.
-- [ ] Worklog: the person who commits the session adds one `## Session log - YYYY-MM-DD - ...` block at the top of the highest-numbered chunk in `bennett/worklog/` (new `NNN_` chunk past about 280 lines). Subagents keep `.tmp/<name>/PROGRESS.md` (Resume block: done / verified with which command / next) and write nothing else outside owned paths.
-- [ ] Review: evidence-first, two rounds, then merge or revert; only P0/P1 (wrong result on a named north-star rung path, unsound oracle, broken build/gate/hook) block. Code quality policy: `bennett/docs/decisions/2026-11-02-code-quality-policy.md`.
-- [ ] Time: run `date -u` in the command that writes a timestamp. No bare time literals in gates or tests (hang-guard class table per repo).
-- [ ] Never run a sibling repo's full gate from a child job; the orchestrator gates at merge. Never `--no-verify` a push to `main`. Transcripts and logs never go to the public repos (see section 1).
+## 7. Working rules
+Read each repo's `CLAUDE.md`, `bennett/docs/Bennett-NorthStar.md`, and the one rulebook [COMMON.md](process/COMMON.md)
+(children also [T3CHILD.md](process/T3CHILD.md)). The rules live only there. `scripts/doctor.sh` checks that every process document
+linked here is present as a file.
 
 ## 8. Known per-host gaps
 - [ ] Hardcoded absolute paths in `<workspace>/bennett-dialect-spec/corpus/legality/toolchains.toml`: `llvm18.bin=/usr/lib/llvm-18/bin`; `llvm23.bin=$HOME/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin`, `frontend_bin=/usr/lib/llvm-23/bin`; `llvm20.bin=$HOME/.julia/artifacts/21334d62ab8fb1788be32b83ab0373b77916a794/tools`. Satisfy them (user `tobias`, default rustup/julia homes, artifact hash from LLVM_full_jll 20.1.8) or edit the three paths in that file (a spec-repo change that must go through its gate). The laptop's `~/.julia/artifacts` holds three LLVM_full_jll-era hashes; only 21334d62... is the 20.1.8 one referenced.

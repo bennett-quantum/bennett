@@ -1,3 +1,6 @@
+> **2026-11-11:** councils run as review seats launched like any other job (COMMON.md rules 11-13), and commit only their
+> report.md. The `codex exec` runner below (tools/council.py) is historical: not used, not to be revived.
+
 # The council
 
 A loop in which three models grade a document against

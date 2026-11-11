@@ -6,25 +6,15 @@ The thin meta repo of the Bennett ecosystem: README index of the 13 repositories
 
 ## Where the spec is
 
-North star: `docs/Bennett-NorthStar.md` (iteration 7, council consensus; amendments A1, A2 pending in `docs/council/northstar-amendments/`). ISA spec: `../bennett-isa-spec/spec/Bennett-ISA-Spec.md` (0.8, accepted). Dialect spec: `../bennett-dialect-spec/spec/` (draft 0.1 under audit; 0.2 in preparation). Plan and blockers: `docs/plan/2026-10-29-path-to-north-star.md`. Council runner and rubrics: `tools/council.py`, `docs/council/`.
+North star: `docs/Bennett-NorthStar.md`. ISA: `../bennett-isa-spec/spec/` (0.9 published beside 0.8; consumers migrating; each repo's
+`SPEC_VERSIONS.toml` and gate.toml pins say which it uses). Dialect: `../bennett-dialect-spec/spec/` (versions per its
+`SPEC_VERSIONS.toml`). Current state and the demo ladder: `HANDOFF.md`.
 
-## Non-negotiables
+## Rules
 
-0. **Worklog, kept by whoever commits the session.** Each working session that changes the repo leaves one `## Session log - YYYY-MM-DD - ...` block at the top of the highest-numbered chunk under `worklog/` (`ls worklog/ | sort -r | head -1`; past ~280 lines start the next `NNN_` chunk): what changed, gotchas, surprises and root causes. When an orchestrator runs subagents, the orchestrator writes it; subagents keep their job's progress file, put surprises in bd (`bd note` / `bd create`), and never need to write outside their owned paths. A session that changes nothing writes nothing.
-1. **Fail fast, fail loud.** Assertions and explicit errors, never silent returns or quiet fallbacks.
-2. **One writer per path set: parallel writers only on disjoint owned paths named in both briefs; whoever merges second gets the shared lines reviewed.** Code review is batched over accumulated diffs, not per change. Review policy: bennett/docs/decisions/2026-11-02-code-quality-policy.md (in force 2026-11-03).
-3. **Red-green TDD.** Write the test, watch it fail, make it pass, then refactor.
-4. **Exhaustive verification** against the spec's conformance suite for the spec versions declared in `SPEC_VERSIONS.toml` (where present). "Runs without errors" is not a pass.
-5. **Coupled to other repos ONLY through published specs.** Never share code across a contract boundary; if you need to, the boundary is wrong.
-6. **NO GitHub CI, NO remote automation.** Quality gates are local: `scripts/pre-push` runs the tests (install with `scripts/install-hooks.sh`).
-7. **Task tracking: beads (`bd`)**, initialised 2026-10-29 (`bd ready`, `bd show`, `bd create`; `bd export -o .beads/issues.jsonl` before committing `.beads/`). No TODO.md. No Dolt remote sync.
-8. **Skepticism.** Verify and reproduce; distrust subagent output, earlier agents' claims and your own assumptions.
-9. **Git policy (maintainer, 2026-10-29).** Any agent commits its own paths regularly (`git commit -- <paths>`; retry on `index.lock`); the orchestrator pushes after verified milestones and at least every couple of hours. This opts the repo into the Beads "team-maintainer" profile below for commits only, not for pushes or Dolt sync. Exception: `tools/codex_job.py` backs up a running job to `wip/<job>` with the pre-push gate skipped (mid-TDD trees are red by design; maintainer-ratified 2026-10-29); `main` is never pushed past the gate.
-10. **No narrowing of north-star scope (maintainer, 2026-10-29).** Nothing may reject, refuse, fault, declare inert or omit a capability that `bennett/docs/Bennett-NorthStar.md` promises (thesis, §3–§5, every rung of the §8 demo ladder; Grover over unmodified SQLite is the core). A deferral may postpone mechanics only. If a contract truly lacks something, raise it as a blocker naming the exact change; never shrink scope to fit. See `bennett/docs/plan/2026-10-29-path-to-north-star.md`.
-11. **Headless, no /tmp artefacts.** Never run LLVM `-view-*` / `view-cfg` / `view-dom` / `view-callgraph` passes or viewCFG-style helpers outside an interactive human session (use the `dot-*` variants). Batch and agent commands run with `DISPLAY`, `WAYLAND_DISPLAY`, `DBUS_SESSION_BUS_ADDRESS` and `BROWSER` unset and `TMPDIR` set to a project-local or job directory (2026-10-28: ~80,000 .dot files reached the maintainer's editor via xdg-open).
+The one rulebook is [docs/process/COMMON.md](docs/process/COMMON.md); it binds here. This repo's gate is `scripts/pre-push`
+(`python3 -m unittest discover tools/tests`); install hooks with `scripts/install-hooks.sh`.
 
-
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
