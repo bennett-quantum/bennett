@@ -4,3 +4,4 @@
 2026-11-11	bennett-isa-spec	x2n: the four 0cb mixed-launch declarations in the 0.9 launch header (+ landing 356/0cb)	nothing (ACCEPT; one stale README count, non-blocking)	~20 min (ready 12:50Z -> verdict ~13:10Z)
 2026-11-11	bennett-isa-spec	k86: K86-K92 reference checks, scoped fix of 8 council blockers (round 2 = fixed/not fixed)	round-1 council: real defects (8 blockers); round-2: all fixed	~25 min (ready 12:52Z -> check ~13:17Z)
 2026-11-11	bennett-isa-spec	ISA 0.9 text: r28 classical pseudo-locations (maintainer option 1) + hsd parameter-hash clarification	nothing (ACCEPT both)	~20 min
+2026-11-11	bennett-isa-spec	ISA 0.9 text batch2: ni9, tea, 99n, xz1 (maintainer option A x4)	99n B1 (explicit-binding hash conflict with §11.1), fixed a0f855b; others ACCEPT	~35 min
