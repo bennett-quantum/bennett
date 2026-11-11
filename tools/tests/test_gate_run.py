@@ -757,6 +757,33 @@ class ReformTests(ContentReceiptFixture):
     def record(self, sha, repo=None):
         return json.loads(((repo or self.repo) / '.tmp/gate/records' / (sha + '.json')).read_text())
 
+    def test_excluded_file_unreadable_through_caller_checkout_env_path(self):
+        # Review r1 P1: the run tree drops excluded paths, but the caller checkout stayed visible in bwrap.
+        (self.repo / 'data').mkdir()
+        (self.repo / 'data/keep').write_text('directory')
+        (self.repo / 'notes').write_text('good\n')
+        command = ['sh', '-c', 'test "$(cat "$INPUT")" = good']
+        sha = self.adopt('[env]\nINPUT = "{root}/data/../notes"\n[receipt]\nnon_product = ["notes"]\n', command)
+        first = self.run_gate(sha, isolated=True)
+        self.assertEqual(first.returncode, 1, first.stderr)
+
+    def test_excluded_file_unreadable_through_tracked_symlink(self):
+        (self.repo / 'notes').write_text('good\n')
+        (self.repo / 'alias').symlink_to(self.repo / 'notes')
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', ['sh', '-c', 'test "$(cat alias)" = good'])
+        first = self.run_gate(sha, isolated=True)
+        self.assertEqual(first.returncode, 1, first.stderr)
+
+    def test_excluded_directory_empty_in_caller_checkout(self):
+        (self.repo / 'notes').mkdir()
+        (self.repo / 'notes/a').write_text('good\n')
+        command = ['sh', '-c', 'test "$(cat "$INPUT")" = good']
+        sha = self.adopt('[env]\nINPUT = "{root}/data/../notes/a"\n[receipt]\nnon_product = ["notes/"]\n', command)
+        (self.repo / 'data').mkdir(exist_ok=True)
+        first = self.run_gate(sha, isolated=True)
+        self.assertEqual(first.returncode, 1, first.stderr)
+        self.assertEqual((self.repo / 'notes/a').read_text(), 'good\n')  # masked only inside the sandbox
+
     def test_filtered_receipt_covers_docs_but_not_product_byte(self):
         (self.repo / 'product').write_text('a')
         (self.repo / 'notes').mkdir()

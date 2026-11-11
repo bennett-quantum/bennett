@@ -321,8 +321,19 @@ class Isolation:
     The workspace is rescanned for every command: sibling worktrees come and go while a gate runs for hours (a
     vanished one made every later bwrap fail; a new one would have stayed visible)."""
 
-    def __init__(self, workspace, own_roots):
+    def __init__(self, workspace, own_roots, masked=()):
         self.bwrap = os.environ.get("BENNETT_GATE_BWRAP", "bwrap")
+        # non_product paths of the gated config: absent from the run tree, and masked in each visible own checkout,
+        # so no path, symlink or env template reaches bytes the receipt key ignores.
+        self.masked = [str(m).rstrip("/") for m in masked]
+        self.placeholder = None
+        if self.masked:
+            for root in own_roots:
+                placeholder = Path(root) / ".tmp/gate/masked-non-product"
+                placeholder.parent.mkdir(parents=True, exist_ok=True)
+                placeholder.touch(exist_ok=True)
+                placeholder.chmod(0)  # reads fail loudly (EACCES), never an empty file
+                self.placeholder = placeholder
         if not shutil.which(self.bwrap):
             raise GateError(f"isolation needs bwrap ({self.bwrap} not found); --no-isolate only with the omission recorded")
         self.workspace, self.own = Path(workspace), {Path(r).resolve() for r in own_roots}
@@ -346,11 +357,18 @@ class Isolation:
             for common in self.git_dirs:
                 if common.is_relative_to(entry) and common != entry / ".git":
                     prefix += ["--bind-try", str(common), str(common)]
+        for root in sorted(self.own):
+            for entry in self.masked:
+                path = root / entry
+                if path.is_dir() and not path.is_symlink():
+                    prefix += ["--tmpfs", str(path)]
+                elif os.path.lexists(path):
+                    prefix += ["--ro-bind", str(self.placeholder), str(path)]
         return prefix
 
 
-def isolation_prefix(workspace, own_roots):
-    return Isolation(workspace, own_roots)
+def isolation_prefix(workspace, own_roots, masked=()):
+    return Isolation(workspace, own_roots, masked)
 
 
 class ResourceProcess(subprocess.Popen):
@@ -613,7 +631,8 @@ def prepare(root, workspace, sha, args, live=False, cfg=None, prefix=None):
     if cfg["tool_sha_ran"] is not None and cfg["tool_sha_ran"] != cfg["tool_sha"]:
         say(f"{sha} pins tool_sha {cfg['tool_sha']}, an ancestor of the running {cfg['tool_sha_ran']}: running the newer tool")
     if prefix is None:
-        prefix = [] if getattr(args, "no_isolate", False) or live else isolation_prefix(workspace, [root])
+        prefix = [] if getattr(args, "no_isolate", False) or live else isolation_prefix(
+            workspace, [root], cfg.get("receipt", {}).get("non_product", []))
     if getattr(args, "no_isolate", False) or live:
         if not live:
             say("ISOLATION OFF: absolute reads of live sibling trees would go undetected; this run is not a push gate")
@@ -739,7 +758,8 @@ def gate_one(root, workspace, sha, args):
     with Lock(root / ".tmp/gate/locks" / f"run-{sha}", blocking=False):
         started = receipt_probe("setup_seconds", lambda: time.monotonic())
         cfg = run_config(root, workspace, sha, args)
-        prefix = [] if getattr(args, "no_isolate", False) else isolation_prefix(workspace, [root])
+        prefix = [] if getattr(args, "no_isolate", False) else isolation_prefix(
+            workspace, [root], cfg.get("receipt", {}).get("non_product", []))
         tree = content_tree(root, sha, cfg)
         tier = getattr(args, "tier", "pre-merge")
         fresh = getattr(args, "fresh", False)

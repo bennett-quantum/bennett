@@ -101,6 +101,19 @@ class LaunchTests(RunnerFixture):
         self.assertEqual(a.worker(path, runner=run), 3)
         self.assertEqual(json.loads(path.with_name(unit + '.outcome.json').read_text())['exit'], 3)
 
+    def test_interrupt_during_launch_still_publishes_setup_event(self):
+        # Review r1 P2: an interrupt between admission and systemd-run left wait() polling forever.
+        a = module()
+        expected = {'peak_bytes': 100, 'disk_bytes': 200, 'source': 'fixture'}
+        def interrupted(argv, **k):
+            raise KeyboardInterrupt
+        with patch.object(a.admit, 'assess', return_value=(True, 'ok', expected)):
+            with self.assertRaises(KeyboardInterrupt):
+                a.start(self.repo, self.sha, 'full', launcher=interrupted, workspace=self.ws)
+        events = list((self.ws / 'bennett/.tmp/gates/events').glob('*.json'))
+        self.assertEqual(len(events), 1)
+        self.assertEqual(json.loads(events[0].read_text())['exit'], 3)
+
     def test_launcher_failure_writes_setup_event(self):
         a = module()
         expected = {'peak_bytes': 100, 'disk_bytes': 200, 'source': 'fixture'}

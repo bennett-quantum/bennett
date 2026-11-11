@@ -110,6 +110,10 @@ def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=N
             atomic_json(request_path.with_name(unit + '.outcome.json'), {'exit': 3, 'error': str(error)})
             complete(request_path, query=lambda _: {})
             raise LaunchError(f'systemd launch: {error}') from error
+        except BaseException as error:  # interrupted after admission: publish the outcome, then propagate
+            atomic_json(request_path.with_name(unit + '.outcome.json'), {'exit': 3, 'error': f'interrupted: {error!r}'})
+            complete(request_path, query=lambda _: {})
+            raise
     return unit
 
 
