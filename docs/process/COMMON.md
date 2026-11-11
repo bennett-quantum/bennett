@@ -20,7 +20,7 @@
 
 # Common rules for every Bennett child job (shift 1, 2026-11-01). Read fully; they bind.
 
-Workspace: /home/tobias/Projects/bennett-workspace (sibling repos; meta repo `bennett/`). Project: Bennett, a compiler
+Workspace: `<workspace>`, the directory of sibling repos (Spiral: ~/Projects/bennett-workspace; meta repo `bennett/`). Project: Bennett, a compiler
 and execution stack for reversible/quantum compute. Contracts: `bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md` (published
 0.9, alongside 0.8), `bennett-dialect-spec/spec/`, north star `bennett/docs/Bennett-NorthStar.md`.
 

@@ -19,7 +19,7 @@ You run as a T3 delegate child with no sandbox. There is no runner: you commit a
   symlink to the main checkout's cache. To materialise or build a pin you need, run the gate tool against the MAIN
   checkout with your branch head: `python3 <main>/.tmp/gate/tool/gate_run-<tool_sha>.py verify --repo <main checkout>
   --sha $(git -C <worktree> rev-parse HEAD)` (commit gate.toml first; the tool lives in any repo's .tmp/gate/tool/,
-  e.g. /home/tobias/Projects/bennett-workspace/bennett-driver/.tmp/gate/tool/gate_run-01c0314c9aaa4a37313ab530da2134efafe9cbd5.py).
+  e.g. <workspace>/bennett-driver/.tmp/gate/tool/gate_run-<tool_sha>.py).
   Do not run --repo <worktree>: bwrap cannot follow the symlink. Never run a repo's full push gate or `gate_run.py run`
   (the orchestrator does that at merge).
 - Progress: keep .tmp/<name>/PROGRESS.md in your worktree current as a Resume block (done / verified with which command /
