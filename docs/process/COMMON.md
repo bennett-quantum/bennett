@@ -1,221 +1,53 @@
-# READ FIRST: live rulings that changed since the rulebook was consolidated (edited in place; newest first; each line dies
-# when its precondition does; the next shift deletes dead lines). Everything in advisor-notes.md and shift files is history.
-- 2026-11-09 17:13Z VELOCITY DIAL (maintainer: "we now have codex quota, you can go a bit over pace. I want some more velocity";
-  "the whole point of a modular design is precisely that we can work in parallel"). The day's pace dial lives in the current
-  shift file's Quota section and overrides rule 10's default; the cap and ceiling are numbers in THAT section, never here.
-  Today: VELOCITY (Codex may run ahead of pace; disjoint repos / path sets per rule 3; one Analysis.cpp writer; reviews and
-  councils never count). Idle CPU with disjoint ready work is a defect to report.
-- 2026-11-09 SINGLE SEAT. The laptop is retired; Spiral (64 threads, 62 GB) is the only machine and the only orchestrator
-  seat. Every "laptop keeps X", lane split, relay ("wait for the relayed line"), hand-over hold and two-seat ownership
-  line is void. All repos and paths belong to this seat's children under rule 3.
-- 2026-11-09 NO HEAVY SLOT (maintainer, decided 2026-11-08T09:54Z, rulebook not edited until today: a heresy). Rule 5 below
-  is the replacement: concurrent gates per repo, resource-guarded. Any brief, script or note that queues a gate behind
-  another repo's gate, or speaks of "the slot", is wrong; fix it or report it.
-- 2026-11-09 PUBLIC REPOS. Every bennett-quantum/* repo is public. Code on wip/* branches is fine; transcripts, logs,
-  memory, orchestrator or .tmp records never go there (private repo tobiasosborne/bennett-laptop-transfer or hand copy).
-- 2026-11-08 RULINGS of 19:21Z (maintainer): b3ui = alternative A, normative inside ISA 0.9 K91, sol+astra review; rung-4(c)
-  ideal target wording "an ideal quantum circuit with ideal logical qubits, implementing the standard quantum circuit
-  model", never "all-to-all"; 0vi = coherent dialect 0.3 profile accepted explicitly, pins migrated, full identity/ABI
-  coverage in the first fixture batch, unreachability by exhaustive small-domain execution. Items 1 and 3 share one council.
+The one Bennett rulebook (2026-11-11). Every repo's CLAUDE.md points here; where anything else disagrees, this file wins.
 
-# Common rules for every Bennett child job (shift 1, 2026-11-01). Read fully; they bind.
+# Common rules
 
-Workspace: `<workspace>`, the directory of sibling repos (Spiral: ~/Projects/bennett-workspace; meta repo `bennett/`). Project: Bennett, a compiler
-and execution stack for reversible/quantum compute. Contracts: `bennett-isa-spec/spec/Bennett-ISA-Spec-0.9.md` (published
-0.9, alongside 0.8), `bennett-dialect-spec/spec/`, north star `bennett/docs/Bennett-NorthStar.md`.
+Maintainer, verbatim: "it is *totally fine* to ship and push bugs, as long as we can find and revert/fix forward easily."
+And: "Rather favour super quick bug detection and robust rollbacks." When in doubt between more certainty before a push and a
+faster push with detection behind it, take the faster push.
 
-1. Read the CLAUDE.md of the repo you work in first. It binds. Highlights: red-green TDD; fail fast and loud (never
-   silent returns or quiet fallbacks); exhaustive verification, "runs without errors" is not a pass; repos couple ONLY
-   through published specs (never share or copy code across a contract boundary; running a sibling's published binary
-   as a differential oracle is fine; reading the spec is the source of truth).
-2. NO NARROWING of north-star scope. Nothing may reject, refuse, fault, declare inert or omit a capability the north star
-   promises. A deferral postpones mechanics only. If a contract truly lacks something, file a blocker bead naming the
-   exact change; never shrink scope to fit. Evidence labels must be honest.
-3. Owned paths only: you write only inside the paths your brief lists. Other agents work concurrently in sibling repos and
-   sometimes the same repo. Never `git add -A` at the repo level, never touch another job's paths, never `git stash`,
-   `git reset`, `git checkout --`, rebase or force anything.
-4. Commit your own paths regularly, at least every 30 min of work and at every green checkpoint:
-   `git -C <repo> add -- <paths>; git -C <repo> commit -m "..." -- <paths>`, retrying after a few seconds on index.lock.
-   End every commit message with the line: `Co-Authored-By: <your model name> <noreply@anthropic.com>` only if you are a
-   Claude model; other models end with `Agent: <your model id>`. NEVER push: the orchestrator pushes `main`.
-5. Progress file: keep the file your brief names current, as a Resume block only (done / verified with which command /
-   next), rewritten in place after each milestone, never a per-pass log. If you are stopped at any moment, a successor
-   must be able to continue from it plus the git log.
-6. Headless, no /tmp: run every command with DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS and BROWSER unset and
-   TMPDIR=<repo>/.tmp/<job>/tmp (mkdir it). Never run LLVM `-view-*` passes. Rust: CARGO_TARGET_DIR=<repo>/.tmp/<job>/target
-   so concurrent jobs do not block on one another. Parallel width (build jobs, test threads, worker pools) comes from the
-   repo's machine profile, kept beside its hang-guard class table; until a repo has one, derive it from nproc and
-   MemAvailable with headroom for the other jobs on the host; never from a number in a brief. Long runs are bounded by the
-   repo's hang-guard class table, never by a bare `timeout N`.
-7. Checkpoints run focused tests; the full repo gate (`scripts/pre-push` or as your brief says) runs at bead close or
-   stream end. Never run a full sibling repo's gate.
-8. Stop rules: if THIS repo's gate goes red for a reason you cannot fix within your owned paths, stop and file a bead with
-   the exact evidence; never revert (no "revert to green"), and never weaken, skip or delete a test or fixture to pass.
-   Consumer gates in other repos are evidence, never a stop condition.
-9. Beads: `bd` only, run from the repo's main checkout (no TODO files). File anything surprising or left over:
-   `bd create` / `bd note`, with a determining sentence (what, where, evidence). Close with `bd close <id> --reason`.
-   `bd export -o .beads/issues.jsonl` then commit that one file when you changed beads. Do not edit worklogs; the
-   orchestrator writes them. A repo without beads uses the workspace rule: bd is initialised in all repos now.
-10. Time: run `date -u` in the same command that writes a timestamp. Never infer time from work done.
-11. Skepticism: reproduce rather than trust earlier claims, including docs in the repo; many READMEs lag the code. Your
-    own "done" must name the command you ran and its result.
-12. Do not ask questions; no human is watching. Make the reasonable engineering decision, record it in the progress file,
-    and go on. A genuine contract decision goes in a bead and in your final message.
-13. Final message (<=200 words): what landed (shas), what was verified with which exact command and result, what is open
-    (bead ids), any surprise. Do not claim green without having run it.
-13b. Scope is the brief. A child does only what its brief states and stops at its final message; it never takes the next
-   bead, a follow-on or an adjacent fix. Surplus observations become beads or PROGRESS.md lines for the orchestrator, who
-   alone assigns work (maintainer 2026-11-09: children kept taking new work while Codex was over pace).
-14. Codex jobs: the sandbox cannot write sibling repos, including their bead databases. Append any cross-repo bead you need to `<repo>/.tmp/<job>/cross-repo-beads.md` (or your progress file) for the orchestrator to file, and continue. Never end JOB-BLOCKED for this alone.
+## Correctness (these bind everyone, always)
+1. NO NARROWING. Nothing may reject, refuse, fault, declare inert or omit a capability bennett/docs/Bennett-NorthStar.md promises
+   (thesis, §3-5, every §8 rung; Grover over unmodified SQLite is the core). A deferral postpones mechanics only; a missing contract
+   feature is a blocker bead naming the exact change. Evidence labels are honest.
+2. CONTRACTS ONLY. Repos couple only through published specs and pinned binaries (gate.toml pins); never share or copy code across a
+   contract boundary, never read a live sibling checkout. Running a sibling's published binary as an oracle is fine.
+3. OWNED PATHS. Write only the paths your brief names; one writer per path set; whoever merges second gets the shared lines into the
+   next review.
+4. RED-GREEN. Write the test, see it fail, make it pass. Expected values come from the spec or an independent oracle, never from the
+   code under test. Never weaken, skip or delete a test or fixture to get green. Fail fast and loud: no silent fallbacks.
+5. GIT. Explicit paths only (`git add -- <paths>`, `git commit -m ... -- <paths>`); never `git add -A`, stash, reset, checkout --,
+   rebase or force. Every landing is one `--no-ff` merge into main, so `git revert -m 1 <merge>` undoes it.
+6. HONEST EVIDENCE. "Done" names the command you ran and its result. A hang-guard trip is UNKNOWN, not PASS. Reproduce earlier claims
+   before relying on them. Write timestamps from `date -u` in the same command.
+7. PUBLIC REPOS. All bennett-quantum repos are public: no transcripts, logs, memory, .tmp records or host paths in any commit or branch.
+8. HEADLESS. DISPLAY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS, BROWSER unset; TMPDIR under the repo's .tmp/<job>/; never LLVM -view-*.
 
-## Anti-slop rules for code you write (added 2026-11-06, maintainer-ratified; from the SlopCodeBench reading)
-The gate and the review are the loop; these rules are cheap help, not a substitute. Each is "bad -> good".
-- Dispatch on data, not on chains. `if op == "add" {..} else if op == "sub" {..}` -> `match op { Op::Add => .., Op::Sub => .. }`
-  over an enum parsed once at load. A string compared in more than one place is an enum that was never declared.
-- State as one enum, not several flags. `done: bool, failed: bool, pending: bool` -> `enum State { Pending, Done, Failed }`.
-- No silent defaults on failure paths. `map.get(k).unwrap_or_default()`, `.unwrap_or(0)`, `except Exception: return False`,
-  `if (!p) return;` -> return an error that names the missing thing, or `assert` the invariant and delete the branch.
-- Named predicates. `if a && (b || !c) && d.len() > 3 && ..` repeated -> `fn is_live_region(..) -> bool` with one owner.
-- No magic numbers. `if width > 128` -> `const MAX_INLINE_WIDTH: u32 = 128;` next to the rule that needs it, with the spec section.
-- One altitude per function. A function that parses bytes AND decides policy is two functions. Over 300 lines in semantics-bearing
-  code is a review finding (plan target); split into named phases, each with a unit test, behaviour byte-identical.
-- Delete, don't wrap. A helper called once, a wrapper that renames its callee, a `_v2` beside a `_v1`, a flag nobody sets: delete.
-- No identifiers from the process in the product. Bead ids, job names, review round numbers, "shift 6", session dates: not in
-  source comments, error strings, emitted output or fixture names. Test names and docs/reviews may carry them.
-- No litter. Nothing under `__pycache__`, `*.pyc`, `*.log`, `LAST-RUN*`, `PROGRESS*`, lock files, `.darc` backups, scratch
-  scripts or scratch markdown is ever committed. Stale markdown is polluted context for the next agent: keep HANDOFF/README
-  statements true or delete them.
-- A test must be able to see the bug it names. Tolerances no wider than the oracle allows; fixtures large enough to reach the
-  branch; an assertion in every test; expected values hand-derived or from an independent oracle, never copied from the output
-  of the code under test.
+## Landing, detection, rollback
+9. LAND on the fast tier: `scripts/pre-push` (gate_run pre-merge tier) green on the merged tree, then push. Nothing else is required.
+   Work in progress on job/wip branches carries less: focused tests the child chooses; wip backups push with --no-verify.
+10. DETECT after landing: main-health runs every pushed main with `--tier full --fresh` (long-tail checks live there) and compares
+   with bennett/health/known-reds.toml. A NEW red is attributed to a merge and reverted with bennett/tools/revert_landing.py, or
+   fixed forward if the fix is already on the fast tier. A standing red stays in the baseline with its bead until fixed. (Baseline
+   and revert tool are being built on job/health; until they land, attribute and revert by hand: `git revert -m 1 <merge>`.)
+11. REVIEW happens after landing, batched; findings become beads or a revert. Round 1 is the only open review: it lists blockers,
+   everything else is a bead. A blocker bites on a real path in the repo as it is, not under a constructed configuration. Round 2
+   exists only if round 1 had blockers: its brief is that list, it answers fixed / not fixed per item, and new observations are beads.
+   There is no round 3: land, or revert and re-plan. Only the maintainer can authorise a third round.
+12. TRIAL EXCEPTION (on audition since 2026-11-11, not settled): changes to the reference interpreter, checker verdicts,
+   certificates, published contract text and gate tooling get rule 11's review BEFORE landing; nothing else does. Log one line per
+   trial-class landing in docs/process/trial-exception.tsv (date, repo, what the review found: real defect / nothing / low-stakes,
+   how long the landing waited). A later session re-examines it and drops it unless it has paid for itself.
 
-## Standing rules (consolidated 2026-11-08 from rulings R1-R42 after an independent Muse audit, rulings-review.md)
-These ten rules are the whole orchestrator rulebook. Each names the PRECONDITION that justifies it; when that
-precondition no longer holds as a checkable fact (spec pin, quota row, bead state, rung gate), the rule is dead:
-a process-only rule (seats, pacing, slot order) is then ignored with one dated line in the shift Decisions naming
-the evidence; a correctness rule (no narrowing, oracle soundness, gate integrity) is obeyed and escalated the same
-turn. Two live rules in conflict: escalate, and meanwhile take the reversible branch. R-numbers in advisor-notes.md
-are history, not authority; where that file and this one differ, this one wins. Adding an eleventh rule here
-requires deleting or merging one in the same edit.
-
-1. ORACLE PRECEDENCE. Where the pinned spec text is silent, the reference interpreter is the oracle and the silence is
-   a text-defect bead; never gate behaviour the text does not specify. No narrowing (rule 2 above) is a repo law
-   and always wins over any severity shortcut: a change that rejects or omits a promised capability is a blocker,
-   not a P2, even if no current rung exercises it. [precondition: ISA 0.9 pinned; reference interpreter is the
-   council-trusted executable model; expires when the text specifies the behaviour or 0.10 is pinned]
-2. CHILDREN. Codex work is a `delegate_task` child (provider codex, gpt-6.1-sol, reasoningEffort xhigh) in an
-   orchestrator-made worktree on `job/<name>`; it commits owned paths at green checkpoints, backs up to `wip/<name>`,
-   keeps PROGRESS.md current, never pushes. The orchestrator merges `--no-ff` and pushes. [precondition: no CI
-   (CLAUDE.md 6), delegate_task available; `codex exec` runners are banned]
-3. ONE WRITER PER PATH SET. Parallel writers only on disjoint owned paths named in both briefs; whoever merges second
-   gets the shared lines reviewed. A quality-baseline refresh (docs/quality.md or any shared ratchet file) is scoped to
-   the writer's own rows, never a whole-file regeneration, with `git diff <base>..<head> -- <file>` as the pre-merge
-   receipt (Spiral near-miss 2026-11-08: a regenerated baseline had tightened another lane's rows). [precondition: many
-   concurrent children share one workspace]
-4. ONE FULL GATE PER TREE. A tree is gated once; gate_run's tree-keyed PASS receipt makes every later run of the same
-   tree (push hook, main-health, a re-run) a skip. Gating a receipted tree again is a defect to report, never a procedure.
-   The job head runs the repo's full gate once before merge. Review may run before or after
-   that gate; merge needs a gate PASS and a review disposition on the same head.
-   The push hook is the single full gate where no pre-merge gate ran on that tree. A gate exits 0 on its own checks; milestone/blocker status is reported, never encoded as an exit code. A hang-guard trip is UNKNOWN: a distinct non-zero exit (124), neither PASS nor FAIL; the orchestrator re-runs once in a quiet slot, and a second UNKNOWN is a bead, not a gatefix. A gate or push runs DETACHED in its own systemd scope/unit (systemd-run --user), never inside an agent's background shell or chained after a waiter in one. [precondition:
-   local gates cost 10 min to 8 h of one shared machine]
-5. GATES RUN CONCURRENTLY, GUARDED BY RESOURCES, NOT BY A SLOT. There is no heavy slot and no slot order (maintainer
-   direction, Spiral 2026-11-08T09:54Z). Gates and builds for different repos run at the same
-   time, each detached in its own systemd unit; never two gates of the SAME repo at once (shared cache and target dirs).
-   Admission is resources at launch, with RESERVATIONS: MemAvailable minus the sum of (expected peak minus current RSS)
-   of every running job >= this job's recorded peak plus 6 GB; load < nproc/2; free disk >= this job's recorded build
-   size plus 20 GB. A launch that fails waits on the condition, not on another gate. The rung-critical lane is never
-   queued behind anything. Prevents: OOM stalls, full disks. Can cause: idle seat (signal: capacity check). [precondition:
-   one 64-thread/62 GB host, numbers re-derived from receipts on a new host; unenforced, bent twice 2026-11-09 (memory, disk)]
-6. SEATS. Editing children: sol xhigh only. gpt-6-astra: review and council only, never edits. Muse
-   (muse-wonder-full-1.0): council seat pre-approved on every candidate rule 7 sends to council; an occasional
-   ordinary review round is fine; never an implementer on main except by named maintainer exception; an erroring
-   quota row is logged, not a block. After two failed sol rounds the escape is revert + spec-first re-land, not a
-   different-model fixer. [precondition: maintainer findings of 2026-11-07 on sol/astra; re-read the Muse seat on 2026-11-10]
-7. REVIEW: EVIDENCE-FIRST, TWO ROUNDS, RUNG-NAMED SEVERITIES. One fresh sol review that starts from the implementer's
-   PROGRESS.md, gate log and red-first test, re-runs each claim, and reads the diff where evidence is thin. P0/P1 only
-   for a wrong result or silent fallback on a named north-star §8 rung path, an unsound oracle (reference
-   interpreter, checker verdict, certificate), or a broken build/gate/push hook; otherwise P2 = one bead, no repair
-   round; at most one nit bead per review. After round 2: merge with P2 beads or revert the offending commit.
-   Councils (sol + astra + Muse; blocking findings + <= 3 suggestions per seat) only for the reference interpreter,
-   checker verdicts, certificates and published contracts; a council's blocking contract finding is never a P2: it earns
-   ONE scoped round (that clause + its case), re-checked by the seats on that clause only, then merge or revert; elsewhere
-   one advisory round whose findings become beads. Review-free landings, by name: a pin bump (gate.toml sibling or tool
-   sha), a beads export, and a test or fixture addition whose red-on-base/green-on-head quotes are in PROGRESS.md; the
-   orchestrator reads the diff and records "orchestrator-read" + sha in Landed. Product source or gate checks: review child.
-   Gate-tightening changes: sol only. Prototypes land after one round with gaps as P2 beads, unimplemented mechanics
-   failing loud. Old unreviewed main commits ride the next review of that repo. Any claim that an analysis reaches a
-   least fixpoint carries an order-independence receipt: identical abstract values under original, function-reversed
-   AND basic-block-reversed evaluation order (Spiral 2026-11-08: function reversal alone missed six order-dependent
-   values). [precondition: the 25-round
-   quality-floor tally (rounds 3+ bought little); demo-ladder stakes, no external consumers; revisit when main-health
-   shows merge-attributable escapes rising]
-8. LAND FAST, DETECT AFTER, REVERT WITHOUT CEREMONY. main-health (bennett/tools/main_health.py; status in
-   bennett/.tmp/main-health/status.md) re-gates pushed mains and rungs 1-2 in the background and never blocks a push.
-   A main or rung-1/2 red attributable to a merge for longer than one gate cycle: the owning lane reverts
-   (`git revert -m 1`), pushes, files the bead, re-lands later; fix-forward only if the fix is already gated. Bugs
-   may land; they must be found fast. No whole-repo graded quality re-audits (score documents); per-change evidence
-   re-runs and main-health re-gates are not re-audits. One before/after table when a rung gate passes.
-   [precondition: main-health actually runs each shift and its ladder rows are not ERROR; every main revertible]
-9. NO BARE TIME LITERALS. Every time constant is a hang guard (per-repo class table short/moderate/long/eternal in one
-   cited file, >= 10x measured on a named machine and date, machine factor in the same file, trip = UNKNOWN, per-command
-   wall+CPU seconds recorded in the receipt), a performance assertion (deterministic work counts or in-process ratios,
-   instruction counts where those are unavailable; regressions by change-point detection over history in main-health,
-   never a threshold), or a product allowance (in the spec's unit, in spec/config, with its own fixture; a suite never
-   inherits it as a cap). Tests wait on conditions, never sleep. Reviewers grade a bare literal P2, not a block. Briefs
-   say "bounded by the repo's hang-guard class table", never "bounded" or "fast" alone. Orchestrator-process timers
-   (commit cadence, slot windows) are exempt by name. [precondition: shared loaded machine, three documented false reds;
-   per repo, the lint from the R42 sweep enforces this once landed]
-10. QUOTA IS WEATHER, NOT LAW; PACE IS A RATE, NEVER A CHILD COUNT. Read `quota` at every launch decision and at least every
-    30 min (wake for it); log each reading in the shift file. Compute the day's allowance as the provider's daily pace line
-    minus what the current window has spent, and the number of concurrent implementers as that allowance divided by the
-    MEASURED cost per child-hour of this shift (first value: 0.23%/child-hour, 2026-11-09 afternoon; re-measure each
-    shift). Reviews, council seats and machine-only runs never count toward any cap. A maintainer pace instruction is a
-    rate; the advisor never turns it into a child count unless the maintainer names one; a dial in the shift file may
-    override for the day (cap, ceiling, expiry). Launch concurrently across repos up to the computed number. No quota
-    state, cap, stream count or vendor preference is ever written here, in a brief or a memory as a standing fact
-    (maintainer 2026-11-08: "a daily changing phenomenon"). Prevents: over-spend. Can cause: an idle seat (signal: the
-    capacity check in Rule conflict repair). [precondition: none; enforcement: unenforced, the shift audit reports it]
-
-## Struck rulings (heresies: recognise and refuse them; dated when struck)
-- Heavy slot / slot order / "one heavy gate at a time" / slot treaties (struck 2026-11-08, rulebook fixed 2026-11-09).
-- Two-seat lane split, laptop ownership lines, advisor relay protocol (struck 2026-11-09: laptop retired).
-- `codex exec` runners, codex_job.py / resume_job.py launches (struck 2026-11-06, R26).
-- Gate-before-review AND push-hook re-gate of the same tree (struck 2026-11-08: tree-keyed receipts).
-- The READ FIRST re-pin-wave line 'ONE GATE PER TREE, ENFORCED BY RECEIPTS' (retired 2026-11-09: all 12 repos pin a receipt tool >= e25f3aa,
-  arith last at 19fb8b5; rule 4 now stands alone and gate_run enforces it).
-- "Codex banked resets are spare budget", "use up Muse before reset", Muse batching dossiers, any quota state as a rule
-  (struck 2026-11-03 / 2026-11-08).
-- Numbered R-rulings as authority; D9 seven-category councils; whole-repo graded re-audits (struck 2026-11-07/08).
-- Bare wall-clock pass/fail limits in gates or suites (struck 2026-11-08, R42 sweep; residue is a P2 bead).
-## Rule conflict repair (maintainer 2026-11-08/09: "rules can block each other; this needs a mechanism to repair"; added
-## after the one-child pace rule idled a 64-thread host for six hours while rules 3 and 5 permitted parallel work)
-Rules are tools against a named failure. Every rule can also cause the opposite failure. Repair is triggered from INSIDE
-the process, never by waiting for the maintainer to notice:
-1. TRIGGER. Whenever an orchestrator declines to launch, land, gate or run something that is READY (a bd ready bead, a
-   staged brief, a merge whose review is done, a cell that fits in memory) because a rule forbids it, it writes one line
-   in the shift file's Decisions at that moment: `BLOCKED-BY-RULE <what> | rule <n or READ FIRST line> | permitted by
-   <rule or design intent> | maintainer words behind the blocking rule: "<verbatim>"`. Silence is the failure; the line
-   is not optional and it is not a request for permission to write it.
-2. SIGNAL. The orchestrator checks a capacity signal at every launch decision and every 30 min: children alive versus the
-   dial's cap, and `bd ready` across repos filtered to path sets disjoint from live writers. Cap not reached AND disjoint
-   ready work present AND resources admit (rule 5) is a BLOCKED-BY-RULE line, naming the rule. No separate dashboard.
-3. RESOLUTION, same shift. Each BLOCKED-BY-RULE line goes to the advisor by thread message in the same turn it is written.
-   The advisor resolves it before the shift ends by one of: amend the rule here (text in place, old wording struck below,
-   same turn); set or change a dial in the shift file; or confirm the block with its reason, in which case the line gets
-   `CONFIRMED <reason>`. An unresolved line at handoff is itself a rule violation and heads the rule audit.
-4. SHAPE OF A RULE. A rule in this file names: the failure it prevents; the opposite failure it can cause; its
-   precondition; the signal that says which failure you are in; the script that enforces it or `unenforced`. A rule
-   missing any of these is listed in the audit as UNREPAIRED until fixed. Reactive rules (written after an incident) are
-   dials by default, with a stated cap and ceiling and an expiry (next day unless re-affirmed), not standing rules.
-5. VERBATIM FIRST. A maintainer instruction is recorded verbatim; the operationalisation that follows is marked as the
-   advisor's or orchestrator's translation. Any later reader may challenge the translation against the words; nobody may
-   tighten a translation beyond the words without a new maintainer line.
-Rule-change procedure: a decision that changes a rule edits this file in the same turn (text in place, old wording struck
-here). The handoff of every shift carries a rule audit of six lines: BLOCKED-BY-RULE lines and their resolutions;
-hours this shift with children below the cap while disjoint ready work existed (and why); rules bent; preconditions that
-lapsed; UNREPAIRED rules; lines above deleted. A rule bent twice is amended at that handoff, not excused a third time.
-For each rule name the script that enforces it or mark it unenforced.
-
-Publication note: historical host/session measurements and a provider reading were redacted;
-all procedural rules and their preconditions remain. Read this file together with
-[T3CHILD.md](T3CHILD.md), whose child-specific backup and Beads instructions apply to delegate jobs.
+## Launching, records, children
+13. LAUNCH only when `python3 -I bennett/tools/admit.py launch --vendor V --kind K` says ADMIT; its reason names memory, disk, load
+   and quota pace. The maintainer's numbers live in bennett/dial.toml and nowhere else. Gates run detached through
+   `bennett/tools/gate_launch.py start|wait` (completion events in bennett/.tmp/gates/events/). Muse Wonder Full is kept to councils.
+   (`launch` and dial.toml are being built on job/dial; until they land, read `quota` and never run a vendor ahead of its pace line.)
+14. RECORDS are beads plus one live state file. Beads (`bd`, from the repo's main checkout) hold work items and findings; close with
+   the command that verified it. The orchestrator seat's state is bennett/HANDOFF.md; a job's state is its .tmp/<job>/PROGRESS.md
+   (done / verified by which command / next). No worklogs, shift files or per-pass logs. Councils commit report.md only.
+15. CHILDREN work in the worktree and branch their brief names, commit at green checkpoints, back up to wip/<name>, never push main,
+   do only the brief (anything else becomes a bead), never ask questions, and end with <= 200 words naming shas, commands and
+   results, last line JOB-COMPLETE or JOB-BLOCKED: <reason>. Bead requests for a sibling repo go in .tmp/<name>/cross-repo-beads.md.
+   Optional help for code style: docs/process/anti-slop.md.

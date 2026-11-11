@@ -1,3 +1,6 @@
+> **SUPERSEDED 2026-11-11** by [COMMON.md](../process/COMMON.md) rules 9-12 (land on the fast tier, detect after, review after
+> landing in at most two rounds, trial exception). Kept as the historical record; it binds nothing.
+
 # Code quality policy
 
 **Status:** IN FORCE. Ratified by the maintainer on 2026-11-03 (advisor-notes D1: rule 5 Muse seat when quota is readable and the advisor confirms, otherwise sol xhigh plus Sonnet stand in). Proposed by the advisor on 2026-11-02; originally: the maintainer ratifies at the

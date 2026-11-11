@@ -1,6 +1,6 @@
 # HANDOFF — Bennett ecosystem
 
-Current-state checkpoint: 2026-11-09 end of day (Spiral shift 5). Recheck live Beads and the shift file before resuming work.
+Current-state checkpoint: 2026-11-09 end of day, process sections updated 2026-11-11 (rulebook rewrite). Recheck live Beads.
 
 Bennett aims to compile unmodified LLVM-language programs into classical, reversible and coherent
 quantum execution, including Grover search over SQLite. The plugin infers the required execution tier;
@@ -88,41 +88,14 @@ measured-basis diagnostics and a small fixture estimate cannot satisfy those cla
   repos) before re-arming main-health on the new code; `bennett-pow` (per-worktree gate cache). Disk filled to 100% once on
   2026-11-09: prune rebuildable `.tmp/*target*` caches of landed job worktrees.
 
-## Orchestration and durable state
+## Orchestration and records
 
-Spiral is the single orchestrator seat (64 hardware threads, about 62 GB RAM); the laptop retired
-on 2026-11-09. Old seat ownership, relay and gate-slot instructions have expired. Read the target
-repo's `CLAUDE.md` / `AGENTS.md`, then the local rulebook
-`bennett/docs/process/COMMON.md` including its READ FIRST block. Children also read
-`bennett/docs/process/T3CHILD.md`. COMMON is the rulebook; historical advisor/shift notes are evidence.
+Rules: [docs/process/COMMON.md](docs/process/COMMON.md), the one rulebook (children: rule 15 and T3CHILD.md). The orchestrator seat
+runs product work; there is no standing advisor seat in the product workflow. Launch admission is `tools/admit.py launch` against the
+maintainer's `dial.toml`; gates run through `tools/gate_launch.py`. Live work state is beads (`bd` in each repo's main checkout) plus
+this file; a job's resume point is its `.tmp/<job>/PROGRESS.md` and git history. Shift files and worklogs are historical.
 
-Current process (2026-11-09): pace is a spend rate, never a child count (COMMON rule 10); the day's dial (implementer cap,
-ceiling, expiry) lives in the shift file's Quota section and expires with the shift; reviews and councils never count toward
-it. A rule that blocks ready work is written as a BLOCKED-BY-RULE line and resolved by the advisor the same shift
-(COMMON "Rule conflict repair"). Admission (rule 5) reserves each running job's expected peak memory, not its current RSS.
-
-Live issue state is `bd` in each repo's **main checkout**, not an old JSONL export. Use `bd ready`,
-`bd show <id>` and `bd note`/`bd create`; the orchestrator exports Beads when landing. Current local
-operations are in `bennett/.tmp/orchestrator/spiral-5.md` (HANDOFF first page, Decisions, Landed); earlier
-shifts are `spiral-1.md` to `spiral-4.md`. A child's resume point is its assigned
-`.tmp/<job>/PROGRESS.md` plus git history. Recheck these changing records instead of reviving an old queue.
-
-All `bennett-quantum/*` repos are public. Keep transcripts, logs, memory, orchestrator records and
-`.tmp` artifacts out of commits and public backup branches; reference local records by path only.
-
-## Landing work
-
-Work in the assigned `job/<name>` worktree and owned paths. Commit explicit paths at green
-checkpoints, back up code to `wip/<name>` as authorised, and hand the head to the orchestrator;
-children do not push main. The orchestrator obtains the required review/council disposition,
-merges `--no-ff`, exports Beads, and pushes. Preserve review and gate evidence for the same content.
-
-There is **one full gate per content tree**. `tools/gate_run.py` reuses a PASS receipt keyed by tree,
-actual gate-tool SHA and isolation mode; a changed tree/pin needs a new gate, and FAIL has no PASS
-receipt. Receipt support starts at meta `e25f3aa`; all twelve local component mains now pin tool
-`3779522`. Check the live shift file for their gate/push outcomes rather than assuming deployment.
-The meta gate is `scripts/pre-push`; the orchestrator runs it at merge.
-
-Gates/pushes run detached in their own systemd units. Different repos may gate concurrently when
-resources permit; never run two gates of the same repo. Admission, machine-derived widths and
-hang-guard classes follow COMMON and the repo profile. A hang-guard trip means UNKNOWN, not PASS.
+Landing: fast tier (`scripts/pre-push`, gate_run pre-merge) green on the merged tree, one `--no-ff` merge, push. main-health
+re-gates pushed mains with `--tier full --fresh` and attributes new reds against `health/known-reds.toml`; revert with
+`tools/revert_landing.py`. PASS receipts are keyed on product content (each gate.toml's `[receipt] non_product`), so beads exports and
+worklog edits do not re-gate. All bennett-quantum repos are public: no transcripts, logs or .tmp records in commits or branches.
