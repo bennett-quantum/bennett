@@ -7,3 +7,4 @@
 2026-11-11	bennett-isa-spec	ISA 0.9 text batch2: ni9, tea, 99n, xz1 (maintainer option A x4)	99n B1 (explicit-binding hash conflict with §11.1), fixed a0f855b; others ACCEPT	~35 min
 2026-11-11	bennett-isa-spec	ISA 0.9 xz1 legacy-entry policy: E_ESTIMATE_ACCURACY_REQUIRED (maintainer option A)	nothing (ACCEPT)	~10 min
 2026-11-11	bennett-dialect-spec	dialect 0.3-draft §17.7 isolated hosted launch provider (r1p, maintainer option B)	nothing (ACCEPT)	~10 min
+2026-11-11	bennett-isa-spec	reference interpreter: tea, 99n (r1 catalog), ni9 K89 reader (6c95708)	nothing (ACCEPT; reviewer's own full-suite run cut by admission, lane's 828/0 stands)	~25 min
