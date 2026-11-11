@@ -97,6 +97,9 @@ def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=N
                     '--property=KillMode=control-group',
                     '--property=UnsetEnvironment=' + ' '.join(gate_run.HEADLESS),
                     '--property=ExecStopPost=' + stop,
+                    # A --user service starts from the user manager's environment, not this process's: forward the
+                    # toolchain lookup explicitly (cargo, clang, julia live under the caller's PATH/HOME).
+                    *(f'--setenv={k}={os.environ[k]}' for k in ('PATH', 'HOME') if k in os.environ),
                     '--', sys.executable, '-I', executable, 'worker', '--request', str(request_path)]
             env = {k: v for k, v in os.environ.items() if k not in gate_run.HEADLESS}
             result = launcher(argv, capture_output=True, text=True, env=env,

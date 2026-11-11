@@ -1,6 +1,7 @@
 """Detached service lifecycle with injected launch; no real units are started."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import signal
 import subprocess
@@ -39,6 +40,8 @@ class LaunchTests(RunnerFixture):
         self.assertIn('--property=Type=exec', argv)
         self.assertTrue(any('ExecStopPost=' in x and 'complete' in x for x in argv))
         self.assertIn(self.sha[:12], unit)
+        self.assertIn('--setenv=PATH=' + os.environ['PATH'], argv)  # a --user service gets the manager's PATH, not the caller's
+        self.assertIn('--setenv=HOME=' + os.environ['HOME'], argv)
         request = json.loads((self.ws / 'bennett/.tmp/gates/admissions' / (unit + '.json')).read_text())
         self.assertEqual(request['tier'], 'full')
         self.assertEqual(request['expected_peak'], 100)
