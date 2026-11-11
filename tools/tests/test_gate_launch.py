@@ -122,6 +122,17 @@ class LaunchTests(RunnerFixture):
         self.assertIn('OPEN NEW-RED', err.getvalue())
         self.assertIn('dddddddddddd', err.getvalue())
 
+    def test_fresh_request_reaches_the_gate(self):
+        a = module()
+        calls = []
+        expected = {'peak_bytes': 100, 'disk_bytes': 200, 'source': 'fixture'}
+        with patch.object(a.admit, 'assess', return_value=(True, 'ok', expected)):
+            unit = a.start(self.repo, self.sha, 'full', launcher=lambda argv, **k: subprocess.CompletedProcess(argv, 0),
+                           workspace=self.ws, fresh=True)
+        request = self.ws / 'bennett/.tmp/gates/admissions' / (unit + '.json')
+        a.worker(request, runner=lambda argv, **k: calls.append(argv) or subprocess.CompletedProcess(argv, 0))
+        self.assertIn('--fresh', calls[0])
+
     def test_stop_post_without_worker_outcome_maps_signal_and_timeout(self):
         a = module()
         for code, status, service, expected in [('killed', 'TERM', 'signal', 143),

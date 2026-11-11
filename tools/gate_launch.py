@@ -61,7 +61,7 @@ def install_runtime(base):
     return destination / 'gate_launch.py'
 
 
-def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=None):
+def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=None, fresh=False):
     repo, discovered = gate_run.repo_paths(repo)
     workspace = Path(workspace or discovered)
     sha = gate_run.git(repo, 'rev-parse', '--verify', f'{sha or "HEAD"}^{{commit}}')
@@ -90,7 +90,7 @@ def start(repo, sha=None, tier='pre-merge', launcher=subprocess.run, workspace=N
                    'started_utc': utc(), 'expected_peak': expected['peak_bytes'],
                    'expected_disk': expected['disk_bytes'], 'admission_reason': reason,
                    'record_path': str(repo / '.tmp/gate/records' / (sha + '.json')),
-                   'workspace': str(workspace)}
+                   'workspace': str(workspace), 'fresh': bool(fresh)}
         try:
             atomic_json(request_path, request)
             executable = str(install_runtime(base))
@@ -139,7 +139,8 @@ def trusted_record(request):
 def worker(request_path, runner=subprocess.run):
     request = admit.read_json(request_path)
     argv = [sys.executable, '-I', str(Path(__file__).with_name('gate_run.py')), 'run',
-            '--repo', request['repo'], '--sha', request['sha'], '--tier', request['tier']]
+            '--repo', request['repo'], '--sha', request['sha'], '--tier', request['tier'],
+            *(['--fresh'] if request.get('fresh') else [])]
     env = {k: v for k, v in os.environ.items() if k not in gate_run.HEADLESS}
     env['BENNETT_GATE_WORKSPACE'] = request.get('workspace', str(request_path.parents[4]))
     outcome, record = {}, None
@@ -298,6 +299,7 @@ def main():
     launch.add_argument('--repo', required=True, type=Path)
     launch.add_argument('--sha')
     launch.add_argument('--tier', choices=('pre-merge', 'full'), default='pre-merge')
+    launch.add_argument('--fresh', action='store_true', help='ignore PASS receipts (the background full tier)')
     waiting = sub.add_parser('wait')
     waiting.add_argument('unit')
     sub.add_parser('status')
@@ -309,7 +311,7 @@ def main():
     args = ap.parse_args()
     try:
         if args.command == 'start':
-            print(start(args.repo, args.sha, args.tier))
+            print(start(args.repo, args.sha, args.tier, fresh=args.fresh))
             return 0
         if args.command == 'wait':
             return wait(args.unit, args.workspace)
