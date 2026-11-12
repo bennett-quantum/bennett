@@ -13,7 +13,7 @@ import unittest
 from fixtures import RunnerFixture
 
 
-TOOL = Path(__file__).resolve().parents[1] / "gate_run.py"
+TOOL = Path(os.environ.get("GATE_TEST_TOOL", Path(__file__).resolve().parents[1] / "gate_run.py"))
 # Meta has no guard table yet. Follow test_clone_all.py / test_main_health.py:
 # Git 20s, CLI 30s, machine factor 1 on the shared 12-core / 30 GiB host.
 # These are hang guards, never performance assertions; a trip is UNKNOWN.
@@ -739,3 +739,342 @@ raise SystemExit(tool.main())
             with self.assertRaisesRegex(tool.GateError, rf"pid={os.getpid()}.*started_utc=\S+"):
                 with tool.Lock(path, blocking=False):
                     self.fail("existing flock unexpectedly admitted another holder")
+
+
+class ReformTests(ContentReceiptFixture):
+    def adopt(self, extra='', command=None):
+        self.config()
+        if command:
+            text = (self.repo / 'gate.toml').read_text()
+            text = text[:text.index('argv =')] + 'argv = ' + json.dumps(command) + '\n'
+            (self.repo / 'gate.toml').write_text(text)
+        with (self.repo / 'gate.toml').open('a') as f:
+            f.write('\n' + extra)
+        self.git('add', '.')
+        self.git('commit', '--allow-empty', '-qm', 'reform config')
+        return self.git('rev-parse', 'HEAD').strip()
+
+    def record(self, sha, repo=None):
+        return json.loads(((repo or self.repo) / '.tmp/gate/records' / (sha + '.json')).read_text())
+
+    def test_excluded_file_unreadable_through_caller_checkout_env_path(self):
+        # Review r1 P1: the run tree drops excluded paths, but the caller checkout stayed visible in bwrap.
+        (self.repo / 'data').mkdir()
+        (self.repo / 'data/keep').write_text('directory')
+        (self.repo / 'notes').write_text('good\n')
+        command = ['sh', '-c', 'test "$(cat "$INPUT")" = good']
+        sha = self.adopt('[env]\nINPUT = "{root}/data/../notes"\n[receipt]\nnon_product = ["notes"]\n', command)
+        first = self.run_gate(sha, isolated=True)
+        self.assertEqual(first.returncode, 1, first.stderr)
+
+    def test_excluded_file_unreadable_through_tracked_symlink(self):
+        (self.repo / 'notes').write_text('good\n')
+        (self.repo / 'alias').symlink_to(self.repo / 'notes')
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', ['sh', '-c', 'test "$(cat alias)" = good'])
+        first = self.run_gate(sha, isolated=True)
+        self.assertEqual(first.returncode, 1, first.stderr)
+
+    def test_excluded_directory_empty_in_caller_checkout(self):
+        (self.repo / 'notes').mkdir()
+        (self.repo / 'notes/a').write_text('good\n')
+        command = ['sh', '-c', 'test "$(cat "$INPUT")" = good']
+        sha = self.adopt('[env]\nINPUT = "{root}/data/../notes/a"\n[receipt]\nnon_product = ["notes/"]\n', command)
+        (self.repo / 'data').mkdir(exist_ok=True)
+        first = self.run_gate(sha, isolated=True)
+        self.assertEqual(first.returncode, 1, first.stderr)
+        self.assertEqual((self.repo / 'notes/a').read_text(), 'good\n')  # masked only inside the sandbox
+
+    def assert_invariant_under_excluded_change(self, sha, change):
+        """Receipt soundness: a fresh gate's verdict must not depend on non_product content (review r2)."""
+        before = self.run_gate(sha, '--fresh', isolated=True)
+        change()
+        self.git('add', '-A', '--', 'notes')
+        self.git('commit', '-qm', 'excluded path changed')
+        other = self.git('rev-parse', 'HEAD').strip()
+        after = self.run_gate(other, '--fresh', isolated=True)
+        self.assertEqual(before.returncode, after.returncode, before.stderr + after.stderr)
+        for tier in ('pre-merge', 'full'):
+            cached = self.run_gate(other, '--tier', tier, isolated=True)
+            self.assertEqual(cached.returncode, after.returncode, cached.stderr)
+        return before
+
+    def test_existence_of_excluded_path_is_not_observable(self):
+        cmd = ['sh', '-c', 'test ! -e "$1"', 'sh', str(self.repo / 'notes')]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        self.assert_invariant_under_excluded_change(sha, lambda: (self.repo / 'notes').write_text('x\n'))
+
+    def test_excluded_path_missing_only_in_caller_is_not_observable(self):
+        (self.repo / 'notes').write_text('good\n')
+        cmd = ['sh', '-c', 'test ! -e "$1"', 'sh', str(self.repo / 'notes')]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        (self.repo / 'notes').unlink()
+        before = self.run_gate(sha, '--fresh', isolated=True)
+        (self.repo / 'notes').write_text('bad\n')
+        again = self.run_gate(sha, '--fresh', isolated=True)
+        self.assertEqual(before.returncode, again.returncode, before.stderr + again.stderr)
+
+    def test_excluded_symlink_text_is_not_observable(self):
+        (self.repo / 'a').write_text('a\n')
+        (self.repo / 'b').write_text('b\n')
+        (self.repo / 'notes').symlink_to('a')
+        cmd = ['sh', '-c', 'test "$(readlink "$1")" = a', 'sh', str(self.repo / 'notes')]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        def change():
+            (self.repo / 'notes').unlink()
+            (self.repo / 'notes').symlink_to('b')
+        self.assert_invariant_under_excluded_change(sha, change)
+
+    def test_absolute_excluded_symlink_does_not_break_setup(self):
+        (self.repo / 'product').write_text('kept\n')
+        (self.repo / 'notes').symlink_to(self.repo / 'product')
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', ['true'])
+        z = self.run_gate(sha, isolated=True)
+        self.assertEqual(z.returncode, 0, z.stderr)
+
+    def test_reports_alone_see_the_gated_sha(self):
+        # A report (never a verdict) may read excluded content from the real commit, e.g. a beads export;
+        # checks must not get the handle, or their verdict could depend on excluded bytes.
+        (self.repo / 'notes').write_text('obligations\n')
+        check = ["sh", "-c", "test -z \"$BENNETT_GATE_SHA\""]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n\n[[report]]\nname = "audit"\n'
+                         'argv = ["sh", "-c", "git cat-file -p \\"$BENNETT_GATE_SHA:notes\\" > \\"$TMPDIR/seen\\"; '
+                         'cat \\"$TMPDIR/seen\\"; grep -qx obligations \\"$TMPDIR/seen\\""]\n', check)
+        self.env = dict(self.env, BENNETT_GATE_SHA='inherited-must-not-reach-checks')
+        z = self.run_gate(sha, isolated=True)
+        self.assertEqual(z.returncode, 0, z.stderr)
+        self.assertIn('report audit exited 0', z.stdout + z.stderr)
+
+    def test_reports_cannot_leave_state_for_checks(self):
+        # Review e8f P1: a report holding BENNETT_GATE_SHA wrote excluded bytes into a persistent target dir that a later
+        # invocation's check read (cached full PASS, fresh full FAIL). Reports now see a read-only world except their run layout.
+        (self.repo / 'notes').write_text('good\n')
+        report = ['sh', '-c', 'mkdir -p "$CARGO_TARGET_DIR" && git cat-file -p "$BENNETT_GATE_SHA:notes" > "$CARGO_TARGET_DIR/audit-input"'
+                  ' && echo staged; echo scratch > "$TMPDIR/report-scratch" && echo scratch-ok']
+        post = ['sh', '-c', 'test "$(cat "$CARGO_TARGET_DIR/audit-input")" = good']
+        extra = ('[env]\nCARGO_TARGET_DIR = "{root}/.tmp/gate-target"\n'
+                 '[receipt]\nnon_product = ["notes"]\n'
+                 '[[check]]\nname = "post"\ntier = "post-merge"\nargv = ' + json.dumps(post) + '\n'
+                 '[[report]]\nname = "audit"\nargv = ' + json.dumps(report) + '\n')
+        sha = self.adopt(extra, ['true'])
+        pre = self.run_gate(sha, isolated=True)
+        self.assertEqual(pre.returncode, 0, pre.stderr)
+        self.assertNotIn('staged', pre.stdout)
+        self.assertIn('scratch-ok', pre.stdout)  # its own TMPDIR inside the run layout stays writable
+        self.assertFalse((self.repo / '.tmp/gate-target/audit-input').exists())
+        self.assertEqual(self.run_gate(sha, '--tier', 'full', isolated=True).returncode, 1)
+
+    def test_caller_index_does_not_reveal_excluded_paths(self):
+        # Review r3 P1: the rebound caller .git exposed its live index (excluded names and blob ids).
+        cmd = ['sh', '-c', 'test -z "$(git -C "$1" ls-files -- notes 2>/dev/null)"', 'sh', str(self.repo)]
+        sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', cmd)
+        self.assert_invariant_under_excluded_change(sha, lambda: (self.repo / 'notes').write_text('x\n'))
+
+    def test_check_argv_or_inputs_naming_an_excluded_path_is_refused(self):
+        for extra, command in (('', ['cat', 'notes/a']),
+                               ('', ['sh', '-c', 'grep x notes/a']),
+                               ('[[check]]\nname = "late"\ntier = "post-merge"\nargv = ["true"]\ninputs = ["notes/"]\n', ['true'])):
+            sha = self.adopt('[receipt]\nnon_product = ["notes/"]\n' + extra, command)
+            z = self.run_gate(sha, isolated=True)
+            self.assertEqual(z.returncode, 3, z.stderr)
+            self.assertIn('notes', z.stderr)
+
+    def test_filtered_receipt_covers_docs_but_not_product_byte(self):
+        (self.repo / 'product').write_text('a')
+        (self.repo / 'notes').mkdir()
+        (self.repo / 'notes/a').write_text('one')
+        sha = self.adopt('[receipt]\nnon_product = ["notes/"]\n')
+        first = self.run_gate(sha)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        (self.repo / 'notes/a').write_text('two')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'notes only')
+        other = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(other).returncode, 0)
+        self.assertEqual(self.record(other)['covered_by']['sha'], sha)
+        (self.repo / 'product').write_text('b')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'product byte')
+        third = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(third).returncode, 0)
+        self.assertNotIn('covered_by', self.record(third))
+        self.assertEqual(self.marker.read_text(), 'run\nrun\n')
+
+    def test_excluded_file_missing_from_filesystem_and_git_head(self):
+        (self.repo / 'notes').write_text('secret')
+        # Split names: the static argv check would refuse a literal excluded path before the runtime absence is tested.
+        for command in (['sh', '-c', 'cat "no""tes"'], ['sh', '-c', 'git show "HEAD:no""tes"']):
+            sha = self.adopt('[receipt]\nnon_product = ["notes"]\n', command)
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertNotEqual(self.record(sha)['checks'][0]['exit'], 0)
+
+    def test_refusals_name_entry_and_exit_setup(self):
+        cases = [('', ''), ('/absolute', ''), ('a/../b', ''), ('*.md', ''),
+                 ('gate.toml', ''), ('scripts/', ''), ('cat', ''),
+                 ('data/', 'cwd = "data/run"\n'),
+                 ('data/', '[env]\nDATA = "{wt}/data/input"\n'),
+                 ('data/', '[env]\nDATA = "data/input"\n')]
+        for entry, extra in cases:
+            with self.subTest(entry=entry, extra=extra):
+                sha = self.adopt(extra + '[receipt]\nnon_product = ' + json.dumps([entry]) + '\n', ['cat', 'notes'])
+                result = self.run_gate(sha)
+                self.assertEqual(result.returncode, 3, result.stderr)
+                self.assertIn(repr(entry), result.stderr)
+
+    def test_tiers_reuse_premerge_and_inputs_trigger_again_on_change(self):
+        (self.repo / 'input').write_text('a')
+        extra = ('[[check]]\nname = "slow"\nargv = ["true"]\n'
+                 'tier = "post-merge"\ninputs = ["input"]\n')
+        sha = self.adopt(extra)
+        first = self.run_gate(sha)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(len(self.record(sha)['checks']), 2)
+        full = self.run_gate(sha, '--tier', 'full')
+        self.assertEqual(full.returncode, 0, full.stderr)
+        self.assertEqual([c['name'] for c in self.record(sha)['checks']], ['slow'])
+        self.assertIn('pre-merge', self.record(sha)['tiers_covered'])
+        (self.repo / 'product').write_text('unrelated')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'unrelated product')
+        other = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(other).returncode, 0)
+        self.assertEqual([c['name'] for c in self.record(other)['checks']], ['marker'])
+        self.assertIn('inputs unchanged since', self.record(other)['deferred'][0]['reason'])
+        (self.repo / 'input').write_text('b')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'input changed')
+        third = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(third).returncode, 0)
+        self.assertEqual(len(self.record(third)['checks']), 2)
+        self.assertEqual(self.marker.read_text(), 'run\nrun\nrun\n')
+
+    def test_worktrees_have_private_real_caches_and_linked_git_isolation(self):
+        sha = self.adopt(command=['git', 'cat-file', '-e', 'HEAD'])
+        jobs = [self.root / 'job-a', self.root / 'job-b']
+        for job in jobs:
+            self.git('worktree', 'add', '--detach', str(job), sha)
+            (job / '.tmp/gate').mkdir(parents=True)
+            (job / '.tmp/gate/cache').symlink_to(self.root / 'missing-cache')
+            result = self.run_gate(sha, '--fresh', repo=job, isolated=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for name in ('cache', 'locks', 'runs', 'records'):
+                self.assertTrue((job / '.tmp/gate' / name).is_dir())
+                self.assertFalse((job / '.tmp/gate' / name).is_symlink())
+        self.assertTrue(all(self.record(sha, job)['isolated'] for job in jobs))
+
+    def test_postmerge_without_inputs_defers_until_full(self):
+        sha = self.adopt('[[check]]\nname = "later"\nargv = ["false"]\ntier = "post-merge"\n')
+        pre = self.run_gate(sha)
+        self.assertEqual(pre.returncode, 0, pre.stderr)
+        self.assertEqual(self.run_gate(sha, '--tier', 'full').returncode, 1)
+        self.assertEqual(self.marker.read_text(), 'run\n')
+
+    def test_invalid_tier_inputs_configuration_is_setup_error(self):
+        for suffix in ('tier = "oops"\n', 'inputs = ["input"]\n',
+                       'tier = "post-merge"\ninputs = ["../escape"]\n'):
+            sha = self.adopt('[[check]]\nname = "bad"\nargv = ["true"]\n' + suffix)
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 3, result.stderr)
+
+    def test_templates_cannot_hide_protected_commands(self):
+        for argv, extra, entry in [(['{wt}/data/check'], '', 'data/'),
+                                    (['true'], 'cwd = "{wt}/data"\n', 'data/'),
+                                    (['true'], '', '.git/')]:
+            sha = self.adopt(extra + '[receipt]\nnon_product = ' + json.dumps([entry]) + '\n', argv)
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 3, result.stderr)
+            self.assertIn(repr(entry), result.stderr)
+
+    def test_inputs_directory_without_slash_detects_content_change(self):
+        (self.repo / 'data').mkdir()
+        (self.repo / 'data/input').write_text('a')
+        sha = self.adopt('[[check]]\nname = "slow"\nargv = ["true"]\ntier = "post-merge"\ninputs = ["data"]\n')
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        (self.repo / 'data/input').write_text('b')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'directory input changed')
+        other = self.git('rev-parse', 'HEAD').strip()
+        self.assertEqual(self.run_gate(other).returncode, 0)
+        self.assertEqual(len(self.record(other)['checks']), 2)
+
+    def test_full_pass_also_covers_subsequent_premerge(self):
+        sha = self.adopt('[[check]]\nname = "slow"\nargv = ["true"]\ntier = "post-merge"\n')
+        self.assertEqual(self.run_gate(sha, '--tier', 'full').returncode, 0)
+        self.assertEqual(self.run_gate(sha).returncode, 0)
+        self.assertIn('covered_by', self.record(sha))
+        self.assertEqual(self.marker.read_text(), 'run\n')
+
+    def test_report_commands_cwd_and_env_are_protected(self):
+        for command in ('argv = ["data/report"]\n',
+                        'argv = ["true"]\ncwd = "data/run"\n',
+                        'argv = ["true"]\nenv = {DATA = "{root}/data/report"}\n'):
+            sha = self.adopt('[[report]]\nname = "report"\n' + command + '[receipt]\nnon_product = ["data/"]\n')
+            result = self.run_gate(sha)
+            self.assertEqual(result.returncode, 3, result.stderr)
+            self.assertIn("'data/'", result.stderr)
+
+    def test_two_worktrees_run_concurrently_with_same_pin(self):
+        sibling = self.root / 'pin'
+        sibling.mkdir()
+        self.git('init', '-qb', 'main', cd=sibling)
+        (sibling / 'data').write_text('pin')
+        self.git('add', '.', cd=sibling)
+        self.git('commit', '-qm', 'pin', cd=sibling)
+        pin = self.git('rev-parse', 'HEAD', cd=sibling).strip()
+        # Each command announces entry and blocks until both gates are admitted.
+        # Files at workspace root survive isolation, unlike live checkout directories.
+        release = self.root / 'release'
+        command = [sys.executable, '-c',
+                   'from pathlib import Path; import time; '
+                   'ready = Path("{root}").name; '
+                   f'Path({str(self.root)!r}, ready + ".ready").touch(); '
+                   f'exec("while not Path({str(release)!r}).exists(): time.sleep(0.01)")']
+        sha = self.adopt(f'[siblings.pin]\nsha = "{pin}"\n', command)
+        jobs = [self.root / 'job-one', self.root / 'job-two']
+        processes = []
+        try:
+            (self.repo / '.tmp/gate/cache').mkdir(parents=True)
+            for job in jobs:
+                self.git('worktree', 'add', '--detach', str(job), sha)
+                (job / '.tmp/gate').mkdir(parents=True)
+                (job / '.tmp/gate/cache').symlink_to(self.repo / '.tmp/gate/cache')
+                processes.append(subprocess.Popen([sys.executable, '-I', str(TOOL), 'run', '--repo', str(job),
+                                                   '--sha', sha, '--fresh'], env=self.env,
+                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            deadline = time.monotonic() + CLI_HANG_GUARD_SECONDS
+            while not all((self.root / (job.name + '.ready')).exists() for job in jobs):
+                if any(p.poll() is not None for p in processes) or time.monotonic() > deadline:
+                    self.fail('both worktree gates did not enter their checks concurrently')
+                time.sleep(0.01)
+            for job in jobs:
+                self.assertTrue((job / '.tmp/gate/cache' / ('pin@' + pin[:12]) / 'pin/data').is_file())
+            release.touch()
+            for process in processes:
+                stdout, stderr = process.communicate(timeout=CLI_HANG_GUARD_SECONDS)
+                self.assertEqual(process.returncode, 0, stdout + stderr)
+        finally:
+            release.touch()
+            for process in processes:
+                if process.poll() is None:
+                    process.terminate()
+                process.communicate(timeout=CLI_HANG_GUARD_SECONDS)
+
+    def test_same_named_postchecks_keep_separate_input_passes(self):
+        # The first check passes, the second fails once. Its receipt must not be
+        # published by the first merely because their human-readable names match.
+        (self.repo / 'input').write_text('a')
+        failure = self.root / 'failed-once'
+        attempts = self.root / 'attempts'
+        command = ['sh', '-c', f'echo run >> {attempts}; if test -f {failure}; then exit 0; else touch {failure}; exit 1; fi']
+        extra = ('[[check]]\nname = "same"\nargv = ["true"]\ntier = "post-merge"\ninputs = ["input"]\n'
+                 '[[check]]\nname = "same"\nargv = ' + json.dumps(command) + '\ntier = "post-merge"\ninputs = ["input"]\n')
+        sha = self.adopt(extra)
+        self.assertEqual(self.run_gate(sha).returncode, 1)
+        (self.repo / 'product').write_text('another input tree')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'retry other product tree')
+        other = self.git('rev-parse', 'HEAD').strip()
+        result = self.run_gate(other)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(attempts.read_text(), 'run\nrun\n')
+        self.assertEqual(len(self.record(other)['checks']), 2)

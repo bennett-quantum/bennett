@@ -36,7 +36,7 @@ WIDTH_ENV = (
     "OMP_NUM_THREADS", "OMP_THREAD_LIMIT", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
     "NUMEXPR_NUM_THREADS", "GOMAXPROCS",
 )
-TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude"}
+TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude", "receipt"}
 CMD_KEYS = {"name", "argv", "env", "cwd"}
 SIB_KEYS = {"sha", "repo", "files", "build", "note"}
 BUILD_KEYS = {"name", "argv", "cwd", "outputs", "needs", "env"}
@@ -162,7 +162,14 @@ def load_config(root, sha):
     if not cfg.get("check"):
         raise GateError(f"{PIN_FILE}: at least one [[check]] is required; a gate that checks nothing is not a gate")
     for i, c in enumerate(cfg["check"]):
-        check_command(c, f"check[{i}]", CMD_KEYS)
+        check_command(c, f"check[{i}]", CMD_KEYS | {"tier", "inputs"})
+        if c.get("tier", "pre-merge") not in ("pre-merge", "post-merge"):
+            raise GateError(f"{PIN_FILE}: check[{i}] invalid tier {c['tier']!r}")
+        if "inputs" in c:
+            if c.get("tier") != "post-merge" or not isinstance(c["inputs"], list) or not c["inputs"]:
+                raise GateError(f"{PIN_FILE}: check[{i}] inputs requires a post-merge check and nonempty path list")
+            for entry in c["inputs"]:
+                validate_path(entry, "inputs")
     for i, c in enumerate(cfg.get("report", [])):
         check_command(c, f"report[{i}]", CMD_KEYS)
     for name, pin in cfg.get("siblings", {}).items():
@@ -174,7 +181,118 @@ def load_config(root, sha):
             for need in b.get("needs", []):
                 if need not in cfg["siblings"]:
                     raise GateError(f"{PIN_FILE}: siblings.{name}.build needs unpinned sibling {need}")
+    validate_exclusions(cfg)
     return cfg
+
+
+def validate_path(entry, where):
+    if (not isinstance(entry, str) or not entry or entry.startswith("/")
+            or ".." in entry or any(c in entry for c in "*?[]\\\n\r\0")
+            or entry.split("/")[0] in (".git", ".tmp") or "//" in entry  # .tmp stays visible in the sandbox
+            or entry.rstrip("/") in ("", ".") or "." in entry.split("/")):
+        raise GateError(f"{PIN_FILE}: {where} invalid path {entry!r}; use an exact relative path or directory prefix")
+
+
+def path_covers(entry, path):
+    return path == entry.rstrip("/") or (entry.endswith("/") and path.startswith(entry))
+
+
+def validate_exclusions(cfg):
+    receipt = cfg.get("receipt", {})
+    if not isinstance(receipt, dict):
+        raise GateError(f"{PIN_FILE}: receipt must be a table")
+    reject_unknown(receipt, {"non_product"}, "receipt")
+    entries = receipt.get("non_product", [])
+    if not isinstance(entries, list):
+        raise GateError(f"{PIN_FILE}: receipt.non_product must be a path list")
+    protected = [PIN_FILE, "scripts/pre-push"]
+    commands = cfg["check"] + cfg.get("report", [])
+    for cmd in commands:
+        protected.extend((cmd["argv"][0], cmd.get("cwd", ".")))
+    for cmd in cfg["check"]:
+        # Static defence (cheap, not complete): no check may name an excluded path in its argv or inputs. Reports may:
+        # they never decide the verdict and read excluded content from git by design.
+        for arg in cmd["argv"][1:]:
+            protected.extend(re.findall(r"[^\s:=,;'\"<>|&()]+", re.sub(r"\{[^{}]+\}/?", "", str(arg))))
+        protected.extend(cmd.get("inputs", []))
+    envs = [cfg.get("env", {})] + [c.get("env", {}) for c in commands]
+    for env in envs:
+        for value in env.values():
+            if not isinstance(value, str):
+                raise GateError(f"{PIN_FILE}: env template must be a string: {value!r}")
+            # Protect paths in every template, including sibling/layout and absolute paths.
+            protected.extend(re.findall(r"[^\s:=,;]+", re.sub(r"\{[^{}]+\}/?", "", value)))
+    protected = [re.sub(r"\{[^{}]+\}/?", "", p) for p in protected]
+    for entry in entries:
+        validate_path(entry, "receipt.non_product")
+        for path in protected:
+            path = path.strip("\"'").removeprefix("./")
+            if path_covers(entry.rstrip("/") + "/", path) or (path.startswith("/") and ("/" + entry.rstrip("/")) in path):
+                raise GateError(f"{PIN_FILE}: non_product entry {entry!r} covers protected path {path!r}")
+
+
+def local_state(root):
+    base = root / ".tmp/gate"
+    # Never follow legacy cache links, including dangling ones. Other state links are errors.
+    for parent in (root / ".tmp", base):
+        if parent.is_symlink():
+            raise GateError(f"gate state must be local: {parent} is a symlink")
+    for name in ("cache", "locks", "runs", "records"):
+        path = base / name
+        if path.is_symlink():
+            if name != "cache":
+                raise GateError(f"gate state must be local: {path} is a symlink")
+            say(f"replacing legacy cache symlink {path} with a private directory")
+            path.unlink()
+        path.mkdir(parents=True, exist_ok=True)
+
+
+def filtered_tree(root, sha, cfg):
+    entries = cfg.get("receipt", {}).get("non_product", [])
+    if not entries:
+        return git(root, "rev-parse", f"{sha}^{{tree}}")
+    listing = subprocess.run(["git", "-C", str(root), "ls-tree", "-rz", sha],
+                             check=True, capture_output=True, env=git_env()).stdout
+    removed = []
+    for item in listing.split(b"\0"):
+        if item:
+            path = os.fsdecode(item.split(b"\t", 1)[1])
+            if any(path_covers(e, path) for e in entries):
+                removed.append(os.fsencode(path))
+    with tempfile.TemporaryDirectory(dir=root / ".tmp/gate") as tmp:
+        env = dict(git_env(), GIT_INDEX_FILE=str(Path(tmp) / "index"))
+        def index_git(argv, data=None):
+            result = subprocess.run(["git", "-C", str(root), *argv], input=data,
+                                    capture_output=True, env=env)
+            if result.returncode:
+                raise GateError(f"filtered tree: {result.stderr.decode(errors='replace')}")
+            return result.stdout.decode().strip()
+        index_git(["read-tree", sha])
+        if removed:
+            index_git(["update-index", "--force-remove", "-z", "--stdin"], b"\0".join(removed) + b"\0")
+        return index_git(["write-tree"])
+
+
+def content_tree(root, sha, cfg):
+    tree = filtered_tree(root, sha, cfg)
+    if "receipt" not in cfg:
+        return tree  # Preserve installed pre-merge receipt keys exactly.
+    listing = subprocess.run(["git", "-C", str(root), "ls-tree", "-rtz", tree],
+                             check=True, capture_output=True, env=git_env()).stdout
+    return hashlib.sha256(listing).hexdigest()
+
+
+def run_commit(root, sha, cfg):
+    if not cfg.get("receipt", {}).get("non_product"):
+        return sha
+    tree = filtered_tree(root, sha, cfg)
+    env = dict(git_env(), GIT_AUTHOR_NAME="Gate", GIT_AUTHOR_EMAIL="gate@example.invalid",
+               GIT_COMMITTER_NAME="Gate", GIT_COMMITTER_EMAIL="gate@example.invalid")
+    z = subprocess.run(["git", "-C", str(root), "commit-tree", tree], input="Filtered gate input\n",
+                       capture_output=True, text=True, env=env)
+    if z.returncode:
+        raise GateError(f"synthetic commit: {z.stderr.strip()}")
+    return z.stdout.strip()
 
 
 def expand(text, ctx):
@@ -190,7 +308,7 @@ def base_env(tmpdir):
     env = {}
     scrubbed = []
     for k, v in os.environ.items():
-        if k in HEADLESS or k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "CARGO_TARGET_DIR"):
+        if k in HEADLESS or k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "CARGO_TARGET_DIR", "BENNETT_GATE_SHA"):
             continue
         if k.startswith("BENNETT_") and not k.startswith("BENNETT_GATE_"):
             scrubbed.append(k)
@@ -209,11 +327,21 @@ class Isolation:
     The workspace is rescanned for every command: sibling worktrees come and go while a gate runs for hours (a
     vanished one made every later bwrap fail; a new one would have stayed visible)."""
 
-    def __init__(self, workspace, own_roots):
+    def __init__(self, workspace, own_roots, masked=()):
         self.bwrap = os.environ.get("BENNETT_GATE_BWRAP", "bwrap")
+        # With non_product declared, the gating checkout's working tree is hidden (empty tmpfs) and only its .git and
+        # .tmp (gate state, run tree, caches) are bound back: excluded paths are uniformly absent, so neither their bytes,
+        # symlink text nor existence can reach a check through {root}, env templates or tracked symlinks (review r1/r2 P1).
+        self.hide_own_tree = bool(masked)
+        # The rebound .git would expose each own checkout's live, unfiltered index (review r3): cover it with an empty file,
+        # so a git read of the caller's index fails loudly instead of listing excluded paths.
+        self.own_indexes = [Path(git(r, "rev-parse", "--path-format=absolute", "--git-path", "index"))
+                            for r in own_roots] if self.hide_own_tree else []
         if not shutil.which(self.bwrap):
             raise GateError(f"isolation needs bwrap ({self.bwrap} not found); --no-isolate only with the omission recorded")
         self.workspace, self.own = Path(workspace), {Path(r).resolve() for r in own_roots}
+        self.git_dirs = {Path(git(r, "rev-parse", "--path-format=absolute", "--git-common-dir")).resolve()
+                         for r in self.own}
         z = subprocess.run([*self.argv(), "true"], capture_output=True, text=True)
         if z.returncode != 0:
             raise GateError(f"isolation probe failed: {z.stderr.strip()}; --no-isolate only with the omission recorded")
@@ -229,11 +357,40 @@ class Isolation:
             prefix += ["--tmpfs", str(entry)]
             # --bind-try: a worktree removed between this scan and bwrap's start is absent, not a setup failure.
             prefix += ["--bind-try", str(entry / ".git"), str(entry / ".git")]
+            for common in self.git_dirs:
+                if common.is_relative_to(entry) and common != entry / ".git":
+                    prefix += ["--bind-try", str(common), str(common)]
+        if self.hide_own_tree:
+            for root in sorted(self.own):
+                prefix += ["--tmpfs", str(root), "--bind", str(root / ".tmp"), str(root / ".tmp"),
+                           "--bind-try", str(root / ".git"), str(root / ".git")]
+            for index in self.own_indexes:
+                if index.exists():
+                    prefix += ["--ro-bind", "/dev/null", str(index)]
         return prefix
 
 
-def isolation_prefix(workspace, own_roots):
-    return Isolation(workspace, own_roots)
+class ReadOnlyView:
+    """Sandbox for [[report]] commands: the whole visible filesystem read-only except this invocation's run layout
+    (removed at cleanup). A report holds BENNETT_GATE_SHA and so can read non_product content; it must not be able to
+    leave anything a later check or build reads (review e8f P1: a report staged excluded bytes in a persistent target
+    dir). Host-writable submounts outside the gate's own binds (e.g. /dev/shm, /run) are out of this model, like
+    deliberate reads of historical git objects."""
+
+    def __init__(self, isolation, layout):
+        self.isolation, self.layout = isolation, Path(layout)
+
+    def argv(self):
+        prefix = self.isolation.argv()
+        readonly = ["--remount-ro", "/"]
+        for i, arg in enumerate(prefix):
+            if arg in ("--bind", "--bind-try"):
+                readonly += ["--ro-bind-try", prefix[i + 1], prefix[i + 2]]
+        return prefix + readonly + ["--bind", str(self.layout), str(self.layout)]
+
+
+def isolation_prefix(workspace, own_roots, masked=()):
+    return Isolation(workspace, own_roots, masked)
 
 
 class ResourceProcess(subprocess.Popen):
@@ -338,6 +495,7 @@ class Siblings:
     """Detached worktrees of pinned commits under <repo>/.tmp/gate/cache/<name>@<sha12>/<name>."""
 
     def __init__(self, cfg, root, workspace):
+        local_state(root)
         self.pins = cfg.get("siblings", {})
         self.workspace = workspace
         self.cache = root / ".tmp/gate/cache"
@@ -495,31 +653,36 @@ def prepare(root, workspace, sha, args, live=False, cfg=None, prefix=None):
     if cfg["tool_sha_ran"] is not None and cfg["tool_sha_ran"] != cfg["tool_sha"]:
         say(f"{sha} pins tool_sha {cfg['tool_sha']}, an ancestor of the running {cfg['tool_sha_ran']}: running the newer tool")
     if prefix is None:
-        prefix = [] if getattr(args, "no_isolate", False) or live else isolation_prefix(workspace, [root])
+        prefix = [] if getattr(args, "no_isolate", False) or live else isolation_prefix(
+            workspace, [root], cfg.get("receipt", {}).get("non_product", []))
     if getattr(args, "no_isolate", False) or live:
         if not live:
             say("ISOLATION OFF: absolute reads of live sibling trees would go undetected; this run is not a push gate")
     sibs = Siblings(cfg, root, workspace)
-    if not live:
-        for name in sibs.pins:
-            sibs.materialise(name)
-        for name in sibs.pins:
-            sibs.build(name, prefix)
     layout = root / ".tmp/gate/runs" / sha
     wt = layout / cfg["repo"]
     remove_worktree(root, wt)
     shutil.rmtree(layout, ignore_errors=True)
     layout.mkdir(parents=True)
-    git(root, "worktree", "add", "--detach", str(wt), sha)
-    ctx = {"wt": wt, "root": root, "layout": layout}
-    for name in sibs.pins:
-        target = sibs.owner(name) if live else sibs.path(name)
-        (layout / name).symlink_to(target)
-        ctx[f"sibling:{name}"] = target
-    env = base_env(wt / ".tmp/gate-tmp")
-    env["BENNETT_GATE_LAYOUT"] = str(layout)
-    env.update({k: expand(v, ctx) for k, v in cfg.get("env", {}).items()})
-    return cfg, sibs, prefix, layout, wt, ctx, env
+    try:
+        git(root, "worktree", "add", "--detach", str(wt), run_commit(root, sha, cfg))
+        if not live:
+            for name in sibs.pins:
+                sibs.materialise(name)
+            for name in sibs.pins:
+                sibs.build(name, prefix)
+        ctx = {"wt": wt, "root": root, "layout": layout}
+        for name in sibs.pins:
+            target = sibs.owner(name) if live else sibs.path(name)
+            (layout / name).symlink_to(target)
+            ctx[f"sibling:{name}"] = target
+        env = base_env(wt / ".tmp/gate-tmp")
+        env["BENNETT_GATE_LAYOUT"] = str(layout)
+        env.update({k: expand(v, ctx) for k, v in cfg.get("env", {}).items()})
+        return cfg, sibs, prefix, layout, wt, ctx, env
+    except BaseException:
+        cleanup(root, layout, wt, False)
+        raise
 
 
 def cleanup(root, layout, wt, keep):
@@ -569,45 +732,133 @@ def read_pass_receipt(path, key, tree):
         return None
 
 
+def atomic_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, pending = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".tmp")
+    try:
+        with os.fdopen(fd, "w") as out:
+            out.write(json.dumps(value, indent=1) + "\n")
+        os.replace(pending, path)
+    finally:
+        Path(pending).unlink(missing_ok=True)
+
+
+def disk_bytes(path):
+    """Allocated local disk; do not follow cache links or count hardlinks twice."""
+    seen, size = set(), 0
+    for directory, dirs, files in os.walk(path, followlinks=False):
+        for name in files:
+            file = Path(directory) / name
+            stat = file.lstat()
+            key = (stat.st_dev, stat.st_ino)
+            if key not in seen and not file.is_symlink():
+                seen.add(key)
+                size += stat.st_blocks * 512
+    return size
+
+
+def tier_key(tree, cfg, isolated, tier):
+    parts = [tree, cfg["tool_sha_ran"], isolated]
+    if tier != "pre-merge" or "receipt" in cfg:
+        parts.append(tier)
+    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()
+
+
+def inputs_key(root, sha, cfg, check, isolated):
+    tree = filtered_tree(root, sha, cfg)
+    listing = subprocess.run(["git", "-C", str(root), "ls-tree", "-rz", tree],
+                             check=True, capture_output=True, env=git_env()).stdout
+    selected = [os.fsdecode(item) for item in listing.split(b"\0") if item and any(
+        (os.fsdecode(item.split(b"\t", 1)[1]) == e.rstrip("/") or
+         os.fsdecode(item.split(b"\t", 1)[1]).startswith(e.rstrip("/") + "/")) for e in check["inputs"])]
+    parts = [selected, cfg.get("siblings", {}), cfg.get("env", {}), check, cfg["tool_sha_ran"], isolated]
+    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()
+
+
 def gate_one(root, workspace, sha, args):
+    local_state(root)
     with Lock(root / ".tmp/gate/locks" / f"run-{sha}", blocking=False):
         started = receipt_probe("setup_seconds", lambda: time.monotonic())
         cfg = run_config(root, workspace, sha, args)
-        prefix = [] if getattr(args, "no_isolate", False) else isolation_prefix(workspace, [root])
-        tree = git(root, "rev-parse", f"{sha}^{{tree}}")
-        receipt_path = None
-        if cfg["tool_sha_ran"] is not None:
-            key = hashlib.sha256(json.dumps([tree, cfg["tool_sha_ran"], bool(prefix)], sort_keys=True).encode()).hexdigest()
-            receipt_path = workspace / cfg["repo"] / ".tmp/gate/receipts" / f"{key}.json"
+        prefix = [] if getattr(args, "no_isolate", False) else isolation_prefix(
+            workspace, [root], cfg.get("receipt", {}).get("non_product", []))
+        tree = content_tree(root, sha, cfg)
+        tier = getattr(args, "tier", "pre-merge")
+        fresh = getattr(args, "fresh", False)
+        receipts = workspace / cfg["repo"] / ".tmp/gate/receipts"
+        def path_for(t):
+            key = tier_key(tree, cfg, bool(prefix), t)
+            return receipts / f"{key}.json", key
+        receipt_path, key = path_for(tier)
+        enabled = cfg["tool_sha_ran"] is not None
         record = {"sha": sha, "repo": cfg["repo"], "tool_sha": cfg["tool_sha"],
-                  "tool_sha_ran": cfg["tool_sha_ran"], "isolated": bool(prefix)}
-        records = root / ".tmp/gate/records"
-        records.mkdir(parents=True, exist_ok=True)
-        record_path = records / f"{sha}.json"
-        if getattr(args, "fresh", False):
+                  "tool_sha_ran": cfg["tool_sha_ran"], "isolated": bool(prefix), "tier": tier,
+                  "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                  "tiers_ran": [], "tiers_covered": [], "deferred": []}
+        record_path = root / ".tmp/gate/records" / f"{sha}.json"
+        if fresh:
             record["fresh"] = True
-        elif receipt_path is not None:
+        elif enabled:
             receipt = read_pass_receipt(receipt_path, key, tree)
             if receipt is not None:
                 record.update(result="pass", finished_utc=receipt["finished_utc"],
-                              covered_by={"sha": receipt["sha"], "receipt": str(receipt_path)})
-                record_path.write_text(json.dumps(record, indent=1) + "\n")
+                              tiers_covered=[tier], covered_by={"sha": receipt["sha"], "receipt": str(receipt_path)})
+                atomic_json(record_path, record)
                 say(f"PASS {sha} covered by receipt {receipt_path}: tree {tree[:12]} "
                     f"gated as {receipt['sha'][:12]} at {receipt['finished_utc']}")
                 return 0
+        pre_path, pre_key = path_for("pre-merge")
+        pre = (read_pass_receipt(pre_path, pre_key, tree)
+               if enabled and not fresh and tier == "full" else None)
+        if pre:
+            record["tiers_covered"].append("pre-merge")
+            record["pre_merge_covered_by"] = {"sha": pre["sha"], "receipt": str(pre_path)}
+        selected, input_receipts = [], {}
+        for c in cfg["check"]:
+            ct = c.get("tier", "pre-merge")
+            if ct == "pre-merge":
+                if not pre:
+                    selected.append(c)
+                continue
+            if "inputs" in c and enabled:
+                ikey = inputs_key(root, sha, cfg, c, bool(prefix))
+                ipath = receipts / f"inputs-{ikey}.json"
+                input_receipts[json.dumps(c, sort_keys=True)] = (ipath, ikey)
+                previous = read_pass_receipt(ipath, ikey, ikey) if not fresh else None
+            else:
+                previous = None
+            if tier == "full" or ("inputs" in c and previous is None):
+                selected.append(c)
+            else:
+                reason = (f"deferred to post-merge, inputs unchanged since {previous['sha']}"
+                          if previous else "deferred to post-merge")
+                record["deferred"].append({"name": c["name"], "reason": reason})
+                say(f"{c['name']}: {reason}")
         machine = receipt_probe("machine", machine_profile)
         cfg, sibs, prefix, layout, wt, ctx, env = prepare(root, workspace, sha, args, cfg=cfg, prefix=prefix)
         setup_seconds = elapsed_seconds("setup_seconds", started)
-        timeout = cfg.get("timeout_s")
         say(f"gating {sha} of {cfg['repo']} in {wt}")
-        for name, note in sibs.notes.items():
-            say(f"pin {name} = {note['sha']}")
         try:
-            checks = run_commands(cfg["check"], wt, env, ctx, prefix, timeout, "check")
-            passed = len(checks) == len(cfg["check"]) and all(c["exit"] == 0 for c in checks)
-            reports = run_commands(cfg.get("report", []), wt, env, ctx, prefix, timeout, "report")
+            checks = run_commands(selected, wt, env, ctx, prefix, cfg.get("timeout_s"), "check")
+            for c, result in zip(selected, checks):
+                ct = c.get("tier", "pre-merge")
+                result["tier"] = ct
+                if ct not in record["tiers_ran"]:
+                    record["tiers_ran"].append(ct)
+                if result["exit"] == 0 and json.dumps(c, sort_keys=True) in input_receipts:
+                    ipath, ikey = input_receipts[json.dumps(c, sort_keys=True)]
+                    atomic_json(ipath, dict(record, result="pass", tree=ikey, key=ikey,
+                                           finished_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
+            passed = len(checks) == len(selected) and all(c["exit"] == 0 for c in checks)
+            # Reports never decide the verdict, so only they get the real gated commit (e.g. to read a non_product beads
+            # export from git); checks run on the filtered tree alone.
+            report_prefix = ReadOnlyView(prefix, layout) if prefix else prefix
+            report_env = dict(env, BENNETT_GATE_SHA=sha) if prefix else env  # unisolated: no read-only view, no handle
+            reports = run_commands(cfg.get("report", []), wt, report_env, ctx, report_prefix,
+                                   cfg.get("timeout_s"), "report")
             for r in reports:
                 print(f"gate: report {r['name']} exited {r['exit']} (evidence, never the gate's exit)", flush=True)
+            run_disk = receipt_probe("disk_bytes", lambda: disk_bytes(root / ".tmp"))
         finally:
             cleanup(root, layout, wt, getattr(args, "keep", False))
         record.update({
@@ -616,18 +867,15 @@ def gate_one(root, workspace, sha, args):
             "siblings": {name: {**note, "cache_state": receipt_probe(
                 f"siblings.{name}.cache_state", lambda: note["cache_state"])}
                 for name, note in sibs.notes.items()},
-            "checks": checks, "reports": reports, "result": "pass" if passed else "fail",
+            "checks": checks, "reports": reports, "disk_bytes": run_disk,
+            "result": "pass" if passed else "fail",
             "finished_utc": receipt_probe("finished_utc", lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
         })
-        record_path.write_text(json.dumps(record, indent=1) + "\n")
-        if passed and receipt_path is not None:
-            receipt_path.parent.mkdir(parents=True, exist_ok=True)
-            pending = receipt_path.with_suffix(f".tmp{os.getpid()}")
-            try:
-                pending.write_text(json.dumps(dict(record, tree=tree, key=key), indent=1) + "\n")
-                pending.replace(receipt_path)
-            finally:
-                pending.unlink(missing_ok=True)
+        atomic_json(record_path, record)
+        if passed and enabled:
+            atomic_json(receipt_path, dict(record, tree=tree, key=key))
+            if tier == "full" and not pre:
+                atomic_json(pre_path, dict(record, tier="pre-merge", tree=tree, key=pre_key))
         say(f"{'PASS' if passed else 'FAIL'} {sha}")
         return 0 if passed else EXIT_FAIL
 
@@ -790,6 +1038,7 @@ def main():
         if name in ("run", "verify"):
             p.add_argument("--no-isolate", action="store_true")
         if name == "run":
+            p.add_argument("--tier", choices=("pre-merge", "full"), default="pre-merge")
             p.add_argument("--keep", action="store_true")
             p.add_argument("--fresh", action="store_true", help="run checks even when a PASS receipt covers this tree")
             p.add_argument("--tool-sha")

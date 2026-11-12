@@ -16,8 +16,8 @@ import sys
 import tomllib
 
 META = Path(sys.argv.pop(1)).resolve().parents[1]
-TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude"}
-CMD_KEYS = {"name", "argv", "env", "cwd"}
+TOP_KEYS = {"schema", "repo", "tool_sha", "timeout_s", "env", "check", "report", "siblings", "scan_exclude", "receipt"}
+CMD_KEYS = {"name", "argv", "env", "cwd", "tier", "inputs"}
 BUILD_KEYS = CMD_KEYS | {"outputs", "needs"}
 SIB_KEYS = {"sha", "repo", "files", "build", "note"}
 # These are gate/Beads infrastructure, rather than a second per-repo tool list.
@@ -443,9 +443,18 @@ def collect_toolchains(path, inventory):
             inventory.tool("cmake", str(path))
 
 
+# Pinned sibling commits are immutable and some hardcode the old host's toolchain paths (e.g. bennett-dialect-spec
+# 1c29c8d corpus/legality/toolchains.toml). These links replace the old bind mount; nothing else under /home/tobias.
+LEGACY_TOOLCHAIN_LINKS = (Path("/home/tobias/.rustup"), Path("/home/tobias/.julia"))
+
+
 def check_infrastructure(inventory):
     for name in INFRASTRUCTURE:
         inventory.tool(name, "gate / Beads infrastructure")
+    for link in LEGACY_TOOLCHAIN_LINKS:
+        if not link.is_dir():
+            inventory.gap(str(link), "legacy toolchain path read by pinned sibling commits: as root, "
+                          f"ln -s $HOME/{link.name} {link}", ())
     probes = {
         "bwrap": ["--dev-bind", "/", "/", "--die-with-parent", "--", "/bin/true"],
         "systemd-run": ["--user", "--quiet", "--wait", "--pipe", "/bin/true"],
