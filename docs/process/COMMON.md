@@ -33,4 +33,4 @@ Other files may add what is specific to one repo; they never restate or override
    vendors can come and write their own impls!" Log each such landing in docs/process/trial-exception.tsv; a later
    session drops this unless it paid for itself.
 13. Reasoning effort fits the task: high by default, maximum only for hard design or analysis.
-14. One orchestrator talks to the maintainer directly; there is no standing advisor layer.
+14. A persistent advisor holds the overall picture and talks to the maintainer; it launches targeted orchestrations, each with one goal, and does not run every implementer itself.
