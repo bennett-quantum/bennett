@@ -1,5 +1,12 @@
 # HANDOFF — Bennett ecosystem
 
+> **2026-11-13: work here is paused.** The project restarted in one repository,
+> [`bennett-core`](https://github.com/bennett-quantum/bennett-core), grown from the thesis program outward, as a
+> trial of a different way of working. Start there and read its `HANDOFF.md`. Everything below describes the state
+> on 2026-11-12: the lanes, queues, gates and rules are not being worked, and are not to be resumed, repaired or
+> updated unless the maintainer says so. The North Star has a newer iteration, 8, in
+> `bennett-core/docs/NorthStar.md`; the copy in this repository is iteration 7.
+
 Current-state checkpoint: 2026-11-12 (laptop session; see "2026-11-12 session" below). Workflow reform 2026-11-11; product lanes as of 2026-11-09 unless that section says otherwise. Beads triaged 2026-11-11: deferred
 beads carry label `triage-2026-11-11`; `bd ready` shows what blocks a rung. Recheck live Beads.
 
